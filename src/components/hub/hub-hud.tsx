@@ -13,9 +13,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { PlayerPortrait } from '@/components/avatar/player-portrait';
 import { AppText } from '@/components/ui/app-text';
-import { GameButton } from '@/components/ui/game-button';
 import { ProgressBar } from '@/components/ui/progress-bar';
-import type { BuildingDef } from '@/components/world/world-config';
 import { Colors, Fonts, Radius } from '@/constants/theme';
 import { levelProgress } from '@/lib/progress';
 import type { User } from '@/types';
@@ -62,41 +60,6 @@ function OnlinePill({ count }: { count: number }) {
       <Animated.View style={[styles.onlineDot, dotStyle]} />
       <AppText style={styles.pillText}>{count} online</AppText>
     </View>
-  );
-}
-
-export function HubDock({ onLessons, onRanking }: { onLessons: () => void; onRanking: () => void }) {
-  const insets = useSafeAreaInsets();
-  return (
-    <View style={[styles.dock, { paddingBottom: insets.bottom + 12 }]} pointerEvents="box-none">
-      <GameButton
-        title="Lessons"
-        icon="flask"
-        onPress={onLessons}
-        colors={{ face: '#7C4DFF', edge: '#4520B0', ink: '#FFFFFF' }}
-        style={styles.dockButton}
-      />
-      <GameButton title="Ranking" icon="trophy" onPress={onRanking} variant="gold" style={styles.dockButton} />
-    </View>
-  );
-}
-
-/** Floats above the dock while you stand at a building's door. */
-export function EnterPrompt({ building, onEnter }: { building: BuildingDef; onEnter: () => void }) {
-  const insets = useSafeAreaInsets();
-  return (
-    <Animated.View
-      entering={FadeInDown.springify().damping(16)}
-      exiting={FadeOutDown.duration(180)}
-      style={[styles.floating, { bottom: insets.bottom + 92 }]}>
-      <GameButton
-        title={`Enter ${building.label}`}
-        icon="door-open"
-        size="md"
-        onPress={onEnter}
-        colors={{ face: Colors.lime, edge: Colors.limeDark, ink: Colors.limeInk }}
-      />
-    </Animated.View>
   );
 }
 
@@ -163,17 +126,6 @@ const styles = StyleSheet.create({
   },
   onlineDot: { width: 9, height: 9, borderRadius: 5, backgroundColor: Colors.success },
   pillText: { fontFamily: Fonts.semibold, fontSize: 13, lineHeight: 17 },
-  dock: {
-    position: 'absolute',
-    left: 0,
-    right: 0,
-    bottom: 0,
-    flexDirection: 'row',
-    gap: 12,
-    paddingHorizontal: 16,
-    paddingTop: 12,
-  },
-  dockButton: { flex: 1 },
   floating: { position: 'absolute', left: 16, right: 16 },
   hint: {
     ...panel,
