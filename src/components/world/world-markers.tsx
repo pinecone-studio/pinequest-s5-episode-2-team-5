@@ -14,10 +14,10 @@ import { Colors, Fonts } from '@/constants/theme';
 
 import type { BuildingDef } from './world-config';
 
-export const PLATE_OFFSET = 42;
+export const PLATE_OFFSET = 22;
 
 /** Floating sign above a building. */
-export function NamePlate({ building }: { building: BuildingDef }) {
+export function NamePlate({ building, scale = 1 }: { building: BuildingDef; scale?: number }) {
   const bob = useSharedValue(0);
   useEffect(() => {
     bob.set(withRepeat(withTiming(1, { duration: 1500, easing: Easing.inOut(Easing.sin) }), -1, true));
@@ -25,17 +25,24 @@ export function NamePlate({ building }: { building: BuildingDef }) {
   const style = useAnimatedStyle(() => ({ transform: [{ translateY: -bob.get() * 4 }] }));
 
   const { rect } = building;
+  const lift = building.id === 'lessons' || building.id === 'ranking' ? 14 : 0;
   return (
     <Animated.View
       pointerEvents="none"
-      style={[styles.plateWrap, { left: rect.x, top: rect.y - PLATE_OFFSET, width: rect.w }, style]}>
-      <View style={[styles.plate, { borderColor: building.color }]}>
-        <View style={[styles.plateIcon, { backgroundColor: building.color }]}>
-          <MaterialCommunityIcons name={building.icon} size={15} color="#FFFFFF" />
+      style={[
+        styles.plateWrap,
+        { left: rect.x, top: rect.y + rect.h * (1 - scale) - PLATE_OFFSET - lift, width: rect.w },
+        style,
+      ]}>
+      <View style={[styles.plateScale, { transform: [{ scale }] }]}>
+        <View style={[styles.plate, { borderColor: building.color }]}>
+          <View style={[styles.plateIcon, { backgroundColor: building.color }]}>
+            <MaterialCommunityIcons name={building.icon} size={15} color="#FFFFFF" />
+          </View>
+          <AppText style={styles.plateText}>{building.label}</AppText>
         </View>
-        <AppText style={styles.plateText}>{building.label}</AppText>
+        <View style={[styles.plateTail, { borderTopColor: building.color }]} />
       </View>
-      <View style={[styles.plateTail, { borderTopColor: building.color }]} />
     </Animated.View>
   );
 }
@@ -55,6 +62,7 @@ export function TapMarker({ x, y }: { x: number; y: number }) {
 
 const styles = StyleSheet.create({
   plateWrap: { position: 'absolute', alignItems: 'center', zIndex: 5000 },
+  plateScale: { width: '100%', alignItems: 'center' },
   plate: {
     flexDirection: 'row',
     alignItems: 'center',

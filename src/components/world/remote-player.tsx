@@ -21,6 +21,7 @@ interface RemotePlayerProps {
   player: PublicPlayer;
   grid: NavGrid;
   start: Point;
+  scale: number;
   /** True while the hub is covered by another screen; the avatar stops picking new moves. */
   paused: boolean;
   /** Lets the hub hit-test and talk to this avatar. */
@@ -31,7 +32,7 @@ interface RemotePlayerProps {
  * Another player in the hub. For now a simple wander/visit-a-building loop drives it;
  * with a realtime backend, call `walker.walk(findPath(...))` with positions from the server instead.
  */
-export function RemotePlayer({ player, grid, start, paused, register }: RemotePlayerProps) {
+export function RemotePlayer({ player, grid, start, scale, paused, register }: RemotePlayerProps) {
   // Slight speed differences keep the crowd from moving in lockstep.
   const walker = useWalker(start, 105 + ((player.nickname.length * 7) % 30));
   const [bubble, setBubble] = useState<string | null>(null);
@@ -98,6 +99,12 @@ export function RemotePlayer({ player, grid, start, paused, register }: RemotePl
   }, []);
 
   return (
-    <WalkerView walker={walker} look={lookFor(player.nickname, player.classId)} nickname={player.nickname} bubble={bubble} />
+    <WalkerView
+      walker={walker}
+      look={lookFor(player.nickname, player.classId)}
+      nickname={player.nickname}
+      scale={scale}
+      bubble={bubble}
+    />
   );
 }
