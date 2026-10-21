@@ -101,14 +101,13 @@ interface WalkerViewProps {
   walker: Walker;
   look: AvatarLook;
   nickname: string;
-  scale?: number;
   isPlayer?: boolean;
   /** Short line shown in a speech bubble. */
   bubble?: string | null;
 }
 
 /** Renders an avatar at its walker's feet position, with bounce, facing and a name tag. */
-export function WalkerView({ walker, look, nickname, scale = 1, isPlayer = false, bubble }: WalkerViewProps) {
+export function WalkerView({ walker, look, nickname, isPlayer = false, bubble }: WalkerViewProps) {
   const { x, y, moving, facing, odometer, opacity } = walker;
   const idle = useSharedValue(0);
 
@@ -137,43 +136,33 @@ export function WalkerView({ walker, look, nickname, scale = 1, isPlayer = false
 
   return (
     <Animated.View pointerEvents="none" style={[styles.box, boxStyle]}>
-      <View style={[styles.contents, { top: (BOX_HEIGHT * (1 - scale)) / 2, transform: [{ scale }] }]}>
-        {bubble ? (
-          <View style={styles.bubble}>
-            <AppText variant="caption" color={Colors.night} style={styles.bubbleText} numberOfLines={2}>
-              {bubble}
-            </AppText>
-            <View style={styles.bubbleTail} />
-          </View>
-        ) : null}
-        <View style={[styles.tag, isPlayer && styles.playerTag]}>
-          <View style={[styles.tagDot, { backgroundColor: look.shirt }]} />
-          <AppText style={[styles.tagText, isPlayer && styles.playerTagText]} numberOfLines={1}>
-            {nickname}
+      {bubble ? (
+        <View style={styles.bubble}>
+          <AppText variant="caption" color={Colors.night} style={styles.bubbleText} numberOfLines={2}>
+            {bubble}
           </AppText>
+          <View style={styles.bubbleTail} />
         </View>
-        <View style={styles.feet}>
-          {isPlayer && <View style={styles.playerRing} />}
-          <View style={styles.shadow} />
-        </View>
-        <Animated.View style={[styles.body, bodyStyle]}>
-          <Scientist look={look} height={SPRITE_HEIGHT} />
-        </Animated.View>
+      ) : null}
+      <View style={[styles.tag, isPlayer && styles.playerTag]}>
+        <View style={[styles.tagDot, { backgroundColor: look.shirt }]} />
+        <AppText style={[styles.tagText, isPlayer && styles.playerTagText]} numberOfLines={1}>
+          {nickname}
+        </AppText>
       </View>
+      <View style={styles.feet}>
+        {isPlayer && <View style={styles.playerRing} />}
+        <View style={styles.shadow} />
+      </View>
+      <Animated.View style={[styles.body, bodyStyle]}>
+        <Scientist look={look} height={SPRITE_HEIGHT} />
+      </Animated.View>
     </Animated.View>
   );
 }
 
 const styles = StyleSheet.create({
   box: {
-    position: 'absolute',
-    left: 0,
-    top: 0,
-    width: BOX_WIDTH,
-    height: BOX_HEIGHT,
-    alignItems: 'center',
-  },
-  contents: {
     position: 'absolute',
     left: 0,
     top: 0,

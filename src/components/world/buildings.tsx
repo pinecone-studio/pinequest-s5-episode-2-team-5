@@ -26,22 +26,12 @@ function useLoop(duration: number) {
   return t;
 }
 
-export function BuildingSprite({ building, scale = 1 }: { building: BuildingDef; scale?: number }) {
+export function BuildingSprite({ building }: { building: BuildingDef }) {
   const { rect } = building;
   return (
     <View
       pointerEvents="none"
-      style={[
-        styles.sprite,
-        {
-          left: rect.x,
-          top: rect.y + (rect.h * (1 - scale)) / 2,
-          width: rect.w,
-          height: rect.h,
-          transform: [{ scale }],
-          zIndex: rect.y + rect.h,
-        },
-      ]}>
+      style={[styles.sprite, { left: rect.x, top: rect.y, width: rect.w, height: rect.h, zIndex: rect.y + rect.h }]}>
       {building.id === 'lessons' ? <LessonsHall /> : building.id === 'ranking' ? <RankingTower /> : <HubHouse building={building} />}
     </View>
   );

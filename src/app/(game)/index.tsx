@@ -33,8 +33,9 @@ import {
   worldObstacles,
   type BuildingDef,
   type Point,
+  type Rect,
 } from '@/components/world/world-config';
-import { NamePlate, TapMarker } from '@/components/world/world-markers';
+import { NamePlate, PLATE_OFFSET, TapMarker } from '@/components/world/world-markers';
 import { useSession } from '@/context/session';
 import { lookFor } from '@/lib/avatar-look';
 import { haptics } from '@/lib/haptics';
@@ -52,54 +53,9 @@ const GRID = buildNavGrid(worldObstacles(), {
   reachableFrom: SPAWN,
 });
 
-const MAP_SPRITE_SCALE = 0.6;
-
-const BUILDING_HIT_SHAPES: Record<BuildingDef['id'], readonly (readonly Point[])[]> = {
-  lessons: [[
-    { x: 150, y: 50 }, { x: 278, y: 116 }, { x: 278, y: 130 }, { x: 262, y: 130 },
-    { x: 262, y: 240 }, { x: 274, y: 240 }, { x: 274, y: 266 }, { x: 26, y: 266 },
-    { x: 26, y: 240 }, { x: 38, y: 240 }, { x: 38, y: 130 }, { x: 22, y: 130 }, { x: 22, y: 116 },
-  ]],
-  ranking: [
-    [
-      { x: 12, y: 308 }, { x: 178, y: 308 }, { x: 178, y: 280 }, { x: 150, y: 284 },
-      { x: 142, y: 120 }, { x: 158, y: 122 }, { x: 158, y: 104 }, { x: 136, y: 104 },
-      { x: 136, y: 96 }, { x: 132, y: 74 }, { x: 126, y: 60 }, { x: 114, y: 50 },
-      { x: 95, y: 44 }, { x: 76, y: 50 }, { x: 64, y: 60 }, { x: 58, y: 74 },
-      { x: 54, y: 96 }, { x: 54, y: 104 }, { x: 32, y: 104 }, { x: 32, y: 122 },
-      { x: 48, y: 120 }, { x: 40, y: 284 }, { x: 12, y: 280 },
-    ],
-    [
-      { x: 66, y: 7 }, { x: 124, y: 7 }, { x: 124, y: 24 }, { x: 120, y: 31 },
-      { x: 108, y: 37 }, { x: 108, y: 47 }, { x: 82, y: 47 }, { x: 82, y: 37 },
-      { x: 70, y: 31 }, { x: 66, y: 24 },
-    ],
-  ],
-  versus: [
-    [
-      { x: 100, y: 37 }, { x: 192, y: 105 }, { x: 195, y: 100 }, { x: 195, y: 113 },
-      { x: 173, y: 113 }, { x: 173, y: 227 }, { x: 187, y: 223 }, { x: 187, y: 248 },
-      { x: 13, y: 248 }, { x: 13, y: 223 }, { x: 27, y: 227 }, { x: 27, y: 113 },
-      { x: 5, y: 113 }, { x: 5, y: 100 }, { x: 8, y: 105 },
-    ],
-  ],
-  friendly: [
-    [
-      { x: 100, y: 37 }, { x: 192, y: 105 }, { x: 195, y: 100 }, { x: 195, y: 113 },
-      { x: 173, y: 113 }, { x: 173, y: 227 }, { x: 187, y: 223 }, { x: 187, y: 248 },
-      { x: 13, y: 248 }, { x: 13, y: 223 }, { x: 27, y: 227 }, { x: 27, y: 113 },
-      { x: 5, y: 113 }, { x: 5, y: 100 }, { x: 8, y: 105 },
-    ],
-  ],
-  openlab: [
-    [
-      { x: 100, y: 37 }, { x: 192, y: 105 }, { x: 195, y: 100 }, { x: 195, y: 113 },
-      { x: 173, y: 113 }, { x: 173, y: 227 }, { x: 187, y: 223 }, { x: 187, y: 248 },
-      { x: 13, y: 248 }, { x: 13, y: 223 }, { x: 27, y: 227 }, { x: 27, y: 113 },
-      { x: 5, y: 113 }, { x: 5, y: 100 }, { x: 8, y: 105 },
-    ],
-  ],
-};
+const MAP_ZOOM = 1.35;
+const MAP_ORIGIN_X = (WORLD.width / 2) * (1 - MAP_ZOOM);
+const MAP_ORIGIN_Y = (WORLD.height / 2) * (1 - MAP_ZOOM);
 
 const crowdRandom = seededRandom(11);
 const CROWD_STARTS = Array.from({ length: 12 }, () =>
@@ -113,32 +69,8 @@ function cameraOffset(target: number, viewport: number, world: number) {
   return Math.min(0, Math.max(viewport - world, viewport / 2 - target));
 }
 
-function pointInPolygon(point: Point, polygon: readonly Point[]) {
-  let inside = false;
-  for (let i = 0, j = polygon.length - 1; i < polygon.length; j = i++) {
-    const current = polygon[i];
-    const previous = polygon[j];
-    const onEdge =
-      Math.abs((point.y - previous.y) * (current.x - previous.x) - (point.x - previous.x) * (current.y - previous.y)) < 0.001 &&
-      point.x >= Math.min(previous.x, current.x) && point.x <= Math.max(previous.x, current.x) &&
-      point.y >= Math.min(previous.y, current.y) && point.y <= Math.max(previous.y, current.y);
-    if (onEdge) return true;
-
-    const crosses =
-      (current.y > point.y) !== (previous.y > point.y) &&
-      point.x < ((previous.x - current.x) * (point.y - current.y)) / (previous.y - current.y) + current.x;
-    if (crosses) inside = !inside;
-  }
-  return inside;
-}
-
-function isOnBuilding(building: BuildingDef, point: Point) {
-  const { rect } = building;
-  const localPoint = {
-    x: (point.x - rect.x - (rect.w * (1 - MAP_SPRITE_SCALE)) / 2) / MAP_SPRITE_SCALE,
-    y: (point.y - rect.y - rect.h * (1 - MAP_SPRITE_SCALE)) / MAP_SPRITE_SCALE,
-  };
-  return BUILDING_HIT_SHAPES[building.id].some((shape) => pointInPolygon(localPoint, shape));
+function inRect(p: Point, r: Rect) {
+  return p.x >= r.x && p.x <= r.x + r.w && p.y >= r.y && p.y <= r.y + r.h;
 }
 
 export default function HubScreen() {
@@ -149,9 +81,6 @@ export default function HubScreen() {
 function Hub({ user }: { user: User }) {
   const { signOut } = useSession();
   const { width, height } = useWindowDimensions();
-  const mapZoom = width / WORLD.width;
-  const mapOriginX = (WORLD.width / 2) * (1 - mapZoom);
-  const mapOriginY = (WORLD.height / 2) * (1 - mapZoom);
   const player = useWalker(SPAWN);
   const crowd = useHubPresence(user);
   const focused = useIsFocused();
@@ -166,10 +95,10 @@ function Hub({ user }: { user: User }) {
   const transition = useSharedValue(0);
 
   const camX = useDerivedValue(
-    () => cameraOffset(player.x.get() * mapZoom, width, WORLD.width * mapZoom) - mapOriginX,
+    () => cameraOffset(player.x.get() * MAP_ZOOM, width, WORLD.width * MAP_ZOOM) - MAP_ORIGIN_X,
   );
   const camY = useDerivedValue(
-    () => cameraOffset((player.y.get() - 40) * mapZoom, height, WORLD.height * mapZoom) - mapOriginY,
+    () => cameraOffset((player.y.get() - 40) * MAP_ZOOM, height, WORLD.height * MAP_ZOOM) - MAP_ORIGIN_Y,
   );
   const worldStyle = useAnimatedStyle(() => ({
     transform: [{ translateX: camX.get() }, { translateY: camY.get() }],
@@ -216,8 +145,8 @@ function Hub({ user }: { user: User }) {
     // The map layer fills the screen from (0, 0); web press events only carry page coordinates.
     const { locationX, locationY, pageX, pageY } = e.nativeEvent;
     const p = {
-      x: ((locationX ?? pageX) - camX.get() - mapOriginX) / mapZoom,
-      y: ((locationY ?? pageY) - camY.get() - mapOriginY) / mapZoom,
+      x: ((locationX ?? pageX) - camX.get() - MAP_ORIGIN_X) / MAP_ZOOM,
+      y: ((locationY ?? pageY) - camY.get() - MAP_ORIGIN_Y) / MAP_ZOOM,
     };
     if (!Number.isFinite(p.x) || !Number.isFinite(p.y)) return;
 
@@ -230,7 +159,11 @@ function Hub({ user }: { user: User }) {
       }
     }
 
-    const building = BUILDINGS.find((b) => isOnBuilding(b, p));
+    const building = BUILDINGS.find(
+      (b) =>
+        inRect(p, b.rect) ||
+        inRect(p, { x: b.rect.x + b.rect.w / 2 - 80, y: b.rect.y - PLATE_OFFSET, w: 160, h: PLATE_OFFSET }),
+    );
     if (building) {
       walkTo(building.door, () => enter(building));
       return;
@@ -242,22 +175,22 @@ function Hub({ user }: { user: User }) {
   return (
     <View style={styles.root}>
       <Animated.View style={[styles.world, worldStyle]}>
-        <View style={[styles.zoomedWorld, { transform: [{ scale: mapZoom }] }]}>
+        <View style={styles.zoomedWorld}>
           <Ground />
           {marker && <TapMarker key={marker.key} x={marker.x} y={marker.y} />}
           {TREES.map((t) => (
-            <Tree key={`${t.x},${t.y}`} {...t} scale={t.scale * MAP_SPRITE_SCALE} />
+            <Tree key={`${t.x},${t.y}`} {...t} />
           ))}
           {LAMPS.map((l) => (
-            <Lamp key={`${l.x},${l.y}`} {...l} scale={MAP_SPRITE_SCALE} />
+            <Lamp key={`${l.x},${l.y}`} {...l} />
           ))}
           {BENCHES.map((b) => (
-            <Bench key={`${b.x},${b.y}`} {...b} scale={MAP_SPRITE_SCALE} />
+            <Bench key={`${b.x},${b.y}`} {...b} />
           ))}
-          <Signpost {...SIGNPOST} scale={MAP_SPRITE_SCALE} />
-          <Fountain scale={MAP_SPRITE_SCALE} />
+          <Signpost {...SIGNPOST} />
+          <Fountain />
           {BUILDINGS.map((b) => (
-            <BuildingSprite key={b.id} building={b} scale={MAP_SPRITE_SCALE} />
+            <BuildingSprite key={b.id} building={b} />
           ))}
           {crowd.map((p, i) => (
             <RemotePlayer
@@ -265,7 +198,6 @@ function Hub({ user }: { user: User }) {
               player={p}
               grid={GRID}
               start={CROWD_STARTS[i % CROWD_STARTS.length]}
-              scale={MAP_SPRITE_SCALE}
               paused={!focused}
               register={(handle) => {
                 if (handle) remotes.current.set(p.id, handle);
@@ -273,15 +205,9 @@ function Hub({ user }: { user: User }) {
               }}
             />
           ))}
-          <WalkerView
-            walker={player}
-            look={lookFor(user.nickname, user.classId)}
-            nickname={user.nickname}
-            scale={MAP_SPRITE_SCALE}
-            isPlayer
-          />
+          <WalkerView walker={player} look={lookFor(user.nickname, user.classId)} nickname={user.nickname} isPlayer />
           {BUILDINGS.map((b) => (
-            <NamePlate key={b.id} building={b} scale={MAP_SPRITE_SCALE} />
+            <NamePlate key={b.id} building={b} />
           ))}
         </View>
       </Animated.View>
@@ -334,6 +260,7 @@ const styles = StyleSheet.create({
     top: 0,
     width: WORLD.width,
     height: WORLD.height,
+    transform: [{ scale: MAP_ZOOM }],
   },
   topScrim: { position: 'absolute', left: 0, right: 0, top: 0, height: 120 },
 });
