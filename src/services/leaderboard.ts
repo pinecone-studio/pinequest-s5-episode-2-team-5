@@ -1,16 +1,15 @@
 import { MOCK_PLAYERS } from '@/data/players';
 import type { ClassId, PublicPlayer } from '@/types';
 
-import { listLocalPlayers } from './auth';
+import { listPlayers } from './auth';
 
 export interface RankedPlayer extends PublicPlayer {
   rank: number;
 }
 
-/** Global ranking, highest XP first. Replace with a server query when the backend exists. */
+/** Global ranking, highest XP first. The demo players are mixed in so the board is never empty. */
 export async function fetchLeaderboard(): Promise<PublicPlayer[]> {
-  await new Promise((resolve) => setTimeout(resolve, 300));
-  const players = [...MOCK_PLAYERS, ...(await listLocalPlayers())];
+  const players = [...MOCK_PLAYERS, ...(await listPlayers())];
   return players.sort((a, b) => b.xp - a.xp || a.nickname.localeCompare(b.nickname));
 }
 
