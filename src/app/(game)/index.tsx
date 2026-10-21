@@ -3,7 +3,6 @@ import { router, useFocusEffect, useIsFocused, type Href } from 'expo-router';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Pressable, StyleSheet, useWindowDimensions, View, type GestureResponderEvent } from 'react-native';
 import Animated, {
-  useAnimatedReaction,
   useAnimatedStyle,
   useDerivedValue,
   useSharedValue,
@@ -12,7 +11,8 @@ import Animated, {
 import { scheduleOnRN } from 'react-native-worklets';
 
 import { DoorTransition } from '@/components/hub/door-transition';
-import { EnterPrompt, HintCard, HubDock, HudTop } from '@/components/hub/hub-hud';
+import { HubChatOverlay } from '@/components/hub/chat-overlay';
+import { HintCard, HudTop } from '@/components/hub/hub-hud';
 import { PlayerCard } from '@/components/hub/player-card';
 import { ProfileSheet } from '@/components/hub/profile-sheet';
 import { BuildingSprite } from '@/components/world/buildings';
@@ -32,7 +32,6 @@ import {
   WORLD,
   worldObstacles,
   type BuildingDef,
-  type BuildingId,
   type Point,
   type Rect,
 } from '@/components/world/world-config';
@@ -54,30 +53,20 @@ const GRID = buildNavGrid(worldObstacles(), {
   reachableFrom: SPAWN,
 });
 
+const MAP_ZOOM = 1.35;
+const MAP_ORIGIN_X = (WORLD.width / 2) * (1 - MAP_ZOOM);
+const MAP_ORIGIN_Y = (WORLD.height / 2) * (1 - MAP_ZOOM);
+
 const crowdRandom = seededRandom(11);
 const CROWD_STARTS = Array.from({ length: 12 }, () =>
   randomWalkable(GRID, { x: PLAZA.x, y: PLAZA.y + 60 }, 300, crowdRandom),
 );
-
-const DOOR_RADIUS = 56;
 
 /** Keeps the target centered, clamped so the camera never shows past the map edge. */
 function cameraOffset(target: number, viewport: number, world: number) {
   'worklet';
   if (world <= viewport) return (viewport - world) / 2;
   return Math.min(0, Math.max(viewport - world, viewport / 2 - target));
-}
-
-function doorNear(x: number, y: number): string {
-  'worklet';
-  for (const b of BUILDINGS) {
-    if (Math.hypot(b.door.x - x, b.door.y - y) < DOOR_RADIUS) return b.id;
-  }
-  return '';
-}
-
-function buildingById(id: BuildingId): BuildingDef {
-  return BUILDINGS.find((b) => b.id === id)!;
 }
 
 function inRect(p: Point, r: Rect) {
@@ -98,29 +87,22 @@ function Hub({ user }: { user: User }) {
   const remotes = useRef(new Map<string, RemoteHandle>());
 
   const [marker, setMarker] = useState<(Point & { key: number }) | null>(null);
-  const [nearDoor, setNearDoor] = useState<BuildingId | null>(null);
   const [showHint, setShowHint] = useState(true);
   const [selected, setSelected] = useState<RemoteHandle | null>(null);
   const [profileOpen, setProfileOpen] = useState(false);
   const [entering, setEntering] = useState<BuildingDef | null>(null);
   const [board, setBoard] = useState<PublicPlayer[]>([]);
   const transition = useSharedValue(0);
-  const lastDoor = useSharedValue('');
 
-  const camX = useDerivedValue(() => cameraOffset(player.x.get(), width, WORLD.width));
-  const camY = useDerivedValue(() => cameraOffset(player.y.get() - 40, height, WORLD.height));
+  const camX = useDerivedValue(
+    () => cameraOffset(player.x.get() * MAP_ZOOM, width, WORLD.width * MAP_ZOOM) - MAP_ORIGIN_X,
+  );
+  const camY = useDerivedValue(
+    () => cameraOffset((player.y.get() - 40) * MAP_ZOOM, height, WORLD.height * MAP_ZOOM) - MAP_ORIGIN_Y,
+  );
   const worldStyle = useAnimatedStyle(() => ({
     transform: [{ translateX: camX.get() }, { translateY: camY.get() }],
   }));
-
-  useAnimatedReaction(
-    () => doorNear(player.x.get(), player.y.get()),
-    (id) => {
-      if (id === lastDoor.get()) return;
-      lastDoor.set(id);
-      scheduleOnRN(setNearDoor, id === '' ? null : (id as BuildingId));
-    },
-  );
 
   useEffect(() => {
     const id = setTimeout(() => setShowHint(false), 8000);
@@ -162,7 +144,10 @@ function Hub({ user }: { user: User }) {
     setShowHint(false);
     // The map layer fills the screen from (0, 0); web press events only carry page coordinates.
     const { locationX, locationY, pageX, pageY } = e.nativeEvent;
-    const p = { x: (locationX ?? pageX) - camX.get(), y: (locationY ?? pageY) - camY.get() };
+    const p = {
+      x: ((locationX ?? pageX) - camX.get() - MAP_ORIGIN_X) / MAP_ZOOM,
+      y: ((locationY ?? pageY) - camY.get() - MAP_ORIGIN_Y) / MAP_ZOOM,
+    };
     if (!Number.isFinite(p.x) || !Number.isFinite(p.y)) return;
 
     for (const handle of remotes.current.values()) {
@@ -187,44 +172,44 @@ function Hub({ user }: { user: User }) {
     walkTo(nearestWalkable(GRID, p));
   };
 
-  const doorBuilding = BUILDINGS.find((b) => b.id === nearDoor) ?? null;
-
   return (
     <View style={styles.root}>
       <Animated.View style={[styles.world, worldStyle]}>
-        <Ground />
-        {marker && <TapMarker key={marker.key} x={marker.x} y={marker.y} />}
-        {TREES.map((t) => (
-          <Tree key={`${t.x},${t.y}`} {...t} />
-        ))}
-        {LAMPS.map((l) => (
-          <Lamp key={`${l.x},${l.y}`} {...l} />
-        ))}
-        {BENCHES.map((b) => (
-          <Bench key={`${b.x},${b.y}`} {...b} />
-        ))}
-        <Signpost {...SIGNPOST} />
-        <Fountain />
-        {BUILDINGS.map((b) => (
-          <BuildingSprite key={b.id} building={b} />
-        ))}
-        {crowd.map((p, i) => (
-          <RemotePlayer
-            key={p.id}
-            player={p}
-            grid={GRID}
-            start={CROWD_STARTS[i % CROWD_STARTS.length]}
-            paused={!focused}
-            register={(handle) => {
-              if (handle) remotes.current.set(p.id, handle);
-              else remotes.current.delete(p.id);
-            }}
-          />
-        ))}
-        <WalkerView walker={player} look={lookFor(user.nickname, user.classId)} nickname={user.nickname} isPlayer />
-        {BUILDINGS.map((b) => (
-          <NamePlate key={b.id} building={b} />
-        ))}
+        <View style={styles.zoomedWorld}>
+          <Ground />
+          {marker && <TapMarker key={marker.key} x={marker.x} y={marker.y} />}
+          {TREES.map((t) => (
+            <Tree key={`${t.x},${t.y}`} {...t} />
+          ))}
+          {LAMPS.map((l) => (
+            <Lamp key={`${l.x},${l.y}`} {...l} />
+          ))}
+          {BENCHES.map((b) => (
+            <Bench key={`${b.x},${b.y}`} {...b} />
+          ))}
+          <Signpost {...SIGNPOST} />
+          <Fountain />
+          {BUILDINGS.map((b) => (
+            <BuildingSprite key={b.id} building={b} />
+          ))}
+          {crowd.map((p, i) => (
+            <RemotePlayer
+              key={p.id}
+              player={p}
+              grid={GRID}
+              start={CROWD_STARTS[i % CROWD_STARTS.length]}
+              paused={!focused}
+              register={(handle) => {
+                if (handle) remotes.current.set(p.id, handle);
+                else remotes.current.delete(p.id);
+              }}
+            />
+          ))}
+          <WalkerView walker={player} look={lookFor(user.nickname, user.classId)} nickname={user.nickname} isPlayer />
+          {BUILDINGS.map((b) => (
+            <NamePlate key={b.id} building={b} />
+          ))}
+        </View>
       </Animated.View>
 
       <Pressable
@@ -239,9 +224,8 @@ function Hub({ user }: { user: User }) {
       />
 
       <HudTop user={user} online={crowd.length + 1} onProfilePress={() => setProfileOpen(true)} />
-      {showHint && !doorBuilding && <HintCard nickname={user.nickname} />}
-      {doorBuilding && !entering && <EnterPrompt building={doorBuilding} onEnter={() => enter(doorBuilding)} />}
-      <HubDock onLessons={() => enter(buildingById('lessons'))} onRanking={() => enter(buildingById('ranking'))} />
+      {showHint && <HintCard nickname={user.nickname} />}
+      <HubChatOverlay user={user} players={crowd} />
 
       <DoorTransition progress={transition} building={entering} />
 
@@ -270,5 +254,13 @@ function Hub({ user }: { user: User }) {
 const styles = StyleSheet.create({
   root: { flex: 1, backgroundColor: '#5E9E3F', overflow: 'hidden' },
   world: { position: 'absolute', left: 0, top: 0, width: WORLD.width, height: WORLD.height },
+  zoomedWorld: {
+    position: 'absolute',
+    left: 0,
+    top: 0,
+    width: WORLD.width,
+    height: WORLD.height,
+    transform: [{ scale: MAP_ZOOM }],
+  },
   topScrim: { position: 'absolute', left: 0, right: 0, top: 0, height: 120 },
 });
