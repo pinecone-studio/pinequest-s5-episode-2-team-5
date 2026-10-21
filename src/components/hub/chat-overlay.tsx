@@ -15,21 +15,20 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { AppText } from '@/components/ui/app-text';
 import { Colors, Fonts, Radius } from '@/constants/theme';
-import { HUB_CHATTER } from '@/data/players';
 import { haptics } from '@/lib/haptics';
 import {
   chatMessageTimeLeft,
   loadChatMessages,
   sendChatMessage,
-  sendDemoChatMessage,
+  subscribeToChat,
   type ChatMessage,
 } from '@/services/chat';
-import type { PublicPlayer, User } from '@/types';
+import type { User } from '@/types';
 
 const MAX_LENGTH = 280;
 const STREAM_MESSAGES = 24;
 
-export function HubChatOverlay({ user, players }: { user: User; players: PublicPlayer[] }) {
+export function HubChatOverlay({ user }: { user: User }) {
   const insets = useSafeAreaInsets();
   const { width, height } = useWindowDimensions();
   const list = useRef<FlatList<ChatMessage> | null>(null);
@@ -50,31 +49,7 @@ export function HubChatOverlay({ user, players }: { user: User; players: PublicP
     }, []),
   );
 
-  useFocusEffect(
-    useCallback(() => {
-      if (players.length === 0) return;
-      let active = true;
-      let timeout: ReturnType<typeof setTimeout>;
-
-      const postDemoMessage = async () => {
-        const player = players[Math.floor(Math.random() * players.length)];
-        const text = HUB_CHATTER[Math.floor(Math.random() * HUB_CHATTER.length)];
-        try {
-          const next = await sendDemoChatMessage(player, text);
-          if (active) setMessages(next);
-        } catch {
-          // Keep the demo chat running if local storage is temporarily unavailable.
-        }
-        if (active) timeout = setTimeout(postDemoMessage, 2_000 + Math.random() * 3_000);
-      };
-
-      timeout = setTimeout(postDemoMessage, 2_000 + Math.random() * 3_000);
-      return () => {
-        active = false;
-        clearTimeout(timeout);
-      };
-    }, [players]),
-  );
+  useEffect(() => subscribeToChat(setMessages), []);
 
   useEffect(() => {
     if (messages?.length) list.current?.scrollToEnd({ animated: true });
@@ -124,7 +99,7 @@ export function HubChatOverlay({ user, players }: { user: User; players: PublicP
           <MaterialCommunityIcons name="chat-processing-outline" size={17} color={Colors.cyan} />
           <AppText style={styles.headerTitle}>GLOBAL CHAT</AppText>
           <View style={styles.localTag}>
-            <AppText style={styles.localText}>LOCAL</AppText>
+            <AppText style={styles.localText}>LIVE</AppText>
           </View>
         </Pressable>
 

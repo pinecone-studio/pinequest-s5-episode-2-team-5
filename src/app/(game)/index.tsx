@@ -40,7 +40,7 @@ import { useSession } from '@/context/session';
 import { lookFor } from '@/lib/avatar-look';
 import { haptics } from '@/lib/haptics';
 import { fetchLeaderboard } from '@/services/leaderboard';
-import { useDemoChatCrowd, useHubPresence } from '@/services/presence';
+import { useHubPresence } from '@/services/presence';
 import type { PublicPlayer, User } from '@/types';
 
 const GRID = buildNavGrid(worldObstacles(), {
@@ -77,7 +77,6 @@ function Hub({ user }: { user: User }) {
   const { width, height } = useWindowDimensions();
   const player = useWalker(SPAWN);
   const { peers, announce, onMove } = useHubPresence(user, SPAWN);
-  const demoChatCrowd = useDemoChatCrowd(user.id);
   const remotes = useRef(new Map<string, RemoteHandle>());
 
   const [marker, setMarker] = useState<(Point & { key: number }) | null>(null);
@@ -97,6 +96,18 @@ function Hub({ user }: { user: User }) {
   const worldStyle = useAnimatedStyle(() => ({
     transform: [{ translateX: camX.get() }, { translateY: camY.get() }],
   }));
+
+  // Stream where we are while walking; one extra update lands the final resting spot.
+  useEffect(() => {
+    let last = player.position();
+    const id = setInterval(() => {
+      const at = player.position();
+      if (Math.hypot(at.x - last.x, at.y - last.y) < 0.5) return;
+      last = at;
+      announce(at);
+    }, 100);
+    return () => clearInterval(id);
+  }, [player, announce]);
 
   useEffect(() => {
     const id = setTimeout(() => setShowHint(false), 8000);
@@ -130,9 +141,7 @@ function Hub({ user }: { user: User }) {
 
   const walkTo = (target: Point, onArrive?: () => void) => {
     setMarker((previous) => ({ ...target, key: (previous?.key ?? 0) + 1 }));
-    const path = findPath(GRID, player.position(), target);
-    announce(path);
-    player.walk(path, onArrive);
+    player.walk(findPath(GRID, player.position(), target), onArrive);
   };
 
   const onMapPress = (e: GestureResponderEvent) => {
@@ -219,7 +228,7 @@ function Hub({ user }: { user: User }) {
 
       <HudTop user={user} online={peers.length + 1} onProfilePress={() => setProfileOpen(true)} />
       {showHint && <HintCard nickname={user.nickname} />}
-      <HubChatOverlay user={user} players={demoChatCrowd} />
+      <HubChatOverlay user={user} />
 
       <DoorTransition progress={transition} building={entering} />
 

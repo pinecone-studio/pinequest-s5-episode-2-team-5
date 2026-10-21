@@ -6,6 +6,9 @@ import type { HubPeer, MoveHandler } from '@/services/presence';
 
 import type { RemoteHandle } from './remote-player';
 
+/** World units. Beyond this a peer is teleported to the newest position. */
+const SNAP_DISTANCE = 220;
+
 interface LivePlayerProps {
   peer: HubPeer;
   /** Subscribes to this player's walks; returns an unsubscribe function. */
@@ -14,7 +17,7 @@ interface LivePlayerProps {
   register: (handle: RemoteHandle | null) => void;
 }
 
-/** A real player in the hub. It replays the waypoints they broadcast, so it moves like they do. */
+/** A real player in the hub. It chases the latest position they broadcast, so it moves as they do. */
 export function LivePlayer({ peer, onMove, register }: LivePlayerProps) {
   const walker = useWalker({ x: peer.x, y: peer.y }, WALK_SPEED);
   const [bubble, setBubble] = useState<string | null>(null);
@@ -27,8 +30,17 @@ export function LivePlayer({ peer, onMove, register }: LivePlayerProps) {
       timer = setTimeout(() => setBubble(null), 2800);
     };
     register({ player: peer, position: walker.position, isVisible: () => true, say });
-    // Start from where we think they are, so a missed update self-corrects.
-    const unsubscribe = onMove(peer.id, (path) => walker.walk(path));
+    const unsubscribe = onMove(peer.id, (to) => {
+      const from = walker.position();
+      // Far behind (just joined, or a tab was asleep): jump instead of sliding across the map.
+      if (Math.hypot(to.x - from.x, to.y - from.y) > SNAP_DISTANCE) {
+        walker.stop();
+        walker.x.set(to.x);
+        walker.y.set(to.y);
+      } else {
+        walker.walk([to]);
+      }
+    });
     return () => {
       unsubscribe();
       clearTimeout(timer);
