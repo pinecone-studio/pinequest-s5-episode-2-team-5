@@ -14,7 +14,9 @@ export interface Rect {
   h: number;
 }
 
-export type Obstacle = ({ kind: 'rect' } & Rect) | { kind: 'ellipse'; x: number; y: number; rx: number; ry: number };
+export type Obstacle =
+  | ({ kind: 'rect' } & Rect)
+  | { kind: 'ellipse'; x: number; y: number; rx: number; ry: number };
 
 /** World units are dp. The camera follows the player across this map. */
 export const WORLD = { width: 640, height: 1100 } as const;
@@ -41,7 +43,7 @@ export interface BuildingDef {
 export const BUILDINGS: BuildingDef[] = [
   {
     id: 'lessons',
-    label: 'Lessons Hall',
+    label: 'OpenLab',
     route: '/lessons',
     icon: 'flask',
     color: '#7C4DFF',
@@ -66,7 +68,7 @@ export const BUILDINGS: BuildingDef[] = [
     rect: { x: 10, y: 710, w: 200, h: 260 }, door: { x: 110, y: 980 },
   },
   {
-    id: 'openlab', label: 'OpenLab', route: '/', icon: 'flask-outline', color: '#B5F23D',
+    id: 'openlab', label: 'Lessons Hall', route: '/', icon: 'flask-outline', color: '#B5F23D',
     rect: { x: 430, y: 820, w: 200, h: 260 }, door: { x: 530, y: 1080 },
   },
 ];
@@ -75,7 +77,6 @@ export const SPAWN: Point = { x: 350, y: 850 };
 
 export const PLAZA = { x: 300, y: 640, r: 115 };
 export const FOUNTAIN = { x: 300, y: 640, r: 56 };
-export const POND = { x: 150, y: 930, rx: 95, ry: 58 };
 
 /** Sand paths drawn on the ground, as polylines. */
 export const PATHS: Point[][] = [
@@ -97,8 +98,28 @@ export const PATHS: Point[][] = [
     { x: 330, y: 1100 },
   ],
   [
-    { x: 342, y: 940 },
-    { x: 246, y: 932 },
+    { x: 208, y: 680 },
+    { x: 165, y: 670 },
+    { x: 110, y: 662 },
+  ],
+  [
+    { x: 335, y: 850 },
+    { x: 318, y: 875 },
+    { x: 285, y: 902 },
+    { x: 248, y: 936 },
+    { x: 230, y: 961 },
+    { x: 206, y: 976 },
+    { x: 165, y: 981 },
+    { x: 110, y: 980 },
+  ],
+  [
+    { x: 345, y: 960 },
+    { x: 385, y: 988 },
+    { x: 415, y: 1025 },
+    { x: 410, y: 1060 },
+    { x: 414, y: 1088 },
+    { x: 465, y: 1092 },
+    { x: 530, y: 1084 },
   ],
 ];
 
@@ -123,8 +144,19 @@ export const TREES: { x: number; y: number; kind: TreeKind; scale: number }[] = 
   { x: 604, y: 880, kind: 'round', scale: 0.95 },
   { x: 470, y: 960, kind: 'round', scale: 0.85 },
   { x: 596, y: 1020, kind: 'pine', scale: 1.05 },
-  { x: 506, y: 1082, kind: 'round', scale: 1.1 },
   { x: 44, y: 1070, kind: 'pine', scale: 1 },
+  // Extra trees thicken the perimeter and make the edge of the campus easy to read.
+  { x: 28, y: 102, kind: 'pine', scale: 1 },
+  { x: 610, y: 92, kind: 'round', scale: 0.9 },
+  { x: 22, y: 450, kind: 'pine', scale: 1 },
+  { x: 22, y: 690, kind: 'round', scale: 0.9 },
+  { x: 22, y: 930, kind: 'pine', scale: 0.95 },
+  { x: 618, y: 500, kind: 'pine', scale: 1 },
+  { x: 618, y: 700, kind: 'round', scale: 0.95 },
+  { x: 618, y: 950, kind: 'pine', scale: 0.9 },
+  { x: 140, y: 1090, kind: 'round', scale: 0.85 },
+  { x: 250, y: 1090, kind: 'pine', scale: 0.85 },
+  { x: 390, y: 1090, kind: 'round', scale: 0.85 },
 ];
 
 export const LAMPS: Point[] = [
@@ -146,7 +178,6 @@ export const FLOWER_BEDS = [
   { x: 248, y: 462, rx: 34, ry: 14 },
   { x: 394, y: 462, rx: 34, ry: 14 },
   { x: 160, y: 490, rx: 30, ry: 12 },
-  { x: 430, y: 1020, rx: 40, ry: 15 },
   { x: 170, y: 820, rx: 26, ry: 11 },
 ];
 
@@ -155,7 +186,6 @@ export function worldObstacles(): Obstacle[] {
   return [
     ...BUILDINGS.map((b) => ({ kind: 'rect' as const, ...b.rect })),
     { kind: 'ellipse', x: FOUNTAIN.x, y: FOUNTAIN.y, rx: FOUNTAIN.r, ry: FOUNTAIN.r * 0.8 },
-    { kind: 'ellipse', x: POND.x, y: POND.y, rx: POND.rx, ry: POND.ry },
     ...TREES.map((t) => ({
       kind: 'ellipse' as const,
       x: t.x,

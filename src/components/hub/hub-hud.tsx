@@ -18,7 +18,19 @@ import { Colors, Fonts, Radius } from '@/constants/theme';
 import { levelProgress } from '@/lib/progress';
 import type { User } from '@/types';
 
-export function HudTop({ user, online, onProfilePress }: { user: User; online: number; onProfilePress: () => void }) {
+export function HudTop({
+  user,
+  online,
+  nightMode,
+  onNightModePress,
+  onProfilePress,
+}: {
+  user: User;
+  online: number;
+  nightMode: boolean;
+  onNightModePress: () => void;
+  onProfilePress: () => void;
+}) {
   const insets = useSafeAreaInsets();
   const { level, into, needed, ratio } = levelProgress(user.xp);
   return (
@@ -44,7 +56,20 @@ export function HudTop({ user, online, onProfilePress }: { user: User; online: n
           </AppText>
         </View>
       </Pressable>
-      <OnlinePill count={online} />
+      <View style={styles.rightControls}>
+        <Pressable
+          onPress={onNightModePress}
+          accessibilityRole="button"
+          accessibilityLabel={nightMode ? 'Switch to day mode' : 'Switch to night mode'}
+          style={styles.modeButton}>
+          <MaterialCommunityIcons
+            name={nightMode ? 'weather-sunny' : 'weather-night'}
+            size={18}
+            color={nightMode ? Colors.gold : Colors.cyan}
+          />
+        </Pressable>
+        <OnlinePill count={online} />
+      </View>
     </View>
   );
 }
@@ -115,6 +140,15 @@ const styles = StyleSheet.create({
   levelBadge: { paddingHorizontal: 6, borderRadius: 6, backgroundColor: Colors.gold },
   levelText: { fontFamily: Fonts.bold, fontSize: 11, lineHeight: 16, color: Colors.goldInk },
   xpText: { fontFamily: Fonts.medium, fontSize: 10.5, lineHeight: 13, color: Colors.textMuted },
+  rightControls: { flexDirection: 'row', alignItems: 'center', gap: 7 },
+  modeButton: {
+    ...panel,
+    width: 36,
+    height: 36,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: 999,
+  },
   pill: {
     ...panel,
     flexDirection: 'row',
