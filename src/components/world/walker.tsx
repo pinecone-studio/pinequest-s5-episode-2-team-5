@@ -102,12 +102,13 @@ interface WalkerViewProps {
   look: AvatarLook;
   nickname: string;
   isPlayer?: boolean;
+  scale?: number;
   /** Short line shown in a speech bubble. */
   bubble?: string | null;
 }
 
 /** Renders an avatar at its walker's feet position, with bounce, facing and a name tag. */
-export function WalkerView({ walker, look, nickname, isPlayer = false, bubble }: WalkerViewProps) {
+export function WalkerView({ walker, look, nickname, isPlayer = false, scale = 1, bubble }: WalkerViewProps) {
   const { x, y, moving, facing, odometer, opacity } = walker;
   const idle = useSharedValue(0);
 
@@ -118,7 +119,7 @@ export function WalkerView({ walker, look, nickname, isPlayer = false, bubble }:
   const boxStyle = useAnimatedStyle(() => ({
     opacity: opacity.get(),
     zIndex: Math.round(y.get()),
-    transform: [{ translateX: x.get() - BOX_WIDTH / 2 }, { translateY: y.get() - BOX_HEIGHT }],
+    transform: [{ translateX: x.get() - (BOX_WIDTH * scale) / 2 }, { translateY: y.get() - BOX_HEIGHT * scale }],
   }));
 
   const bodyStyle = useAnimatedStyle(() => {
@@ -135,7 +136,20 @@ export function WalkerView({ walker, look, nickname, isPlayer = false, bubble }:
   });
 
   return (
-    <Animated.View pointerEvents="none" style={[styles.box, boxStyle]}>
+    <Animated.View
+      pointerEvents="none"
+      style={[styles.box, { width: BOX_WIDTH * scale, height: BOX_HEIGHT * scale }, boxStyle]}>
+      <View
+        style={[
+          styles.scaledContents,
+          {
+            left: (BOX_WIDTH * scale - BOX_WIDTH) / 2,
+            top: (BOX_HEIGHT * scale - BOX_HEIGHT) / 2,
+            width: BOX_WIDTH,
+            height: BOX_HEIGHT,
+            transform: [{ scale }],
+          },
+        ]}>
       {bubble ? (
         <View style={styles.bubble}>
           <AppText variant="caption" color={Colors.night} style={styles.bubbleText} numberOfLines={2}>
@@ -157,6 +171,7 @@ export function WalkerView({ walker, look, nickname, isPlayer = false, bubble }:
       <Animated.View style={[styles.body, bodyStyle]}>
         <Scientist look={look} height={SPRITE_HEIGHT} />
       </Animated.View>
+      </View>
     </Animated.View>
   );
 }
@@ -166,10 +181,9 @@ const styles = StyleSheet.create({
     position: 'absolute',
     left: 0,
     top: 0,
-    width: BOX_WIDTH,
-    height: BOX_HEIGHT,
-    alignItems: 'center',
+    overflow: 'visible',
   },
+  scaledContents: { position: 'absolute', alignItems: 'center' },
   tag: {
     flexDirection: 'row',
     alignItems: 'center',

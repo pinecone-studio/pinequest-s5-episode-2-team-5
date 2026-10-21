@@ -10,12 +10,13 @@ interface LivePlayerProps {
   peer: HubPeer;
   /** Subscribes to this player's walks; returns an unsubscribe function. */
   onMove: (id: string, handler: MoveHandler) => () => void;
+  scale?: number;
   /** Lets the hub hit-test and talk to this avatar. */
   register: (handle: RemoteHandle | null) => void;
 }
 
 /** A real player in the hub. It replays the waypoints they broadcast, so it moves like they do. */
-export function LivePlayer({ peer, onMove, register }: LivePlayerProps) {
+export function LivePlayer({ peer, onMove, register, scale = 1 }: LivePlayerProps) {
   const walker = useWalker({ x: peer.x, y: peer.y }, WALK_SPEED);
   const [bubble, setBubble] = useState<string | null>(null);
 
@@ -40,6 +41,12 @@ export function LivePlayer({ peer, onMove, register }: LivePlayerProps) {
   }, [peer.id]);
 
   return (
-    <WalkerView walker={walker} look={lookFor(peer.nickname, peer.classId)} nickname={peer.nickname} bubble={bubble} />
+    <WalkerView
+      walker={walker}
+      look={lookFor(peer.nickname, peer.classId)}
+      nickname={peer.nickname}
+      scale={scale}
+      bubble={bubble}
+    />
   );
 }

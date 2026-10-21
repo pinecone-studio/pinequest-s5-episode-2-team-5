@@ -26,25 +26,40 @@ interface AnchoredProps {
   anchorY?: number;
   /** Depth used for sorting against avatars. Defaults to y. */
   depth?: number;
+  scale?: number;
   children: ReactNode;
 }
 
 /** Places a sprite so its anchor (bottom-center by default) sits on a world point. */
-export function Anchored({ x, y, width, height, anchorY = height, depth = y, children }: AnchoredProps) {
+export function Anchored({ x, y, width, height, anchorY = height, depth = y, scale = 1, children }: AnchoredProps) {
+  const scaledWidth = width * scale;
+  const scaledHeight = height * scale;
   return (
     <View
       pointerEvents="none"
-      style={[styles.anchored, { left: x - width / 2, top: y - anchorY, width, height, zIndex: Math.round(depth) }]}>
-      {children}
+      style={[styles.anchored, { left: x - scaledWidth / 2, top: y - anchorY * scale, width: scaledWidth, height: scaledHeight, zIndex: Math.round(depth) }]}>
+      <View
+        style={[
+          styles.scaledContent,
+          {
+            left: (scaledWidth - width) / 2,
+            top: (scaledHeight - height) / 2,
+            width,
+            height,
+            transform: [{ scale }],
+          },
+        ]}>
+        {children}
+      </View>
     </View>
   );
 }
 
-export function Tree({ x, y, kind, scale }: { x: number; y: number; kind: TreeKind; scale: number }) {
+export function Tree({ x, y, kind, scale, spriteScale = 1 }: { x: number; y: number; kind: TreeKind; scale: number; spriteScale?: number }) {
   const w = (kind === 'round' ? 80 : 70) * scale;
   const h = (kind === 'round' ? 96 : 100) * scale;
   return (
-    <Anchored x={x} y={y} width={w} height={h} anchorY={h - 6 * scale}>
+    <Anchored x={x} y={y} width={w} height={h} anchorY={h - 6 * scale} scale={spriteScale}>
       {kind === 'round' ? <RoundTree width={w} height={h} /> : <PineTree width={w} height={h} />}
     </Anchored>
   );
@@ -92,9 +107,9 @@ function PineTree({ width, height }: { width: number; height: number }) {
   );
 }
 
-export function Lamp({ x, y }: { x: number; y: number }) {
+export function Lamp({ x, y, spriteScale = 1 }: { x: number; y: number; spriteScale?: number }) {
   return (
-    <Anchored x={x} y={y} width={40} height={78} anchorY={74}>
+    <Anchored x={x} y={y} width={40} height={78} anchorY={74} scale={spriteScale}>
       <Svg width={40} height={78} viewBox="0 0 40 78">
         <Defs>
           <RadialGradient id="lampGlow" cx="50%" cy="50%" r="50%">
@@ -113,9 +128,9 @@ export function Lamp({ x, y }: { x: number; y: number }) {
   );
 }
 
-export function Bench({ x, y }: { x: number; y: number }) {
+export function Bench({ x, y, spriteScale = 1 }: { x: number; y: number; spriteScale?: number }) {
   return (
-    <Anchored x={x} y={y} width={52} height={32} anchorY={28}>
+    <Anchored x={x} y={y} width={52} height={32} anchorY={28} scale={spriteScale}>
       <Svg width={52} height={32} viewBox="0 0 52 32">
         <Ellipse cx={26} cy={28} rx={23} ry={3.5} fill="#14320A" opacity={0.22} />
         <Rect x={8} y={15} width={4} height={12} fill="#4A3424" />
@@ -130,9 +145,9 @@ export function Bench({ x, y }: { x: number; y: number }) {
   );
 }
 
-export function Signpost({ x, y }: { x: number; y: number }) {
+export function Signpost({ x, y, spriteScale = 1 }: { x: number; y: number; spriteScale?: number }) {
   return (
-    <Anchored x={x} y={y} width={84} height={82} anchorY={78}>
+    <Anchored x={x} y={y} width={84} height={82} anchorY={78} scale={spriteScale}>
       <Svg width={84} height={82} viewBox="0 0 84 82">
         <Ellipse cx={42} cy={78} rx={12} ry={3} fill="#14320A" opacity={0.22} />
         <Rect x={39} y={12} width={6} height={66} rx={1.5} fill="#9C6B3E" stroke={WOOD_OUTLINE} strokeWidth={2} />
@@ -154,7 +169,7 @@ const FOUNTAIN_H = 140;
 /** Basin center inside the sprite. */
 const BASIN = { x: 70, y: 100 };
 
-export function Fountain() {
+export function Fountain({ spriteScale = 1 }: { spriteScale?: number }) {
   const clock = useSharedValue(0);
   useEffect(() => {
     clock.set(withRepeat(withTiming(1, { duration: 1600, easing: Easing.linear }), -1, false));
@@ -167,7 +182,8 @@ export function Fountain() {
       width={FOUNTAIN_W}
       height={FOUNTAIN_H}
       anchorY={BASIN.y}
-      depth={FOUNTAIN.y + FOUNTAIN.r * 0.8}>
+      depth={FOUNTAIN.y + FOUNTAIN.r * 0.8}
+      scale={spriteScale}>
       <Svg width={FOUNTAIN_W} height={FOUNTAIN_H} viewBox={`0 0 ${FOUNTAIN_W} ${FOUNTAIN_H}`}>
         <Defs>
           <RadialGradient id="fountainWater" cx="50%" cy="40%" r="60%">
@@ -232,6 +248,7 @@ function Ripple({ clock, x, y, offset }: { clock: SharedValue<number>; x: number
 
 const styles = StyleSheet.create({
   anchored: { position: 'absolute' },
+  scaledContent: { position: 'absolute' },
   signIcon: { position: 'absolute' },
   droplet: {
     position: 'absolute',
