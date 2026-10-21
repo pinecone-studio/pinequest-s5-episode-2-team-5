@@ -1,6 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
-import { MOCK_PLAYERS } from '@/data/players';
 import { supabase } from '@/lib/supabase';
 import type { PublicPlayer, User } from '@/types';
 
@@ -12,33 +11,27 @@ export interface Point {
 /** A real player who is in the hub right now, with where they were when we last heard. */
 export interface HubPeer extends PublicPlayer, Point {}
 
-export type MoveHandler = (path: Point[]) => void;
+export type MoveHandler = (position: Point) => void;
 
 export interface HubPresence {
   peers: HubPeer[];
-  /** Tell everyone else that you are walking along `path`. */
-  announce: (path: Point[]) => void;
-  /** Receive the walks of one peer. Returns an unsubscribe function. */
+  /** Tell everyone else where you are standing right now. */
+  announce: (position: Point) => void;
+  /** Receive the positions of one peer. Returns an unsubscribe function. */
   onMove: (id: string, handler: MoveHandler) => () => void;
-}
-
-const CROWD_IDS = ['bot-anu', 'bot-bea', 'bot-pete', 'bot-ivy', 'bot-erdene', 'bot-temuujin', 'bot-nomin', 'bot-saraa'];
-
-/** Fake players that only feed the local demo chat. They never appear in the hub. */
-export function useDemoChatCrowd(userId: string): PublicPlayer[] {
-  return useMemo(() => MOCK_PLAYERS.filter((p) => CROWD_IDS.includes(p.id) && p.id !== userId), [userId]);
 }
 
 /**
  * Who else is in the hub right now, over Supabase Realtime.
- * Presence says who is here and where they stand; a `move` broadcast carries each walk
- * as a few waypoints, so every client animates the same path instead of streaming positions.
+ * Presence says who is here and where they last stopped. While walking, each client
+ * broadcasts its position a few times a second and the others chase the latest point.
  */
 export function useHubPresence(user: User, spawn: Point): HubPresence {
   const [peers, setPeers] = useState<HubPeer[]>([]);
   const channelRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
   const handlers = useRef(new Map<string, MoveHandler>());
   const spawnRef = useRef(spawn);
+  const settleTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
 
   const profile = useMemo<PublicPlayer>(
     () => ({ id: user.id, nickname: user.nickname, classId: user.classId, xp: user.xp }),
@@ -63,26 +56,30 @@ export function useHubPresence(user: User, spawn: Point): HubPresence {
         setPeers(others);
       })
       .on('broadcast', { event: 'move' }, ({ payload }) => {
-        const { id, path } = payload as { id: string; path: Point[] };
-        if (id !== user.id) handlers.current.get(id)?.(path);
+        const { id, x, y } = payload as { id: string } & Point;
+        if (id !== user.id) handlers.current.get(id)?.({ x, y });
       })
       .subscribe((status) => {
         if (status === 'SUBSCRIBED') void channel.track({ ...profileRef.current, ...spawnRef.current });
       });
 
     return () => {
+      clearTimeout(settleTimer.current);
       channelRef.current = null;
       void supabase.removeChannel(channel);
       setPeers([]);
     };
   }, [user.id]);
 
-  const announce = useCallback((path: Point[]) => {
+  const announce = useCallback((position: Point) => {
     const channel = channelRef.current;
-    if (!channel || path.length === 0) return;
-    void channel.send({ type: 'broadcast', event: 'move', payload: { id: profileRef.current.id, path } });
-    // Late joiners start from where this walk ends.
-    void channel.track({ ...profileRef.current, ...path[path.length - 1] });
+    if (!channel) return;
+    void channel.send({ type: 'broadcast', event: 'move', payload: { id: profileRef.current.id, ...position } });
+    // Presence is only updated once movement stops, so late joiners find you where you ended up.
+    clearTimeout(settleTimer.current);
+    settleTimer.current = setTimeout(() => {
+      void channel.track({ ...profileRef.current, ...position });
+    }, 600);
   }, []);
 
   const onMove = useCallback((id: string, handler: MoveHandler) => {

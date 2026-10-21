@@ -20,7 +20,7 @@ import { ScreenHeader } from '@/components/ui/screen-header';
 import { Colors, Fonts, Radius } from '@/constants/theme';
 import { useSession } from '@/context/session';
 import { haptics } from '@/lib/haptics';
-import { chatMessageTimeLeft, loadChatMessages, sendChatMessage, type ChatMessage } from '@/services/chat';
+import { chatMessageTimeLeft, loadChatMessages, sendChatMessage, subscribeToChat, type ChatMessage } from '@/services/chat';
 import type { User } from '@/types';
 
 const MAX_LENGTH = 280;
@@ -49,6 +49,8 @@ function GlobalChat({ user }: { user: User }) {
       };
     }, []),
   );
+
+  useEffect(() => subscribeToChat(setMessages), []);
 
   useEffect(() => {
     if (messages?.length) list.current?.scrollToEnd({ animated: true });
@@ -89,7 +91,7 @@ function GlobalChat({ user }: { user: User }) {
         <View style={styles.notice}>
           <MaterialCommunityIcons name="information-outline" size={18} color={Colors.cyan} />
           <AppText style={styles.noticeText}>
-            Demo chat for now. Messages are saved on this device and are not shared with other players yet.
+            Live chat. Everyone in the game sees your message, and it fades after a few seconds.
           </AppText>
         </View>
 
@@ -154,7 +156,7 @@ function LocalBadge() {
   return (
     <View style={styles.localBadge}>
       <View style={styles.localDot} />
-      <AppText style={styles.localText}>LOCAL</AppText>
+      <AppText style={styles.localText}>LIVE</AppText>
     </View>
   );
 }
