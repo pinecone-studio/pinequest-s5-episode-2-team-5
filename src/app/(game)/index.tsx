@@ -1,5 +1,5 @@
 import { LinearGradient } from 'expo-linear-gradient';
-import { router, useFocusEffect, useIsFocused, type Href } from 'expo-router';
+import { router, useFocusEffect, type Href } from 'expo-router';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Pressable, StyleSheet, useWindowDimensions, View, type GestureResponderEvent } from 'react-native';
 import Animated, {
@@ -17,15 +17,15 @@ import { PlayerCard } from '@/components/hub/player-card';
 import { ProfileSheet } from '@/components/hub/profile-sheet';
 import { BuildingSprite } from '@/components/world/buildings';
 import { Ground } from '@/components/world/ground';
-import { buildNavGrid, findPath, nearestWalkable, randomWalkable } from '@/components/world/nav-grid';
-import { RemotePlayer, type RemoteHandle } from '@/components/world/remote-player';
+import { buildNavGrid, findPath, nearestWalkable } from '@/components/world/nav-grid';
+import { LivePlayer } from '@/components/world/live-player';
+import type { RemoteHandle } from '@/components/world/remote-player';
 import { Bench, Fountain, Lamp, Signpost, Tree } from '@/components/world/scenery';
 import { useWalker, WalkerView } from '@/components/world/walker';
 import {
   BENCHES,
   BUILDINGS,
   LAMPS,
-  PLAZA,
   SIGNPOST,
   SPAWN,
   TREES,
@@ -39,9 +39,8 @@ import { NamePlate, PLATE_OFFSET, TapMarker } from '@/components/world/world-mar
 import { useSession } from '@/context/session';
 import { lookFor } from '@/lib/avatar-look';
 import { haptics } from '@/lib/haptics';
-import { seededRandom } from '@/lib/random';
 import { fetchLeaderboard } from '@/services/leaderboard';
-import { useHubPresence } from '@/services/presence';
+import { useDemoChatCrowd, useHubPresence } from '@/services/presence';
 import type { PublicPlayer, User } from '@/types';
 
 const GRID = buildNavGrid(worldObstacles(), {
@@ -56,11 +55,6 @@ const GRID = buildNavGrid(worldObstacles(), {
 const MAP_ZOOM = 1.35;
 const MAP_ORIGIN_X = (WORLD.width / 2) * (1 - MAP_ZOOM);
 const MAP_ORIGIN_Y = (WORLD.height / 2) * (1 - MAP_ZOOM);
-
-const crowdRandom = seededRandom(11);
-const CROWD_STARTS = Array.from({ length: 12 }, () =>
-  randomWalkable(GRID, { x: PLAZA.x, y: PLAZA.y + 60 }, 300, crowdRandom),
-);
 
 /** Keeps the target centered, clamped so the camera never shows past the map edge. */
 function cameraOffset(target: number, viewport: number, world: number) {
@@ -82,8 +76,8 @@ function Hub({ user }: { user: User }) {
   const { signOut } = useSession();
   const { width, height } = useWindowDimensions();
   const player = useWalker(SPAWN);
-  const crowd = useHubPresence(user);
-  const focused = useIsFocused();
+  const { peers, announce, onMove } = useHubPresence(user, SPAWN);
+  const demoChatCrowd = useDemoChatCrowd(user.id);
   const remotes = useRef(new Map<string, RemoteHandle>());
 
   const [marker, setMarker] = useState<(Point & { key: number }) | null>(null);
@@ -136,7 +130,9 @@ function Hub({ user }: { user: User }) {
 
   const walkTo = (target: Point, onArrive?: () => void) => {
     setMarker((previous) => ({ ...target, key: (previous?.key ?? 0) + 1 }));
-    player.walk(findPath(GRID, player.position(), target), onArrive);
+    const path = findPath(GRID, player.position(), target);
+    announce(path);
+    player.walk(path, onArrive);
   };
 
   const onMapPress = (e: GestureResponderEvent) => {
@@ -192,13 +188,11 @@ function Hub({ user }: { user: User }) {
           {BUILDINGS.map((b) => (
             <BuildingSprite key={b.id} building={b} />
           ))}
-          {crowd.map((p, i) => (
-            <RemotePlayer
+          {peers.map((p) => (
+            <LivePlayer
               key={p.id}
-              player={p}
-              grid={GRID}
-              start={CROWD_STARTS[i % CROWD_STARTS.length]}
-              paused={!focused}
+              peer={p}
+              onMove={onMove}
               register={(handle) => {
                 if (handle) remotes.current.set(p.id, handle);
                 else remotes.current.delete(p.id);
@@ -223,9 +217,9 @@ function Hub({ user }: { user: User }) {
         style={styles.topScrim}
       />
 
-      <HudTop user={user} online={crowd.length + 1} onProfilePress={() => setProfileOpen(true)} />
+      <HudTop user={user} online={peers.length + 1} onProfilePress={() => setProfileOpen(true)} />
       {showHint && <HintCard nickname={user.nickname} />}
-      <HubChatOverlay user={user} players={crowd} />
+      <HubChatOverlay user={user} players={demoChatCrowd} />
 
       <DoorTransition progress={transition} building={entering} />
 
