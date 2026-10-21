@@ -1,27 +1,11 @@
 /**
- * Mock backend: accounts are stored on this device only (AsyncStorage).
+ * Supabase backend: accounts live in Supabase Auth, player data in the `profiles` table
+ * (see supabase/schema.sql).
  *
- * The rest of the app only talks to this file and `leaderboard.ts`, so swapping in a
- * real backend (Firebase, Supabase, your own API…) means re-implementing these
- * functions with the same signatures.
+ * The rest of the app only talks to this file and `leaderboard.ts`.
  */
-import * as Crypto from 'expo-crypto';
-
-import { MOCK_PLAYERS } from '@/data/players';
-import { readJson, removeKey, writeJson } from '@/lib/storage';
-import type { ClassId, PublicPlayer, User } from '@/types';
-
-const ACCOUNTS_KEY = 'chemquest.accounts.v1';
-const SESSION_KEY = 'chemquest.session.v1';
-
-interface StoredAccount {
-  user: User;
-  salt: string;
-  passwordHash: string;
-}
-
-/** Keyed by lowercase email. */
-type AccountTable = Record<string, StoredAccount>;
+import { supabase } from '@/lib/supabase';
+import type { ClassId, LessonResult, PublicPlayer, User } from '@/types';
 
 export type AuthField = 'email' | 'password' | 'nickname';
 
@@ -42,85 +26,96 @@ export interface SignUpInput {
   classId: ClassId;
 }
 
-/** Simulated network latency so loading states are visible during development. */
-const latency = (ms = 450) => new Promise((resolve) => setTimeout(resolve, ms));
-
-const loadAccounts = () => readJson<AccountTable>(ACCOUNTS_KEY, {});
-const saveAccounts = (accounts: AccountTable) => writeJson(ACCOUNTS_KEY, accounts);
-
-function hashPassword(password: string, salt: string) {
-  return Crypto.digestStringAsync(Crypto.CryptoDigestAlgorithm.SHA256, `${salt}:${password}`);
+interface ProfileRow {
+  id: string;
+  email: string;
+  nickname: string;
+  class_id: ClassId;
+  xp: number;
+  completed: Record<string, LessonResult>;
+  created_at: string;
 }
 
-function isNicknameTaken(nickname: string, accounts: AccountTable): boolean {
-  const wanted = nickname.toLowerCase();
-  return (
-    MOCK_PLAYERS.some((p) => p.nickname.toLowerCase() === wanted) ||
-    Object.values(accounts).some((a) => a.user.nickname.toLowerCase() === wanted)
-  );
+const toUser = (row: ProfileRow): User => ({
+  id: row.id,
+  email: row.email,
+  nickname: row.nickname,
+  classId: row.class_id,
+  xp: row.xp,
+  completed: row.completed ?? {},
+  createdAt: row.created_at,
+});
+
+async function fetchProfile(id: string): Promise<User> {
+  const { data, error } = await supabase.from('profiles').select('*').eq('id', id).single();
+  if (error || !data) throw new AuthError('Could not load your profile');
+  return toUser(data as ProfileRow);
 }
 
 export async function signUp(input: SignUpInput): Promise<User> {
-  await latency();
   const email = input.email.trim().toLowerCase();
   const nickname = input.nickname.trim();
-  const accounts = await loadAccounts();
 
-  if (accounts[email]) throw new AuthError('An account with this email already exists', 'email');
-  if (isNicknameTaken(nickname, accounts)) throw new AuthError('That nickname is already taken', 'nickname');
+  const { data: available } = await supabase.rpc('nickname_available', { wanted: nickname });
+  if (available === false) throw new AuthError('That nickname is already taken', 'nickname');
 
-  const user: User = {
-    id: Crypto.randomUUID(),
+  const { data, error } = await supabase.auth.signUp({
     email,
-    nickname,
-    classId: input.classId,
-    xp: 0,
-    completed: {},
-    createdAt: new Date().toISOString(),
-  };
-  const salt = Crypto.randomUUID();
-  accounts[email] = { user, salt, passwordHash: await hashPassword(input.password, salt) };
-  await saveAccounts(accounts);
-  await writeJson(SESSION_KEY, { email });
-  return user;
+    password: input.password,
+    options: { data: { nickname, class_id: input.classId } },
+  });
+  if (error) {
+    if (/already registered/i.test(error.message)) {
+      throw new AuthError('An account with this email already exists', 'email');
+    }
+    throw new AuthError(error.message);
+  }
+  if (!data.user || !data.session) {
+    throw new AuthError('Check your email to confirm your account, then sign in');
+  }
+  return fetchProfile(data.user.id);
 }
 
 export async function signIn(emailInput: string, password: string): Promise<User> {
-  await latency();
-  const email = emailInput.trim().toLowerCase();
-  const account = (await loadAccounts())[email];
-  if (!account || (await hashPassword(password, account.salt)) !== account.passwordHash) {
-    throw new AuthError('Wrong email or password');
-  }
-  await writeJson(SESSION_KEY, { email });
-  return account.user;
+  const { data, error } = await supabase.auth.signInWithPassword({
+    email: emailInput.trim().toLowerCase(),
+    password,
+  });
+  if (error || !data.user) throw new AuthError('Wrong email or password');
+  return fetchProfile(data.user.id);
 }
 
 export async function signOut(): Promise<void> {
-  await removeKey(SESSION_KEY);
+  await supabase.auth.signOut();
 }
 
 export async function restoreSession(): Promise<User | null> {
-  const session = await readJson<{ email: string } | null>(SESSION_KEY, null);
-  if (!session) return null;
-  return (await loadAccounts())[session.email]?.user ?? null;
+  const { data } = await supabase.auth.getSession();
+  if (!data.session) return null;
+  try {
+    return await fetchProfile(data.session.user.id);
+  } catch {
+    return null;
+  }
 }
 
 export async function saveUser(user: User): Promise<User> {
-  const accounts = await loadAccounts();
-  const account = accounts[user.email];
-  if (!account) throw new AuthError('Account not found');
-  accounts[user.email] = { ...account, user };
-  await saveAccounts(accounts);
+  const { error } = await supabase
+    .from('profiles')
+    .update({ class_id: user.classId, xp: user.xp, completed: user.completed })
+    .eq('id', user.id);
+  if (error) throw new AuthError('Could not save your progress');
   return user;
 }
 
-/** Everyone who signed up on this device, as other players see them. */
-export async function listLocalPlayers(): Promise<PublicPlayer[]> {
-  return Object.values(await loadAccounts()).map(({ user }) => ({
-    id: user.id,
-    nickname: user.nickname,
-    classId: user.classId,
-    xp: user.xp,
+/** Everyone with an account, as other players see them. */
+export async function listPlayers(): Promise<PublicPlayer[]> {
+  const { data, error } = await supabase.from('profiles').select('id, nickname, class_id, xp');
+  if (error || !data) return [];
+  return data.map((row) => ({
+    id: row.id,
+    nickname: row.nickname,
+    classId: row.class_id as ClassId,
+    xp: row.xp,
   }));
 }
