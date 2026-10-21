@@ -11,7 +11,7 @@ const SNAP_DISTANCE = 220;
 
 interface LivePlayerProps {
   peer: HubPeer;
-  /** Subscribes to this player's walks; returns an unsubscribe function. */
+  /** Subscribes to this player's positions; returns an unsubscribe function. */
   onMove: (id: string, handler: MoveHandler) => () => void;
   scale?: number;
   /** Lets the hub hit-test and talk to this avatar. */
