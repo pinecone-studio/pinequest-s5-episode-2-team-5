@@ -32,8 +32,39 @@ export function BuildingSprite({ building }: { building: BuildingDef }) {
     <View
       pointerEvents="none"
       style={[styles.sprite, { left: rect.x, top: rect.y, width: rect.w, height: rect.h, zIndex: rect.y + rect.h }]}>
-      {building.id === 'lessons' ? <LessonsHall /> : <RankingTower />}
+      {building.id === 'lessons' ? <LessonsHall /> : building.id === 'ranking' ? <RankingTower /> : <HubHouse building={building} />}
     </View>
+  );
+}
+
+function HubHouse({ building }: { building: BuildingDef }) {
+  const color = building.color;
+  const friendly = building.id === 'friendly';
+  const openlab = building.id === 'openlab';
+  return (
+    <Svg width={200} height={260} viewBox="0 0 200 260">
+      <Ellipse cx={100} cy={249} rx={94} ry={9} fill="#14320A" opacity={0.22} />
+      <Rect x={13} y={223} width={174} height={25} rx={7} fill="#E9E4F8" stroke={OUTLINE} strokeWidth={3} />
+      <Rect x={27} y={102} width={146} height={125} rx={7} fill={friendly ? '#DDFBFF' : openlab ? '#F1FFE1' : '#FFF0F3'} stroke={OUTLINE} strokeWidth={3} />
+      <Rect x={31} y={205} width={138} height={16} fill={color} opacity={0.32} />
+      <Rect x={39} y={130} width={34} height={42} rx={7} fill="#9BE8FF" stroke={OUTLINE} strokeWidth={2.5} />
+      <Line x1={56} y1={131} x2={56} y2={171} stroke="#FFFFFF" strokeWidth={2.5} />
+      <Line x1={40} y1={151} x2={72} y2={151} stroke="#FFFFFF" strokeWidth={2.5} />
+      <Rect x={127} y={130} width={34} height={42} rx={7} fill="#9BE8FF" stroke={OUTLINE} strokeWidth={2.5} />
+      <Line x1={144} y1={131} x2={144} y2={171} stroke="#FFFFFF" strokeWidth={2.5} />
+      <Line x1={128} y1={151} x2={160} y2={151} stroke="#FFFFFF" strokeWidth={2.5} />
+      <Path d="M78 227 L78 186 Q78 165 100 165 Q122 165 122 186 L122 227 Z" fill={color} stroke={OUTLINE} strokeWidth={3} />
+      <Circle cx={114} cy={204} r={2.5} fill={GOLD} />
+      <Path d="M8 105 L100 37 L192 105 Z" fill={color} stroke={OUTLINE} strokeWidth={3} strokeLinejoin="round" />
+      <Path d="M34 99 L100 51 L166 99 Z" fill="#FFFFFF" opacity={0.22} />
+      <Rect x={5} y={100} width={190} height={13} rx={5} fill={color} stroke={OUTLINE} strokeWidth={3} />
+      {friendly ? <Path d="M100 69 C88 57 74 72 100 91 C126 72 112 57 100 69Z" fill="#FFFFFF" stroke={OUTLINE} strokeWidth={2} /> : null}
+      {openlab ? <><Path d="M92 59 L108 59 L108 70 L120 87 Q123 91 118 91 L82 91 Q77 91 80 87 L92 70Z" fill="#E2F7FF" stroke={OUTLINE} strokeWidth={2.5} /><Path d="M84 81 L116 81 L120 88 L80 88Z" fill="#7CFF6B" /></> : null}
+      {!friendly && !openlab ? <><Path d="M84 72 L96 60 L108 72 L96 84 Z" fill="#FFFFFF" stroke={OUTLINE} strokeWidth={2.5} /><Path d="M98 84 L112 69" stroke="#FFFFFF" strokeWidth={4} strokeLinecap="round" /></> : null}
+      <Circle cx={100} cy={35} r={8} fill={GOLD} stroke={OUTLINE} strokeWidth={2.5} />
+      <Bush x={20} y={222} />
+      <Bush x={180} y={222} />
+    </Svg>
   );
 }
 

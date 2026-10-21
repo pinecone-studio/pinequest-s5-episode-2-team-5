@@ -22,7 +22,7 @@ export const WORLD = { width: 640, height: 1100 } as const;
 /** Scenery-only band at the top, so building signs clear the HUD. */
 const TOP_STRIP = 112;
 
-export type BuildingId = 'lessons' | 'ranking';
+export type BuildingId = 'lessons' | 'ranking' | 'versus' | 'friendly' | 'openlab';
 
 export interface BuildingDef {
   id: BuildingId;
@@ -56,6 +56,18 @@ export const BUILDINGS: BuildingDef[] = [
     color: '#F5A623',
     rect: { x: 440, y: 470, w: 190, h: 320 },
     door: { x: 535, y: 812 },
+  },
+  {
+    id: 'versus', label: 'Versus Hub', route: '/versus', icon: 'sword-cross', color: '#FF5C7A',
+    rect: { x: 10, y: 390, w: 200, h: 260 }, door: { x: 110, y: 662 },
+  },
+  {
+    id: 'friendly', label: 'Friendly Hub', route: '/friendly', icon: 'heart-multiple', color: '#3DE0F5',
+    rect: { x: 10, y: 710, w: 200, h: 260 }, door: { x: 110, y: 980 },
+  },
+  {
+    id: 'openlab', label: 'OpenLab', route: '/', icon: 'flask-outline', color: '#B5F23D',
+    rect: { x: 430, y: 820, w: 200, h: 260 }, door: { x: 530, y: 1080 },
   },
 ];
 
