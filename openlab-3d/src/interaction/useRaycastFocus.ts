@@ -1,5 +1,5 @@
 /**
- * Center-screen focus: each frame a ray from the camera finds the nearest enabled
+ * Aim-point focus (view center, or the free mouse): each frame a ray from the camera finds the nearest enabled
  * Interactable within 2.5 m. A rapier ray against static geometry rejects targets hidden
  * behind walls. The result is pushed to the game store (prompt + outline).
  */
@@ -11,8 +11,9 @@ import { useGameStore, type FocusInfo } from '../store/useGameStore';
 import { INTERACT_RANGE } from '../utils/constants';
 import { interactables, isVisibleInScene, localBounds, resolveInteractable, type InteractableEntry } from './registry';
 import { playerBodyRef } from '../controls/Player';
+import { aim, aimNdc, isRoaming } from './aim';
 
-const CENTER = new Vector2(0, 0);
+const ndc = new Vector2();
 
 export function useRaycastFocus(): void {
   const camera = useThree((s) => s.camera);
@@ -35,9 +36,14 @@ export function useRaycastFocus(): void {
       return;
     }
     if (game.dragging) return;
+    // A free mouse over a HUD button points at the button, not at the lab behind it.
+    if (isRoaming() && !aim.overView) {
+      if (game.focus) game.setFocus(null);
+      return;
+    }
     state.frame++;
     const { raycaster, hits, sphere, camPos } = state;
-    raycaster.setFromCamera(CENTER, camera);
+    raycaster.setFromCamera(aimNdc(ndc), camera);
     raycaster.far = INTERACT_RANGE + 0.5;
     camPos.copy(camera.position);
 

@@ -222,12 +222,16 @@ export function useGameKeys(canvas: HTMLElement | null): void {
       const game = useGameStore.getState();
       if (game.mode !== 'walk' || e.button !== 0) return;
       const { lookMode } = useSettingsStore.getState();
-      if (lookMode === 'mouse' && !isPointerLocked()) {
+      // With a free mouse a click on equipment uses it; a click on empty view takes the mouse back.
+      const free = lookMode === 'mouse' && !isPointerLocked();
+      if (!free || game.focus) {
+        if (startDrag('mouse')) return;
+        if (interactWithFocus()) return;
+      }
+      if (free) {
         requestLock();
         return;
       }
-      if (startDrag('mouse')) return;
-      if (interactWithFocus()) return;
       if (lookMode === 'keyboard') keyboardLookDrag = true;
     };
     const onMouseMove = (e: MouseEvent) => {

@@ -30,6 +30,11 @@ canvas {
   outline: none;
 }
 
+/* The custom arrow/hand drawn by Crosshair replaces the system cursor over the 3D view while the pointer is free. */
+body[data-free-aim='true'] canvas {
+  cursor: none;
+}
+
 @layer components {
   .hud-square {
     @apply flex h-11 min-w-[44px] items-center justify-center rounded-[6px] px-3 text-white shadow-hud backdrop-blur-sm transition;

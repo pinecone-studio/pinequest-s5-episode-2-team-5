@@ -17,6 +17,7 @@ import { mixtureOf, useChemStore } from '../store/useChemStore';
 import { useSettingsStore } from '../store/useSettingsStore';
 import { sounds } from '../utils/sounds';
 import { heldApi } from './heldApi';
+import { aimDirection } from './aim';
 import { supportHeightAt } from './bodies';
 import { nearestSurfacePoint, raycastSurfaces, type Placement } from './surfaces';
 import { actionVisual } from './actions';
@@ -165,7 +166,7 @@ export function HeldItem() {
       }
     }
     // Placement target.
-    camera.getWorldDirection(dir);
+    aimDirection(camera, dir);
     let target: Placement | null = raycastSurfaces(camera.position, dir, 3.0, footprint);
     let floor = false;
     if (!target) target = nearestSurfacePoint(playerState.position, 1.2, footprint + 0.02);
