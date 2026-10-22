@@ -2,7 +2,6 @@
  * Combination emergency safety shower + eyewash: a 2.3 m safety-yellow standpipe with
  * a Ø 0.25 m shower head on an arm, a triangular pull handle, and an eyewash bowl at
  * 1.0 m with a push paddle. Pulling the handle runs water for a few seconds.
- * <EyewashStation> is the wall-mounted eyewash used in the Main Hall.
  */
 import { useMemo, useRef, useState } from 'react';
 import { useFrame } from '@react-three/fiber';
@@ -106,46 +105,6 @@ export function SafetyShower({ id, position, rotY = 0 }: { id: string; position:
       <WaterSpray active={running} origin={[0, 2.14, 0.5]} spread={0.25} height={2.1} />
       <SafetySign position={[0, 2.58, 0.05]} label="SAFETY SHOWER" />
       <CylinderCollider args={[1.2, 0.18]} position={[0, 1.2, 0]} />
-    </group>
-  );
-}
-
-/** Wall-mounted eyewash station (bowl at 1.0 m, sign above). Origin at the wall surface. */
-export function EyewashStation({ id, position, rotY = 0 }: { id: string; position: [number, number, number]; rotY?: number }) {
-  const [running, setRunning] = useState(false);
-  return (
-    <group position={position} rotation={[0, rotY, 0]}>
-      <mesh material={pipe} position={[0, 0.55, 0.05]}>
-        <cylinderGeometry args={[0.025, 0.025, 1.1, 12]} />
-      </mesh>
-      <Interactable
-        id={id}
-        label="Eyewash station"
-        verb={running ? 'Stop' : 'Test'}
-        onInteract={() => {
-          setRunning((r) => !r);
-          sounds.play('puff', 0.6);
-        }}
-      >
-        <group position={[0, 1.0, 0.2]}>
-          <mesh material={pipe} rotation={[Math.PI, 0, 0]}>
-            <sphereGeometry args={[0.15, 24, 12, 0, Math.PI * 2, 0, Math.PI / 2]} />
-          </mesh>
-          <mesh material={pipe} position={[0, 0.0, -0.17]}>
-            <boxGeometry args={[0.1, 0.06, 0.06]} />
-          </mesh>
-          <mesh material={green} position={[0.2, -0.02, -0.05]} rotation={[0, 0, -0.3]}>
-            <boxGeometry args={[0.12, 0.02, 0.1]} />
-          </mesh>
-          {[-0.045, 0.045].map((dx) => (
-            <mesh key={dx} material={green} position={[dx, 0.01, 0]}>
-              <cylinderGeometry args={[0.02, 0.022, 0.05, 12]} />
-            </mesh>
-          ))}
-        </group>
-      </Interactable>
-      <WaterSpray active={running} origin={[0, 1.08, 0.2]} spread={0.05} height={0.12} />
-      <SafetySign position={[0, 1.75, 0.01]} label="EYEWASH STATION" />
     </group>
   );
 }

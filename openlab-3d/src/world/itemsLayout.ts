@@ -3,7 +3,6 @@
  * y at the supporting surface; bench tops sit at y = 0.9.
  */
 import type { EquipmentKind } from '../equipment/equipmentCatalog';
-import { roomAt, type RoomId } from './layout';
 
 export interface ItemVariant {
   liquid?: string;
@@ -17,7 +16,6 @@ export interface WorldItem {
   position: [number, number, number];
   rotY: number;
   variant?: ItemVariant;
-  room: RoomId;
 }
 
 type Seed = [EquipmentKind, number, number, number, number?, ItemVariant?];
@@ -25,19 +23,6 @@ type Seed = [EquipmentKind, number, number, number, number?, ItemVariant?];
 const T = 0.9; // bench top height
 
 const SEEDS: Seed[] = [
-  // Physics Lab — Millikan station accessories.
-  ['beaker', -12.66, T, -9.28, 0, { liquid: '#2f7ff0', fill: 0.55 }],
-  ['creamBottle', -12.86, T, -8.98, 0.4],
-  // Physics Lab — back bench.
-  ['goggles', -16.9, T, -14.45, 0.3],
-  ['graduatedCylinder', -15.6, T, -14.5, 0, { liquid: '#cfe8ff', fill: 0.6 }],
-  ['thermometer', -13.2, T, -14.42, 1.2],
-  ['beaker', -10.0, T, -14.45, 0, { liquid: '#dff1ff', fill: 0.4 }],
-  ['erlenmeyer', -9.5, T, -14.5, 0, { liquid: '#ffb347', fill: 0.35 }],
-  // Physics Lab — electronics island.
-  ['multimeter', -6.55, T, -8.95, -0.3],
-  ['goggles', -7.9, T, -8.7, -0.2],
-
   // Chemistry Lab — island A.
   ['beaker', 0.35, T, -7.0, 0, { liquid: '#e2363c', fill: 0.5 }],
   ['erlenmeyer', 0.8, T, -6.98, 0, { liquid: '#8b4fd8', fill: 0.4 }],
@@ -61,25 +46,6 @@ const SEEDS: Seed[] = [
   ['reagentBottle', -3.5, T, -11.6, 0, { label: 'CuSO₄' }],
   ['goggles', -3.5, T, -12.1, 1.4],
   ['graduatedCylinder', -3.55, T, -10.9, 0, { liquid: '#f0f6ff', fill: 0.5 }],
-
-  // Biology Lab — south bench.
-  ['petriDish', -13.6, T, 14.45, 0],
-  ['petriDish', -13.3, T, 14.62, 0.5],
-  ['petriDish', -12.95, T, 14.4, 1.1],
-  ['slideBox', -11.6, T, 14.5, 0.1],
-  ['slideBox', -6.9, T, 14.5, -0.15],
-  ['specimenJar', -9.4, T, 14.5, 0, { label: 'Frog' }],
-  ['specimenJar', -8.8, T, 14.5, 0, { label: 'Starfish' }],
-  ['specimenJar', -4.6, T, 14.55, 0, { label: 'Squid' }],
-  ['pipette', -5.6, T, 14.45, 1.3],
-  ['petriDish', -2.2, T, 14.5, 0.3],
-  ['beaker', -1.4, T, 14.5, 0, { liquid: '#cde7c8', fill: 0.45 }],
-
-  // Storage Room — packing table by the door.
-  ['beaker', 16.4, 0.86, -5.0, 0],
-  ['erlenmeyer', 16.75, 0.86, -4.85, 0],
-  ['goggles', 17.25, 0.86, -5.05, 0.6],
-  ['testTube', 17.6, 0.86, -4.9, 0, { liquid: '#ff5a5a', fill: 0.5 }],
 ];
 
 export function createInitialItems(): WorldItem[] {
@@ -89,6 +55,5 @@ export function createInitialItems(): WorldItem[] {
     position: [x, y + 0.004, z],
     rotY,
     variant,
-    room: roomAt(x, z) ?? 'mainHall',
   }));
 }

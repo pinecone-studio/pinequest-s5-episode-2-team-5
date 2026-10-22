@@ -8,7 +8,6 @@ class SoundEngine {
   private ctx: AudioContext | null = null;
   private master: GainNode | null = null;
   private noise: AudioBuffer | null = null;
-  private humNodes: { oscs: OscillatorNode[]; gain: GainNode } | null = null;
   private volume = 0.7;
 
   /** Must be called from a user gesture (browser autoplay policy). */
@@ -110,39 +109,6 @@ class SoundEngine {
       case 'success':
         [660, 880, 1320].forEach((f, i) => this.tone(t + i * 0.09, f, { type: 'triangle', peak: 0.05 * k, attack: 0.005, decay: 0.22 }));
         break;
-    }
-  }
-
-  /** Low mains hum of the powered apparatus. `level` (0..1) follows the player's distance. */
-  setHum(on: boolean, level = 1): void {
-    if (!this.ctx || !this.master) return;
-    if (on && !this.humNodes) {
-      const gain = this.ctx.createGain();
-      gain.gain.value = 0;
-      const filter = this.ctx.createBiquadFilter();
-      filter.type = 'lowpass';
-      filter.frequency.value = 420;
-      const oscs = [60, 120, 180, 240].map((f, i) => {
-        const o = this.ctx!.createOscillator();
-        o.type = i === 0 ? 'sine' : 'triangle';
-        o.frequency.value = f;
-        const g = this.ctx!.createGain();
-        g.gain.value = [0.5, 0.28, 0.12, 0.05][i];
-        o.connect(g).connect(filter);
-        o.start();
-        return o;
-      });
-      filter.connect(gain).connect(this.master);
-      this.humNodes = { oscs, gain };
-    }
-    if (this.humNodes) {
-      const target = on ? 0.05 * Math.max(0, Math.min(1, level)) : 0;
-      this.humNodes.gain.gain.setTargetAtTime(target, this.ctx.currentTime, 0.15);
-      if (!on) {
-        const nodes = this.humNodes;
-        this.humNodes = null;
-        window.setTimeout(() => nodes.oscs.forEach((o) => o.stop()), 800);
-      }
     }
   }
 }

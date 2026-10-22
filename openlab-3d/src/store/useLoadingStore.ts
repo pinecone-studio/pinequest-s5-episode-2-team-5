@@ -1,18 +1,14 @@
+import { useEffect } from 'react';
 import { create } from 'zustand';
 
-/** Everything that must be ready before the start screen: engine, rooms, fonts, shaders. */
-export const LOAD_STEPS = ['engine', 'architecture', 'mainHall', 'corridor', 'physics', 'chemistry', 'biology', 'storage', 'fonts', 'shaders'] as const;
+/** Everything that must be ready before the start screen: engine, lab, fonts, shaders. */
+export const LOAD_STEPS = ['engine', 'architecture', 'chemistry', 'fonts', 'shaders'] as const;
 export type LoadStep = (typeof LOAD_STEPS)[number];
 
 const LABELS: Record<LoadStep, string> = {
   engine: 'Starting physics engine',
   architecture: 'Raising walls',
-  mainHall: 'Setting up the Main Hall',
-  corridor: 'Lighting the corridor',
-  physics: 'Calibrating the Millikan apparatus',
   chemistry: 'Filling beakers',
-  biology: 'Focusing microscopes',
-  storage: 'Stocking the shelves',
   fonts: 'Printing labels',
   shaders: 'Polishing glassware',
 };
@@ -28,6 +24,13 @@ export const useLoadingStore = create<LoadingState>()((set, get) => ({
     if (!get().done.includes(step)) set((s) => ({ done: [...s.done, step] }));
   },
 }));
+
+/** Report a part of the lab (or another step) as ready for the loading screen. */
+export function useReady(step: LoadStep): void {
+  useEffect(() => {
+    useLoadingStore.getState().markReady(step);
+  }, [step]);
+}
 
 export function loadingProgress(done: LoadStep[]): { progress: number; label: string; complete: boolean } {
   const next = LOAD_STEPS.find((s) => !done.includes(s));

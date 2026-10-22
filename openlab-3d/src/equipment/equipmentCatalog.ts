@@ -3,30 +3,20 @@
  * note, plus the physical footprint used for pickable colliders and placement.
  */
 export type EquipmentKind =
-  | 'millikan'
-  | 'microscope'
   | 'beaker'
   | 'erlenmeyer'
   | 'testTube'
   | 'testTubeRack'
   | 'graduatedCylinder'
-  | 'atomizer'
   | 'reagentBottle'
-  | 'creamBottle'
   | 'bunsenBurner'
-  | 'petriDish'
   | 'pipette'
-  | 'laptop'
-  | 'multimeter'
-  | 'powerSupply'
   | 'scale'
   | 'thermometer'
   | 'goggles'
-  | 'specimenJar'
-  | 'slideBox'
   | 'fireExtinguisher';
 
-export type EquipmentCategory = 'Apparatus' | 'Optics' | 'Glassware' | 'Electronics' | 'Heating' | 'Measurement' | 'Biology' | 'Safety';
+export type EquipmentCategory = 'Glassware' | 'Heating' | 'Measurement' | 'Safety';
 
 export type ColliderShape =
   | { shape: 'cuboid'; size: [number, number, number] }
@@ -52,31 +42,6 @@ const cyl = (radius: number, height: number): ColliderShape => ({ shape: 'cylind
 const box = (w: number, h: number, d: number): ColliderShape => ({ shape: 'cuboid', size: [w, h, d] });
 
 export const CATALOG: Record<EquipmentKind, CatalogEntry> = {
-  millikan: {
-    kind: 'millikan',
-    name: 'Millikan Oil Drop Apparatus',
-    category: 'Apparatus',
-    description:
-      'Two horizontal capacitor plates 6 mm apart inside a clear chamber. Charged oil droplets are suspended between them and observed through a measuring microscope to determine the elementary charge e.',
-    safety: 'The plates carry up to 600 V. Keep the polarity switch at 0 while handling the chamber and never touch the plate contacts.',
-    size: [0.45, 0.4, 0.3],
-    collider: box(0.45, 0.4, 0.3),
-    pickable: false,
-    spawnable: false,
-    massKg: 6,
-  },
-  microscope: {
-    kind: 'microscope',
-    name: 'Compound Microscope',
-    category: 'Optics',
-    description: 'A monocular light microscope with a revolving nosepiece holding 4×, 10× and 40× objectives, a mechanical stage and coarse/fine focus.',
-    safety: 'Carry with one hand under the base and one on the arm. Always start focusing with the lowest-power objective.',
-    size: [0.18, 0.36, 0.24],
-    collider: box(0.18, 0.36, 0.24),
-    pickable: false,
-    spawnable: false,
-    massKg: 4,
-  },
   beaker: {
     kind: 'beaker',
     name: 'Beaker (250 mL)',
@@ -137,18 +102,6 @@ export const CATALOG: Record<EquipmentKind, CatalogEntry> = {
     spawnable: true,
     massKg: 0.2,
   },
-  atomizer: {
-    kind: 'atomizer',
-    name: 'Oil Atomizer',
-    category: 'Apparatus',
-    description: 'A frosted bottle of low-vapour-pressure oil with a rubber squeeze bulb. Each squeeze sprays a fine mist of microscopic droplets into the chamber.',
-    safety: 'Spray only into the chamber opening. Clean up spilled oil immediately — it makes the floor slippery.',
-    size: [0.14, 0.12, 0.07],
-    collider: box(0.14, 0.12, 0.07),
-    pickable: false,
-    spawnable: false,
-    massKg: 0.15,
-  },
   reagentBottle: {
     kind: 'reagentBottle',
     name: 'Reagent Bottle',
@@ -160,18 +113,6 @@ export const CATALOG: Record<EquipmentKind, CatalogEntry> = {
     pickable: true,
     spawnable: true,
     massKg: 0.3,
-  },
-  creamBottle: {
-    kind: 'creamBottle',
-    name: 'Oil Reservoir Bottle',
-    category: 'Apparatus',
-    description: 'A small cream-coloured plastic bottle holding refill oil for the atomizer.',
-    safety: 'Keep capped when not refilling the atomizer.',
-    size: [0.045, 0.085, 0.045],
-    collider: cyl(0.022, 0.085),
-    pickable: true,
-    spawnable: true,
-    massKg: 0.08,
   },
   bunsenBurner: {
     kind: 'bunsenBurner',
@@ -185,18 +126,6 @@ export const CATALOG: Record<EquipmentKind, CatalogEntry> = {
     spawnable: false,
     massKg: 0.6,
   },
-  petriDish: {
-    kind: 'petriDish',
-    name: 'Petri Dish',
-    category: 'Biology',
-    description: 'A shallow lidded dish holding nutrient agar for growing microbial cultures.',
-    safety: 'Keep cultured dishes closed and taped. Dispose of them in the biohazard bin.',
-    size: [0.09, 0.016, 0.09],
-    collider: cyl(0.045, 0.016),
-    pickable: true,
-    spawnable: true,
-    massKg: 0.03,
-  },
   pipette: {
     kind: 'pipette',
     name: 'Pasteur Pipette',
@@ -208,42 +137,6 @@ export const CATALOG: Record<EquipmentKind, CatalogEntry> = {
     pickable: true,
     spawnable: true,
     massKg: 0.01,
-  },
-  laptop: {
-    kind: 'laptop',
-    name: 'Lab Laptop',
-    category: 'Electronics',
-    description: 'Runs the OpenLab data logger: it records your droplet timings and computes each droplet’s charge.',
-    safety: 'Keep liquids away from the keyboard.',
-    size: [0.32, 0.22, 0.24],
-    collider: box(0.32, 0.22, 0.24),
-    pickable: false,
-    spawnable: false,
-    massKg: 1.6,
-  },
-  multimeter: {
-    kind: 'multimeter',
-    name: 'Digital Multimeter',
-    category: 'Electronics',
-    description: 'Measures voltage, current and resistance. Turn the rotary dial to choose the range.',
-    safety: 'Choose the range before connecting probes, and never measure resistance on a live circuit.',
-    size: [0.09, 0.04, 0.18],
-    collider: box(0.09, 0.04, 0.18),
-    pickable: true,
-    spawnable: true,
-    massKg: 0.35,
-  },
-  powerSupply: {
-    kind: 'powerSupply',
-    name: 'DC Power Supply',
-    category: 'Electronics',
-    description: 'A bench supply providing 0–30 V DC with an adjustable current limit and a digital display.',
-    safety: 'Set the voltage to zero before connecting a circuit, then raise it slowly.',
-    size: [0.24, 0.13, 0.26],
-    collider: box(0.24, 0.13, 0.26),
-    pickable: false,
-    spawnable: false,
-    massKg: 3,
   },
   scale: {
     kind: 'scale',
@@ -280,30 +173,6 @@ export const CATALOG: Record<EquipmentKind, CatalogEntry> = {
     pickable: true,
     spawnable: true,
     massKg: 0.08,
-  },
-  specimenJar: {
-    kind: 'specimenJar',
-    name: 'Specimen Jar',
-    category: 'Biology',
-    description: 'A preserved biological specimen stored in fixative inside a sealed glass jar.',
-    safety: 'Do not open — the fixative fumes are irritating. Handle with both hands.',
-    size: [0.1, 0.16, 0.1],
-    collider: cyl(0.05, 0.16),
-    pickable: true,
-    spawnable: true,
-    massKg: 0.6,
-  },
-  slideBox: {
-    kind: 'slideBox',
-    name: 'Prepared Slide Box',
-    category: 'Biology',
-    description: 'A box of prepared microscope slides: onion epidermis, blood smear, pond water and leaf section.',
-    safety: 'Hold slides by the edges. Cover slips are thin and sharp when broken.',
-    size: [0.1, 0.03, 0.08],
-    collider: box(0.1, 0.03, 0.08),
-    pickable: true,
-    spawnable: true,
-    massKg: 0.15,
   },
   fireExtinguisher: {
     kind: 'fireExtinguisher',

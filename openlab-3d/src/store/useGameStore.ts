@@ -1,7 +1,7 @@
 import { Vector3 } from 'three';
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import { ROOM_BY_ID, SPAWN, type RoomId } from '../world/layout';
+import { SPAWN } from '../world/layout';
 import type { EquipmentKind } from '../equipment/equipmentCatalog';
 
 /**
@@ -9,13 +9,9 @@ import type { EquipmentKind } from '../equipment/equipmentCatalog';
  * paused      – Esc pause menu
  * ui          – a HUD panel (menu, notes, tools, help) has the cursor
  * inspect     – an object floats in front of the camera (F)
- * microscope  – full-screen eyepiece view
- * laptop      – camera docked at the laptop screen
  */
-export type Mode = 'loading' | 'start' | 'walk' | 'paused' | 'ui' | 'inspect' | 'microscope' | 'laptop' | 'ended';
+export type Mode = 'loading' | 'start' | 'walk' | 'paused' | 'ui' | 'inspect' | 'ended';
 export type Panel = 'none' | 'menu' | 'notes' | 'tools' | 'help' | 'endConfirm';
-export type MicroscopeTarget = { kind: 'millikan' } | { kind: 'specimen'; specimen: SpecimenId; label: string; id: string };
-export type SpecimenId = 'onion' | 'blood' | 'pond' | 'leaf';
 export type RobotMood = 'idle' | 'wave' | 'happy' | 'think';
 
 export interface FocusInfo {
@@ -55,12 +51,8 @@ interface GameState {
   pointerLocked: boolean;
   focus: FocusInfo | null;
   dragging: string | null;
-  currentRoom: RoomId;
-  activeRooms: RoomId[];
-  visitedRooms: RoomId[];
   inspectTarget: { kind: EquipmentKind; sourceId: string } | null;
   inspectedKinds: EquipmentKind[];
-  microscope: MicroscopeTarget | null;
   minimapVisible: boolean;
   robot: { text: string; id: number; mood: RobotMood; open: boolean };
   toast: { title: string; subtitle?: string; id: number } | null;
@@ -74,10 +66,7 @@ interface GameState {
   setPointerLocked: (locked: boolean) => void;
   setFocus: (focus: FocusInfo | null) => void;
   setDragging: (id: string | null) => void;
-  setRoom: (room: RoomId) => void;
-  setActiveRooms: (rooms: RoomId[]) => void;
   startInspect: (kind: EquipmentKind, sourceId: string) => void;
-  openMicroscope: (target: MicroscopeTarget) => void;
   toggleMinimap: () => void;
   say: (text: string, mood?: RobotMood) => void;
   setRobotOpen: (open: boolean) => void;
@@ -96,12 +85,8 @@ export const useGameStore = create<GameState>()(
       pointerLocked: false,
       focus: null,
       dragging: null,
-      currentRoom: 'mainHall',
-      activeRooms: ['mainHall', 'physics', 'biology'],
-      visitedRooms: ['mainHall'],
       inspectTarget: null,
       inspectedKinds: [],
-      microscope: null,
       minimapVisible: true,
       robot: { text: '', id: 0, mood: 'idle', open: false },
       toast: null,
@@ -119,22 +104,6 @@ export const useGameStore = create<GameState>()(
         set({ focus });
       },
       setDragging: (dragging) => set({ dragging }),
-      setRoom: (room) => {
-        const { visitedRooms, currentRoom } = get();
-        if (room === currentRoom) return;
-        const firstVisit = !visitedRooms.includes(room);
-        set({
-          currentRoom: room,
-          visitedRooms: firstVisit ? [...visitedRooms, room] : visitedRooms,
-          toast: { title: ROOM_BY_ID[room].name, subtitle: firstVisit ? 'New area discovered' : undefined, id: Date.now() },
-        });
-        if (firstVisit) get().logEvent(`Entered the ${ROOM_BY_ID[room].name} for the first time.`);
-      },
-      setActiveRooms: (rooms) => {
-        const prev = get().activeRooms;
-        if (prev.length === rooms.length && prev.every((r) => rooms.includes(r))) return;
-        set({ activeRooms: rooms });
-      },
       startInspect: (kind, sourceId) => {
         const inspected = get().inspectedKinds;
         set({
@@ -144,7 +113,6 @@ export const useGameStore = create<GameState>()(
           inspectedKinds: inspected.includes(kind) ? inspected : [...inspected, kind],
         });
       },
-      openMicroscope: (target) => set({ mode: 'microscope', microscope: target, focus: null }),
       toggleMinimap: () => set((s) => ({ minimapVisible: !s.minimapVisible })),
       say: (text, mood = 'wave') => set((s) => ({ robot: { text, id: s.robot.id + 1, mood, open: true } })),
       setRobotOpen: (open) => set((s) => ({ robot: { ...s.robot, open } })),
@@ -160,9 +128,6 @@ export const useGameStore = create<GameState>()(
           dragging: null,
           inspectTarget: null,
           inspectedKinds: [],
-          microscope: null,
-          visitedRooms: ['mainHall'],
-          currentRoom: 'mainHall',
           log: [],
           sessionStart: Date.now(),
           endedAt: null,

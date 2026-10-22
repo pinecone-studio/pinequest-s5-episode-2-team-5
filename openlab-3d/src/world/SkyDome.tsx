@@ -1,6 +1,6 @@
 /**
  * Outdoor backdrop seen through the windows: a gradient sky dome (radius 150 m),
- * distant low-poly trees (instanced) and a few courtyard trees.
+ * distant low-poly trees (instanced) and a few trees in the garden south of the lab.
  */
 import { useLayoutEffect, useMemo, useRef } from 'react';
 import { BackSide, Color, ConeGeometry, CylinderGeometry, InstancedMesh, MeshStandardMaterial, Object3D, ShaderMaterial, SphereGeometry } from 'three';
@@ -70,13 +70,13 @@ function Trees({ positions }: { positions: [number, number, number][] }) {
 export function SkyDome() {
   const trees = useMemo(() => {
     const list: [number, number, number][] = [];
-    // Ring of distant trees around the building.
+    // Ring of distant trees around the lab.
     for (let i = 0; i < 46; i++) {
       const a = (i / 46) * Math.PI * 2;
       const r = 34 + ((i * 37) % 11);
       list.push([Math.cos(a) * r * 1.2, Math.sin(a) * r, 1.1 + ((i * 13) % 7) / 6]);
     }
-    // Courtyard (x 6..20, z 1..15).
+    // Garden south of the lab.
     list.push([10, 6, 0.9], [16.5, 9, 1.1], [12.5, 12.5, 0.8], [18, 4, 0.7]);
     return list;
   }, []);

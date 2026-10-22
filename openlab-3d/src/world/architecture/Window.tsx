@@ -26,7 +26,6 @@ export function windowPieces(): { frames: Piece[]; sills: Piece[]; panes: Piece[
   const f = 0.05;
   for (const wall of WALLS) {
     for (const o of wall.openings) {
-      if (o.kind !== 'window') continue;
       const h = o.head - o.sill;
       const yMid = (o.sill + o.head) / 2;
       const depth = WALL_THICKNESS * 0.6;

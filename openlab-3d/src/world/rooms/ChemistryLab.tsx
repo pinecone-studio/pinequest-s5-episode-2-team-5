@@ -20,7 +20,9 @@ import { Scale } from '../../equipment/Scale';
 import { Beaker } from '../../equipment/Beaker';
 import { Interactable } from '../../interaction/Interactable';
 import { useExperimentStore } from '../../store/useExperimentStore';
+import { useGameStore } from '../../store/useGameStore';
 import { useInventoryStore } from '../../store/useInventoryStore';
+import { useReady } from '../../store/useLoadingStore';
 import { CATALOG } from '../../equipment/equipmentCatalog';
 import { plastic, plasticBlack } from '../../materials/plastic';
 import { metalDark } from '../../materials/metal';
@@ -28,7 +30,6 @@ import { chemBoardTexture } from '../../utils/textures';
 import { sounds } from '../../utils/sounds';
 import { FONTS } from '../../utils/fonts';
 import { BENCH_HEIGHT } from '../../utils/constants';
-import { useReady, useRoomActive } from '../roomVisibility';
 import { StaticBatch } from '../StaticBatch';
 
 const T = BENCH_HEIGHT;
@@ -43,7 +44,10 @@ function Burner({ id, position, withTripod = false }: { id: string; position: [n
         verb={lit ? 'Turn off' : 'Light'}
         inspectKind="bunsenBurner"
         onInteract={() => {
-          useExperimentStore.getState().toggle(id);
+          const exp = useExperimentStore.getState();
+          const on = exp.toggle(id);
+          if (on) exp.markSkill('burner');
+          useGameStore.getState().logEvent(on ? 'Lit a Bunsen burner.' : 'Turned off a Bunsen burner.');
           sounds.play('puff', 0.7);
         }}
       >
@@ -90,7 +94,10 @@ function LiveBalance({ position }: { position: [number, number, number] }) {
       verb="Tare"
       inspectKind="scale"
       onInteract={() => {
-        useExperimentStore.getState().setValue('balance-tare', grams);
+        const exp = useExperimentStore.getState();
+        exp.setValue('balance-tare', grams);
+        exp.markSkill('tare');
+        useGameStore.getState().logEvent(grams > 0 ? `Tared the balance with ${grams.toFixed(3)} g on the pan.` : 'Tared the empty balance.');
         sounds.play('beep');
       }}
     >
@@ -123,9 +130,8 @@ function FlammablesCabinet({ position, rotY }: { position: [number, number, numb
 
 export default function ChemistryLab() {
   useReady('chemistry');
-  const active = useRoomActive('chemistry');
   return (
-    <group visible={active}>
+    <group>
       <StaticBatch>
       <BenchParts>
         {/* Window bench run on the north wall. */}

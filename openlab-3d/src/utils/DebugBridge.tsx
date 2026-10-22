@@ -11,7 +11,6 @@ import { useInventoryStore } from '../store/useInventoryStore';
 import { useSettingsStore } from '../store/useSettingsStore';
 import { useLoadingStore } from '../store/useLoadingStore';
 import { interactables } from '../interaction/registry';
-import { sim } from '../experiment/millikanSim';
 
 declare global {
   interface Window {
@@ -31,7 +30,6 @@ export function DebugBridge() {
       loading: useLoadingStore,
       player: playerState,
       interactables,
-      sim,
       teleport: (x: number, z: number, yaw = 0) => playerApi.teleport(x, z, yaw),
       look: (yaw: number, pitch = 0) => {
         playerState.yaw = yaw;

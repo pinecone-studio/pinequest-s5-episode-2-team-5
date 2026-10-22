@@ -13,7 +13,7 @@ function Logo() {
       <div className="flex h-14 w-14 items-center justify-center rounded-full bg-lab-yellow font-display text-2xl font-bold text-white shadow-hud">OL</div>
       <div className="text-left">
         <div className="font-display text-3xl font-bold leading-none text-lab-ink">OpenLab 3D</div>
-        <div className="mt-1 text-sm font-medium tracking-wide text-slate-500">Virtual Science Laboratory</div>
+        <div className="mt-1 text-sm font-medium tracking-wide text-slate-500">Virtual Chemistry Laboratory</div>
       </div>
     </div>
   );
@@ -28,7 +28,7 @@ export function enterLab(): void {
   requestLock();
   window.setTimeout(() => {
     if (!useGameStore.getState().robot.text) {
-      useGameStore.getState().say('Welcome! Walk to the Physics Lab to start the Millikan Oil Drop experiment.', 'wave');
+      useGameStore.getState().say('Welcome to the Chemistry Lab! Light a Bunsen burner, tare the balance or raise the fume-hood sash. Click me any time for a hint.', 'wave');
     }
   }, 700);
 }
@@ -70,7 +70,7 @@ export function LoadingScreen() {
             <motion.div className="panel-card w-full max-w-2xl p-6 sm:p-8" initial={{ y: 20, opacity: 0 }} animate={{ y: 0, opacity: 1 }}>
               <Logo />
               <p className="mt-4 text-slate-600">
-                Explore a full science facility in first person. Walk up to any equipment until it glows white, then use the keys shown at the bottom of the screen. Your first mission: the <b>Millikan Oil Drop</b> experiment in the Physics Lab.
+                Step into a fully equipped <b>chemistry lab</b> in first person. Walk up to any equipment until it glows white, then use the keys shown at the bottom of the screen. Light a Bunsen burner, weigh glassware on the analytical balance and work safely at the fume hood.
               </p>
               <div className="mt-5 rounded-2xl bg-slate-50 p-4">
                 <ControlsList compact />

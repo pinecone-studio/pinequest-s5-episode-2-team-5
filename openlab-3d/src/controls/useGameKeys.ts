@@ -5,7 +5,7 @@ import { useSettingsStore } from '../store/useSettingsStore';
 import { interactables } from '../interaction/registry';
 import { dragState, heldApi } from '../interaction/heldApi';
 import { sounds } from '../utils/sounds';
-import { actionsForKey, ALT_INTERACT } from './keyMap';
+import { actionsForKey } from './keyMap';
 import { isPointerLocked, lookBy, releaseLock, requestLock } from './usePointerLock';
 
 function isTyping(target: EventTarget | null): boolean {
@@ -145,13 +145,6 @@ export function useGameKeys(canvas: HTMLElement | null): void {
         case 'inspect': {
           if (e.code === 'Escape' || actions.includes('inspect') || actions.includes('interact')) {
             e.preventDefault();
-            game.setMode('walk');
-            requestLock();
-          }
-          return;
-        }
-        case 'laptop': {
-          if (e.code === 'Escape' || (actions.includes('interact') && e.code !== ALT_INTERACT)) {
             game.setMode('walk');
             requestLock();
           }

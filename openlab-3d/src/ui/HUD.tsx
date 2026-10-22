@@ -1,8 +1,8 @@
 /**
  * Heads-up display, laid out like the reference: yellow round menu (top left), notes +
  * End (top right), yellow tools tab (right edge), robot assistant (bottom left),
- * interaction prompt (bottom center) and minimap (bottom right). Everything except the
- * eyepiece's own Esc hint is hidden while looking through a microscope.
+ * interaction prompt (bottom center) and minimap (bottom right). Everything is hidden
+ * while inspecting an object.
  */
 import { useGameStore } from '../store/useGameStore';
 import { useSettingsStore } from '../store/useSettingsStore';
@@ -18,8 +18,6 @@ import { RobotAssistant } from './RobotAssistant';
 import { Minimap } from './Minimap';
 import { ControlsHelp } from './ControlsHelp';
 import { PauseMenu } from './PauseMenu';
-import { MicroscopeView } from './MicroscopeView';
-import { LaptopScreen } from './LaptopScreen';
 import { LoadingScreen } from './LoadingScreen';
 import { SummaryScreen } from './SummaryScreen';
 import { ClickToLookHint, FpsCounter, RoomToast } from './RoomToast';
@@ -31,8 +29,7 @@ export function HUD() {
   const mode = useGameStore((s) => s.mode);
   const showFps = useSettingsStore((s) => s.showFps);
   const inGame = mode !== 'loading' && mode !== 'start' && mode !== 'ended';
-  const immersive = mode === 'microscope' || mode === 'laptop' || mode === 'inspect';
-  const showChrome = inGame && !immersive;
+  const showChrome = inGame && mode !== 'inspect';
   const touch = isTouchDevice();
   return (
     <>
@@ -62,8 +59,6 @@ export function HUD() {
       <EndConfirm />
       <PauseMenu />
       <InspectMode />
-      <MicroscopeView />
-      <LaptopScreen />
       <LoadingScreen />
       <SummaryScreen />
     </>

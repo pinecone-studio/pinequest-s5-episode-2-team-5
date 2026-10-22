@@ -1,17 +1,26 @@
 /**
  * Shelving:
  *  - <ShelvingUnits>: powder-coated steel units (1.8 m × 2.0 m × 0.5 m, 4 shelves) full of
- *    cardboard boxes, bins and glassware, all instanced across every unit in the room.
+ *    cardboard boxes, bins and glassware, all instanced across every unit.
  *  - <ReagentShelf>: 2-tier island-top rack (2.4 m × 0.6 m × 0.28 m) holding reagent bottles.
  */
 import { useLayoutEffect, useMemo, useRef } from 'react';
 import { CuboidCollider } from '@react-three/rapier';
-import { BoxGeometry, Color, CylinderGeometry, InstancedMesh, Object3D, type BufferGeometry, type Material } from 'three';
+import { BoxGeometry, Color, CylinderGeometry, InstancedMesh, LatheGeometry, Object3D, Vector2, type BufferGeometry, type Material } from 'three';
 import { metalPainted, metalAluminum } from '../../materials/metal';
 import { plastic } from '../../materials/plastic';
 import { decorGlass } from '../../materials/glass';
 import { lazy } from '../../utils/lazy';
-import { stockBeakerGeometry, stockFlaskGeometry } from './WallCabinet';
+
+/** Simple 250 mL beaker silhouette for decorative stock (open top). */
+const stockBeakerGeometry = lazy(() => {
+  const pts = [new Vector2(0, 0), new Vector2(0.034, 0), new Vector2(0.036, 0.004), new Vector2(0.036, 0.092), new Vector2(0.039, 0.096)];
+  return new LatheGeometry(pts, 20);
+});
+const stockFlaskGeometry = lazy(() => {
+  const pts = [new Vector2(0, 0), new Vector2(0.04, 0), new Vector2(0.042, 0.006), new Vector2(0.03, 0.06), new Vector2(0.013, 0.1), new Vector2(0.013, 0.13), new Vector2(0.016, 0.135)];
+  return new LatheGeometry(pts, 20);
+});
 
 export interface UnitPlacement {
   x: number;

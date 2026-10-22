@@ -26,7 +26,6 @@ export const INTERACT_RANGE = 2.5;
 /** Architecture. */
 export const WALL_HEIGHT = 3.2;
 export const WALL_THICKNESS = 0.2;
-export const DOOR_HEIGHT = 2.3;
 export const BENCH_HEIGHT = 0.9;
 
 /** Collision groups: 0 = static world, 1 = player, 2 = pickable items. */
@@ -36,7 +35,7 @@ export const GROUP_PICKABLE = 2;
 export const PLAYER_COLLISION = interactionGroups(GROUP_PLAYER, [GROUP_WORLD]);
 export const PICKABLE_COLLISION = interactionGroups(GROUP_PICKABLE, [GROUP_WORLD, GROUP_PICKABLE]);
 
-/** Shared palette for the facility. */
+/** Shared palette for the lab. */
 export const PALETTE = {
   wall: '#eef0f2',
   floor: '#d9dcdf',
@@ -48,17 +47,4 @@ export const PALETTE = {
   hudYellow: '#F5B800',
   doorFrame: '#8d949c',
   sky: '#cfe6f7',
-} as const;
-
-/** Millikan apparatus constants (SI). */
-export const MILLIKAN = {
-  plateSeparation: 6.0e-3, // m
-  oilDensity: 886, // kg/m³
-  airViscosity: 1.81e-5, // Pa·s
-  g: 9.81,
-  e: 1.602e-19, // C
-  maxVoltage: 600,
-  /** Height of the visible field of view in the eyepiece (mm). */
-  fieldHeightMm: 1.2,
-  fieldWidthMm: 1.2,
 } as const;

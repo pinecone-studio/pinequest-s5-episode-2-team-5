@@ -13,6 +13,7 @@ import { metalAluminum, metalBrushed } from '../../materials/metal';
 import { windowGlass } from '../../materials/glass';
 import { Interactable } from '../../interaction/Interactable';
 import { useExperimentStore } from '../../store/useExperimentStore';
+import { useGameStore } from '../../store/useGameStore';
 import { sounds } from '../../utils/sounds';
 import { FONTS } from '../../utils/fonts';
 import { WALL_HEIGHT } from '../../utils/constants';
@@ -84,7 +85,9 @@ export function FumeHood({ id, position, rotY = 0 }: { id: string; position: [nu
           label="Fume hood sash"
           verb={raised ? 'Lower' : 'Raise'}
           onInteract={() => {
-            toggle(`${id}-sash`);
+            const up = toggle(`${id}-sash`);
+            if (up) useExperimentStore.getState().markSkill('hood');
+            useGameStore.getState().logEvent(up ? 'Raised the fume-hood sash.' : 'Lowered the fume-hood sash.');
             setBusy(true);
             sounds.play('door', 0.5);
           }}

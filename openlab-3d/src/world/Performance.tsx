@@ -55,7 +55,7 @@ export function ShadowUpdater() {
   return <BakeShadows />;
 }
 
-/** Marks fonts and shaders ready once every room is mounted. */
+/** Marks fonts and shaders ready once the lab is mounted. */
 export function Warmup() {
   const { gl, scene, camera } = useThree();
   const done = useLoadingStore((s) => s.done);
@@ -82,7 +82,7 @@ export function Warmup() {
     const needed = LOAD_STEPS.filter((s) => s !== 'shaders');
     if (started.current || !needed.every((s) => done.includes(s))) return;
     started.current = true;
-    // Let the last room render once, then compile everything (including hidden rooms).
+    // Let the lab render once, then compile everything (including hidden objects).
     const id = window.setTimeout(() => {
       const hidden: Object3D[] = [];
       scene.traverse((o) => {

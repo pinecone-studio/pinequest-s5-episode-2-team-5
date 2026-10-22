@@ -1,11 +1,12 @@
 /**
- * Floor: vinyl tiles (0.6 m, #d9dcdf) over the building footprint, grass outside, and
+ * Floor: vinyl tiles (0.6 m, #d9dcdf) over the lab footprint, grass outside, and
  * one large static collider slab (top at y = 0).
  */
 import { useMemo } from 'react';
 import { CuboidCollider } from '@react-three/rapier';
 import { MeshStandardMaterial, RepeatWrapping } from 'three';
 import { floorTexture, groundTexture } from '../../utils/textures';
+import { LAB_BOUNDS } from '../layout';
 
 const TILE_REPEAT = 1.2;
 
@@ -36,9 +37,7 @@ export function Floor() {
   }, []);
   return (
     <group>
-      {/* Building footprint: north block (labs + hall + corridor) and south-west block (biology). */}
-      <TiledFloor x0={-20.1} x1={20.1} z0={-15.1} z1={1.1} />
-      <TiledFloor x0={-20.1} x1={6.1} z0={1.1} z1={15.1} />
+      <TiledFloor x0={LAB_BOUNDS.minX - 0.1} x1={LAB_BOUNDS.maxX + 0.1} z0={LAB_BOUNDS.minZ - 0.1} z1={LAB_BOUNDS.maxZ + 0.1} />
       <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -0.02, 0]} material={grass}>
         <circleGeometry args={[160, 48]} />
       </mesh>

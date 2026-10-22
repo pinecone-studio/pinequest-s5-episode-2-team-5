@@ -1,7 +1,6 @@
 /**
  * A loose item in the world: a dynamic rapier body (CCD on, so it cannot tunnel through
- * a bench) wrapped in an Interactable. E picks it up, F inspects it. Items only render
- * while their room is near the player.
+ * a bench) wrapped in an Interactable. E picks it up, F inspects it.
  */
 import { memo, useRef } from 'react';
 import { CuboidCollider, CylinderCollider, RigidBody, type RapierRigidBody } from '@react-three/rapier';
@@ -16,7 +15,6 @@ import { Interactable } from './Interactable';
 
 export const Pickable = memo(function Pickable({ item }: { item: WorldItem }) {
   const def = CATALOG[item.kind];
-  const visible = useGameStore((s) => s.activeRooms.includes(item.room));
   const body = useRef<RapierRigidBody>(null);
   const c = def.collider;
   return (
@@ -42,7 +40,6 @@ export const Pickable = memo(function Pickable({ item }: { item: WorldItem }) {
         label={def.name}
         verb="Pick up"
         inspectKind={item.kind}
-        enabled={visible}
         onInteract={() => {
           if (useInventoryStore.getState().held) {
             useGameStore.getState().showToast('Hands full', 'Press Q to place what you are holding first');
@@ -51,9 +48,7 @@ export const Pickable = memo(function Pickable({ item }: { item: WorldItem }) {
           if (useInventoryStore.getState().pickUp(item.id)) sounds.play('pickup');
         }}
       >
-        <group visible={visible}>
-          <EquipmentModel kind={item.kind} variant={item.variant} />
-        </group>
+        <EquipmentModel kind={item.kind} variant={item.variant} />
       </Interactable>
     </RigidBody>
   );

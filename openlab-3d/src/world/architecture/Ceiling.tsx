@@ -1,8 +1,9 @@
-/** Ceiling at 3.2 m: acoustic-tile planes over the building footprint (not over the courtyard). */
+/** Ceiling at 3.2 m: an acoustic-tile plane over the lab footprint. */
 import { useMemo } from 'react';
 import { MeshStandardMaterial, RepeatWrapping } from 'three';
 import { WALL_HEIGHT } from '../../utils/constants';
 import { ceilingTexture } from '../../utils/textures';
+import { LAB_BOUNDS } from '../layout';
 
 function CeilingPlane({ x0, x1, z0, z1 }: { x0: number; x1: number; z0: number; z1: number }) {
   const material = useMemo(() => {
@@ -22,9 +23,6 @@ function CeilingPlane({ x0, x1, z0, z1 }: { x0: number; x1: number; z0: number; 
 
 export function Ceiling() {
   return (
-    <group>
-      <CeilingPlane x0={-20.1} x1={20.1} z0={-15.1} z1={1.1} />
-      <CeilingPlane x0={-20.1} x1={6.1} z0={1.1} z1={15.1} />
-    </group>
+    <CeilingPlane x0={LAB_BOUNDS.minX - 0.1} x1={LAB_BOUNDS.maxX + 0.1} z0={LAB_BOUNDS.minZ - 0.1} z1={LAB_BOUNDS.maxZ + 0.1} />
   );
 }

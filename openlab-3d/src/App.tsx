@@ -10,13 +10,11 @@ import { setPointerTarget, usePointerLockSync } from './controls/usePointerLock'
 import { useGameKeys } from './controls/useGameKeys';
 import { Lab } from './world/Lab';
 import { Lighting } from './world/Lighting';
-import { GuideArrows } from './world/GuideArrows';
 import { Effects } from './world/Effects';
 import { GlassLOD, PerformanceManager, ShadowUpdater, Warmup } from './world/Performance';
 import { FocusRaycaster } from './interaction/useRaycastFocus';
 import { HeldItem } from './interaction/HeldItem';
-import { ExperimentDirector } from './experiment/ExperimentDirector';
-import { useReady } from './world/roomVisibility';
+import { useReady } from './store/useLoadingStore';
 import { useSettingsStore, QUALITY_PRESETS } from './store/useSettingsStore';
 import { useGameStore, type Mode } from './store/useGameStore';
 import { DebugBridge } from './utils/DebugBridge';
@@ -29,7 +27,7 @@ function EngineReady() {
 }
 
 /** Modes where the 3D view is covered or frozen: render only on demand. */
-const FROZEN: Mode[] = ['inspect', 'microscope', 'ui', 'paused', 'ended'];
+const FROZEN: Mode[] = ['inspect', 'ui', 'paused', 'ended'];
 
 export default function App() {
   const bindings = useSettingsStore((s) => s.bindings);
@@ -60,7 +58,7 @@ export default function App() {
             setPointerTarget(gl.domElement);
             setCanvasEl(gl.domElement);
           }}
-          aria-label="3D view of the OpenLab facility"
+          aria-label="3D view of the OpenLab chemistry lab"
         >
           <Suspense fallback={null}>
             <Physics paused timeStep="vary" gravity={[0, -9.81, 0]}>
@@ -71,8 +69,6 @@ export default function App() {
               <Player />
               <FocusRaycaster />
               <HeldItem />
-              <GuideArrows />
-              <ExperimentDirector />
             </Physics>
             <Effects />
             <GlassLOD />

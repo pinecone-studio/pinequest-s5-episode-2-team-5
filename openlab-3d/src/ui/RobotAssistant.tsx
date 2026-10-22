@@ -2,15 +2,15 @@
  * "Pip", the lab assistant robot (an original design): rounded white body, round head
  * with a dark glossy visor, glowing cyan curved "smiling" eyes, side ear-pods and stubby
  * arms. Rendered in its own small transparent canvas with idle bob, blinking and a wave.
- * Clicking it opens a speech bubble with a contextual hint; it reacts to experiment steps.
+ * Clicking it opens a speech bubble with a contextual hint; it reacts to bench skills.
  */
 import { useEffect, useMemo, useRef } from 'react';
 import { Canvas, useFrame } from '@react-three/fiber';
 import { Environment, Lightformer } from '@react-three/drei';
 import { AnimatePresence, motion } from 'framer-motion';
 import { CapsuleGeometry, MeshPhysicalMaterial, MeshStandardMaterial, SphereGeometry, TorusGeometry, type Group } from 'three';
-import { useGameStore, type RobotMood } from '../store/useGameStore';
-import { STEP_ORDER, useExperimentStore, type StepId } from '../store/useExperimentStore';
+import { useGameStore } from '../store/useGameStore';
+import { SKILLS, useExperimentStore, type SkillId } from '../store/useExperimentStore';
 import { useInventoryStore } from '../store/useInventoryStore';
 import { CATALOG } from '../equipment/equipmentCatalog';
 import { sounds } from '../utils/sounds';
@@ -115,58 +115,47 @@ function RobotModel() {
   );
 }
 
-const STEP_MESSAGES: Record<StepId, { text: string; mood: RobotMood }> = {
-  reachedLab: { text: 'Here’s the Millikan station! First, turn on the apparatus — the power switch is on the right of the front panel.', mood: 'wave' },
-  powerOn: { text: 'The lamp is on and the red light is glowing. Now squeeze the atomizer bulb to spray oil drops into the chamber.', mood: 'happy' },
-  sprayed: { text: 'Drops are in the chamber! Look through the microscope eyepiece (E) to see them.', mood: 'happy' },
-  viewed: { text: 'Click a drop to select it. With polarity at 0, press Space to time it falling between two lines, then Record the fall.', mood: 'think' },
-  measuredFall: { text: 'Great fall timing! Now flip polarity to +, raise the voltage until the same drop rises (or hovers), and time it again.', mood: 'happy' },
-  measuredField: { text: 'You measured a charge! Open the laptop to see q as a multiple of e.', mood: 'wave' },
-  openedLaptop: { text: 'See how the charges cluster at whole numbers? That’s charge quantization — e ≈ 1.6 × 10⁻¹⁹ C!', mood: 'happy' },
+const SKILL_HINTS: Record<SkillId, string> = {
+  burner: 'Walk up to a Bunsen burner on the island benches and press E to light it.',
+  tare: 'The analytical balance is on the west bench. Press E on it to tare (zero) it, then put glassware on the pan.',
+  hood: 'The fume hood is on the north wall. Press E on the sash to raise it before working with fumes.',
+};
+
+const SKILL_PRAISE: Record<SkillId, string> = {
+  burner: 'Nice flame! The hottest spot is just above the tip of the inner blue cone. Press E again to turn it off.',
+  tare: 'Balance tared! Place a beaker on the pan (Q) and read its mass on the display.',
+  hood: 'Sash up! Work at least 15 cm inside the hood and lower the sash when you are done.',
 };
 
 function contextualHint(): string {
-  const exp = useExperimentStore.getState();
-  const game = useGameStore.getState();
+  const skills = useExperimentStore.getState().skills;
   const held = useInventoryStore.getState().held;
   if (held) return `You’re holding the ${CATALOG[held.kind].name}. Look at a bench and press Q to place it, or F to inspect it.`;
-  if (!exp.steps.reachedLab) return game.currentRoom === 'physics' ? 'Walk to the central bench — that’s the Millikan station.' : 'Follow the yellow arrows on the floor to the Physics Lab.';
-  if (!exp.power) return 'Turn on the apparatus first.';
-  if (exp.dropCount === 0) return 'Squeeze the atomizer to spray oil drops.';
-  if (!exp.steps.viewed) return 'Look through the microscope eyepiece on top of the apparatus.';
-  if (!exp.steps.measuredFall) return 'In the eyepiece: polarity 0, select a drop, Space to start/stop timing, then Record fall.';
-  if (!exp.steps.measuredField) return 'Set polarity to + and turn the voltage up until the drop rises, then time and record it.';
-  if (!exp.steps.openedLaptop) return 'Use the laptop to see your computed charges.';
-  const tips = ['Press F on any object to inspect it up close.', 'Tab opens the tools drawer — spawn equipment onto a bench.', 'Try the microscopes in the Biology Lab — scroll to focus!', 'Light a Bunsen burner in the Chemistry Lab.', 'Measure more drops to sharpen your estimate of e.'];
+  const next = SKILLS.find((s) => !skills[s.id]);
+  if (next) return SKILL_HINTS[next.id];
+  const tips = [
+    'Press F on any object to inspect it up close.',
+    'Tab opens the tools drawer — place more glassware on the nearest bench.',
+    'Splash goggles are on the west bench. Safety first!',
+    'The safety shower is in the south-east corner; the fire extinguisher hangs by the south windows.',
+    'Write your observations in the lab notebook (N).',
+  ];
   return tips[Math.floor(Math.random() * tips.length)];
 }
 
-/** Robot reacts to experiment progress and to entering the Physics Lab. */
+/** Robot praises each bench skill the first time it is done. */
 function useRobotDirector(): void {
   useEffect(() => {
-    let prev = useExperimentStore.getState().steps;
-    const unsubSteps = useExperimentStore.subscribe((s) => {
-      if (s.steps === prev) return;
-      const newly = STEP_ORDER.find((o) => s.steps[o.id] && !prev[o.id]);
-      prev = s.steps;
+    let prev = useExperimentStore.getState().skills;
+    return useExperimentStore.subscribe((s) => {
+      if (s.skills === prev) return;
+      const newly = SKILLS.find((o) => s.skills[o.id] && !prev[o.id]);
+      prev = s.skills;
       if (newly) {
-        const m = STEP_MESSAGES[newly.id];
-        useGameStore.getState().say(m.text, m.mood);
-        if (m.mood === 'happy') sounds.play('success', 0.6);
+        useGameStore.getState().say(SKILL_PRAISE[newly.id], 'happy');
+        sounds.play('success', 0.6);
       }
     });
-    let prevRoom = useGameStore.getState().currentRoom;
-    const unsubRoom = useGameStore.subscribe((s) => {
-      if (s.currentRoom === prevRoom) return;
-      prevRoom = s.currentRoom;
-      if (s.currentRoom === 'physics' && !useExperimentStore.getState().steps.reachedLab) {
-        s.say('Welcome to the Physics Lab! The Millikan Oil Drop station is on the central bench.', 'wave');
-      }
-    });
-    return () => {
-      unsubSteps();
-      unsubRoom();
-    };
   }, []);
 }
 

@@ -93,7 +93,7 @@ export function ToolTab() {
     refs.forEach((r) => r.current && io.observe(r.current));
     return () => io.disconnect();
   }, [mounted, refs]);
-  const hideTab = mode === 'microscope' || mode === 'inspect' || mode === 'laptop' || mode === 'loading' || mode === 'start' || mode === 'ended';
+  const hideTab = mode === 'inspect' || mode === 'loading' || mode === 'start' || mode === 'ended';
 
   useEffect(() => {
     if (open) setMounted(true);

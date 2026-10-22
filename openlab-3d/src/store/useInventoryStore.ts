@@ -1,7 +1,6 @@
 import { create } from 'zustand';
 import type { EquipmentKind } from '../equipment/equipmentCatalog';
 import { createInitialItems, type ItemVariant, type WorldItem } from '../world/itemsLayout';
-import { roomAt } from '../world/layout';
 
 export interface HeldItem {
   id: string;
@@ -51,7 +50,6 @@ export const useInventoryStore = create<InventoryState>()((set, get) => ({
       variant: held.variant,
       position,
       rotY,
-      room: roomAt(position[0], position[2]) ?? 'mainHall',
     };
     set((s) => ({ worldItems: [...s.worldItems, item], held: null, placedCount: s.placedCount + 1 }));
     return true;
@@ -59,7 +57,7 @@ export const useInventoryStore = create<InventoryState>()((set, get) => ({
   spawn: (kind, position, rotY = 0) => {
     if (get().worldItems.length >= MAX_WORLD_ITEMS) return null;
     const id = `spawn-${spawnCounter++}-${kind}`;
-    const item: WorldItem = { id, kind, position, rotY, room: roomAt(position[0], position[2]) ?? 'mainHall' };
+    const item: WorldItem = { id, kind, position, rotY };
     set((s) => ({ worldItems: [...s.worldItems, item], spawnedCount: s.spawnedCount + 1 }));
     return id;
   },

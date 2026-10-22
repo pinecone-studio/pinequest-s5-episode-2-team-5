@@ -1,6 +1,6 @@
 /**
- * Walls: every wall in the floor plan is split into solid pieces around its door and
- * window openings, then all pieces are merged into ONE mesh (one draw call) plus a
+ * Walls: every wall in the floor plan is split into solid pieces around its window
+ * openings, then all pieces are merged into ONE mesh (one draw call) plus a
  * baseboard trim mesh. Each solid piece and each window opening gets a static collider.
  * Walls are 0.2 m thick and 3.2 m tall.
  */
@@ -57,19 +57,13 @@ export function wallPieces(wall: WallDef): { solids: Piece[]; colliders: Piece[]
     const o0 = o.center - o.width / 2;
     const o1 = o.center + o.width / 2;
     addSolid(cursor, o0);
-    if (o.kind === 'door') {
-      solids.push(piece(wall, o0, o1, o.height, H));
-    } else if (o.kind === 'window') {
-      if (o.sill > 0.001) {
-        solids.push(piece(wall, o0, o1, 0, o.sill));
-        for (const side of [-1, 1]) trims.push(piece(wall, o0, o1, 0, 0.1, 0.014, side * (WALL_THICKNESS / 2 + 0.007)));
-      }
-      solids.push(piece(wall, o0, o1, o.head, H));
-      // You can't walk through glass.
-      colliders.push(piece(wall, o0, o1, 0, H));
-    } else {
-      solids.push(piece(wall, o0, o1, 2.8, H));
+    if (o.sill > 0.001) {
+      solids.push(piece(wall, o0, o1, 0, o.sill));
+      for (const side of [-1, 1]) trims.push(piece(wall, o0, o1, 0, 0.1, 0.014, side * (WALL_THICKNESS / 2 + 0.007)));
     }
+    solids.push(piece(wall, o0, o1, o.head, H));
+    // You can't walk through glass.
+    colliders.push(piece(wall, o0, o1, 0, H));
     cursor = o1;
   }
   addSolid(cursor, end);
@@ -89,7 +83,7 @@ export function mergePieces(pieces: Piece[]): BufferGeometry {
   return merged;
 }
 
-/** A single wall (used for previews); the facility uses <Walls/> which merges all of them. */
+/** A single wall (used for previews); the lab uses <Walls/> which merges all of them. */
 export function Wall({ def }: { def: WallDef }) {
   const { geometry, colliders } = useMemo(() => {
     const p = wallPieces(def);
@@ -105,7 +99,7 @@ export function Wall({ def }: { def: WallDef }) {
   );
 }
 
-/** All facility walls as two merged meshes plus static colliders. */
+/** All lab walls as two merged meshes plus static colliders. */
 export function Walls() {
   const { wallGeo, trimGeo, colliders } = useMemo(() => {
     const solids: Piece[] = [];

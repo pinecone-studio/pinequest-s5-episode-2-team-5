@@ -1,7 +1,7 @@
 /**
  * Bright, even indoor lighting:
  *  - hemisphere light (sky #ffffff, ground #b0b4b8)
- *  - one shadow-casting directional light framed on the Physics Lab (hero room)
+ *  - one shadow-casting directional light framed on the lab, coming in from the south
  *  - a locally rendered environment map (drei <Environment> + <Lightformer>s) for
  *    glass and metal reflections. The "apartment" preset would download an HDR file
  *    from a CDN, so an equivalent studio-style setup is built in-scene instead.
@@ -21,7 +21,7 @@ export function Lighting() {
   useEffect(() => {
     const light = sun.current;
     if (!light) return;
-    light.target.position.set(-12, 0, -9);
+    light.target.position.set(3, 0, -9);
     scene.add(light.target);
     light.target.updateMatrixWorld();
     return () => {
@@ -35,16 +35,16 @@ export function Lighting() {
       <ambientLight intensity={0.05} />
       <directionalLight
         ref={sun}
-        position={[-23, 11, -5]}
+        position={[0, 12, 0]}
         intensity={0.95}
         color="#fff6ea"
         castShadow={preset.shadows}
         shadow-mapSize-width={preset.shadowMapSize}
         shadow-mapSize-height={preset.shadowMapSize}
-        shadow-camera-left={-10}
-        shadow-camera-right={10}
-        shadow-camera-top={8}
-        shadow-camera-bottom={-8}
+        shadow-camera-left={-9}
+        shadow-camera-right={9}
+        shadow-camera-top={9}
+        shadow-camera-bottom={-9}
         shadow-camera-near={1}
         shadow-camera-far={40}
         shadow-bias={-0.0004}

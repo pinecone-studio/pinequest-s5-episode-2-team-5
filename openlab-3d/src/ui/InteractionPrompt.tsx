@@ -14,7 +14,7 @@ function Chip({ k, children, primary = false }: { k?: string; children: React.Re
   );
 }
 
-/** Bottom-center prompt, e.g. "[E] Use Microscope", plus inspect/drop hints. */
+/** Bottom-center prompt, e.g. "[E] Light Bunsen burner", plus inspect/drop hints. */
 export function InteractionPrompt() {
   const focus = useGameStore((s) => s.focus);
   const held = useInventoryStore((s) => s.held);

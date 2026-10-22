@@ -5,7 +5,7 @@
 import { useLayoutEffect, useMemo, useRef } from 'react';
 import { BoxGeometry, InstancedMesh, MeshStandardMaterial, Object3D } from 'three';
 import { WALL_HEIGHT } from '../../utils/constants';
-import { ROOMS } from '../layout';
+import { LAB_BOUNDS } from '../layout';
 
 const panelGeometry = new BoxGeometry(1.2, 0.03, 0.6);
 const panelMaterial = new MeshStandardMaterial({ color: '#000000', emissive: '#fbfdff', emissiveIntensity: 0.95, roughness: 1 });
@@ -14,16 +14,14 @@ const frameMaterial = new MeshStandardMaterial({ color: '#d6dade', roughness: 0.
 
 export function ceilingLightPositions(): [number, number][] {
   const out: [number, number][] = [];
-  for (const room of ROOMS) {
-    const { minX, maxX, minZ, maxZ } = room.bounds;
-    const w = maxX - minX;
-    const d = maxZ - minZ;
-    const nx = Math.max(1, Math.round(w / 3.2));
-    const nz = Math.max(1, Math.round(d / 3));
-    for (let i = 0; i < nx; i++) {
-      for (let j = 0; j < nz; j++) {
-        out.push([minX + (w * (i + 0.5)) / nx, minZ + (d * (j + 0.5)) / nz]);
-      }
+  const { minX, maxX, minZ, maxZ } = LAB_BOUNDS;
+  const w = maxX - minX;
+  const d = maxZ - minZ;
+  const nx = Math.max(1, Math.round(w / 3.2));
+  const nz = Math.max(1, Math.round(d / 3));
+  for (let i = 0; i < nx; i++) {
+    for (let j = 0; j < nz; j++) {
+      out.push([minX + (w * (i + 0.5)) / nx, minZ + (d * (j + 0.5)) / nz]);
     }
   }
   return out;

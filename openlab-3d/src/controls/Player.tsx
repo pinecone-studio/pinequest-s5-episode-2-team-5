@@ -6,9 +6,9 @@ import { useEffect, useMemo, useRef } from 'react';
 import { useFrame, useThree } from '@react-three/fiber';
 import { useKeyboardControls } from '@react-three/drei';
 import { CapsuleCollider, RigidBody, useRapier, type RapierCollider, type RapierRigidBody } from '@react-three/rapier';
-import { Euler, PerspectiveCamera, Quaternion, Vector3 } from 'three';
+import { Euler, PerspectiveCamera, Vector3 } from 'three';
 import { playerApi, playerState, useGameStore } from '../store/useGameStore';
-import { QUALITY_PRESETS, useSettingsStore } from '../store/useSettingsStore';
+import { useSettingsStore } from '../store/useSettingsStore';
 import {
   ACCELERATION,
   CAPSULE_CENTER_Y,
@@ -24,28 +24,17 @@ import {
   SPRINT_MULTIPLIER,
   WALK_SPEED,
 } from '../utils/constants';
-import { SPAWN, roomAt, roomsNear } from '../world/layout';
+import { SPAWN } from '../world/layout';
 import { sounds } from '../utils/sounds';
 import { touchInput } from '../interaction/heldApi';
 import type { MoveAction } from './keyMap';
 import { preStepHooks } from './PhysicsDriver';
 
-/** Where the camera docks for close-up views (set by the laptop station). */
-export const cameraDock = {
-  position: new Vector3(),
-  quaternion: new Quaternion(),
-  fov: 50,
-};
-
 export const playerBodyRef: { current: RapierRigidBody | null } = { current: null };
 
 const euler = new Euler(0, 0, 0, 'YXZ');
-const eyeQuat = new Quaternion();
-const eyePos = new Vector3();
 const desired = new Vector3();
 const target = new Vector3();
-
-const smoothstep = (t: number) => t * t * (3 - 2 * t);
 
 export function Player() {
   const body = useRef<RapierRigidBody>(null);
@@ -71,8 +60,6 @@ export function Player() {
   const grounded = useRef(true);
   const jumpHeld = useRef(false);
   const bob = useRef({ phase: 0, amount: 0, distance: 0 });
-  const dockBlend = useRef(0);
-  const roomTimer = useRef(0);
   const sprinting = useRef(false);
 
   useEffect(() => {
@@ -176,10 +163,9 @@ export function Player() {
     };
   });
 
-  /** Camera, head bob, footsteps and room tracking, once per rendered frame. */
+  /** Camera, head bob and footsteps, once per rendered frame. */
   useFrame((_, rawDt) => {
     const dt = Math.min(rawDt, 1 / 20);
-    const game = useGameStore.getState();
     const settings = useSettingsStore.getState();
     const nx = playerState.position.x;
     const ny = playerState.position.y + CAPSULE_CENTER_Y;
@@ -206,35 +192,12 @@ export function Player() {
     const bobY = Math.abs(Math.sin(b.phase)) * 0.045 * b.amount - 0.02 * b.amount;
     const bobX = Math.cos(b.phase) * 0.018 * b.amount;
 
-    // Camera: blend between the eye and the docked close-up view.
-    const docked = game.mode === 'laptop';
-    dockBlend.current += ((docked ? 1 : 0) - dockBlend.current) * (1 - Math.exp(-5 * dt));
-    if (Math.abs(dockBlend.current - (docked ? 1 : 0)) < 0.001) dockBlend.current = docked ? 1 : 0;
     euler.set(playerState.pitch, playerState.yaw, 0);
-    eyeQuat.setFromEuler(euler);
-    eyePos.set(nx + bobX * cos, ny + EYE_OFFSET + bobY, nz - bobX * sin);
-    const k = smoothstep(dockBlend.current);
-    if (k > 0) {
-      camera.position.lerpVectors(eyePos, cameraDock.position, k);
-      camera.quaternion.slerpQuaternions(eyeQuat, cameraDock.quaternion, k);
-    } else {
-      camera.position.copy(eyePos);
-      camera.quaternion.copy(eyeQuat);
-    }
-    const fov = settings.fov + (cameraDock.fov - settings.fov) * k;
-    if (Math.abs(camera.fov - fov) > 0.01) {
-      camera.fov = fov;
+    camera.position.set(nx + bobX * cos, ny + EYE_OFFSET + bobY, nz - bobX * sin);
+    camera.quaternion.setFromEuler(euler);
+    if (Math.abs(camera.fov - settings.fov) > 0.01) {
+      camera.fov = settings.fov;
       camera.updateProjectionMatrix();
-    }
-
-    // Room tracking a few times per second.
-    roomTimer.current -= dt;
-    if (roomTimer.current <= 0) {
-      roomTimer.current = 0.2;
-      const room = roomAt(nx, nz);
-      if (room) game.setRoom(room);
-      const radius = QUALITY_PRESETS[settings.quality].roomRadius;
-      game.setActiveRooms(roomsNear(nx, nz, radius, room ?? game.currentRoom));
     }
   });
 

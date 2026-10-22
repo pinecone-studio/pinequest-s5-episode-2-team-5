@@ -12,14 +12,12 @@ export interface QualityPreset {
   ao: boolean;
   transmission: boolean;
   contactShadows: boolean;
-  /** Distance (m) from a door/window within which the room behind it renders its contents. */
-  roomRadius: number;
 }
 
 export const QUALITY_PRESETS: Record<Quality, QualityPreset> = {
-  low: { dpr: [0.6, 1], shadows: false, shadowMapSize: 512, postprocessing: false, ao: false, transmission: false, contactShadows: false, roomRadius: 5 },
-  medium: { dpr: [0.75, 1.5], shadows: true, shadowMapSize: 1024, postprocessing: true, ao: true, transmission: true, contactShadows: true, roomRadius: 7.5 },
-  high: { dpr: [1, 2], shadows: true, shadowMapSize: 2048, postprocessing: true, ao: true, transmission: true, contactShadows: true, roomRadius: 10 },
+  low: { dpr: [0.6, 1], shadows: false, shadowMapSize: 512, postprocessing: false, ao: false, transmission: false, contactShadows: false },
+  medium: { dpr: [0.75, 1.5], shadows: true, shadowMapSize: 1024, postprocessing: true, ao: true, transmission: true, contactShadows: true },
+  high: { dpr: [1, 2], shadows: true, shadowMapSize: 2048, postprocessing: true, ao: true, transmission: true, contactShadows: true },
 };
 
 export interface SettingsState {

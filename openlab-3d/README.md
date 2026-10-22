@@ -1,9 +1,8 @@
 # OpenLab 3D
 
-A browser-based, explorable first-person virtual science laboratory (front end only).
-Walk through a 40 m × 30 m facility — Main Hall, East Corridor, Physics Lab, Chemistry
-Lab, Biology & Microscopy Lab and Storage Room — and run the Millikan Oil Drop
-experiment at the hero station in the Physics Lab.
+A browser-based, explorable first-person virtual chemistry laboratory (front end only).
+Walk around a 14 m × 12 m Chemistry Lab, light Bunsen burners, weigh glassware on the
+analytical balance, work at the fume hood, and pick up, place and inspect the glassware.
 
 Every piece of equipment and furniture is a procedural 3D model built from three.js
 geometries at real-world scale. No external assets are downloaded at runtime (fonts are
@@ -47,44 +46,38 @@ with base `/openlab/` into `../public/openlab/`, which the Expo web app serves; 
 Enter interacts and Backspace places. On touch devices a virtual joystick (left half),
 drag-to-look (right half) and E/F/Q/sprint buttons appear. All keys are remappable.
 
-### Millikan station
+### Bench skills
 
-1. Flip the **power** switch (red LED + lamp glow, mains hum).
-2. Squeeze the **atomizer** bulb — glowing droplets appear in the chamber.
-3. Look through the **eyepiece** (E). In the eyepiece: click a drop, keep polarity at 0,
-   press **Space** to start/stop the stopwatch between two reticle lines, then
-   **Record fall (1)**.
-4. Set polarity to **+**, raise the voltage (scroll, ←/→ or the ▲▼ buttons; on the
-   apparatus: scroll or hold E and drag the knob) until the drop rises or hovers, then
-   **Record field run (2)** or **Balanced (3)**.
-5. Use the **laptop**: the camera docks to the screen and the Drop Logger shows every
-   measurement, the computed charge, q / e and a chart against whole multiples of e.
+The menu's **Experiments** tab, the robot assistant and the end-of-session lab report
+track three bench skills:
 
-Physics: v = mg / (6πηr) with the field off gives r; under a field qE − mg = 6πηr·v,
-E = V/d (d = 6 mm, η = 1.81 × 10⁻⁵ Pa·s, ρ = 886 kg/m³). Each droplet carries a random
-charge n·e, so recovered charges cluster at integers.
+1. **Light a Bunsen burner** on one of the island benches (E toggles the flame).
+2. **Tare the analytical balance** on the west bench, then place glassware on its pan —
+   the display shows the summed catalog mass minus the tare.
+3. **Raise the fume-hood sash** on the north wall.
+
+Each action is also written to the activity log in the lab notebook (N).
 
 ## Project layout
 
 ```
 src/
   store/        zustand stores: game (modes, focus, robot, log), settings (persisted),
-                inventory (world items / held item), experiment (Millikan state), loading
+                inventory (world items / held item), experiment (station state and
+                bench skills), loading
   controls/     keyMap, Player (rapier kinematic character controller), PhysicsDriver
                 (fixed ≤1/60 s substeps), pointer lock, global key/mouse dispatch
-  world/        Lab, layout (floor plan, rooms, doors, portals), lighting, sky, effects,
-                guided arrows, StaticBatch, performance helpers
-    rooms/      MainHall, Corridor, PhysicsLab (+ physicsStations), ChemistryLab,
-                BiologyMicroscopyLab, StorageRoom  — each lazy-loaded
-    architecture/ Wall (merged), Window, Door (kinematic pocket doors), Floor, Ceiling, CeilingLight
-    furniture/  LabBench (+ instanced BenchParts), WallCabinet, Sink, Stool, FumeHood,
-                Shelf, Whiteboard, SafetyShower, FireExtinguisher, Decor
+  world/        Lab, layout (floor plan and walls), lighting, sky, effects, StaticBatch,
+                performance helpers
+    rooms/      ChemistryLab
+    architecture/ Wall (merged), Window, Floor, Ceiling, CeilingLight
+    furniture/  LabBench (+ instanced BenchParts), Sink, Stool, FumeHood, Shelf,
+                Whiteboard, SafetyShower, FireExtinguisher, Decor
   equipment/    one component per model + equipmentCatalog.ts and the kind → model registry
   materials/    glass, plastic, metal, liquids, labPalette
   interaction/  Interactable, useRaycastFocus, Pickable, HeldItem, InspectMode, surfaces, spawn
-  experiment/   millikanPhysics (pure functions), millikanSim (live droplets), director
   ui/           HUD and every overlay (menu, notes, tools drawer, robot, minimap,
-                microscope view, laptop app, loading/start, pause, summary, touch)
+                loading/start, pause, summary, touch)
   utils/        sounds, textures (procedural CanvasTextures), fonts, constants
 ```
 
@@ -92,7 +85,7 @@ src/
 
 Every equipment component accepts an optional `modelUrl`. When it is set, the
 procedural model is replaced by the GLTF/GLB loaded with `useGLTF`, e.g.
-`<Microscope modelUrl="/models/microscope.glb" />`.
+`<BunsenBurner modelUrl="/models/bunsen-burner.glb" />`.
 
 ## Rendering & performance notes
 
@@ -100,20 +93,14 @@ procedural model is replaced by the GLTF/GLB loaded with `useGLTF`, e.g.
   Medium (default), High. `PerformanceMonitor` + `AdaptiveDpr` scale the pixel ratio
   within the preset's range; the post-processing buffers are resized with it.
 - **Draw calls**: walls/trim/windows are merged meshes; drawers, handles, stools,
-  shelf stock, keys and test tubes are instanced; `StaticBatch` merges static meshes of
-  every room and every equipment model per material after mount; microscopes use
-  `<Detailed>` LODs.
-- **Room visibility** uses portals (doors, interior windows, archway): a neighbouring
-  room's contents render only while you are near an opening into it.
+  shelf stock and test tubes are instanced; `StaticBatch` merges the lab's static meshes
+  per material after mount.
 - **Glass LOD**: three.js re-renders every opaque object for the transmission pass when
   any transmissive mesh is on screen, so glassware farther than ~3 m swaps to an
-  alpha-blended twin. Decorative stock (cabinet and shelf glassware, slides) always uses
-  alpha glass.
+  alpha-blended twin. Decorative stock (shelf glassware) always uses alpha glass.
 - **Physics** is stepped manually in substeps of at most 1/60 s, so long frames never
   knock glassware over; pickables are dynamic rapier bodies with CCD.
-- Measured in the dev preview on a 1024 × 768 viewport (Apple laptop): 60 fps in every
-  room on Medium at DPR 1.5; High at DPR 2 drops to ~38 fps at the Millikan station
-  until the performance monitor lowers the pixel ratio.
+- Measured in the dev preview on a 1024 × 700 viewport (Apple laptop): 60 fps on Medium.
 
 ## Deliberate deviations from the brief
 
@@ -126,8 +113,7 @@ procedural model is replaced by the GLTF/GLB loaded with `useGLTF`, e.g.
   semi-transparent tint inside alpha glass.
 - Google Fonts is replaced by the same Inter/Poppins families bundled via `@fontsource`.
 - Mouse look is a small custom pointer-lock handler (instead of drei
-  `PointerLockControls`) so sensitivity, invert-Y, the ±85° clamp and hold-to-drag on
-  the voltage knob share one input path.
+  `PointerLockControls`) so sensitivity, invert-Y and the ±85° clamp share one input path.
 
 In development builds `window.__lab` exposes stores and a deterministic frame stepper for
 automated checks; it is not included in production builds.
