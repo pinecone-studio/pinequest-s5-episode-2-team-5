@@ -28,7 +28,7 @@ export default function SignInScreen() {
   const [error, setError] = useState<string | null>(null);
 
   const emailError = submitted ? validateEmail(email) : null;
-  const passwordError = submitted && !password ? 'Enter your password' : null;
+  const passwordError = submitted && !password ? 'Нууц үгээ оруулна уу' : null;
 
   const submit = async () => {
     setSubmitted(true);
@@ -43,7 +43,7 @@ export default function SignInScreen() {
       haptics.success();
     } catch (e) {
       haptics.error();
-      setError(e instanceof AuthError ? e.message : 'Something went wrong. Please try again.');
+      setError(e instanceof AuthError ? e.message : 'Алдаа гарлаа. Дахин оролдоно уу.');
       setSubmitting(false);
     }
   };
@@ -51,7 +51,7 @@ export default function SignInScreen() {
   return (
     <LabBackground bubbles={6}>
       <KeyboardAvoidingView style={styles.flex} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
-        <ScreenHeader title="Welcome back" subtitle="Your lab coat is waiting" />
+        <ScreenHeader title="Дахин тавтай морил" subtitle="Лабын халат чинь хүлээж байна" />
         <ScrollView
           keyboardShouldPersistTaps="handled"
           contentContainerStyle={[styles.content, { paddingBottom: insets.bottom + 32 }]}>
@@ -60,9 +60,9 @@ export default function SignInScreen() {
           </View>
 
           <TextField
-            label="Email"
+            label="Имэйл"
             icon="email-outline"
-            placeholder="you@example.com"
+            placeholder="example@gmail.com"
             value={email}
             onChangeText={setEmail}
             error={emailError}
@@ -77,9 +77,9 @@ export default function SignInScreen() {
           />
           <TextField
             ref={passwordRef}
-            label="Password"
+            label="Нууц үг"
             icon="lock-outline"
-            placeholder="Your password"
+            placeholder="Нууц үгээ оруулна уу"
             value={password}
             onChangeText={setPassword}
             error={passwordError}
@@ -93,13 +93,13 @@ export default function SignInScreen() {
 
           {error && <FormError message={error} />}
 
-          <GameButton title="Sign in" icon="login" loading={submitting} onPress={submit} />
+          <GameButton title="Нэвтрэх" icon="login" loading={submitting} onPress={submit} />
 
           <View style={styles.switchRow}>
-            <AppText variant="body">New here?</AppText>
+            <AppText variant="body">Шинэ хэрэглэгч үү?</AppText>
             <Pressable onPress={() => router.replace('/sign-up')} hitSlop={10} accessibilityRole="link">
               <AppText variant="bodyStrong" color={Colors.lime} style={styles.link}>
-                Create an account
+                Бүртгэл үүсгэх
               </AppText>
             </Pressable>
           </View>

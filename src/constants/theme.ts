@@ -1,3 +1,5 @@
+import { Platform } from 'react-native';
+
 export const APP_NAME = 'ChemQuest';
 
 export const Colors = {
@@ -32,11 +34,19 @@ export const Colors = {
   overlay: 'rgba(10, 6, 30, 0.72)',
 } as const;
 
+/**
+ * Fredoka has no Cyrillic. iOS and Android fill the missing letters from the system font
+ * on their own; browsers would use their default serif, so on the web Mongolian text
+ * falls back to Nunito (same rounded style) and then to the system font.
+ */
+const withCyrillic = (fredoka: string, nunito: string): string =>
+  Platform.OS === 'web' ? `${fredoka}, ${nunito}, System` : fredoka;
+
 export const Fonts = {
-  regular: 'Fredoka_400Regular',
-  medium: 'Fredoka_500Medium',
-  semibold: 'Fredoka_600SemiBold',
-  bold: 'Fredoka_700Bold',
+  regular: withCyrillic('Fredoka_400Regular', 'Nunito_400Regular'),
+  medium: withCyrillic('Fredoka_500Medium', 'Nunito_500Medium'),
+  semibold: withCyrillic('Fredoka_600SemiBold', 'Nunito_600SemiBold'),
+  bold: withCyrillic('Fredoka_700Bold', 'Nunito_700Bold'),
 } as const;
 
 export const Radius = {

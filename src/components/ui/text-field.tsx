@@ -54,7 +54,7 @@ export function TextField({ label, icon, error, hint, password, footer, ref, onF
             onPress={() => setRevealed((r) => !r)}
             hitSlop={10}
             accessibilityRole="button"
-            accessibilityLabel={revealed ? 'Hide password' : 'Show password'}>
+            accessibilityLabel={revealed ? 'Нууц үгийг нуух' : 'Нууц үгийг харуулах'}>
             <MaterialCommunityIcons name={revealed ? 'eye-off-outline' : 'eye-outline'} size={20} color={Colors.textDim} />
           </Pressable>
         )}

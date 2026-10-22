@@ -48,8 +48,19 @@ const toUser = (row: ProfileRow): User => ({
 
 async function fetchProfile(id: string): Promise<User> {
   const { data, error } = await supabase.from('profiles').select('*').eq('id', id).single();
-  if (error || !data) throw new AuthError('Could not load your profile');
+  if (error || !data) throw new AuthError('Профайлыг ачаалж чадсангүй. Дахин оролдоно уу');
   return toUser(data as ProfileRow);
+}
+
+/** Supabase answers in English; the sign-in and sign-up screens show Mongolian. */
+function translate(message: string, fallback: string): AuthError {
+  if (/fetch|network/i.test(message)) return new AuthError('Сервертэй холбогдож чадсангүй. Интернэт холболтоо шалгана уу');
+  if (/rate limit|too many/i.test(message)) return new AuthError('Хэт олон оролдлого хийлээ. Түр хүлээгээд дахин оролдоно уу');
+  if (/not confirmed/i.test(message)) return new AuthError('Имэйлээ баталгаажуулаагүй байна. Ирсэн захидал дахь холбоосыг дарна уу', 'email');
+  if (/password should|weak password/i.test(message)) return new AuthError('Нууц үг хэт сул байна. Илүү урт, үсэг тоо хольсон нууц үг сонгоно уу', 'password');
+  if (/invalid.*email|email.*invalid/i.test(message)) return new AuthError('Имэйл хаяг буруу байна', 'email');
+  if (/signups? not allowed|disabled/i.test(message)) return new AuthError('Одоогоор шинээр бүртгүүлэх боломжгүй байна');
+  return new AuthError(fallback);
 }
 
 /** False only when we know the nickname is taken; a failed lookup doesn't block the form. */
@@ -63,7 +74,7 @@ export async function signUp(input: SignUpInput): Promise<User> {
   const nickname = input.nickname.trim();
 
   if (!(await isNicknameAvailable(nickname))) {
-    throw new AuthError('That nickname is already taken', 'nickname');
+    throw new AuthError('Энэ хоч нэрийг өөр хүн авсан байна', 'nickname');
   }
 
   const { data, error } = await supabase.auth.signUp({
@@ -73,16 +84,16 @@ export async function signUp(input: SignUpInput): Promise<User> {
   });
   if (error) {
     if (/already registered/i.test(error.message)) {
-      throw new AuthError('An account with this email already exists', 'email');
+      throw new AuthError('Энэ имэйлээр бүртгэл аль хэдийн үүссэн байна', 'email');
     }
     // Someone grabbed the nickname after our check: the profiles trigger hits the unique index.
     if (/database error saving new user|profiles_nickname_key/i.test(error.message)) {
-      throw new AuthError('That nickname is already taken', 'nickname');
+      throw new AuthError('Энэ хоч нэрийг өөр хүн авсан байна', 'nickname');
     }
-    throw new AuthError(error.message);
+    throw translate(error.message, 'Бүртгэл үүсгэж чадсангүй. Дахин оролдоно уу');
   }
   if (!data.user || !data.session) {
-    throw new AuthError('Check your email to confirm your account, then sign in');
+    throw new AuthError('Имэйлээ шалгаж бүртгэлээ баталгаажуулаад нэвтэрнэ үү');
   }
   return fetchProfile(data.user.id);
 }
@@ -92,7 +103,8 @@ export async function signIn(emailInput: string, password: string): Promise<User
     email: emailInput.trim().toLowerCase(),
     password,
   });
-  if (error || !data.user) throw new AuthError('Wrong email or password');
+  // Wrong credentials are the common case; network or unconfirmed-email problems get their own message.
+  if (error || !data.user) throw translate(error?.message ?? '', 'Имэйл эсвэл нууц үг буруу байна');
   return fetchProfile(data.user.id);
 }
 
