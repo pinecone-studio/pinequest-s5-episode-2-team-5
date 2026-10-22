@@ -52,12 +52,19 @@ async function fetchProfile(id: string): Promise<User> {
   return toUser(data as ProfileRow);
 }
 
+/** False only when we know the nickname is taken; a failed lookup doesn't block the form. */
+export async function isNicknameAvailable(nickname: string): Promise<boolean> {
+  const { data } = await supabase.rpc('nickname_available', { wanted: nickname.trim() });
+  return data !== false;
+}
+
 export async function signUp(input: SignUpInput): Promise<User> {
   const email = input.email.trim().toLowerCase();
   const nickname = input.nickname.trim();
 
-  const { data: available } = await supabase.rpc('nickname_available', { wanted: nickname });
-  if (available === false) throw new AuthError('That nickname is already taken', 'nickname');
+  if (!(await isNicknameAvailable(nickname))) {
+    throw new AuthError('That nickname is already taken', 'nickname');
+  }
 
   const { data, error } = await supabase.auth.signUp({
     email,
@@ -67,6 +74,10 @@ export async function signUp(input: SignUpInput): Promise<User> {
   if (error) {
     if (/already registered/i.test(error.message)) {
       throw new AuthError('An account with this email already exists', 'email');
+    }
+    // Someone grabbed the nickname after our check: the profiles trigger hits the unique index.
+    if (/database error saving new user|profiles_nickname_key/i.test(error.message)) {
+      throw new AuthError('That nickname is already taken', 'nickname');
     }
     throw new AuthError(error.message);
   }
