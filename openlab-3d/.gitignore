@@ -1,0 +1,17 @@
+# Dependencies (re-created by `npm install`)
+node_modules/
+
+# Build output
+dist/
+*.tsbuildinfo
+
+# Editor / OS files
+.DS_Store
+.vscode/*
+!.vscode/extensions.json
+.idea/
+
+# Logs and local env files
+*.log
+.env
+.env.local
