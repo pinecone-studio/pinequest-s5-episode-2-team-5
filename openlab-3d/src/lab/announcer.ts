@@ -7,7 +7,7 @@ import { useGameStore } from '../store/useGameStore';
 import { useExperimentStore } from '../store/useExperimentStore';
 import { useLabStore, experimentDone } from '../store/useLabStore';
 import { sounds } from '../utils/sounds';
-import { EXPERIMENTS } from './experiments';
+import { getExperiments } from './experiments';
 import { onLab, type LabEvent } from './events';
 
 const queue: { title: string; subtitle?: string }[] = [];
@@ -74,7 +74,7 @@ function onEvent(e: LabEvent): void {
   }
 
   for (const c of completed) {
-    const x = EXPERIMENTS.find((ex) => ex.id === c.experiment);
+    const x = getExperiments().find((ex) => ex.id === c.experiment);
     const step = x?.steps.find((s) => s.id === c.step);
     if (!x || !step) continue;
     const progress = useLabStore.getState().progress;
@@ -85,7 +85,7 @@ function onEvent(e: LabEvent): void {
       window.setTimeout(() => useGameStore.getState().say(`«${x.title}» туршилт дууслаа! ${x.explain}`, 'happy'), 2200);
       const active = useLabStore.getState().active;
       if (active === x.id) {
-        const nextX = EXPERIMENTS.find((ex) => !experimentDone(progress, ex.id));
+        const nextX = getExperiments().find((ex) => !experimentDone(progress, ex.id));
         useLabStore.getState().setActive(nextX?.id ?? null);
       }
     } else if (useLabStore.getState().active === x.id) {

@@ -1,4 +1,4 @@
-import { Suspense, useCallback, useMemo, useState } from 'react';
+import { Suspense, useCallback, useEffect, useMemo, useState } from 'react';
 import { Canvas } from '@react-three/fiber';
 import { KeyboardControls } from '@react-three/drei';
 import { Physics } from '@react-three/rapier';
@@ -20,6 +20,7 @@ import { useReady } from './store/useLoadingStore';
 import { useSettingsStore, QUALITY_PRESETS } from './store/useSettingsStore';
 import { useGameStore, type Mode } from './store/useGameStore';
 import { DebugBridge } from './utils/DebugBridge';
+import { connectExperimentCatalog } from './lab/experiments';
 import { HUD } from './ui/HUD';
 
 /** Marks the physics engine as loaded (rendered inside <Physics>, so after WASM init). */
@@ -32,6 +33,7 @@ function EngineReady() {
 const FROZEN: Mode[] = ['inspect', 'ui', 'paused', 'ended'];
 
 export default function App() {
+  useEffect(connectExperimentCatalog, []);
   const bindings = useSettingsStore((s) => s.bindings);
   const lookMode = useSettingsStore((s) => s.lookMode);
   const quality = useSettingsStore((s) => s.quality);

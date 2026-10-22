@@ -42,3 +42,6 @@ language sql security definer set search_path = public as $$
   select not exists (select 1 from profiles where lower(nickname) = lower(wanted));
 $$;
 grant execute on function nickname_available(text) to anon, authenticated;
+
+-- OpenLab JSON experiment catalog: run supabase/experiments.sql separately.
+-- It includes the catalog migration and all 14 initial lesson definitions.

@@ -49,7 +49,9 @@
     "ios": "expo start --ios",
     "web": "expo start --web",
     "lint": "expo lint",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "experiments:sql": "node --experimental-strip-types scripts/generate-experiment-sql.mjs",
+    "test:experiments": "node --experimental-strip-types --test scripts/experiment-catalog.test.mjs"
   },
   "private": true
 }

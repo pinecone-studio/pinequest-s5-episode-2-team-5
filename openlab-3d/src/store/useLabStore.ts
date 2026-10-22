@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import { EXPERIMENTS } from '../lab/experiments';
+import { getExperiments, experimentById, matchesCompletion } from '../lab/experiments';
 import type { LabEvent } from '../lab/events';
 
 /** Experiment guide progress (kept across reloads) and what was observed this session. */
@@ -30,10 +30,10 @@ export const useLabStore = create<LabState>()(
         const progress = get().progress;
         const completed: { experiment: string; step: string }[] = [];
         let next: Record<string, string[]> | null = null;
-        for (const x of EXPERIMENTS) {
+        for (const x of getExperiments()) {
           const done = progress[x.id] ?? [];
           for (const step of x.steps) {
-            if (done.includes(step.id) || !step.done(e)) continue;
+            if (done.includes(step.id) || !matchesCompletion(e, step.completion)) continue;
             next = next ?? { ...progress };
             next[x.id] = [...(next[x.id] ?? done), step.id];
             completed.push({ experiment: x.id, step: step.id });
@@ -60,6 +60,6 @@ export const useLabStore = create<LabState>()(
 );
 
 export function experimentDone(progress: Record<string, string[]>, id: string): boolean {
-  const x = EXPERIMENTS.find((e) => e.id === id);
+  const x = experimentById(id);
   return !!x && x.steps.every((s) => progress[id]?.includes(s.id));
 }

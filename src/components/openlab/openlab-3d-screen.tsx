@@ -8,13 +8,14 @@ import { IconButton } from '@/components/ui/icon-button';
 import { LabBackground } from '@/components/ui/lab-background';
 import { ScreenHeader } from '@/components/ui/screen-header';
 import { Colors, Fonts, Radius } from '@/constants/theme';
+import { useOpenLabCatalog } from '@/hooks/use-openlab-catalog';
 
 /**
  * OpenLab 3D is a separate Vite web app in `openlab-3d/`. `npm run build:chemquest` there
  * writes it to `public/openlab/`, which Expo web serves as static files; this screen shows
  * it full screen in an iframe.
  */
-const OPENLAB_URL = '/openlab/index.html?v=worktop-5';
+const OPENLAB_URL = '/openlab/index.html?v=experiment-catalog-1';
 /** The built page's <title>; an SPA fallback page would not contain it. */
 const OPENLAB_MARKER = '<title>OpenLab 3D</title>';
 
@@ -31,6 +32,7 @@ function OpenLabWeb() {
   const insets = useSafeAreaInsets();
   const [status, setStatus] = useState<Status>('checking');
   const frame = useRef<HTMLIFrameElement>(null);
+  const sendCatalog = useOpenLabCatalog(frame);
 
   useEffect(() => {
     let cancelled = false;
@@ -64,7 +66,7 @@ function OpenLabWeb() {
         src={OPENLAB_URL}
         title="OpenLab 3D virtual laboratory"
         allow="fullscreen; autoplay"
-        onLoad={() => frame.current?.focus()}
+        onLoad={() => { frame.current?.focus(); sendCatalog(); }}
         style={{ border: 0, width: '100%', height: '100%', display: 'block', backgroundColor: '#eef0f2' }}
       />
       {/* Top center: OpenLab keeps its own menu (top left) and Notes/End (top right). */}
