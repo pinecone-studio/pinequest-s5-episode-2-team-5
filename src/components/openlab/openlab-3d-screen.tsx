@@ -1,0 +1,151 @@
+import { router } from 'expo-router';
+import { useEffect, useRef, useState } from 'react';
+import { ActivityIndicator, Platform, StyleSheet, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+
+import { AppText } from '@/components/ui/app-text';
+import { IconButton } from '@/components/ui/icon-button';
+import { LabBackground } from '@/components/ui/lab-background';
+import { ScreenHeader } from '@/components/ui/screen-header';
+import { Colors, Fonts, Radius } from '@/constants/theme';
+
+/**
+ * OpenLab 3D is a separate Vite web app in `openlab-3d/`. `npm run build:chemquest` there
+ * writes it to `public/openlab/`, which Expo web serves as static files; this screen shows
+ * it full screen in an iframe.
+ */
+const OPENLAB_URL = '/openlab/index.html';
+/** The built page's <title>; an SPA fallback page would not contain it. */
+const OPENLAB_MARKER = '<title>OpenLab 3D</title>';
+
+type Status = 'checking' | 'ready' | 'missing';
+
+const goBack = () => (router.canGoBack() ? router.back() : router.replace('/'));
+
+/** The hub's OpenLab building: the full OpenLab 3D lab (web). */
+export function OpenLab3DScreen() {
+  return Platform.OS === 'web' ? <OpenLabWeb /> : <OpenLabNative />;
+}
+
+function OpenLabWeb() {
+  const insets = useSafeAreaInsets();
+  const [status, setStatus] = useState<Status>('checking');
+  const frame = useRef<HTMLIFrameElement>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    fetch(OPENLAB_URL, { cache: 'no-store' })
+      .then((res) => (res.ok ? res.text() : ''))
+      .then((html) => {
+        if (!cancelled) setStatus(html.includes(OPENLAB_MARKER) ? 'ready' : 'missing');
+      })
+      .catch(() => {
+        if (!cancelled) setStatus('missing');
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  if (status === 'checking') {
+    return (
+      <LabBackground bubbles={4}>
+        <ActivityIndicator color={Colors.lime} size="large" style={styles.loading} />
+      </LabBackground>
+    );
+  }
+
+  if (status === 'missing') return <NotBuilt />;
+
+  return (
+    <View style={styles.fill}>
+      <iframe
+        ref={frame}
+        src={OPENLAB_URL}
+        title="OpenLab 3D virtual laboratory"
+        allow="fullscreen; autoplay"
+        onLoad={() => frame.current?.focus()}
+        style={{ border: 0, width: '100%', height: '100%', display: 'block', backgroundColor: '#eef0f2' }}
+      />
+      {/* Top center: OpenLab keeps its own menu (top left) and Notes/End (top right). */}
+      <View style={[styles.back, { top: insets.top + 12 }]} pointerEvents="box-none">
+        <IconButton icon="chevron-left" accessibilityLabel="Back to the ChemQuest hub" size={38} onPress={goBack} />
+        <AppText variant="caption" color={Colors.text} style={styles.backLabel}>
+          ChemQuest
+        </AppText>
+      </View>
+    </View>
+  );
+}
+
+function NotBuilt() {
+  return (
+    <LabBackground bubbles={5}>
+      <ScreenHeader title="OpenLab" subtitle="3D virtual laboratory" onBack={goBack} />
+      <View style={styles.card}>
+        <AppText variant="heading">OpenLab is not built yet</AppText>
+        <AppText style={styles.gap}>
+          All three parts (Person 1, 2 and 3) must be inside the openlab-3d folder. Then build it once:
+        </AppText>
+        <View style={styles.code}>
+          <AppText style={styles.codeText}>cd openlab-3d</AppText>
+          <AppText style={styles.codeText}>npm install</AppText>
+          <AppText style={styles.codeText}>npm run build:chemquest</AppText>
+        </View>
+        <AppText variant="caption" style={styles.gap}>
+          Then restart ChemQuest with npm run web and enter the OpenLab building again.
+        </AppText>
+      </View>
+    </LabBackground>
+  );
+}
+
+function OpenLabNative() {
+  return (
+    <LabBackground bubbles={5}>
+      <ScreenHeader title="OpenLab" subtitle="3D virtual laboratory" onBack={goBack} />
+      <View style={styles.card}>
+        <AppText variant="heading">Available on the web</AppText>
+        <AppText style={styles.gap}>
+          OpenLab is a full 3D lab built for a keyboard and mouse. Open ChemQuest in a browser (npm run web) and
+          enter the OpenLab building there.
+        </AppText>
+      </View>
+    </LabBackground>
+  );
+}
+
+const styles = StyleSheet.create({
+  fill: { flex: 1, backgroundColor: Colors.night },
+  loading: { flex: 1 },
+  back: {
+    position: 'absolute',
+    alignSelf: 'center',
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    paddingLeft: 4,
+    paddingRight: 14,
+    paddingVertical: 4,
+    borderRadius: Radius.pill,
+    backgroundColor: 'rgba(18, 12, 51, 0.72)',
+  },
+  backLabel: { fontFamily: Fonts.semibold },
+  card: {
+    margin: 16,
+    padding: 20,
+    borderRadius: Radius.lg,
+    backgroundColor: Colors.panel,
+    borderWidth: 2,
+    borderColor: Colors.border,
+  },
+  gap: { marginTop: 10 },
+  code: {
+    marginTop: 12,
+    padding: 14,
+    borderRadius: Radius.md,
+    backgroundColor: Colors.input,
+    gap: 4,
+  },
+  codeText: { fontFamily: Platform.select({ web: 'monospace', default: undefined }), color: Colors.lime, fontSize: 15 },
+});

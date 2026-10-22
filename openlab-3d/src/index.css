@@ -1,0 +1,72 @@
+@import '@fontsource/inter/400.css';
+@import '@fontsource/inter/500.css';
+@import '@fontsource/inter/600.css';
+@import '@fontsource/inter/700.css';
+@import '@fontsource/poppins/600.css';
+@import '@fontsource/poppins/700.css';
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+html,
+body,
+#root {
+  height: 100%;
+  margin: 0;
+  overflow: hidden;
+  background: #eef0f2;
+  color: #1f2328;
+  font-family: Inter, system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  overscroll-behavior: none;
+  user-select: none;
+  -webkit-user-select: none;
+  touch-action: none;
+}
+
+canvas {
+  display: block;
+  outline: none;
+}
+
+@layer components {
+  .hud-square {
+    @apply flex h-11 min-w-[44px] items-center justify-center rounded-[6px] px-3 text-white shadow-hud backdrop-blur-sm transition;
+    background: rgba(60, 60, 60, 0.7);
+  }
+  .hud-square:hover {
+    background: rgba(60, 60, 60, 0.85);
+  }
+  .focus-ring {
+    @apply outline-none focus-visible:ring-4 focus-visible:ring-lab-yellow/60 focus-visible:ring-offset-2 focus-visible:ring-offset-transparent;
+  }
+  .panel-card {
+    @apply rounded-2xl bg-white/95 text-lab-ink shadow-hud backdrop-blur;
+  }
+  .btn-yellow {
+    @apply focus-ring rounded-xl bg-lab-yellow px-4 py-2 font-semibold text-white shadow transition hover:bg-lab-yellowDark active:scale-[0.98];
+  }
+  .btn-ghost {
+    @apply focus-ring rounded-xl bg-slate-100 px-4 py-2 font-medium text-slate-700 transition hover:bg-slate-200 active:scale-[0.98];
+  }
+  .kbd {
+    @apply inline-flex min-w-[1.7em] items-center justify-center rounded-md border border-slate-300 bg-white px-1.5 py-0.5 font-mono text-[0.8em] font-semibold text-slate-700 shadow-[0_2px_0_#cbd5e1];
+  }
+  .range {
+    @apply w-full cursor-pointer accent-lab-yellow;
+  }
+}
+
+.scrollbar-thin::-webkit-scrollbar {
+  width: 8px;
+}
+.scrollbar-thin::-webkit-scrollbar-thumb {
+  background: rgba(100, 116, 139, 0.35);
+  border-radius: 8px;
+}
+textarea,
+input {
+  user-select: text;
+  -webkit-user-select: text;
+}

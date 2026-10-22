@@ -1,6 +1,0 @@
-OpenLab models in this folder are from “Lab Assets” by MilkAndBanana.
-
-License: Creative Commons Zero (CC0), public domain dedication.
-Source: https://opengameart.org/content/lab-assets
-
-The author asks for credit when possible (not required): MilkAndBanana.

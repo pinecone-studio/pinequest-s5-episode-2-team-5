@@ -12,7 +12,7 @@ export default function GameLayout() {
       <Stack.Screen name="ranking" options={{ animation: 'fade' }} />
       <Stack.Screen name="versus" options={{ animation: 'fade' }} />
       <Stack.Screen name="friendly" options={{ animation: 'fade' }} />
-      <Stack.Screen name="openlab/index" options={{ animation: 'fade' }} />
+      <Stack.Screen name="openlab" options={{ animation: 'fade', gestureEnabled: false }} />
       <Stack.Screen name="lessons/[lessonId]" options={{ animation: 'slide_from_bottom', gestureEnabled: false }} />
     </Stack>
   );
