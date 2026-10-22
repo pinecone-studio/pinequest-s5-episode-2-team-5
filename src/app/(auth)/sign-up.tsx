@@ -31,7 +31,7 @@ import {
   validateNickname,
   validatePassword,
 } from '@/lib/validation';
-import { AuthError, type AuthField } from '@/services/auth';
+import { AuthError, isNicknameAvailable, type AuthField } from '@/services/auth';
 import type { ClassId } from '@/types';
 
 type Field = AuthField | 'classId';
@@ -72,6 +72,13 @@ export default function SignUpScreen() {
   };
 
   const touch = (field: Field) => setTouched((t) => ({ ...t, [field]: true }));
+  const checkNickname = async () => {
+    touch('nickname');
+    if (validateNickname(nickname)) return;
+    if (!(await isNicknameAvailable(nickname))) {
+      setServerError({ field: 'nickname', message: 'That nickname is already taken' });
+    }
+  };
   const clearServerError = (field: AuthField) => {
     if (serverError?.field === field) setServerError(null);
   };
@@ -184,7 +191,7 @@ export default function SignUpScreen() {
                 setNickname(v);
                 clearServerError('nickname');
               }}
-              onBlur={() => touch('nickname')}
+              onBlur={checkNickname}
               error={errorFor('nickname')}
               hint={`Shown above your character and on the ranking · ${nickname.trim().length}/${NICKNAME_MAX}`}
               maxLength={NICKNAME_MAX}
