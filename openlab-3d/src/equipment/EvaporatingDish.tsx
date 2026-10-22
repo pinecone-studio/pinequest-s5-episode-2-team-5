@@ -1,8 +1,10 @@
 /** Porcelain evaporating dish: Ø 90 mm × 40 mm glazed bowl with a pouring spout. */
 import { DoubleSide, LatheGeometry, MeshStandardMaterial, Vector2 } from 'three';
-import { useLiquid } from '../materials/liquids';
 import { lazy } from '../utils/lazy';
-import { ModelOr, type ModelProps } from './ModelOr';
+import { ModelOr } from './ModelOr';
+import { VesselContents } from './VesselContents';
+import { PROFILES } from './profiles';
+import type { VesselModelProps } from './Beaker';
 
 const porcelain = new MeshStandardMaterial({ color: '#f6f2ea', roughness: 0.28, side: DoubleSide });
 const bowlGeometry = lazy(
@@ -13,20 +15,14 @@ const bowlGeometry = lazy(
     ),
 );
 
-export function EvaporatingDish({ modelUrl, liquidColor = '#b9def5', fill = 0, ...props }: ModelProps & { liquidColor?: string; fill?: number }) {
-  const liquid = useLiquid(liquidColor);
-  const level = Math.min(1, fill) * 0.028;
+export function EvaporatingDish({ modelUrl, look, itemId, ...props }: VesselModelProps) {
   return (
     <ModelOr modelUrl={modelUrl} {...props}>
       <mesh geometry={bowlGeometry()} material={porcelain} castShadow />
       <mesh material={porcelain} position={[0.049, 0.039, 0]} rotation={[0, 0, -0.5]}>
         <boxGeometry args={[0.012, 0.003, 0.014]} />
       </mesh>
-      {level > 0.001 && (
-        <mesh material={liquid} position={[0, 0.004 + level / 2, 0]} userData={{ noOutline: true, noBatch: true }}>
-          <cylinderGeometry args={[0.0345 + level * 0.3, 0.022, level, 28]} />
-        </mesh>
-      )}
+      {look && <VesselContents profile={PROFILES.evaporatingDish} look={look} itemId={itemId} />}
     </ModelOr>
   );
 }

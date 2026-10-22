@@ -4,11 +4,17 @@ import type { Placement } from './surfaces';
 export const heldApi: {
   /** Places the held item at the current ghost target. Returns false if nowhere valid. */
   place: () => boolean;
+  /** Throws the held item forward; power 0..1. */
+  throwHeld: (power: number) => boolean;
   target: Placement | null;
 } = {
   place: () => false,
+  throwHeld: () => false,
   target: null,
 };
+
+/** Throw wind-up: when T went down (ms), or null. */
+export const throwCharge = { since: null as number | null };
 
 /** Shared state of an in-progress hold-E / mouse drag on an interactable (e.g. the voltage knob). */
 export const dragState = { id: null as string | null, moved: 0, source: null as 'key' | 'mouse' | null };

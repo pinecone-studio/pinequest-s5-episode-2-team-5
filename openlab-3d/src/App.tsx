@@ -14,6 +14,8 @@ import { Effects } from './world/Effects';
 import { GlassLOD, PerformanceManager, ShadowUpdater, Warmup } from './world/Performance';
 import { FocusRaycaster } from './interaction/useRaycastFocus';
 import { HeldItem } from './interaction/HeldItem';
+import { ChemSim } from './world/ChemSim';
+import { LabFx } from './world/LabFx';
 import { useReady } from './store/useLoadingStore';
 import { useSettingsStore, QUALITY_PRESETS } from './store/useSettingsStore';
 import { useGameStore, type Mode } from './store/useGameStore';
@@ -69,6 +71,8 @@ export default function App() {
               <Player />
               <FocusRaycaster />
               <HeldItem />
+              <ChemSim />
+              <LabFx />
             </Physics>
             <Effects />
             <GlassLOD />

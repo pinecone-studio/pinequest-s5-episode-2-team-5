@@ -1,13 +1,13 @@
 /**
  * Touch fallback: a virtual joystick on the left half, drag-to-look on the right half,
- * and round action buttons (interact, inspect, place, sprint).
+ * and round action buttons (interact, inspect, place, use/pour (hold), throw, sprint).
  */
 import { useEffect, useRef, useState } from 'react';
 import { useGameStore } from '../store/useGameStore';
 import { touchInput } from '../interaction/heldApi';
 import { lookBy } from '../controls/usePointerLock';
-import { interactWithFocus } from '../controls/useGameKeys';
-import { heldApi } from '../interaction/heldApi';
+import { dropHeld, interactWithFocus, releaseThrow, startThrow } from '../controls/useGameKeys';
+import { beginUse, endUse } from '../interaction/actions';
 import { useInventoryStore } from '../store/useInventoryStore';
 import { interactables } from '../interaction/registry';
 import { releaseLock } from '../controls/usePointerLock';
@@ -98,8 +98,14 @@ export function TouchControls() {
         <button className={btn} onClick={inspect} aria-label="Ойроос харах">
           F
         </button>
-        <button className={btn} onClick={() => useInventoryStore.getState().held && heldApi.place()} aria-label="Тавих">
+        <button className={btn} onClick={() => useInventoryStore.getState().held && dropHeld()} aria-label="Тавих">
           Q
+        </button>
+        <button className={btn} onTouchStart={() => beginUse()} onTouchEnd={() => endUse()} onTouchCancel={() => endUse()} aria-label="Ашиглах (асгах, хэмжих)">
+          R
+        </button>
+        <button className={btn} onTouchStart={() => startThrow()} onTouchEnd={() => releaseThrow()} aria-label="Шидэх">
+          T
         </button>
         <button className={`${btn} ${sprint ? '!bg-lab-yellow' : ''}`} onClick={() => setSprint((s) => !s)} aria-label="Гүйх горим" aria-pressed={sprint}>
           ⇧

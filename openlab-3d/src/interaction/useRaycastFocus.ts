@@ -66,8 +66,10 @@ export function useRaycastFocus(): void {
       }
     }
 
-    // Occlusion: a wall (or other static geometry) clearly in front of the hit point.
-    if (best) {
+    // Occlusion: a wall (or other static geometry) clearly in front of the hit point. Items
+    // kept in drawers and cabinets sit inside their bench's collider, so they are exempt.
+    const stored = best?.useTarget?.type === 'item' && !!best.useTarget.holderId;
+    if (best && !stored) {
       const dir = raycaster.ray.direction;
       const ray = new rapier.Ray({ x: camPos.x, y: camPos.y, z: camPos.z }, { x: dir.x, y: dir.y, z: dir.z });
       const hit = world.castRay(ray, bestDist, true, undefined, undefined, undefined, playerBodyRef.current ?? undefined, (c) => {
@@ -85,13 +87,13 @@ export function useRaycastFocus(): void {
           canUse: !!best.onInteract,
           canInspect: !!best.inspectKind,
           canGrab: !!best.onGrab && best.onGrab !== best.onInteract,
-          canPour: !!best.onPour,
-          pourVerb: best.pourVerb,
+          canStore: !!best.onStore,
+          storeVerb: best.storeVerb,
           canDrag: !!best.onDrag,
           canScroll: !!best.onWheel,
         }
       : null;
-    if (focus && !best?.onInteract && !best?.inspectKind) {
+    if (focus && !best?.onInteract && !best?.inspectKind && !best?.useTarget) {
       game.setFocus(null);
       return;
     }

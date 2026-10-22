@@ -24,6 +24,7 @@ import { ClickToLookHint, FpsCounter, RoomToast } from './RoomToast';
 import { TouchControls } from './TouchControls';
 import { isTouchDevice } from '../utils/device';
 import { InspectMode } from '../interaction/InspectMode';
+import { ActionGauge, ExperimentCard, SafetyBadges, ThrowMeter } from './LabHud';
 
 export function HUD() {
   const mode = useGameStore((s) => s.mode);
@@ -36,6 +37,8 @@ export function HUD() {
       {inGame && touch && <TouchControls />}
       {showChrome && mode === 'walk' && <Crosshair />}
       {showChrome && mode === 'walk' && <InteractionPrompt />}
+      {showChrome && mode === 'walk' && <ActionGauge />}
+      {showChrome && mode === 'walk' && <ThrowMeter />}
       {showChrome && !touch && <ClickToLookHint />}
       {showChrome && (
         <>
@@ -48,6 +51,8 @@ export function HUD() {
           </div>
           <RoomToast />
           <Minimap />
+          <SafetyBadges />
+          <ExperimentCard />
         </>
       )}
       {inGame && <ToolTab />}

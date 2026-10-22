@@ -26,7 +26,7 @@ export function Thermometer({ modelUrl, temperature = 22, ...props }: ModelProps
       ticks.current.computeBoundingSphere();
     }
   }, []);
-  const column = 0.03 + ((temperature + 10) / 120) * 0.26;
+  const column = 0.03 + ((Math.min(110, Math.max(-10, temperature)) + 10) / 120) * 0.26;
   return (
     <ModelOr modelUrl={modelUrl} {...props}>
       <group rotation={[Math.PI / 2, 0, 0]} position={[0, 0.0045, -0.15]}>
@@ -36,7 +36,7 @@ export function Thermometer({ modelUrl, temperature = 22, ...props }: ModelProps
         <mesh material={red} position={[0, 0.008, 0]} userData={{ noOutline: true }}>
           <sphereGeometry args={[0.0032, 12, 10]} />
         </mesh>
-        <mesh material={red} position={[0, column / 2, 0]} userData={{ noOutline: true }}>
+        <mesh material={red} position={[0, column / 2, 0]} userData={{ noOutline: true, noBatch: true }}>
           <cylinderGeometry args={[0.0008, 0.0008, column, 6]} />
         </mesh>
         <mesh material={plastic('#f8fafc', 0.5)} position={[0, 0.302, 0]}>
