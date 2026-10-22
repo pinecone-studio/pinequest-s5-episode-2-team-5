@@ -27,6 +27,9 @@ import { InspectMode } from '../interaction/InspectMode';
 import { NaClHUD } from '../experiments/nacl/NaClHUD';
 import { useSandbox } from '../experiments/nacl/sandbox';
 import { ActionGauge, ExperimentCard, SafetyBadges, ThrowMeter } from './LabHud';
+import { PreparationLabels } from '../experiments/workbench/PreparationHints';
+import { ReactionLens } from '../experiments/workbench/ReactionLens';
+import { BenchDrawer } from '../experiments/workbench/BenchDrawer';
 
 export function HUD() {
   const mode = useGameStore((s) => s.mode);
@@ -56,11 +59,12 @@ export function HUD() {
           <RoomToast />
           <Minimap />
           <SafetyBadges />
-          {!nearNaCl && <ExperimentCard />}
+          <ExperimentCard />
         </>
       )}
       {(mode === 'walk' || bench) && <NaClHUD />}
-      {inGame && !bench && <ToolTab />}
+      {inGame && !bench && !nearNaCl && <ToolTab />}
+      {(bench || mode === 'walk' && nearNaCl) && <BenchDrawer />}
       {inGame && <RobotAssistant hidden={!showChrome} />}
       {showFps && <FpsCounter />}
       <MenuPanel />
@@ -68,7 +72,9 @@ export function HUD() {
       <ControlsHelp />
       <EndConfirm />
       <PauseMenu />
+      <PreparationLabels />
       <InspectMode />
+      {inGame && <ReactionLens />}
       <LoadingScreen />
       <SummaryScreen />
     </>

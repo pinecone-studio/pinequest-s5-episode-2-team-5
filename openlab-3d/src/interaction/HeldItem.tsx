@@ -26,6 +26,7 @@ import { portableApi, usePortableStore } from './portable';
 import { labSpace, labUse } from '../experiments/nacl/sandbox';
 import { endHeldUse } from './useHeld';
 import { playerBodyRef } from '../controls/Player';
+import { benchView, useBenchView } from '../experiments/nacl/view';
 
 const ghostOk = new MeshBasicMaterial({ color: '#bff3ff', transparent: true, opacity: 0.35, depthWrite: false });
 const ghostFloor = new MeshBasicMaterial({ color: '#ffd27a', transparent: true, opacity: 0.35, depthWrite: false });
@@ -99,6 +100,7 @@ export function HeldItem() {
   }, [camera, world, rapier]);
 
   useEffect(() => {
+    benchView.heldObject = () => hand.current;
     smoothQ.current.copy(camera.quaternion);
     heldApi.refreshTarget = solve;
     portableApi.place = () => {
@@ -142,6 +144,7 @@ export function HeldItem() {
       return ok;
     };
     return () => {
+      benchView.heldObject = () => null;
       portableApi.place = () => false; heldApi.refreshTarget = () => null;
       heldApi.place = () => false;
       heldApi.throwHeld = () => false;
@@ -153,6 +156,11 @@ export function HeldItem() {
     const mode = useGameStore.getState().mode;
     const atBench = mode === 'bench';
     const visible = mode === 'walk' || atBench;
+    if (atBench && useBenchView.getState().inspecting) {
+      if (ghost.current) ghost.current.visible = false;
+      if (hand.current) hand.current.visible = true;
+      return;
+    }
     const target = solve();
     const yaw = atBench ? tablePointer.angle : playerState.yaw;
     if (portable && usePortableStore.getState().held?.id === portable.id) {

@@ -9,6 +9,7 @@ import { usePortableStore, portableApi } from '../interaction/portable';
 import { heldObjectId, mixture, useSandbox, warn } from '../experiments/nacl/sandbox';
 import { enterBench, exitBench } from '../experiments/nacl/bench';
 import { benchView, useBenchView } from '../experiments/nacl/view';
+import { useWorkbench } from '../experiments/workbench/session';
 import { sounds } from '../utils/sounds';
 import { actionsForKey } from './keyMap';
 import { isPointerLocked, lookBy, releaseLock, requestLock } from './usePointerLock';
@@ -70,8 +71,12 @@ export function inspectFocusOrHeld(): void {
   const game = useGameStore.getState();
   const focus = game.focus;
   const id = heldObjectId() ?? focus?.id;
-  if (id && (id.startsWith('nacl-') || usePortableStore.getState().held)) { mixture(id); useSandbox.setState({ inspected: id }); releaseLock(); return; }
-  const entry = focus ? interactables.get(focus.id) : undefined;
+  if (id && id.startsWith('nacl-')) {
+    mixture(id); useSandbox.setState({ inspected: id }); enterBench(id);
+    useBenchView.setState({ inspecting: true });
+    return;
+  }
+  const entry = id ? interactables.get(id) : undefined;
   if (entry?.inspectKind) {
     releaseLock();
     game.startInspect(entry.inspectKind, entry.id);
@@ -150,6 +155,16 @@ export function useGameKeys(canvas: HTMLElement | null): void {
   useEffect(() => {
     const onKeyDown = (e: KeyboardEvent) => {
       if ((e.target as HTMLElement | null)?.dataset?.capture === 'keys') return;
+      const current = useGameStore.getState();
+      if (e.code === 'Tab' && (current.mode === 'bench' || current.mode === 'walk' && useSandbox.getState().near)) {
+        e.preventDefault(); e.stopPropagation();
+        if (!e.repeat) {
+          endHeldUse();
+          if (current.mode === 'walk') enterBench();
+          useWorkbench.setState((s) => ({ drawer: !s.drawer }));
+        }
+        return;
+      }
       if (isTyping(e.target)) {
         if (e.code === 'Escape') (e.target as HTMLElement).blur();
         return;
@@ -183,7 +198,7 @@ export function useGameKeys(canvas: HTMLElement | null): void {
           if (actions.includes('pour')) beginHeldUse();
           if (actions.includes('throw')) startThrow();
           if (actions.includes('cursor')) toggleCursor();
-          if (actions.includes('tools')) openPanelFromGame('tools');
+          if (actions.includes('tools')) { if (useSandbox.getState().near) { enterBench(); useWorkbench.setState({ drawer: true }); } else openPanelFromGame('tools'); }
           if (actions.includes('notes')) openPanelFromGame('notes');
           if (actions.includes('map')) {
             game.toggleMinimap();
@@ -209,13 +224,27 @@ export function useGameKeys(canvas: HTMLElement | null): void {
           return;
         }
         case 'bench': {
+          if (e.code === 'Tab' || actions.includes('tools')) {
+            e.preventDefault();
+            if (!e.repeat) { endHeldUse(); useWorkbench.setState((s) => ({ drawer: !s.drawer })); }
+            return;
+          }
+          if (useWorkbench.getState().drawer) {
+            if (e.code === 'Escape') { e.preventDefault(); useWorkbench.setState({ drawer: false }); }
+            return;
+          }
+          if (e.code === 'Escape' && useBenchView.getState().inspecting) { e.preventDefault(); benchView.back(); return; }
           if (e.code === 'Escape' || actions.includes('closeup')) { e.preventDefault(); exitBench(); return; }
           if (e.repeat) return;
           const selected = useSandbox.getState().hovered ?? useBenchView.getState().selected;
+          const inspectId = heldObjectId() ?? selected;
           if (actions.includes('drop')) dropHeld();
           if (actions.includes('pour')) beginHeldUse(selected);
-          if (actions.includes('inspect') && selected) benchView.focus(selected);
-          if ((actions.includes('interact') || actions.includes('grab')) && selected) {
+          if (actions.includes('inspect') && inspectId) {
+            if (useBenchView.getState().inspecting) benchView.back(); else benchView.inspect(inspectId);
+          }
+          if (actions.includes('interact') && selected) benchView.focus(selected);
+          if (actions.includes('grab') && selected && !useBenchView.getState().inspecting) {
             const entry = interactables.get(selected); (entry?.onGrab ?? entry?.onInteract)?.();
           }
           return;
@@ -278,7 +307,7 @@ export function useGameKeys(canvas: HTMLElement | null): void {
       throwCharge.since = null;
     };
 
-    window.addEventListener('keydown', onKeyDown);
+    window.addEventListener('keydown', onKeyDown, true);
     window.addEventListener('keyup', onKeyUp);
     window.addEventListener('mousedown', onMouseDown);
     window.addEventListener('mousemove', onMouseMove);
@@ -286,7 +315,7 @@ export function useGameKeys(canvas: HTMLElement | null): void {
     window.addEventListener('wheel', onWheel, { passive: true });
     window.addEventListener('blur', onBlur);
     return () => {
-      window.removeEventListener('keydown', onKeyDown);
+      window.removeEventListener('keydown', onKeyDown, true);
       window.removeEventListener('keyup', onKeyUp);
       window.removeEventListener('mousedown', onMouseDown);
       window.removeEventListener('mousemove', onMouseMove);

@@ -1,7 +1,7 @@
 import { crystalMass, describe, partId, partKey, useSandbox } from './sandbox';
 
 /** Measured progress guides the order, without locking equipment or changing its position. */
-export function experimentGuide() {
+export function experimentGuide(override?: number) {
   const s = useSandbox.getState();
   const entries = Object.entries(s.contents).filter(([id]) => partKey(id) || s.participants.includes(id));
   const mixtures = entries.filter(([id, m]) => describe(id).role !== 'bottle' && describe(id).role !== 'reagentBottle' && m.salt > 0.001);
@@ -19,9 +19,9 @@ export function experimentGuide() {
     { letter: 'з', title: 'Микроскопоор харах', done: s.completed.includes('microscope'), items: ['slide', 'scope'], hint: 'Талстаас шилэн хавтас дээр дээж тавиад микроскопын дэргэд байрлуул. Микроскопыг ашиглан фокусаа тохируул.' },
   ];
   const first = steps.findIndex((step) => !step.done);
-  const index = first < 0 ? steps.length - 1 : first;
+  const index = override === undefined ? (first < 0 ? steps.length - 1 : first) : Math.max(0, Math.min(steps.length - 1, override));
   const current = steps[index];
-  const cylinder = s.contents[partId('cyl')];
+  const cylinder = entries.find(([id, m]) => ['cyl', 'graduatedCylinder'].includes(describe(id).role) && m.ml > 0)?.[1] ?? s.contents[partId('cyl')];
   const dish = s.contents[partId('dish')];
   let warning = s.warning;
   if (s.rx === 'acid') warning = 'Хий ялгарч байна. Хүчлийг бүрэн урвалд оруулж дуусахаас өмнө шүүх, халаах алхам руу бүү яар.';

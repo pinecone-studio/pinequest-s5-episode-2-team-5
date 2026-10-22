@@ -12,6 +12,7 @@ import { resetSandbox } from '../experiments/nacl/sandbox';
 import { resetScenePortables } from '../interaction/portable';
 import { endHeldUse } from '../interaction/useHeld';
 import { resetObservations } from '../lab/observe';
+import { resetWorkbench } from '../experiments/workbench/session';
 
 function duration(ms: number): string {
   const s = Math.max(0, Math.round(ms / 1000));
@@ -26,6 +27,7 @@ export function restartSession(): void {
   useInventoryStore.getState().reset();
   useChemStore.getState().reset();
   resetSandbox();
+  resetWorkbench();
   useLabStore.getState().resetSession();
   resetObservations();
   playerApi.teleport(SPAWN.x, SPAWN.z, SPAWN.yaw);

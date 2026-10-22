@@ -84,6 +84,10 @@ const TEMPLATES: Record<StorageCategory, Entry[]> = {
 };
 
 const categories = new Map<string, StorageCategory>();
+/** Read-only placement hints use the same registered categories as the actual drawers. */
+export function registeredHolders(): { id: string; category: StorageCategory }[] {
+  return [...categories].map(([id, category]) => ({ id, category }));
+}
 /** Tube fills for racks placed by the layout (by rack item id). */
 export const rackSeeds = new Map<string, (ItemVariant | undefined)[]>();
 const seeds = new Map<string, StoredItem[]>();

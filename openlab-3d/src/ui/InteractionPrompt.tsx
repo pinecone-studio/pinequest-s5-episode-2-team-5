@@ -11,8 +11,8 @@ import { interactables } from '../interaction/registry';
 
 function Chip({ k, children, primary = false }: { k?: string; children: React.ReactNode; primary?: boolean }) {
   return (
-    <span className={`flex items-center gap-2 rounded-full px-3 py-1.5 text-sm font-semibold shadow-hud backdrop-blur ${primary ? 'bg-white/95 text-lab-ink' : 'bg-black/55 text-white'}`}>
-      {k && <span className={`kbd ${primary ? '' : '!border-white/30 !bg-white/15 !text-white !shadow-none'}`}>{k}</span>}
+    <span className={`flex items-center gap-2 rounded-full px-3 py-1.5 text-sm font-semibold shadow-hud backdrop-blur ${primary ? 'bg-white/95 text-lab-ink' : 'bg-white/95 text-lab-ink'}`}>
+      {k && <span className={`kbd ${primary ? '' : '!border-slate-200 !bg-white !text-lab-ink !shadow-none'}`}>{k}</span>}
       {children}
     </span>
   );

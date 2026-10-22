@@ -68,7 +68,8 @@ export function useRaycastFocus(): void {
 
     // Occlusion: a wall (or other static geometry) clearly in front of the hit point. Items
     // kept in drawers and cabinets sit inside their bench's collider, so they are exempt.
-    const stored = best?.useTarget?.type === 'item' && !!best.useTarget.holderId;
+    // Shelf glassware also sits inside its rack's coarse, solid collision hull.
+    const stored = best?.useTarget?.type === 'item' && (!!best.useTarget.holderId || /^stock-\d+-(beaker|flask|bottle)-/.test(best.id));
     if (best && !stored) {
       const dir = raycaster.ray.direction;
       const ray = new rapier.Ray({ x: camPos.x, y: camPos.y, z: camPos.z }, { x: dir.x, y: dir.y, z: dir.z });

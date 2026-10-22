@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import { useChemStore, mixtureOf } from '../../store/useChemStore';
 import { readBenchMixture, seedBenchChemistry, updateBenchMixture } from './chemistry';
-import { takeLiquid, takeSolid, merge as mergeMixtures } from '../../chemistry/mixture';
+import { takeLiquid, takeSolid, solidMassG, merge as mergeMixtures } from '../../chemistry/mixture';
 import { vesselFx } from '../../lab/vesselFx';
 import { spillMixture } from '../../lab/spill';
 import { livePose } from '../../interaction/bodies';
@@ -14,6 +14,12 @@ import { interactables } from '../../interaction/registry';
 import { useExperimentStore } from '../../store/useExperimentStore';
 import { heldApi } from '../../interaction/heldApi';
 import { NAMES, CHEM, type PartKey } from './data';
+import { transfer } from '../../interaction/actions';
+import { carbonateReaction, evaporationReaction, mixObservations } from '../../chemistry/reaction-view';
+import { publishReaction } from '../../lab/reaction-view';
+import { equilibrateHeat } from '../../chemistry/mix';
+import { useLabStore } from '../../store/useLabStore';
+import type { EquipmentKind } from '../../equipment/equipmentCatalog';
 
 export interface Mixture {
   ml: number;
@@ -56,6 +62,7 @@ interface SandboxState {
   co2: number;
   added: number;
   rx: 'acid' | 'evap' | null;
+  reaction: { id: string; kind: 'acid' | 'evap'; rate: number; temp: number } | null;
   operating: boolean;
   scope: boolean;
   focus: number;
@@ -65,7 +72,7 @@ interface SandboxState {
 export const useSandbox = create<SandboxState>()(() => ({
   contents: seeds(), participants: [], guide: false, near: false, inspected: null, heldId: null, hovered: null,
   warning: 'Чөлөөтэй туршиж болно. Зааврыг дагаарай: буруу бодис, халуун сав, хэт дүүргэлтийг анхаар.',
-  completed: [], lit: false, paperIn: false, receiver: null, co2: 0, added: 0, rx: null,
+  completed: [], lit: false, paperIn: false, receiver: null, co2: 0, added: 0, rx: null, reaction: null,
   operating: false, scope: false, focus: 10,
   spilled: 0, puddles: [],
 }));
@@ -99,6 +106,7 @@ export function syncBenchContents() {
   const contents: Record<string, Mixture> = {};
   for (const id of ids) contents[id] = mixture(id);
   useSandbox.setState({ contents });
+  if (useLabStore.getState().active === 'nacl' && Object.entries(contents).some(([id, m]) => ['cyl', 'graduatedCylinder'].includes(describe(id).role) && m.ml >= 49 && m.ml <= 51 && m.acid > .01)) mark('measure');
 }
 export const crystalMass = (m: Mixture) => Math.max(0, m.salt - m.ml * (m.temp > 60 ? 0.39 : 0.36));
 export function contentsLabel(m: Mixture) {
@@ -196,6 +204,8 @@ export function simulateLab(rawDt: number, distance: (a: string, b: string) => n
     const nearby = distance(act.source, act.target) < 1.0;
     if (!nearby) {
       warn('Хүрэхгүй байна. Савандаа ойртож, чиглүүлээд дахин ашиглаарай.');
+    } else if (!partKey(act.source) && !partKey(act.target) && ['reagentJar', 'spatula'].includes(source.role) && target.capacity > 0 && solidMassG(mixtureOf(act.source, itemVariant(act.source))) > 0) {
+      transfer({ id: act.source, kind: source.role as EquipmentKind, variant: itemVariant(act.source) }, { id: act.target, kind: target.role as EquipmentKind, variant: itemVariant(act.target) }, .3 * dt);
     } else if (['rod', 'glassRod'].includes(source.role) && target.capacity > 0) {
       warn('Хутгаж байна. Хий ялгарахаа болихыг ажиглаарай.');
       mark('stir');
@@ -215,23 +225,28 @@ export function simulateLab(rawDt: number, distance: (a: string, b: string) => n
       from.salt -= dose; to.salt += dose;
       write(act.source, from); write(act.target, to); mark('slide'); labUse.end();
     } else if (source.capacity > 0 && target.capacity > 0 && from.ml > 0.001) {
-      if (!useSandbox.getState().completed.includes('measure') && target.role !== 'cyl' && target.role !== 'graduatedCylinder' && from.acid > 0) warn('Дарааллын зөвлөгөө: эхлээд цилиндрт 50 см³ хүчил хэмжээрэй. Шууд цутгах боломжтой ч хэмжилт тодорхойгүй болно.');
+      if (useLabStore.getState().active === 'nacl' && !useSandbox.getState().completed.includes('measure') && target.role !== 'cyl' && target.role !== 'graduatedCylinder' && from.acid > 0) warn('Дарааллын зөвлөгөө: эхлээд цилиндрт 50 см³ хүчил хэмжээрэй. Шууд цутгах боломжтой ч хэмжилт тодорхойгүй болно.');
       const room = Math.max(0, target.capacity - to.ml);
       const poured = Math.min(from.ml, 8 * dt, act.remaining ?? Infinity);
       const amount = Math.min(poured, room);
       const overflow = poured - amount;
       if (overflow > 0) { spill(overflow); warn('Сав хальж, шингэн асгарч байна. Та цутгасаар байна — R-ээ суллаад савандаа зай гаргаарай.'); }
       if (target.role === 'funnel' && !useSandbox.getState().paperIn) warn('Юүлүүрт цаас алга. Шүүлтгүйгээр бодисууд хамт дамжина.');
-      if (to.other || from.other) warn('Жишиг/өөр бодистой хольж байна. Энэ хольцын урвалыг загварчилдаггүй; цэвэр NaCl гэж бүү үз.');
-      const portions = takeLiquid(mixtureOf(act.source, itemVariant(act.source)), poured);
-      const kept = takeLiquid(portions.taken, amount);
-      useChemStore.getState().setMixtures({
-        [act.source]: portions.rest,
-        [act.target]: mergeMixtures(mixtureOf(act.target, itemVariant(act.target)), kept.taken),
-      });
-      if (overflow > 0) {
-        const at = labSpace.position(act.target);
-        spillMixture(kept.rest, at.x, at.y, at.z);
+      if (!partKey(act.source) && !partKey(act.target)) {
+        transfer({ id: act.source, kind: source.role as EquipmentKind, variant: itemVariant(act.source) }, { id: act.target, kind: target.role as EquipmentKind, variant: itemVariant(act.target) }, poured);
+      } else {
+        const portions = takeLiquid(mixtureOf(act.source, itemVariant(act.source)), poured);
+        const kept = takeLiquid(portions.taken, amount);
+        const before = mixtureOf(act.target, itemVariant(act.target));
+        // Preserve the accelerated textbook carbonate reaction; ordinary chemistry
+        // (neutralisation/precipitation) still uses the canonical equilibrium solver.
+        const textbook = !!(before.s.Na2CO3 || kept.taken.s.Na2CO3);
+        const mixed = textbook ? { m: mergeMixtures(before, kept.taken), neutralized: 0, formed: [] } : equilibrateHeat(before, kept.taken, 100);
+        useChemStore.getState().setMixtures({ [act.source]: portions.rest, [act.target]: mixed.m });
+        for (const r of mixObservations(before, kept.taken, mixed.m, mixed.neutralized, mixed.formed)) publishReaction(act.target, r, 1800);
+        if (overflow > 0) {
+          const at = labSpace.position(act.target); spillMixture(kept.rest, at.x, at.y, at.z);
+        }
       }
       to.ml += amount; from.ml -= poured;
       if (act.remaining !== undefined) { act.remaining -= poured; if (act.remaining < 0.001 || from.ml < 0.001) labUse.end(); }
@@ -244,6 +259,7 @@ export function simulateLab(rawDt: number, distance: (a: string, b: string) => n
     }
   }
   let rx: 'acid' | 'evap' | null = null;
+  let reaction: SandboxState['reaction'] = null;
   for (const [id, original] of Object.entries(useSandbox.getState().contents)) {
     if (!partKey(id)) {
       // The general engine owns ordinary vessels; only observe its carbonate gas effect.
@@ -259,14 +275,20 @@ export function simulateLab(rawDt: number, distance: (a: string, b: string) => n
       m.carbonate = Math.max(0, m.carbonate - mmol * CHEM.molarCarbonate / 1000);
       m.salt += mmol * 2 * CHEM.molarSalt / 1000;
       useSandbox.setState((s) => ({ co2: s.co2 + mmol * CHEM.molarVolume }));
-      rx = 'acid'; mark('reaction');
+      rx = 'acid'; reaction = { id, kind: 'acid', rate: mmol / dt, temp: m.temp }; mark('reaction');
+      publishReaction(id, carbonateReaction(mmol / dt / 1000, m.temp, false, true));
     }
     const nearbyBurner = useInventoryStore.getState().worldItems.some((item) => item.kind === 'bunsenBurner' && useExperimentStore.getState().toggles[item.id] && Math.hypot(livePose(item).x - labSpace.position(id).x, livePose(item).z - labSpace.position(id).z) < 0.15 && Math.abs(livePose(item).y - labSpace.position(id).y) < 0.35);
     const onHeat = id === partId('dish') && ((useSandbox.getState().lit && distance(id, partId('lamp')) < 0.22) || nearbyBurner);
     if (onHeat && m.ml > 0) {
       m.temp = Math.min(100, m.temp + dt * 15);
       if (m.temp > 70) m.ml = Math.max(0, m.ml - dt * 0.65);
-      rx ??= 'evap'; mark('heat');
+      rx ??= 'evap';
+      if (m.temp > 70) {
+        if (!reaction) reaction = { id, kind: 'evap', rate: .65, temp: m.temp };
+        publishReaction(id, evaporationReaction(.65, m.temp, crystalMass(m) > crystalMass(original) ? 'NaCl' : undefined));
+      }
+      mark('heat');
       if (m.ml < 1) warn('Хэт хуурай болтол халааж байна — үсрэх эрсдэлтэй. Дэнгээ унтраа.');
     } else m.temp = Math.max(20, m.temp - dt * 1.5);
     if (crystalMass(m) > 0.01) mark('crystals');
@@ -285,7 +307,7 @@ export function simulateLab(rawDt: number, distance: (a: string, b: string) => n
     if (amount > 0) mark('filter');
   }
   syncBenchContents();
-  useSandbox.setState({ rx });
+  useSandbox.setState({ rx, reaction });
 }
 
 export function guideHint() {

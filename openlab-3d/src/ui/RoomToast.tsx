@@ -18,9 +18,9 @@ export function RoomToast() {
     <div className="pointer-events-none fixed inset-x-0 top-5 z-30 flex justify-center px-20" aria-live="polite">
       <AnimatePresence>
         {visible && toast && (
-          <motion.div key={toast.id} className="rounded-2xl bg-black/55 px-5 py-2.5 text-center text-white shadow-hud backdrop-blur" initial={{ opacity: 0, y: -12 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }}>
+          <motion.div key={toast.id} className="rounded-2xl bg-white/95 px-5 py-2.5 text-center text-lab-ink shadow-hud backdrop-blur" initial={{ opacity: 0, y: -12 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }}>
             <div className="font-display text-lg font-semibold leading-tight">{toast.title}</div>
-            {toast.subtitle && <div className="text-xs text-white/80">{toast.subtitle}</div>}
+            {toast.subtitle && <div className="text-xs text-slate-600">{toast.subtitle}</div>}
           </motion.div>
         )}
       </AnimatePresence>
@@ -35,10 +35,10 @@ export function ClickToLookHint() {
   const show = useGameStore((s) => s.mode === 'walk' && !s.pointerLocked) && mouse;
   const cursorFree = useGameStore((s) => s.cursorFree);
   return show ? (
-    <div className="pointer-events-none fixed left-1/2 top-[58%] z-20 -translate-x-1/2 rounded-full bg-black/50 px-4 py-1.5 text-sm font-medium text-white backdrop-blur">
+    <div className="pointer-events-none fixed left-1/2 top-[58%] z-20 -translate-x-1/2 rounded-full bg-white/95 px-4 py-1.5 text-sm font-medium text-lab-ink backdrop-blur">
       {cursorFree ? (
         <>
-          Хулган чөлөөтэй · <span className="kbd !border-white/30 !bg-white/15 !text-white !shadow-none">{key}</span> эсвэл дэлгэц дээр дарж эргэн харна
+          Хулган чөлөөтэй · <span className="kbd !border-slate-200 !bg-white !text-lab-ink !shadow-none">{key}</span> эсвэл дэлгэц дээр дарж эргэн харна
         </>
       ) : (
         'Эргэн харахын тулд дарна уу'

@@ -4,11 +4,11 @@
  * name, description and safety note, and for vessels the full composition: volume,
  * temperature, pH, what is dissolved and what is solid.
  */
-import { Suspense, useMemo, useRef } from 'react';
-import { Canvas, useFrame } from '@react-three/fiber';
+import { Suspense, useEffect, useMemo, useRef } from 'react';
+import { Canvas, useFrame, useThree } from '@react-three/fiber';
 import { Environment, Lightformer, OrbitControls } from '@react-three/drei';
 import { AnimatePresence, motion } from 'framer-motion';
-import { ACESFilmicToneMapping, SRGBColorSpace, type Group } from 'three';
+import { ACESFilmicToneMapping, SRGBColorSpace, Vector3, type Group } from 'three';
 import { CATALOG, isContainer, type EquipmentKind } from '../equipment/equipmentCatalog';
 import { HAZARD_LABELS, REAGENTS } from '../chemistry/reagents';
 import { PH_WORDS, composition, fmtG, fmtMl, observationFlags, phBand, eventText } from '../chemistry/describe';
@@ -21,6 +21,7 @@ import { useInventoryStore } from '../store/useInventoryStore';
 import { requestLock } from '../controls/usePointerLock';
 import type { ItemVariant } from '../world/itemsLayout';
 import { interactables } from './registry';
+import { reactionProjection } from '../experiments/workbench/WorkbenchRuntime';
 
 function close() {
   useGameStore.getState().setMode('walk');
@@ -41,6 +42,14 @@ function FloatIn({ children }: { children: React.ReactNode }) {
 }
 
 function InspectScene({ kind, variant, mixture, tool }: { kind: EquipmentKind; variant?: ItemVariant; mixture?: Mixture; tool?: ToolState }) {
+  const camera = useThree((s) => s.camera);
+  useEffect(() => {
+    reactionProjection.inspect = () => {
+      const p = new Vector3().project(camera);
+      return { x: (p.x + 1) * innerWidth / 2, y: (1 - p.y) * innerHeight / 2, visible: p.z > -1 && p.z < 1 };
+    };
+    return () => { reactionProjection.inspect = () => null; };
+  }, [camera]);
   return (
     <>
       <ambientLight intensity={0.6} />
@@ -156,7 +165,7 @@ export function InspectMode() {
           </div>
           <div className="pointer-events-none absolute inset-y-0 right-4 flex items-center max-sm:inset-x-4 max-sm:items-end max-sm:pb-4">
             <motion.aside
-              className="panel-card scrollbar-thin pointer-events-auto max-h-[calc(100vh-32px)] w-[min(380px,calc(100vw-32px))] overflow-y-auto p-5"
+              className="panel-card scrollbar-thin pointer-events-auto max-h-[calc(100vh-32px)] w-[min(380px,calc(100vw-32px))] overflow-y-auto p-5 max-sm:max-h-[32vh]"
               initial={{ x: 40, opacity: 0 }}
               animate={{ x: 0, opacity: 1 }}
               exit={{ x: 40, opacity: 0 }}
@@ -183,7 +192,7 @@ export function InspectMode() {
               {target.kind === 'burette' && (
                 <div className="mt-2 text-xs text-slate-500">Гарсан эзэлхүүн: <b>{(tool?.delivered ?? 0).toFixed(1)} мл</b> (E — кран, дугуй — урсгал)</div>
               )}
-              <div className="mt-4 rounded-xl border border-amber-200 bg-amber-50 p-3 text-sm text-amber-900">
+              <div className="mt-4 rounded-xl border border-slate-200 bg-white p-3 text-sm text-lab-ink">
                 <div className="mb-1 font-semibold">⚠ Аюулгүй ажиллагааны зөвлөгөө</div>
                 {def.safety}
               </div>
@@ -192,7 +201,7 @@ export function InspectMode() {
               </div>
               <div className="mt-4 flex items-center justify-between gap-3">
                 <span className="text-xs text-slate-500">Чирж эргүүлэх · Гүйлгэж томруулах</span>
-                <button className="btn-yellow text-sm" onClick={close} aria-label="Ойроос харах цонхыг хаах">
+                <button className="rounded-lg border border-slate-200 bg-white px-4 py-2 text-sm shadow-sm" onClick={close} aria-label="Ойроос харах цонхыг хаах">
                   Болсон <span className="kbd ml-1 !text-[0.7em]">F</span>
                 </button>
               </div>

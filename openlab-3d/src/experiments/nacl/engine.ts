@@ -18,6 +18,8 @@ import {
   CylinderGeometry,
   DoubleSide,
   Group,
+  InstancedMesh,
+  Matrix4,
   LatheGeometry,
   Mesh,
   MeshBasicMaterial,
@@ -42,6 +44,7 @@ import { CHEM, LABEL_KEYS, NAMES, STEPS, type PartKey, type SubstanceId } from '
 import { initialUI, useNaClUI, type NoteTone } from './store';
 
 export const STATION_SCALE = 0.1;
+export interface BenchVisual { volume: number; crystals: number; solid: number; color?: string | null }
 
 type Ticker = (dt: number) => boolean;
 type AskResult = { type: 'click'; key: PartKey; skipped?: boolean } | { type: 'button'; i: number } | { type: 'spit' } | { type: 'done' };
@@ -412,26 +415,28 @@ export function createNaClEngine() {
   const ROD_REST = { p: V3(-3.65, 0.013, 1.0), ry: 0.1, rz: -Math.PI / 2 };
 
   /* ---- retort stand, funnel, flask, filter papers, waste ---- */
+  const retortStand = new Group();
+  root.add(retortStand);
   {
     const b = box(0.85, 0.04, 0.6, M.dark);
     b.position.set(FX - 0.25, 0.02, -0.15);
-    root.add(b);
+    retortStand.add(b);
     const r = cyl(0.02, 0.02, 2.0, M.steel, 12);
     r.position.set(FX - 0.5, 1.0, -0.32);
-    root.add(r);
+    retortStand.add(r);
     const ring = new Mesh(new TorusGeometry(0.28, 0.014, 8, 40), M.steel);
     ring.rotation.x = Math.PI / 2;
     ring.position.set(FX, 1.58, BZ);
-    root.add(ring);
+    retortStand.add(ring);
     const arm = box(0.035, 0.035, 0.54, M.steel);
     arm.position.set(FX - 0.5, 1.58, (BZ - 0.32) / 2);
-    root.add(arm);
+    retortStand.add(arm);
     const arm2 = box(0.23, 0.03, 0.03, M.steel);
     arm2.position.set(FX - 0.39, 1.58, BZ);
-    root.add(arm2);
+    retortStand.add(arm2);
     const boss = box(0.07, 0.07, 0.07, M.dark);
     boss.position.set(FX - 0.5, 1.58, -0.32);
-    root.add(boss);
+    retortStand.add(boss);
   }
   const funnel = new Group();
   funnel.position.set(FX, 0.78, BZ);
@@ -661,6 +666,15 @@ export function createNaClEngine() {
     watch.add(glassMesh(pts));
   }
   const slide = new Group();
+  const watchCrystals = new InstancedMesh(cubeG, M.crystal, 32);
+  const crystalMatrix = new Matrix4();
+  for (let i = 0; i < 32; i++) {
+    const angle = i * 2.39996, radius = .42 * Math.sqrt((i + .5) / 32), size = .025 + (i % 3) * .006;
+    crystalMatrix.makeScale(size, size, size).setPosition(Math.cos(angle) * radius, .025, Math.sin(angle) * radius);
+    watchCrystals.setMatrixAt(i, crystalMatrix);
+  }
+  watchCrystals.count = 0; watchCrystals.frustumCulled = false;
+  watch.add(watchCrystals);
   root.add(slide);
   {
     const g = new Mesh(new BoxGeometry(0.34, 0.008, 0.12), M.glass);
@@ -1458,6 +1472,7 @@ export function createNaClEngine() {
 
   /* ================= reset and jump states ================= */
   function resetScene(): void {
+    watchCrystals.count = 0;
     clearParticles();
     endHold();
     rxShow(null);
@@ -2213,6 +2228,7 @@ export function createNaClEngine() {
   };
   const freeLiquids: Partial<Record<PartKey, Liquid>> = { bottle: botLiq, cyl: cylLiq, beaker: beakLiq, flask: flaskLiq, dish: dishLiq, funnel: funLiq };
   const freeOffsets = new Map<Object3D, Vector3>();
+  const freeVisibility = new Map<Object3D, boolean>();
   function freeBottom(key: PartKey): Vector3 {
     root.updateWorldMatrix(true, true);
     const object = freeObjects[key];
@@ -2227,6 +2243,22 @@ export function createNaClEngine() {
   }
   return {
     root,
+    /** Preparation only changes visibility, never chemistry or apparatus transforms. */
+    showParts(keys: PartKey[]) {
+      retortStand.visible = keys.includes('funnel');
+      if (keys.includes('stack')) keys = [...keys, 'paper'];
+      const objects = new Set(keys.map((key) => freeObjects[key]));
+      for (const object of new Set(Object.values(freeObjects))) {
+        if (!freeVisibility.has(object)) freeVisibility.set(object, object.visible);
+        object.visible = objects.has(object) && freeVisibility.get(object)!;
+      }
+    },
+    partObject: (key: PartKey) => freeObjects[key],
+    projectPoint(at: Vector3, width: number, height: number) {
+      if (!camera) return null;
+      const p = at.clone().project(camera);
+      return { x: (p.x + 1) * width / 2, y: (1 - p.y) * height / 2, visible: p.z > -1 && p.z < 1 };
+    },
     /** Free-play API: original meshes stay in the shared room and never become clones. */
     parts: Object.entries(PKEY).map(([key, hit]) => ({ key: key as PartKey, hit, label: NAMES[key as PartKey] })),
     partVisible: (key: PartKey) => pickable(PKEY[key]),
@@ -2267,9 +2299,17 @@ export function createNaClEngine() {
     reactionOrigin(bottom: Vector3 | null, height: number) {
       freeFizz = bottom ? { at: root.worldToLocal(bottom.clone()), top: height / STATION_SCALE } : null;
     },
-    freeVisuals(values: Partial<Record<PartKey, { volume: number; crystals: number; solid: number }>>, lit: boolean, fizz: number, steaming: number, rx: 'acid' | 'evap' | null, dt: number, paperIn = false) {
+    freeVisuals(values: Partial<Record<PartKey, BenchVisual>>, lit: boolean, fizz: number, steaming: number, _rx: 'acid' | 'evap' | null, dt: number, paperIn = false) {
       if ((paperIn && paperU > 0.5) || (!paperIn && paperU < 0.5)) setPaperU(paperIn ? 0 : 1, true);
-      for (const [key, value] of Object.entries(values)) freeLiquids[key as PartKey]?.set(value.volume);
+      for (const [key, value] of Object.entries(values)) {
+        const liquid = freeLiquids[key as PartKey];
+        liquid?.set(value.volume);
+        if (liquid && value.color) liquid.mat.color.set(value.color);
+      }
+      jarPowder.scale.y = .24 * Math.min(1, (values.jar?.solid ?? 0) / 20);
+      spatLoad.visible = (values.spat?.solid ?? 0) > .001 || (values.spat?.crystals ?? 0) > .001;
+      spatLoad.material = (values.spat?.crystals ?? 0) > .001 ? M.crystal : M.powder;
+      watchCrystals.count = Math.min(32, Math.ceil((values.watch?.crystals ?? 0) * 16));
       beakResidue.visible = (values.beaker?.solid ?? 0) > 0.01;
       const dishCrystals = Math.min(1, (values.dish?.crystals ?? 0) / 2);
       setGroup(rimCrys, dishCrystals > 0.001);
@@ -2284,12 +2324,8 @@ export function createNaClEngine() {
       setFlame(lit ? 1 : 0);
       P.fizz = fizz;
       P.steam = steaming;
-      if (RX.mode !== rx) {
-        rxShow(rx);
-        if (rx === 'acid') rxAddCarbonate();
-      }
-      rxUpdate(dt);
-      rxDraw();
+      // The scene-anchored instanced 3D lens owns free-play molecular visuals.
+      // The old 2D renderer remains only for the unused scripted demonstration.
       updateParticles(dt);
     },
     transferStream(from: Vector3 | null, to: Vector3 | null) {
@@ -2333,6 +2369,7 @@ export function createNaClEngine() {
       const materials = new Set<Material>();
       const textures = new Set<Texture>();
       root.traverse((object) => {
+        if (object instanceof InstancedMesh) object.dispose();
         if (!(object instanceof Mesh) && !(object instanceof Sprite)) return;
         if (object instanceof Mesh) geometries.add(object.geometry);
         const list = Array.isArray(object.material) ? object.material : [object.material];
