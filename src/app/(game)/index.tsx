@@ -356,4 +356,5 @@ const styles = StyleSheet.create({
     height: WORLD.height,
     backgroundColor: 'rgba(14, 17, 56, 0.58)',
   },
+  topScrim: { position: 'absolute', left: 0, right: 0, top: 0, height: 120 },
 });
