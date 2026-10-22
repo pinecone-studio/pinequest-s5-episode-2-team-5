@@ -79,6 +79,41 @@ function inspectFocusOrHeld(): void {
   }
 }
 
+/** G: pick the focused item up even when E does something else (light a burner, tare the balance). */
+function grabFocus(): void {
+  const focus = useGameStore.getState().focus;
+  const entry = focus ? interactables.get(focus.id) : undefined;
+  entry?.onGrab?.();
+}
+
+/** R: pour the held vessel into the focused one (or the sink), or fill the held one from it. */
+function pourIntoFocus(): void {
+  const focus = useGameStore.getState().focus;
+  const entry = focus ? interactables.get(focus.id) : undefined;
+  if (entry?.onPour) entry.onPour();
+  else useGameStore.getState().showToast('Асгах сав олдсонгүй', 'Гартаа сав барьж, өөр аяга, колб эсвэл угаалтуур руу хараад R дар');
+}
+
+/**
+ * C: free the mouse so HUD buttons can be clicked while standing in the lab, and take it
+ * back with the same key (or a click on the view).
+ */
+export function toggleCursor(): void {
+  const game = useGameStore.getState();
+  if (useSettingsStore.getState().lookMode !== 'mouse') {
+    game.showToast('Хулган чөлөөтэй байна', 'Товчлуураар эргэх горимд хулган үргэлж идэвхтэй');
+    return;
+  }
+  if (isPointerLocked()) {
+    releaseLock();
+    game.setCursorFree(true);
+    sounds.play('ui');
+  } else {
+    game.setCursorFree(false);
+    requestLock();
+  }
+}
+
 function dropHeld(): void {
   if (!useInventoryStore.getState().held) return;
   if (!heldApi.place()) {
@@ -95,6 +130,7 @@ export function useGameKeys(canvas: HTMLElement | null): void {
         if (e.code === 'Escape') (e.target as HTMLElement).blur();
         return;
       }
+      if (e.ctrlKey || e.metaKey) return;
       const game = useGameStore.getState();
       const { bindings, lookMode } = useSettingsStore.getState();
       const mode = game.mode;
@@ -117,6 +153,9 @@ export function useGameKeys(canvas: HTMLElement | null): void {
           }
           if (actions.includes('inspect')) inspectFocusOrHeld();
           if (actions.includes('drop')) dropHeld();
+          if (actions.includes('grab')) grabFocus();
+          if (actions.includes('pour')) pourIntoFocus();
+          if (actions.includes('cursor')) toggleCursor();
           if (actions.includes('tools')) openPanelFromGame('tools');
           if (actions.includes('notes')) openPanelFromGame('notes');
           if (actions.includes('map')) {

@@ -1,6 +1,7 @@
 /** Spawning Tools-drawer items onto the nearest free spot of the nearest bench. */
 import { Vector3 } from 'three';
 import { CATALOG, type EquipmentKind } from '../equipment/equipmentCatalog';
+import type { ItemVariant } from '../world/itemsLayout';
 import { playerState } from '../store/useGameStore';
 import { useInventoryStore } from '../store/useInventoryStore';
 import { nearestSurfacePoint, surfaces } from './surfaces';
@@ -39,8 +40,8 @@ export function findSpawnSpot(kind: EquipmentKind): { point: Vector3; onSurface:
   return { point: new Vector3(playerState.position.x + fx * 0.8, 0, playerState.position.z + fz * 0.8), onSurface: false };
 }
 
-export function spawnNearPlayer(kind: EquipmentKind): { ok: boolean; onSurface: boolean } {
+export function spawnNearPlayer(kind: EquipmentKind, variant?: ItemVariant): { ok: boolean; onSurface: boolean } {
   const { point, onSurface } = findSpawnSpot(kind);
-  const id = useInventoryStore.getState().spawn(kind, [point.x, point.y + 0.03, point.z], playerState.yaw);
+  const id = useInventoryStore.getState().spawn(kind, [point.x, point.y + 0.03, point.z], playerState.yaw, variant);
   return { ok: !!id, onSurface };
 }

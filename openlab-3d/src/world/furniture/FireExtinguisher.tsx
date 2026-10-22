@@ -1,14 +1,13 @@
 /**
  * CO₂ fire extinguisher (Ø 0.15 m × 0.62 m): red cylinder, chrome valve and lever
  * handle, safety pin, black hose (TubeGeometry) to a discharge horn.
- * <WallExtinguisher> adds the wall bracket and a sign, and makes it inspectable.
+ * <WallExtinguisher> adds the wall bracket and sign above the spot where it stands.
  */
 import { useMemo } from 'react';
 import type { GroupProps } from '@react-three/fiber';
 import { CatmullRomCurve3, LatheGeometry, MeshStandardMaterial, TubeGeometry, Vector2, Vector3 } from 'three';
 import { metalChrome, metalDark, metalRed } from '../../materials/metal';
 import { rubberBlack, plasticBlack } from '../../materials/plastic';
-import { Interactable } from '../../interaction/Interactable';
 import { SignText } from './Decor';
 import { lazy } from '../../utils/lazy';
 import { ModelOr } from '../../equipment/ModelOr';
@@ -66,15 +65,13 @@ export function FireExtinguisherModel({ modelUrl, ...props }: GroupProps & { mod
   );
 }
 
-export function WallExtinguisher({ id, position, rotY = 0 }: { id: string; position: [number, number, number]; rotY?: number }) {
+/** Wall bracket and sign; the extinguisher itself is a loose, pick-up-able item standing below. */
+export function WallExtinguisher({ position, rotY = 0 }: { position: [number, number, number]; rotY?: number }) {
   return (
     <group position={position} rotation={[0, rotY, 0]}>
       <mesh material={metalDark} position={[0, 0.85, 0.02]}>
         <boxGeometry args={[0.08, 0.12, 0.04]} />
       </mesh>
-      <Interactable id={id} label="Гал унтраагуур" verb="шалгах" inspectKind="fireExtinguisher">
-        <FireExtinguisherModel position={[0, 0.4, 0.1]} />
-      </Interactable>
       <group position={[0, 1.38, 0.01]}>
         <mesh material={redSign}>
           <boxGeometry args={[0.26, 0.32, 0.01]} />

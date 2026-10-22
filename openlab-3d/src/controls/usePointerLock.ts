@@ -62,6 +62,7 @@ export function usePointerLockSync(): void {
       const locked = isPointerLocked();
       const game = useGameStore.getState();
       game.setPointerLocked(locked);
+      if (locked) game.setCursorFree(false);
       if (!locked) {
         if (expectingUnlock) {
           expectingUnlock = false;

@@ -2,7 +2,7 @@
  * Tiny procedural sound engine on the Web Audio API — every sound is synthesized,
  * so there are no audio files to download.
  */
-type SoundName = 'footstep' | 'door' | 'click' | 'tick' | 'puff' | 'clink' | 'pickup' | 'ui' | 'beep' | 'whoosh' | 'success';
+type SoundName = 'footstep' | 'door' | 'click' | 'tick' | 'puff' | 'clink' | 'pickup' | 'ui' | 'beep' | 'whoosh' | 'success' | 'pour' | 'fizz';
 
 class SoundEngine {
   private ctx: AudioContext | null = null;
@@ -105,6 +105,13 @@ class SoundEngine {
         break;
       case 'whoosh':
         this.noiseBurst(t, { type: 'bandpass', freq: 600, sweepTo: 2400, q: 0.9, peak: 0.07 * k, attack: 0.06, decay: 0.25 });
+        break;
+      case 'pour':
+        this.noiseBurst(t, { type: 'bandpass', freq: 900, sweepTo: 2200, q: 1.4, peak: 0.1 * k, attack: 0.05, decay: 0.45 });
+        [0.12, 0.2, 0.3].forEach((d, i) => this.tone(t + d, 700 + i * 220, { type: 'sine', peak: 0.03 * k, attack: 0.004, decay: 0.07, slideTo: 1100 + i * 260 }));
+        break;
+      case 'fizz':
+        for (let i = 0; i < 6; i++) this.noiseBurst(t + i * 0.07, { type: 'highpass', freq: 4200 + Math.random() * 1500, peak: 0.05 * k, attack: 0.003, decay: 0.05 });
         break;
       case 'success':
         [660, 880, 1320].forEach((f, i) => this.tone(t + i * 0.09, f, { type: 'triangle', peak: 0.05 * k, attack: 0.005, decay: 0.22 }));

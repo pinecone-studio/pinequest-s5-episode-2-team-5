@@ -8,7 +8,7 @@ export interface HeldItem {
   variant?: ItemVariant;
 }
 
-const MAX_WORLD_ITEMS = 90;
+const MAX_WORLD_ITEMS = 120;
 let spawnCounter = 1;
 
 interface InventoryState {
@@ -20,7 +20,9 @@ interface InventoryState {
   generation: number;
   pickUp: (id: string) => boolean;
   place: (position: [number, number, number], rotY: number) => boolean;
-  spawn: (kind: EquipmentKind, position: [number, number, number], rotY?: number) => string | null;
+  spawn: (kind: EquipmentKind, position: [number, number, number], rotY?: number, variant?: ItemVariant) => string | null;
+  /** Replaces what a loose item or the held item contains (pouring, mixing). */
+  setVariant: (id: string, variant: ItemVariant) => void;
   stowHeld: () => void;
   reset: () => void;
 }
@@ -54,13 +56,19 @@ export const useInventoryStore = create<InventoryState>()((set, get) => ({
     set((s) => ({ worldItems: [...s.worldItems, item], held: null, placedCount: s.placedCount + 1 }));
     return true;
   },
-  spawn: (kind, position, rotY = 0) => {
+  spawn: (kind, position, rotY = 0, variant) => {
     if (get().worldItems.length >= MAX_WORLD_ITEMS) return null;
     const id = `spawn-${spawnCounter++}-${kind}`;
-    const item: WorldItem = { id, kind, position, rotY };
+    const item: WorldItem = { id, kind, position, rotY, variant };
     set((s) => ({ worldItems: [...s.worldItems, item], spawnedCount: s.spawnedCount + 1 }));
     return id;
   },
+  setVariant: (id, variant) =>
+    set((s) =>
+      s.held?.id === id
+        ? { held: { ...s.held, variant } }
+        : { worldItems: s.worldItems.map((w) => (w.id === id ? { ...w, variant } : w)) },
+    ),
   stowHeld: () => set({ held: null }),
   reset: () => set((s) => ({ worldItems: createInitialItems(), held: null, placedCount: 0, spawnedCount: 0, generation: s.generation + 1 })),
 }));

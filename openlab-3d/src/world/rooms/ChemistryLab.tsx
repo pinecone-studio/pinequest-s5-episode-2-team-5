@@ -14,95 +14,14 @@ import { Stools } from '../furniture/Stool';
 import { Whiteboard } from '../furniture/Whiteboard';
 import { WallExtinguisher } from '../furniture/FireExtinguisher';
 import { Poster, SignText, WasteBin } from '../furniture/Decor';
-import { BunsenBurner } from '../../equipment/BunsenBurner';
-import { Scale } from '../../equipment/Scale';
-import { Beaker } from '../../equipment/Beaker';
-import { Interactable } from '../../interaction/Interactable';
-import { useExperimentStore } from '../../store/useExperimentStore';
-import { useGameStore } from '../../store/useGameStore';
-import { useInventoryStore } from '../../store/useInventoryStore';
 import { useReady } from '../../store/useLoadingStore';
-import { CATALOG } from '../../equipment/equipmentCatalog';
 import { plastic, plasticBlack } from '../../materials/plastic';
 import { metalDark } from '../../materials/metal';
 import { chemBoardTexture } from '../../utils/textures';
-import { sounds } from '../../utils/sounds';
 import { BENCH_HEIGHT } from '../../utils/constants';
 import { StaticBatch } from '../StaticBatch';
 
 const T = BENCH_HEIGHT;
-
-function Burner({ id, position, withTripod = false }: { id: string; position: [number, number]; withTripod?: boolean }) {
-  const lit = useExperimentStore((s) => !!s.toggles[id]);
-  return (
-    <group>
-      <Interactable
-        id={id}
-        label="Бунзены горелк"
-        verb={lit ? 'унтраах' : 'асаах'}
-        inspectKind="bunsenBurner"
-        onInteract={() => {
-          const exp = useExperimentStore.getState();
-          const on = exp.toggle(id);
-          if (on) exp.markSkill('burner');
-          useGameStore.getState().logEvent(on ? 'Бунзены горелк асаалаа.' : 'Бунзены горелк унтраалаа.');
-          sounds.play('puff', 0.7);
-        }}
-      >
-        <BunsenBurner lit={lit} position={[position[0], T, position[1]]} />
-      </Interactable>
-      {withTripod && (
-        <group position={[position[0], T, position[1]]}>
-          {[0, 1, 2].map((i) => {
-            const a = (i / 3) * Math.PI * 2;
-            return (
-              <mesh key={i} material={metalDark} position={[Math.cos(a) * 0.06, 0.11, Math.sin(a) * 0.06]} rotation={[Math.sin(a) * 0.12, 0, -Math.cos(a) * 0.12]}>
-                <cylinderGeometry args={[0.003, 0.003, 0.22, 6]} />
-              </mesh>
-            );
-          })}
-          <mesh material={metalDark} position={[0, 0.221, 0]} rotation={[Math.PI / 2, 0, 0]}>
-            <torusGeometry args={[0.07, 0.004, 6, 24]} />
-          </mesh>
-          <mesh material={plastic('#9aa3ad', 0.9)} position={[0, 0.224, 0]}>
-            <boxGeometry args={[0.15, 0.002, 0.15]} />
-          </mesh>
-          <Beaker position={[0, 0.226, 0]} liquidColor="#7dd3fc" fill={0.5} />
-        </group>
-      )}
-    </group>
-  );
-}
-
-/** Balance that weighs whatever was placed on its pan (sum of catalog masses). */
-function LiveBalance({ position }: { position: [number, number, number] }) {
-  const tare = useExperimentStore((s) => s.values['balance-tare'] ?? 0);
-  const items = useInventoryStore((s) => s.worldItems);
-  // Pan center in world space (balance faces +x on the west bench).
-  const panX = position[0] - 0.03;
-  const panZ = position[2];
-  const grams = items
-    .filter((w) => Math.hypot(w.position[0] - panX, w.position[2] - panZ) < 0.07 && w.position[1] > T + 0.05)
-    .reduce((sum, w) => sum + CATALOG[w.kind].massKg * 1000, 0);
-  const reading = Math.max(-999, grams - tare).toFixed(3);
-  return (
-    <Interactable
-      id="chem-balance"
-      label={`Аналитик жин (${reading} г)`}
-      verb="тэглэх"
-      inspectKind="scale"
-      onInteract={() => {
-        const exp = useExperimentStore.getState();
-        exp.setValue('balance-tare', grams);
-        exp.markSkill('tare');
-        useGameStore.getState().logEvent(grams > 0 ? `Тавган дээр ${grams.toFixed(3)} г ачаатай жинг тэглэлээ.` : 'Хоосон жинг тэглэлээ.');
-        sounds.play('beep');
-      }}
-    >
-      <Scale reading={reading} position={position} rotation={[0, Math.PI / 2, 0]} />
-    </Interactable>
-  );
-}
 
 function FlammablesCabinet({ position, rotY }: { position: [number, number, number]; rotY: number }) {
   return (
@@ -149,12 +68,6 @@ export default function ChemistryLab() {
       <Sink id="chem-sink" position={[-0.4, T, -14.55]} />
       <ReagentShelf position={[1.6, T, -7.4]} width={2.2} seed={5} />
       <ReagentShelf position={[1.6, T, -10.8]} width={2.2} seed={11} />
-      <Burner id="burner-a1" position={[1.5, -7.0]} />
-      <Burner id="burner-a2" position={[2.4, -7.85]} />
-      <Burner id="burner-b1" position={[1.6, -10.4]} />
-      <Burner id="burner-b2" position={[0.15, -11.2]} />
-      <Burner id="burner-c1" position={[7.45, -8.95]} withTripod />
-      <LiveBalance position={[-3.6, T, -8.6]} />
       <ShelvingUnits
         units={[
           { x: 9.65, z: -11.6, rotY: -Math.PI / 2 },
@@ -175,7 +88,7 @@ export default function ChemistryLab() {
         ]}
       />
       <Whiteboard position={[-1.9, 1.55, -3.11]} rotY={Math.PI} texture={chemBoardTexture()} />
-      <WallExtinguisher id="chem-extinguisher" position={[2.5, 0, -3.11]} rotY={Math.PI} />
+      <WallExtinguisher position={[2.5, 0, -3.11]} rotY={Math.PI} />
       <Poster position={[7.4, 1.6, -3.11]} rotY={Math.PI} spec={{ title: 'Галаас сэргийл', lines: ['Гал унтраагуур,', 'шүршүүр хаана', 'байгааг мэдэж ав.'], color: '#dc2626', icon: 'fire' }} />
       <Poster position={[-3.89, 1.75, -13.4]} rotY={Math.PI / 2} spec={{ title: 'Нүдний шил зүү', lines: ['Энэ лабораторид', 'хамгаалалтын шил', 'заавал зүүнэ.'], color: '#2563eb', icon: 'goggles' }} />
       <WasteBin position={[4.9, 0, -14.4]} color="#ef4444" />

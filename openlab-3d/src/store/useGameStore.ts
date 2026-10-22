@@ -20,6 +20,11 @@ export interface FocusInfo {
   verb: string;
   canUse: boolean;
   canInspect: boolean;
+  /** G picks it up although E does something else. */
+  canGrab: boolean;
+  /** R pours into / draws from it. */
+  canPour: boolean;
+  pourVerb?: string;
   canDrag: boolean;
   canScroll: boolean;
 }
@@ -49,6 +54,8 @@ interface GameState {
   mode: Mode;
   panel: Panel;
   pointerLocked: boolean;
+  /** The mouse was freed with the cursor key so HUD buttons can be clicked while walking. */
+  cursorFree: boolean;
   focus: FocusInfo | null;
   dragging: string | null;
   inspectTarget: { kind: EquipmentKind; sourceId: string } | null;
@@ -64,6 +71,7 @@ interface GameState {
   openPanel: (panel: Panel) => void;
   closePanel: () => void;
   setPointerLocked: (locked: boolean) => void;
+  setCursorFree: (free: boolean) => void;
   setFocus: (focus: FocusInfo | null) => void;
   setDragging: (id: string | null) => void;
   startInspect: (kind: EquipmentKind, sourceId: string) => void;
@@ -83,6 +91,7 @@ export const useGameStore = create<GameState>()(
       mode: 'loading',
       panel: 'none',
       pointerLocked: false,
+      cursorFree: false,
       focus: null,
       dragging: null,
       inspectTarget: null,
@@ -94,13 +103,14 @@ export const useGameStore = create<GameState>()(
       notes: '',
       sessionStart: Date.now(),
       endedAt: null,
-      setMode: (mode) => set({ mode, focus: mode === 'walk' ? get().focus : null }),
+      setMode: (mode) => set({ mode, focus: mode === 'walk' ? get().focus : null, cursorFree: mode === 'walk' ? get().cursorFree : false }),
       openPanel: (panel) => set({ panel, mode: panel === 'none' ? 'walk' : 'ui', focus: null }),
       closePanel: () => set({ panel: 'none', mode: 'walk' }),
       setPointerLocked: (pointerLocked) => set({ pointerLocked }),
+      setCursorFree: (cursorFree) => set({ cursorFree }),
       setFocus: (focus) => {
         const prev = get().focus;
-        if (prev?.id === focus?.id && prev?.label === focus?.label && prev?.verb === focus?.verb) return;
+        if (prev?.id === focus?.id && prev?.label === focus?.label && prev?.verb === focus?.verb && prev?.pourVerb === focus?.pourVerb && prev?.canPour === focus?.canPour) return;
         set({ focus });
       },
       setDragging: (dragging) => set({ dragging }),

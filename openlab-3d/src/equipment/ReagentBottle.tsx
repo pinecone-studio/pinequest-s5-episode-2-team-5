@@ -13,10 +13,24 @@ const bottleGeometry = lazy(() => {
   return new LatheGeometry(pts, 32);
 });
 
-const STRIPES: Record<string, string> = { HCl: '#dc2626', NaOH: '#2563eb', 'CuSO₄': '#0ea5e9', NaCl: '#16a34a' };
+const STRIPES: Record<string, string> = {
+  HCl: '#dc2626',
+  NaOH: '#2563eb',
+  'CuSO₄': '#0ea5e9',
+  NaCl: '#16a34a',
+  'H₂O': '#38bdf8',
+  'KMnO₄': '#7e22ce',
+  ФФ: '#db2777',
+  БТЦ: '#0d9488',
+  МО: '#ea580c',
+  Улаан: '#dc2626',
+  Шар: '#eab308',
+  Ногоон: '#16a34a',
+  Цэнхэр: '#2563eb',
+};
 
-export function ReagentBottle({ modelUrl, label = 'NaCl', ...props }: ModelProps & { label?: string }) {
-  const labelMat = useMemo(() => new MeshStandardMaterial({ map: labelTexture(label, STRIPES[label] ?? '#f59e0b'), roughness: 0.7 }), [label]);
+export function ReagentBottle({ modelUrl, label = 'NaCl', name, ...props }: ModelProps & { label?: string; name?: string }) {
+  const labelMat = useMemo(() => new MeshStandardMaterial({ map: labelTexture(label, STRIPES[label] ?? '#f59e0b', name), roughness: 0.7 }), [label, name]);
   return (
     <ModelOr modelUrl={modelUrl} {...props}>
       <mesh geometry={bottleGeometry()} material={amberGlass} castShadow />

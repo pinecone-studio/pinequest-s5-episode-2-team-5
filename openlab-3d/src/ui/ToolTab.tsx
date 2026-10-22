@@ -10,6 +10,8 @@ import { motion } from 'framer-motion';
 import { ACESFilmicToneMapping, PMREMGenerator, SRGBColorSpace, type Group, type Texture } from 'three';
 import { RoomEnvironment } from 'three/examples/jsm/environments/RoomEnvironment.js';
 import { CATALOG, SPAWNABLE_KINDS, type EquipmentKind } from '../equipment/equipmentCatalog';
+import { REAGENT_IDS, SUBSTANCES } from '../chemistry/substances';
+import { bottleOf, type ItemVariant } from '../world/itemsLayout';
 import { FittedModel } from '../equipment/FittedModel';
 import { useGameStore } from '../store/useGameStore';
 import { useInventoryStore } from '../store/useInventoryStore';
@@ -20,6 +22,26 @@ import { keyLabel } from '../controls/keyMap';
 import { sounds } from '../utils/sounds';
 
 const DRAWER_W = 360;
+
+interface DrawerEntry {
+  key: string;
+  kind: EquipmentKind;
+  name: string;
+  category: string;
+  variant?: ItemVariant;
+}
+
+const THUMB_VARIANTS: Partial<Record<EquipmentKind, ItemVariant>> = {
+  beaker: { liquid: '#2f7ff0', fill: 0.5 },
+  erlenmeyer: { liquid: '#8b4fd8', fill: 0.4 },
+  testTube: { liquid: '#ff5a5a', fill: 0.5 },
+};
+
+/** Every piece of equipment, then one reagent bottle per substance. */
+const ENTRIES: DrawerEntry[] = [
+  ...SPAWNABLE_KINDS.map((kind) => ({ key: kind, kind, name: CATALOG[kind].name, category: CATALOG[kind].category, variant: THUMB_VARIANTS[kind] })),
+  ...REAGENT_IDS.map((id) => ({ key: `bottle-${id}`, kind: 'reagentBottle' as const, name: SUBSTANCES[id].name, category: 'Бодис · 250 мл лонх', variant: bottleOf(id) })),
+];
 
 let envTexture: Texture | null = null;
 function SharedEnvironment() {
@@ -48,7 +70,7 @@ function Spinner({ children, offset }: { children: React.ReactNode; offset: numb
   );
 }
 
-function Thumbnail({ kind, track, index, visible }: { kind: EquipmentKind; track: MutableRefObject<HTMLDivElement | null>; index: number; visible: boolean }) {
+function Thumbnail({ entry, track, index, visible }: { entry: DrawerEntry; track: MutableRefObject<HTMLDivElement | null>; index: number; visible: boolean }) {
   return (
     <View track={track as MutableRefObject<HTMLElement>} index={index + 1} visible={visible}>
       <SharedEnvironment />
@@ -56,7 +78,7 @@ function Thumbnail({ kind, track, index, visible }: { kind: EquipmentKind; track
       <ambientLight intensity={0.7} />
       <directionalLight position={[2, 3, 2]} intensity={1.6} />
       <Spinner offset={index * 0.7}>
-        <FittedModel kind={kind} fill={0.92} variant={kind === 'beaker' ? { liquid: '#2f7ff0', fill: 0.5 } : kind === 'erlenmeyer' ? { liquid: '#8b4fd8', fill: 0.4 } : kind === 'testTube' ? { liquid: '#ff5a5a', fill: 0.5 } : undefined} />
+        <FittedModel kind={entry.kind} fill={0.92} variant={entry.variant} />
       </Spinner>
     </View>
   );
@@ -67,11 +89,11 @@ export function ToolTab() {
   const mode = useGameStore((s) => s.mode);
   const held = useInventoryStore((s) => s.held);
   const tabKey = useSettingsStore((s) => keyLabel(s.bindings.tools[0]));
-  const refs = useMemo(() => SPAWNABLE_KINDS.map(() => createRef<HTMLDivElement>()), []);
+  const refs = useMemo(() => ENTRIES.map(() => createRef<HTMLDivElement>()), []);
   const [ready, setReady] = useState(false);
   const [mounted, setMounted] = useState(false);
   const scroller = useRef<HTMLDivElement>(null);
-  const [shown, setShown] = useState<boolean[]>(() => SPAWNABLE_KINDS.map(() => false));
+  const [shown, setShown] = useState<boolean[]>(() => ENTRIES.map(() => false));
 
   // Only fully visible cards draw their thumbnail, so nothing paints over the header.
   useEffect(() => {
@@ -100,15 +122,15 @@ export function ToolTab() {
     else setReady(false);
   }, [open]);
 
-  const spawn = (kind: EquipmentKind) => {
-    const res = spawnNearPlayer(kind);
+  const spawn = ({ kind, name, variant }: DrawerEntry) => {
+    const res = spawnNearPlayer(kind, variant);
     if (!res.ok) {
       useGameStore.getState().showToast('Хэт олон эд зүйл байна', 'Эхлээд нэг зүйлээ хураагаарай');
       return;
     }
     sounds.play('clink', 0.7);
-    useGameStore.getState().showToast(`${CATALOG[kind].name} тавигдлаа`, res.onSurface ? 'Хамгийн ойрын ширээн дээр' : 'Таны өмнөх шалан дээр');
-    useGameStore.getState().logEvent(`Багажны шургуулганаас авлаа: ${CATALOG[kind].name}.`);
+    useGameStore.getState().showToast(`${name} тавигдлаа`, res.onSurface ? 'Хамгийн ойрын ширээн дээр' : 'Таны өмнөх шалан дээр');
+    useGameStore.getState().logEvent(`Багажны шургуулганаас авлаа: ${name}.`);
   };
 
   return (
@@ -173,21 +195,20 @@ export function ToolTab() {
         <div className="relative min-h-0 flex-1">
           <div ref={scroller} className="scrollbar-thin absolute inset-0 overflow-y-auto p-4">
             <ul className="grid grid-cols-2 gap-3">
-              {SPAWNABLE_KINDS.map((kind, i) => {
-                const def = CATALOG[kind];
+              {ENTRIES.map((entry, i) => {
                 return (
-                  <li key={kind}>
+                  <li key={entry.key}>
                     <button
                       type="button"
                       tabIndex={open ? 0 : -1}
-                      onClick={() => spawn(kind)}
+                      onClick={() => spawn(entry)}
                       className="focus-ring group flex w-full flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white text-left transition hover:-translate-y-0.5 hover:border-lab-yellow hover:shadow-md"
-                      aria-label={`${def.name} тавих`}
+                      aria-label={`${entry.name} тавих`}
                     >
                       <div ref={refs[i]} className="h-24 w-full bg-gradient-to-b from-slate-100 to-white" />
                       <div className="px-3 pb-2.5 pt-1.5">
-                        <div className="text-[13px] font-semibold leading-tight text-slate-800">{def.name}</div>
-                        <div className="text-[11px] text-slate-500">{def.category}</div>
+                        <div className="text-[13px] font-semibold leading-tight text-slate-800">{entry.name}</div>
+                        <div className="text-[11px] text-slate-500">{entry.category}</div>
                       </div>
                     </button>
                   </li>
@@ -206,8 +227,8 @@ export function ToolTab() {
           dpr={[1, 1.5]}
           gl={{ alpha: true, antialias: true, toneMapping: ACESFilmicToneMapping, outputColorSpace: SRGBColorSpace }}
         >
-          {SPAWNABLE_KINDS.map((kind, i) => (
-            <Thumbnail key={kind} kind={kind} track={refs[i]} index={i} visible={open && ready && shown[i]} />
+          {ENTRIES.map((entry, i) => (
+            <Thumbnail key={entry.key} entry={entry} track={refs[i]} index={i} visible={open && ready && shown[i]} />
           ))}
         </Canvas>
       )}

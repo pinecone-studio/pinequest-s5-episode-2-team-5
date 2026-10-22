@@ -45,9 +45,11 @@ export function GraduatedCylinder({ modelUrl, liquidColor = '#7fd3ff', fill = 0.
       <mesh geometry={foot()} material={plastic('#2563eb', 0.5)} position={[0, 0.006, 0]} castShadow />
       <mesh geometry={tube()} material={glass} renderOrder={1} castShadow />
       <instancedMesh ref={ticks} args={[tick(), markMat, N_TICKS]} userData={{ noOutline: true }} />
-      <mesh material={liquid} position={[0, 0.0135 + level / 2, 0]} userData={{ noOutline: true }}>
-        <cylinderGeometry args={[R - 0.0022, R - 0.0022, level, 20]} />
-      </mesh>
+      {fill > 0.01 && (
+        <mesh material={liquid} position={[0, 0.0135 + level / 2, 0]} userData={{ noOutline: true, noBatch: true }}>
+          <cylinderGeometry args={[R - 0.0022, R - 0.0022, level, 20]} />
+        </mesh>
+      )}
     </ModelOr>
   );
 }

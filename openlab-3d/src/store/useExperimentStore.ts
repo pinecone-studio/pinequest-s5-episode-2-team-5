@@ -1,15 +1,16 @@
 import { create } from 'zustand';
 
-export type SkillId = 'burner' | 'tare' | 'hood';
+export type SkillId = 'burner' | 'tare' | 'hood' | 'mix';
 
 /** Bench skills tracked for the menu, the robot's hints and the lab report. */
 export const SKILLS: { id: SkillId; label: string }[] = [
   { id: 'burner', label: 'Бунзены горелк асаах' },
   { id: 'tare', label: 'Аналитик жинг тэглэх' },
   { id: 'hood', label: 'Татах шүүгээний хаалтыг өргөх' },
+  { id: 'mix', label: 'Хоёр бодисыг холиж урвал гүйцэтгэх' },
 ];
 
-const initialSkills: Record<SkillId, boolean> = { burner: false, tare: false, hood: false };
+const initialSkills: Record<SkillId, boolean> = { burner: false, tare: false, hood: false, mix: false };
 
 /** State of the lab stations: Bunsen burner flames, the fume-hood sash, the balance tare. */
 interface ExperimentState {

@@ -38,6 +38,9 @@ with base `/openlab/` into `../public/openlab/`, which the Expo web app serves; 
 | E (or click) | Interact / pick up |
 | F | Inspect the focused or held object |
 | Q | Drop / place the held item (ghost preview shows where) |
+| G | Pick up an item even when E does something else (Bunsen burner, balance) |
+| R | Pour the held vessel into the focused one (or fill an empty held vessel from it); at the sink: fill with water / empty |
+| C | Free the mouse to click HUD buttons; press again (or click the view) to take it back |
 | Shift | Sprint |
 | Space | Jump (can be disabled) |
 | Tab | Tools drawer |
@@ -49,15 +52,29 @@ with base `/openlab/` into `../public/openlab/`, which the Expo web app serves; 
 Enter interacts and Backspace places. On touch devices a virtual joystick (left half),
 drag-to-look (right half) and E/F/Q/sprint buttons appear. All keys are remappable.
 
+### Equipment and mixing
+
+Every piece of equipment is a loose, physical item that can be picked up, carried, placed
+and inspected (F): glassware, Bunsen burners, the analytical balance, the extinguisher,
+spatulas, tongs, funnels, a mortar and more. Names, descriptions and safety notes are
+Mongolian, and a name plate floats above whatever you look at.
+
+Vessels hold tracked contents (`src/chemistry/substances.ts`). Pour with R: colors blend by
+volume, a simple 0.1 M pH model drives indicator colors (phenolphthalein, bromothymol blue,
+methyl orange), and HCl + NaOH neutralize, CuSO₄ + NaOH precipitates Cu(OH)₂. The inspect
+card lists contents, volume and pH. The Tools drawer also offers a reagent bottle per
+substance.
+
 ### Bench skills
 
 The menu's **Experiments** tab, the robot assistant and the end-of-session lab report
-track three bench skills:
+track four bench skills:
 
 1. **Light a Bunsen burner** on one of the island benches (E toggles the flame).
 2. **Tare the analytical balance** on the west bench, then place glassware on its pan —
    the display shows the summed catalog mass minus the tare.
 3. **Raise the fume-hood sash** on the north wall.
+4. **Mix two substances** by pouring them into one vessel (R).
 
 Each action is also written to the activity log in the lab notebook (N).
 

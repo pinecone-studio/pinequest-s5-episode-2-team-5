@@ -9,6 +9,7 @@ import { Environment, Lightformer, OrbitControls } from '@react-three/drei';
 import { AnimatePresence, motion } from 'framer-motion';
 import { ACESFilmicToneMapping, SRGBColorSpace, type Group } from 'three';
 import { CATALOG } from '../equipment/equipmentCatalog';
+import { SUBSTANCES, describeState, totalMl } from '../chemistry/substances';
 import { FittedModel } from '../equipment/FittedModel';
 import { useGameStore } from '../store/useGameStore';
 import { useInventoryStore } from '../store/useInventoryStore';
@@ -66,6 +67,9 @@ export function InspectMode() {
     return worldItems.find((w) => w.id === target.sourceId)?.variant;
   }, [target, worldItems, held]);
   const def = target ? CATALOG[target.kind] : null;
+  const contents = variant?.contents;
+  const total = totalMl(contents);
+  const title = target?.kind === 'reagentBottle' && contents?.[0] ? SUBSTANCES[contents[0].id].name : def?.name;
 
   return (
     <AnimatePresence>
@@ -92,8 +96,35 @@ export function InspectMode() {
             aria-live="polite"
           >
             <div className="mb-1 text-xs font-semibold uppercase tracking-wider text-lab-yellowDark">{def.category}</div>
-            <h2 className="font-display text-2xl font-bold leading-tight">{def.name}</h2>
+            <h2 className="font-display text-2xl font-bold leading-tight">{title}</h2>
+            {title !== def.name && <div className="text-sm font-medium text-slate-500">{def.name}</div>}
             <p className="mt-3 text-sm leading-relaxed text-slate-600">{def.description}</p>
+            {def.capacityMl !== undefined && (
+              <div className="mt-4 rounded-xl border border-sky-200 bg-sky-50 p-3 text-sm text-sky-900">
+                <div className="mb-1 font-semibold">
+                  🧪 Агуулга · {total > 0 ? `${Math.round(total * 10) / 10} мл` : 'хоосон'} / {def.capacityMl} мл
+                </div>
+                {contents && total > 0 && (
+                  <>
+                    <ul className="space-y-0.5">
+                      {contents.map((c) => (
+                        <li key={c.id} className="flex items-center gap-2">
+                          <span>
+                            {SUBSTANCES[c.id].name} <span className="text-sky-700">({SUBSTANCES[c.id].formula})</span>
+                          </span>
+                          <span className="ml-auto font-semibold tabular-nums">{Math.round(c.ml * 10) / 10} мл</span>
+                        </li>
+                      ))}
+                    </ul>
+                    {describeState(contents).map((line) => (
+                      <div key={line} className="mt-1 text-xs text-sky-800">
+                        {line}
+                      </div>
+                    ))}
+                  </>
+                )}
+              </div>
+            )}
             <div className="mt-4 rounded-xl border border-amber-200 bg-amber-50 p-3 text-sm text-amber-900">
               <div className="mb-1 font-semibold">⚠ Аюулгүй ажиллагааны зөвлөгөө</div>
               {def.safety}
