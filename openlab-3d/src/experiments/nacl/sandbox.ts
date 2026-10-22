@@ -194,7 +194,7 @@ export function simulateLab(rawDt: number, distance: (a: string, b: string) => n
     const portions = takeLiquid(mixtureOf(act.source, itemVariant(act.source)), amount);
     useChemStore.getState().setMixtures({ [act.source]: portions.rest });
     const at = heldApi.target?.point ?? labSpace.position(act.source);
-    spillMixture(portions.taken, at.x, at.y, at.z);
+    spillMixture(portions.taken, at.x, at.y, at.z, act.source);
     spill(amount);
     if (amount > 0) warn('Сав руу чиглүүлээгүй тул шингэн асгарч байна. Зааврыг дагаарай.');
   }
@@ -245,7 +245,7 @@ export function simulateLab(rawDt: number, distance: (a: string, b: string) => n
         useChemStore.getState().setMixtures({ [act.source]: portions.rest, [act.target]: mixed.m });
         for (const r of mixObservations(before, kept.taken, mixed.m, mixed.neutralized, mixed.formed)) publishReaction(act.target, r, 1800);
         if (overflow > 0) {
-          const at = labSpace.position(act.target); spillMixture(kept.rest, at.x, at.y, at.z);
+          const at = labSpace.position(act.target); spillMixture(kept.rest, at.x, at.y, at.z, act.target);
         }
       }
       to.ml += amount; from.ml -= poured;

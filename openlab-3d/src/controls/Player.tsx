@@ -1,3 +1,4 @@
+import { usePresentation } from '../lab/presentation';
 /**
  * First-person player: a kinematic rapier capsule (radius 0.3 m, 1.0 m cylinder → 1.6 m tall)
  * moved by rapier's character controller, with the camera at 1.65 m eye height.
@@ -95,7 +96,7 @@ export function Player() {
     if (!rb || !col) return;
     const game = useGameStore.getState();
     const settings = useSettingsStore.getState();
-    const canMove = game.mode === 'walk';
+    const canMove = game.mode === 'walk' && !usePresentation.getState().modal;
     const keys = getKeys();
 
     // Keyboard turning (keyboard-turn look mode).

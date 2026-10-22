@@ -70,3 +70,10 @@ input {
   user-select: text;
   -webkit-user-select: text;
 }
+
+@keyframes success-confetti-fall {
+  from { transform: translateY(-5vh) rotate(0); opacity: 1; }
+  to { transform: translateY(105vh) rotate(650deg); opacity: 0; }
+}
+.success-confetti { animation: success-confetti-fall 2.8s ease-in forwards; }
+@media (prefers-reduced-motion: reduce) { .success-confetti { display: none; } }

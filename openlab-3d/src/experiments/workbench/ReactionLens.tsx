@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { AmbientLight, Color, DirectionalLight, DynamicDrawUsage, InstancedMesh, MeshPhongMaterial, Object3D, PerspectiveCamera, Scene, SphereGeometry, WebGLRenderer } from 'three';
+import { AmbientLight, CanvasTexture, Sprite, SpriteMaterial, Color, DirectionalLight, DynamicDrawUsage, InstancedMesh, MeshPhongMaterial, Object3D, PerspectiveCamera, Scene, SphereGeometry, WebGLRenderer } from 'three';
 import { heldObjectId, useSandbox } from '../nacl/sandbox';
 import { useBenchView } from '../nacl/view';
 import { useSettingsStore } from '../../store/useSettingsStore';
@@ -8,6 +8,7 @@ import { useReactionView, type VesselReaction } from '../../lab/reaction-view';
 import { reactionProjection } from './WorkbenchRuntime';
 import { isWorkbenchObject } from './session';
 import { sounds } from '../../utils/sounds';
+import { MoleculeViewerButton } from '../../ui/MoleculeViewer';
 import { MolecularModel, type Species } from './molecules';
 
 /** Atom offsets make each molecular species distinguishable in the shared instanced draw. */
@@ -18,7 +19,8 @@ const ATOMS: Record<Species, [number, number, number, string, number][]> = {
   H2: [[-.06, 0, 0, '#ffffff', .055], [.06, 0, 0, '#ffffff', .055]],
   O2: [[-.065, 0, 0, '#f55457', .065], [.065, 0, 0, '#f55457', .065]],
   OH: [[0, 0, 0, '#f55457', .065], [.075, 0, 0, '#ffffff', .045]],
-  H2O2: [[-.05, 0, 0, '#f55457', .06], [.05, 0, 0, '#f55457', .06], [-.11, .04, 0, '#ffffff', .04], [.11, -.04, 0, '#ffffff', .04]],
+  H2O2: [[-.05, 0, 0, '#f55457', .06], [.05, 0, 0, '#f55457', .06], [-.075, .08, 0, '#ffffff', .04], [.075, -.04, .069, '#ffffff', .04]],
+  I: [[0,0,0,'#d285ff',.09]], K: [[0,0,0,'#a96aff',.09]], IO: [[-.04,0,0,'#d285ff',.08],[.075,0,0,'#f55457',.06]],
   steam: [[0, 0, 0, '#f55457', .065], [.075, -.04, 0, '#ffffff', .045], [-.075, -.04, 0, '#ffffff', .045]],
   CO2: [[0, 0, 0, '#434a56', .065], [-.105, 0, 0, '#f55457', .065], [.105, 0, 0, '#f55457', .065]],
 };
@@ -69,6 +71,14 @@ export function ReactionLens() {
     const geometry = new SphereGeometry(1, quality === 'low' ? 8 : 12, 8), material = new MeshPhongMaterial({ shininess: 60 });
     const mesh = new InstancedMesh(geometry, material, model.limit * 4);
     mesh.instanceMatrix.setUsage(DynamicDrawUsage); mesh.frustumCulled = false; scene.add(mesh);
+    const labels = ['I','IO','K'].map((species) => {
+      const canvas = document.createElement('canvas'); canvas.width=160; canvas.height=64;
+      const ctx=canvas.getContext('2d')!; ctx.font='bold 32px sans-serif'; ctx.textAlign='center'; ctx.fillStyle=species==='K'?'#ffffff':'#ffe570';
+      ctx.fillText(species==='IO'?'IO⁻':species==='K'?'K⁺':'I⁻',80,42);
+      const texture=new CanvasTexture(canvas), material=new SpriteMaterial({map:texture,depthTest:false,transparent:true});
+      return {species,texture,material};
+    });
+    const sprites=Array.from({length:model.limit},()=>{const s=new Sprite(labels[0].material);s.visible=false;s.scale.set(.27,.11,1);scene.add(s);return s;});
     const atom = new Object3D(), color = new Color();
     let raf = 0, last = performance.now(), tickAt = 0, fizzAt = 0, lastHits = 0;
     node.dataset.particles = String(model.limit); node.dataset.preset = shown.preset;
@@ -77,18 +87,22 @@ export function ReactionLens() {
       const active = rx?.episode === episode && rx.until > now;
       const rate = active ? Math.min(3, rx.rate * (rx.rateUnit === 'g/s' ? 1 : 1000)) : 0;
       model.advance(Math.min(.04, (now - last) / 1000), rate, active ? rx.temp : shown.temp); last = now;
-      let count = 0;
+      let count = 0, labelCount=0;
+      sprites.forEach((s)=>{s.visible=false;});
       for (const p of model.particles) {
         if (!p.active) continue;
+        const label=labels.find((s)=>s.species===p.species);
+        if(label) {const sprite=sprites[labelCount++];sprite.visible=true;sprite.material=label.material;sprite.position.set(p.x,p.y+.13,p.z);sprite.scale.setScalar(p.species!=='K'&&p.hits>0?.38:.27);sprite.scale.y*=.4;}
+
         const atoms = ATOMS[p.species] ?? [[0, 0, 0, colors[p.species] ?? '#b8d7ee', .085] as [number, number, number, string, number]];
         for (const [x, y, z, c, r] of atoms) {
           atom.position.set(p.x + x, p.y + y, p.z + z); atom.scale.setScalar(r); atom.updateMatrix();
-          mesh.setMatrixAt(count, atom.matrix); mesh.setColorAt(count++, color.set(c));
+          mesh.setMatrixAt(count, atom.matrix); color.set(c); if(shown.catalyst && ['I','IO'].includes(p.species) && p.hits>0)color.lerp(new Color('#ffe579'),.35+.25*Math.sin(now*.008)); mesh.setColorAt(count++, color);
         }
       }
       mesh.count = count; mesh.instanceMatrix.needsUpdate = true; if (mesh.instanceColor) mesh.instanceColor.needsUpdate = true;
       renderer.render(scene, camera);
-      node.dataset.collisions = String(model.collisions); node.dataset.products = String(model.products); node.dataset.escaped = String(model.escaped);
+      node.dataset.collisions = String(model.collisions); node.dataset.products = String(model.products); node.dataset.escaped = String(model.escaped); node.dataset.catalyst = shown.catalyst ?? ''; node.dataset.intermediates=String(model.intermediates); node.dataset.turnovers=String(model.turnovers); node.dataset.rate=String(active?rx.rate:0);
       if (active && model.collisions > lastHits && now - tickAt > 140) {
         sounds.play('moleculeTick', Math.min(.8, .12 + (model.collisions - lastHits) * .04) * Math.min(1, rate)); tickAt = now;
       }
@@ -112,7 +126,7 @@ export function ReactionLens() {
       raf = requestAnimationFrame(update);
     };
     raf = requestAnimationFrame(update);
-    return () => { cancelAnimationFrame(raf); node.remove(); mesh.dispose(); geometry.dispose(); material.dispose(); renderer.dispose(); renderer.forceContextLoss(); };
+    return () => { cancelAnimationFrame(raf); labels.forEach((l)=>{l.texture.dispose();l.material.dispose();}); node.remove(); mesh.dispose(); geometry.dispose(); material.dispose(); renderer.dispose(); renderer.forceContextLoss(); };
     // One particle population per reaction episode; instantaneous rates are read in RAF.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [episode, quality, reduced]);
@@ -122,8 +136,9 @@ export function ReactionLens() {
     <div ref={anchor} style={{ zIndex: mode === 'inspect' ? 52 : 32 }} className="pointer-events-none fixed left-0 top-0 z-[52] w-[min(270px,calc(100vw-24px))] text-lab-ink transition-opacity duration-700" aria-label="Урвалын молекулын линз" data-vessel={shown.vesselId}>
       <div className="pointer-events-none mx-auto w-40 overflow-hidden rounded-full border-2 border-sky-200 bg-slate-900 shadow-hud sm:w-56"><div ref={viewport} className="aspect-square w-full" aria-label="Молекулууд мөргөлдөж урвалд орж байна" /></div>
       <div className="pointer-events-auto flex justify-center gap-2 py-1 text-[10px]"><button className="rounded-full bg-white px-3 py-1 shadow-hud" aria-pressed={pinned} onClick={() => setPinned(!pinned)}>{pinned ? 'Тогтоосон' : 'Тогтоох'}</button><button className="rounded-full bg-white px-3 py-1 shadow-hud" aria-label="Молекулын линзийг хаах" onClick={() => { closed.current = episode ?? null; setPinned(false); setShown(null); }}>✕</button></div>
+      <div className="pointer-events-auto text-center"><MoleculeViewerButton reaction={shown}/></div>
       <div className="pointer-events-none rounded-lg bg-white/95 p-2 text-center text-xs shadow-hud" aria-label="Урвалын тэгшитгэл">
-        <b>{shown.equation}</b><p className="mt-1 text-[11px]">{shown.sentence}</p>
+        <b>{shown.equation}</b>{shown.catalyst && <p className="mt-1 text-[10px] text-indigo-800">I⁻ — катализатор, K⁺ — ажиглагч ион<br/>H₂O₂ + I⁻ → H₂O + IO⁻<br/>H₂O₂ + IO⁻ → H₂O + O₂↑ + I⁻</p>}<p className="mt-1 text-[11px]">{shown.sentence}</p>
         <div className="mt-1 hidden flex-wrap justify-center gap-x-2 gap-y-1 text-[10px] sm:flex">{legend.map((s) => <span key={s.id}>{s.name} {s.formula}</span>)}</div>
         <div className="mt-1 hidden text-[9px] text-slate-500 sm:block">Мөргөлдөөн ба хэмжээ нь тайлбарлах загвар · {shown.temp.toFixed(1)} °C</div>
       </div>

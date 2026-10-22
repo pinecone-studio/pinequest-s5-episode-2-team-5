@@ -223,6 +223,14 @@ export function NaClStation() {
       if (controls.current) { controls.current.enabled = true; controls.current.enableDamping = true; }
       useBenchView.setState({ moving: false });
     };
+    const onWheel = (e: WheelEvent) => {
+      if (useWorkbench.getState().drawer) return;
+      e.preventDefault(); e.stopImmediatePropagation(); cancelMotion();
+      // Use the actual wheel distance, including trackpads, instead of one tiny
+      // fixed zoom step regardless of the event's delta. Pinch/two-touch stays native.
+      const pixels=e.deltaY*(e.deltaMode===1?16:e.deltaMode===2?innerHeight:1);
+      benchView.zoom(Math.exp(Math.max(-400,Math.min(400,pixels))*.0018));
+    };
     const onDown = (e: PointerEvent) => {
       cancelMotion(); pointers.add(e.pointerId);
       if (e.button === 0 && pointers.size === 1) down = { x: e.clientX, y: e.clientY, id: e.pointerId };
@@ -254,12 +262,12 @@ export function NaClStation() {
     const onCancel = () => { down = null; pointers.clear(); endHeldUse(); };
     const noMenu = (e: Event) => e.preventDefault();
     el.addEventListener('pointerdown', onDown, true); el.addEventListener('pointermove', onMove); el.addEventListener('pointerleave', onLeave);
-    el.addEventListener('wheel', cancelMotion, { capture: true, passive: true });
+    el.addEventListener('wheel', onWheel, { capture: true, passive: false });
     el.addEventListener('contextmenu', noMenu);
     window.addEventListener('pointerup', onUp); window.addEventListener('pointercancel', onCancel); window.addEventListener('blur', onCancel);
     return () => {
       onCancel(); el.removeEventListener('pointerdown', onDown, true); el.removeEventListener('pointermove', onMove); el.removeEventListener('pointerleave', onLeave);
-      el.removeEventListener('wheel', cancelMotion, true); el.removeEventListener('contextmenu', noMenu);
+      el.removeEventListener('wheel', onWheel, true); el.removeEventListener('contextmenu', noMenu);
       window.removeEventListener('pointerup', onUp); window.removeEventListener('pointercancel', onCancel); window.removeEventListener('blur', onCancel);
     };
   }, [inBench, engine, gl, camera]);

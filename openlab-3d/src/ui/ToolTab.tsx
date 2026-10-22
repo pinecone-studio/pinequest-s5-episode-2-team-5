@@ -5,29 +5,34 @@
  * <View> into one shared canvas; clicking it puts the item on the nearest free bench spot.
  * Cards also say where the item is kept in the lab.
  */
-import { createRef, useEffect, useMemo, useRef, useState, type MutableRefObject, type RefObject } from 'react';
+import { Fragment, createRef, useEffect, useMemo, useRef, useState, type MutableRefObject, type RefObject } from 'react';
 import { Canvas, useFrame, useThree } from '@react-three/fiber';
 import { PerspectiveCamera, View } from '@react-three/drei';
 import { motion } from 'framer-motion';
 import { ACESFilmicToneMapping, PMREMGenerator, SRGBColorSpace, type Group, type Texture } from 'three';
 import { RoomEnvironment } from 'three/examples/jsm/environments/RoomEnvironment.js';
 import { CATALOG, EQUIPMENT_CATEGORIES, SPAWNABLE_KINDS, type EquipmentKind } from '../equipment/equipmentCatalog';
-import { CATEGORY_LABELS, HAZARD_LABELS, REAGENT_LIST, type ReagentCategory } from '../chemistry/reagents';
+import { CATEGORY_LABELS, HAZARD_LABELS, REAGENTS, REAGENT_LIST, type ReagentCategory } from '../chemistry/reagents';
 import { stock, type ItemVariant } from '../world/itemsLayout';
 import { FittedModel } from '../equipment/FittedModel';
 import { useGameStore } from '../store/useGameStore';
 import { useInventoryStore } from '../store/useInventoryStore';
-import { openPanelFromGame, resumeWalk } from '../controls/useGameKeys';
+import { toggleTools } from '../controls/useGameKeys';
 import { spawnNearPlayer } from '../interaction/spawn';
 import { useSettingsStore } from '../store/useSettingsStore';
 import { keyLabel } from '../controls/keyMap';
 import { sounds } from '../utils/sounds';
 
+import { useLabStore } from '../store/useLabStore';
+import { useSandbox } from '../experiments/nacl/sandbox';
+import { suppliesFor, useWorkbench, collectSupply, matchesSupply, NACL_SUPPLIES, PART_KINDS, type BenchSupply } from '../experiments/workbench/session';
+import { supplyLocation } from '../experiments/workbench/PreparationHints';
 const DRAWER_W = 380;
 
 interface DrawerEntry {
   key: string;
-  kind: EquipmentKind;
+  kind?: EquipmentKind;
+  supply?: BenchSupply;
   name: string;
   sub: string;
   where: string;
@@ -140,23 +145,35 @@ function Thumbnail({ entry, track, index, visible }: { entry: DrawerEntry; track
       <ambientLight intensity={0.7} />
       <directionalLight position={[2, 3, 2]} intensity={1.6} />
       <Spinner offset={index * 0.7}>
-        <FittedModel kind={entry.kind} fill={0.92} variant={entry.variant} />
+        {entry.kind && <FittedModel kind={entry.kind} fill={0.92} variant={entry.variant} />}
       </Spinner>
     </View>
   );
 }
 
 export function ToolTab() {
-  const open = useGameStore((s) => s.panel === 'tools');
+  const panelOpen = useGameStore((s) => s.panel === 'tools');
+  const benchOpen = useWorkbench((s) => s.drawer);
+  const sessions = useWorkbench((s) => s.sessions);
+  const active = useLabStore((s) => s.active);
+  const near = useSandbox((s) => s.near);
+  const required = suppliesFor(active);
+  const session = active ? sessions[active] : undefined;
+  const open = panelOpen || benchOpen;
   const mode = useGameStore((s) => s.mode);
   const held = useInventoryStore((s) => s.held);
   const tabKey = useSettingsStore((s) => keyLabel(s.bindings.tools[0]));
   const [shelf, setShelf] = useState<Shelf>('equipment');
   const [group, setGroup] = useState<string>('all');
+  const [search, setSearch] = useState('');
+  const benchContext = near || mode === 'bench';
   const entries = useMemo(() => {
-    const list = shelf === 'equipment' ? EQUIPMENT_ENTRIES : REAGENT_ENTRIES;
-    return group === 'all' ? list : list.filter((e) => e.group === group);
-  }, [shelf, group]);
+    const station: DrawerEntry[] = benchContext ? NACL_SUPPLIES.map((s)=>({key:`stock:${s.key}`,supply:s,kind:s.part?PART_KINDS[s.part]:undefined,name:s.name,sub:s.use,where:'NaCl ажлын ширээний комплект',group:'NaCl ширээ'})) : [];
+    const list = shelf === 'equipment' ? [...EQUIPMENT_ENTRIES,...station] : REAGENT_ENTRIES;
+    const normal = (group === 'all' ? list : list.filter((e) => e.group === group));
+    const pinned: DrawerEntry[] = benchContext ? required.map((s) => ({ key: `required:${s.key}`, supply: s, kind: s.kind ?? (s.part ? PART_KINDS[s.part] : undefined), name: s.name, sub: s.use, where: supplyLocation(s), group: 'required', variant: s.reagent ? stock(s.reagent) : s.kind ? THUMB_VARIANTS[s.kind] : undefined })) : [];
+    return [...pinned, ...normal].filter((e) => `${e.name} ${e.sub} ${e.key} ${e.variant?.reagent ? REAGENTS[e.variant.reagent].label : ""}`.toLocaleLowerCase().includes(search.toLocaleLowerCase()));
+  }, [shelf, group, benchContext, required, search]);
   const refMap = useRef(new Map<string, RefObject<HTMLDivElement>>());
   const refFor = (key: string) => {
     let r = refMap.current.get(key);
@@ -201,7 +218,13 @@ export function ToolTab() {
     else setReady(false);
   }, [open]);
 
-  const spawn = ({ kind, name, variant }: DrawerEntry) => {
+  const spawn = (entry: DrawerEntry) => {
+    const { kind, name, variant } = entry;
+    if (benchContext) {
+      const supply = entry.supply ?? { key: entry.key, kind, name, use: entry.sub, reagent: variant?.reagent };
+      collectSupply(supply, true); return;
+    }
+    if (!kind) return;
     const res = spawnNearPlayer(kind, variant);
     if (!res.ok) {
       useGameStore.getState().showToast('Хэт олон эд зүйл байна', 'Эхлээд нэг зүйлээ хураагаарай');
@@ -214,7 +237,7 @@ export function ToolTab() {
 
   const groups: { id: string; label: string }[] =
     shelf === 'equipment'
-      ? [{ id: 'all', label: 'Бүгд' }, ...EQUIPMENT_CATEGORIES.filter((c) => EQUIPMENT_ENTRIES.some((e) => e.group === c)).map((c) => ({ id: c, label: c }))]
+      ? [{ id: 'all', label: 'Бүгд' }, ...EQUIPMENT_CATEGORIES.filter((c) => EQUIPMENT_ENTRIES.some((e) => e.group === c)).map((c) => ({ id: c, label: c })), ...(benchContext ? [{id:'NaCl ширээ',label:'NaCl ширээ'}] : [])]
       : [{ id: 'all', label: 'Бүгд' }, ...(Object.keys(CATEGORY_LABELS) as ReagentCategory[]).map((c) => ({ id: c, label: CATEGORY_LABELS[c] }))];
 
   return (
@@ -224,7 +247,7 @@ export function ToolTab() {
         type="button"
         aria-label={open ? 'Багажны шургуулга хаах' : 'Багажны шургуулга нээх'}
         aria-expanded={open}
-        onClick={() => (open ? resumeWalk() : openPanelFromGame('tools'))}
+        onClick={toggleTools}
         className={`focus-ring fixed top-1/2 z-[45] flex h-20 w-9 -translate-y-1/2 items-center justify-center rounded-l-full bg-lab-yellow pl-1 text-white shadow-hud hover:bg-lab-yellowDark ${hideTab ? 'hidden' : ''}`}
         style={{ right: 0 }}
         initial={false}
@@ -252,10 +275,10 @@ export function ToolTab() {
           }
         }}
       >
-        <header className="flex items-center justify-between bg-lab-yellow px-5 py-4 text-white">
+        <header className="flex items-center justify-between bg-lab-yellow px-5 py-4 text-white max-sm:pt-20">
           <div>
             <h2 className="font-display text-lg font-bold leading-tight">Багаж ба бодис</h2>
-            <p className="text-xs text-white/85">Дарахад хамгийн ойрын ширээн дээр тавигдана</p>
+            <p className="text-xs text-white/85">{benchContext ? 'Дарахад бодит багажийг гартаа авна · Tab / Esc: хаах' : 'Дарахад хамгийн ойрын ширээн дээр тавигдана'}</p>
           </div>
           <span className="kbd !border-white/40 !bg-white/20 !text-white !shadow-none">{tabKey}</span>
         </header>
@@ -263,7 +286,7 @@ export function ToolTab() {
           <div className="flex gap-1 rounded-xl bg-slate-100 p-1" role="tablist">
             {(
               [
-                ['equipment', `Багаж (${EQUIPMENT_ENTRIES.length})`],
+                ['equipment', `Багаж (${EQUIPMENT_ENTRIES.length + (benchContext ? NACL_SUPPLIES.length : 0)})`],
                 ['reagents', `Бодис (${REAGENT_ENTRIES.length})`],
               ] as [Shelf, string][]
             ).map(([id, label]) => (
@@ -297,6 +320,7 @@ export function ToolTab() {
             ))}
           </div>
         </div>
+        <input type="search" aria-label="Бодис ба багаж хайх" tabIndex={open ? 0 : -1} placeholder="Нэр, томьёогоор хайх" value={search} onChange={(e) => setSearch(e.target.value)} onKeyDown={(e) => { if (e.key === 'Escape') { e.preventDefault(); toggleTools(); } }} className="mx-4 my-2 rounded-lg border border-slate-300 bg-white p-2 text-sm text-lab-ink" />
         {held && (
           <div className="flex items-center justify-between gap-2 border-b border-slate-200 bg-white px-5 py-3 text-sm">
             <span>
@@ -317,18 +341,24 @@ export function ToolTab() {
         <div className="relative min-h-0 flex-1">
           <div ref={scroller} className="scrollbar-thin absolute inset-0 overflow-y-auto p-4">
             <ul className="grid grid-cols-2 gap-3">
-              {entries.map((entry) => (
-                <li key={entry.key}>
-                  <button
+              {entries.map((entry, i) => {
+                const supply = entry.supply ?? required.find((s) => matchesSupply(s, { id: entry.key, kind: entry.kind, reagent: entry.variant?.reagent }));
+                const found = !!supply && !!session?.found.includes(supply.key);
+                const placed = !!supply && !!session?.placed.includes(supply.key);
+                return <Fragment key={entry.key}>
+                  {entry.group === 'required' && entries[i - 1]?.group !== 'required' && <li className="col-span-2"><h3 className="text-xs font-bold text-slate-700">Энэ туршилтад хэрэгтэй</h3></li>}
+                  {entry.group !== 'required' && entries[i-1]?.group === 'required' && <li className="col-span-2"><h3 className="text-xs font-bold text-slate-700">Бусад бодис ба багаж</h3></li>}
+                  <li><button
                     type="button"
                     tabIndex={open ? 0 : -1}
                     onClick={() => spawn(entry)}
-                    className="focus-ring group flex w-full flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white text-left transition hover:-translate-y-0.5 hover:border-lab-yellow hover:shadow-md"
+                    data-found={found} data-placed={placed}
+                    className={`focus-ring group flex w-full flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white text-left transition hover:-translate-y-0.5 hover:border-sky-400 hover:shadow-md ${found ? 'border-emerald-400 text-emerald-800' : ''}`}
                     aria-label={`${entry.name} тавих`}
                   >
-                    <div ref={refFor(entry.key)} data-key={entry.key} className="h-24 w-full bg-gradient-to-b from-slate-100 to-white" />
+                    <div ref={refFor(entry.key)} data-key={entry.key} className="flex h-24 w-full items-center justify-center bg-gradient-to-b from-slate-100 to-white text-3xl">{!entry.kind && <span aria-hidden>{entry.supply?.part === 'scope' ? '🔬' : entry.supply?.part === 'lamp' ? '🔥' : '🧪'}</span>}</div>
                     <div className="px-3 pb-2.5 pt-1.5">
-                      <div className="text-[13px] font-semibold leading-tight text-slate-800">{entry.name}</div>
+                      <div className={`text-[13px] font-semibold leading-tight ${found ? "text-emerald-700" : "text-slate-800"}`}>{found ? '✓ ' : ''}{entry.name}{placed ? ' · ✓ ширээнд' : found ? ' · олдлоо' : ''}</div>
                       <div className="flex items-center justify-between gap-1 text-[11px] text-slate-500">
                         <span className="truncate">{entry.sub}</span>
                         {entry.hazards && <span title="Аюулын тэмдэг">{entry.hazards}</span>}
@@ -336,8 +366,8 @@ export function ToolTab() {
                       {entry.where && <div className="mt-0.5 truncate text-[10px] text-slate-400">📍 {entry.where}</div>}
                     </div>
                   </button>
-                </li>
-              ))}
+                </li></Fragment>;
+              })}
             </ul>
           </div>
         </div>

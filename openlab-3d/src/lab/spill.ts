@@ -14,9 +14,9 @@ export function isHazardous(m: Mixture): boolean {
   return ph !== null && (ph < 3 || ph > 11) && liquidMl(m) > 0.5;
 }
 
-export function spillMixture(m: Mixture, x: number, y: number, z: number): void {
+export function spillMixture(m: Mixture, x: number, y: number, z: number, sourceId?: string): void {
   const ml = liquidMl(m) + solidVolumeMl(m);
   if (ml < 0.3) return;
   const look = mixtureLook(m);
-  useChemStore.getState().addPuddle({ x, y, z, ml, color: look.liquid ?? look.solidColor ?? '#cfe6f5', hazardous: isHazardous(m) });
+  useChemStore.getState().addPuddle({ x, y, z, ml, sourceIds: sourceId ? [sourceId] : undefined, color: look.liquid ?? look.solidColor ?? '#cfe6f5', hazardous: isHazardous(m) });
 }

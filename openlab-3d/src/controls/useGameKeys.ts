@@ -1,3 +1,4 @@
+import { closePresentation, usePresentation } from '../lab/presentation';
 import { useEffect } from 'react';
 import { useGameStore, type Panel } from '../store/useGameStore';
 import { useInventoryStore } from '../store/useInventoryStore';
@@ -91,6 +92,16 @@ export function inspectFocusOrHeld(): void {
   }
 }
 
+/** One tools panel; a seated camera remains seated while it is open. */
+export function toggleTools(): void {
+  endHeldUse();
+  const game = useGameStore.getState();
+  if (game.mode === 'bench') useWorkbench.setState((s) => ({ drawer: !s.drawer }));
+  else if (game.panel === 'tools') resumeWalk();
+  else openPanelFromGame('tools');
+  (document.activeElement as HTMLElement | null)?.blur();
+}
+
 /** G: pick the focused item up even when E does something else (light a burner, tare the balance). */
 function grabFocus(): void {
   const focus = useGameStore.getState().focus;
@@ -155,14 +166,11 @@ export function useGameKeys(canvas: HTMLElement | null): void {
   useEffect(() => {
     const onKeyDown = (e: KeyboardEvent) => {
       if ((e.target as HTMLElement | null)?.dataset?.capture === 'keys') return;
+      if (usePresentation.getState().modal) { if (e.code === 'Escape') { e.preventDefault(); closePresentation(); } return; }
       const current = useGameStore.getState();
-      if (e.code === 'Tab' && (current.mode === 'bench' || current.mode === 'walk' && useSandbox.getState().near)) {
+      if (e.code === 'Tab' && (['walk', 'bench'].includes(current.mode) || current.panel === 'tools')) {
         e.preventDefault(); e.stopPropagation();
-        if (!e.repeat) {
-          endHeldUse();
-          if (current.mode === 'walk') enterBench();
-          useWorkbench.setState((s) => ({ drawer: !s.drawer }));
-        }
+        if (!e.repeat) toggleTools();
         return;
       }
       if (isTyping(e.target)) {
@@ -198,7 +206,7 @@ export function useGameKeys(canvas: HTMLElement | null): void {
           if (actions.includes('pour')) beginHeldUse();
           if (actions.includes('throw')) startThrow();
           if (actions.includes('cursor')) toggleCursor();
-          if (actions.includes('tools')) { if (useSandbox.getState().near) { enterBench(); useWorkbench.setState({ drawer: true }); } else openPanelFromGame('tools'); }
+          if (actions.includes('tools')) toggleTools();
           if (actions.includes('notes')) openPanelFromGame('notes');
           if (actions.includes('map')) {
             game.toggleMinimap();
@@ -243,8 +251,7 @@ export function useGameKeys(canvas: HTMLElement | null): void {
           if (actions.includes('inspect') && inspectId) {
             if (useBenchView.getState().inspecting) benchView.back(); else benchView.inspect(inspectId);
           }
-          if (actions.includes('interact') && selected) benchView.focus(selected);
-          if (actions.includes('grab') && selected && !useBenchView.getState().inspecting) {
+          if ((actions.includes('interact') || actions.includes('grab')) && selected && !useBenchView.getState().inspecting) {
             const entry = interactables.get(selected); (entry?.onGrab ?? entry?.onInteract)?.();
           }
           return;

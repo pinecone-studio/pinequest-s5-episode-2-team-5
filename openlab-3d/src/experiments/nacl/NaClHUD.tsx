@@ -1,3 +1,4 @@
+import { MoleculeViewerButton } from '../../ui/MoleculeViewer';
 /** One room, one set of equipment. Guidance never locks an object or a step. */
 import { useEffect, useRef } from 'react';
 import { bench, enterBench, exitBench } from './bench';
@@ -23,6 +24,7 @@ import { useExperimentCatalog } from '../../lab/experiments';
 import { composition } from '../../chemistry/describe';
 import { useChemStore } from '../../store/useChemStore';
 import { currentSession, jumpToStep, useWorkbench } from '../workbench/session';
+import { isTouchDevice } from '../../utils/device';
 import { PreparationChecklist } from '../workbench/PreparationHints';
 
 function readItem(id: string) {
@@ -93,18 +95,19 @@ function SubstanceCard() {
     {inspecting && <p className="mb-1 text-[11px] text-slate-500">Чирж эргүүл · Дугуй / хоёр хуруугаар ойртуул</p>}
     <p className="text-xs font-semibold text-teal-700">{contentsLabel(m)} · {m.temp.toFixed(0)} °C</p>
     {liveContents && !key && <p className="mt-1 text-[11px] text-slate-600">{[...liveContents.dissolved, ...liveContents.solids].map((s) => `${s.name} (${s.formula}) ${s.value}`).join(" · ")}</p>}
-    <div className="mt-3 flex flex-wrap gap-2">
+    {isTouchDevice() && <div className="mt-3 flex flex-wrap gap-2">
       {((interactables.get(id)?.onGrab && interactables.get(id)?.onGrab !== interactables.get(id)?.onInteract) || key === 'lamp' || key === 'scope') && <button className="rounded-lg bg-slate-100 px-3 py-2 text-xs font-bold" onClick={() => { const entry = interactables.get(id); if (entry?.onGrab) entry.onInteract?.(); else labUse.start(id); }}>Ашиглах</button>}
       <button className="rounded-lg bg-sky-100 px-3 py-2 text-xs font-semibold text-sky-900" onClick={() => mode === 'walk' ? readItem(id) : inspecting ? benchView.back() : benchView.inspect(id)}>{inspecting ? 'Esc · Ширээнд буцах' : 'F · Барьж шинжлэх'}</button>
       {!heldId && !inspecting && <button className="rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs" onClick={() => { const entry = interactables.get(id); (entry?.onGrab ?? entry?.onInteract)?.(); }}>Авах / зөөх</button>}
       {heldId === id && <button className="rounded-lg bg-emerald-100 px-3 py-2 text-xs font-semibold" onClick={() => { tablePointer.angle += Math.PI / 4; }}>Эргүүлэх 45°</button>}
-    </div>
-    {heldId && heldId !== id && <div className="mt-3 border-t border-slate-200 pt-3">
+    </div>}
+    {isTouchDevice() && heldId && heldId !== id && <div className="mt-3 border-t border-slate-200 pt-3">
       <p className="mb-2 text-[11px] text-slate-600">{tool?.label} → {item.label}</p>
       <button className="touch-none rounded-lg bg-slate-200 px-3 py-2 text-xs font-bold" onPointerDown={(e) => { e.currentTarget.setPointerCapture(e.pointerId); action(); }} onPointerUp={endHeldUse} onPointerCancel={endHeldUse} onBlur={endHeldUse}
         onKeyDown={(e) => { if ((e.key === ' ' || e.key === 'Enter') && !e.repeat) { e.preventDefault(); action(); } }} onKeyUp={endHeldUse}>Дарж барьж {canPour ? 'цутгах' : 'ашиглах'}</button>
       {canPour && <div className="mt-2 flex gap-2"><button className="rounded-lg bg-sky-100 px-3 py-2 text-xs font-bold" onClick={() => dose(1)}>1 см³ цутгах</button><button className="rounded-lg bg-sky-100 px-3 py-2 text-xs font-bold" onClick={() => dose(5)}>5 см³ цутгах</button></div>}
     </div>}
+    {item.capacity > 0 && <MoleculeViewerButton id={id}/>}
     {inspecting && <p className="mt-2 text-xs text-slate-600">{purpose}</p>}
     <details className="mt-3 text-xs"><summary className="cursor-pointer font-semibold text-slate-600">Бодис, зориулалт, аюул</summary>
       {purpose && <p className="mt-2">{purpose}</p>}
@@ -152,7 +155,7 @@ export function NaClHUD() {
   const view = useBenchView();
   const toast = useGameStore((s) => s.toast);
   useEffect(() => {
-    if (mode === 'bench' && toast) useSandbox.setState({ warning: [toast.title, toast.subtitle].filter(Boolean).join(' · ') });
+    if (mode === 'bench' && toast && Date.now() - toast.id < 1500) useSandbox.setState({ warning: [toast.title, toast.subtitle].filter(Boolean).join(' · ') });
   }, [mode, toast]);
   const state = useSandbox();
   const portable = usePortableStore((s) => s.held);
@@ -170,19 +173,20 @@ export function NaClHUD() {
     {active === 'nacl' && (state.near || closeup) && !workbench.drawer && <WorldLabels />}
     {closeup && !workbench.drawer && <div className="fixed left-3 top-3 z-30 flex max-w-[calc(100vw-3rem)] flex-wrap gap-2 text-xs text-lab-ink">
       <button className="rounded-full bg-white/95 px-3 py-2 shadow" onClick={exitBench}>Ширээнээс гарах</button>
-      {view.inspecting && <button className="rounded-full bg-white/95 px-3 py-2 shadow" onClick={benchView.back}>Esc · Ширээнд буцах</button>}
+      {isTouchDevice() && view.inspecting && <button className="rounded-full bg-white/95 px-3 py-2 shadow" onClick={benchView.back}>Esc · Ширээнд буцах</button>}
     </div>}
     {closeup && !workbench.drawer && <aside className="fixed left-3 right-12 top-14 z-30 max-h-[24vh] overflow-auto rounded-xl bg-white/95 p-3 text-lab-ink shadow-hud sm:right-auto sm:max-w-lg" aria-label="Туршилтын заавар">
       <div className="truncate text-xs font-bold">{lesson?.title ?? 'Туршилт сонгоогүй байна'}{preparing ? ' · Бэлтгэл' : ''}</div>
+      {session?.teacher && <span className="mt-1 inline-block rounded-full bg-indigo-50 px-2 py-1 text-[11px] font-bold text-indigo-700">👩‍🏫 Багшийн горим</span>}
       {preparing ? <PreparationChecklist /> : lesson && <>
         <p className="mt-1 text-xs">{(active === 'nacl' ? guide.current.hint : lesson.steps[selectedStep]?.hint ?? 'Туршилт дууслаа.').split('. ')[0]}</p>
       </>}
       {lesson && <details className="mt-1 text-[11px]"><summary className="cursor-pointer text-slate-500">Алхмууд</summary><div className="mt-1 flex flex-wrap gap-1">{lesson.steps.map((step, i) => <button key={step.id} className="rounded bg-slate-100 px-2 py-1" onClick={() => jumpToStep(i)}>{(active === 'nacl' && guide.steps[i]?.done) || done.includes(step.id) ? '✓ ' : ''}{i + 1}. {step.text}</button>)}</div></details>}
       {lesson && <p className="mt-1 text-[11px] text-slate-600" role="status">{active === 'nacl' && !preparing ? guide.warning : state.warning}</p>}
     </aside>}
-    {closeup && !workbench.drawer && <CameraControls />}
+    {closeup && !workbench.drawer && isTouchDevice() && <CameraControls />}
     {closeup && !workbench.drawer && <div className="pointer-events-none fixed inset-x-4 bottom-4 z-20 hidden rounded-xl sm:block bg-white/95 px-3 py-2 text-center text-[11px] text-lab-ink shadow sm:inset-x-auto sm:left-1/2 sm:max-w-xl sm:-translate-x-1/2">
-      {view.inspecting ? 'Чирж эргүүлэх · Дугуй / хоёр хуруу: ойр, хол · Esc: ширээнд буцах' : held ? <><b>{held}</b> · Хулганаа ширээний хоосон хэсэг рүү зөө. Ногоон хүрээ гарсан газарт дарж тавь ({q}).<button className="pointer-events-auto ml-2 rounded bg-slate-100 px-2 py-1" onClick={() => { tablePointer.angle += Math.PI / 4; }}>Эргүүлэх 45°</button><button className="pointer-events-auto ml-1 rounded bg-slate-100 px-2 py-1" onClick={dropHeld}>Тавих</button></> : <>Багаж дээр дарах: хэмжээс · Зүүн чирэх: ширээгээр шилжих · Баруун чирэх: эргүүлэх · Дугуй / хоёр хуруу: ойр, хол</>}
+      {view.inspecting ? 'Чирж эргүүлэх · Дугуй / хоёр хуруу: ойр, хол · Esc: ширээнд буцах' : held ? <><b>{held}</b> · Хулганаа ширээний хоосон хэсэг рүү зөө. Ногоон хүрээ гарсан газарт дарж тавь ({q}).{isTouchDevice() && <><button className="pointer-events-auto ml-2 rounded bg-slate-100 px-2 py-1" onClick={() => { tablePointer.angle += Math.PI / 4; }}>Эргүүлэх 45°</button><button className="pointer-events-auto ml-1 rounded bg-slate-100 px-2 py-1" onClick={dropHeld}>Тавих</button></>}</> : <>{promptKey('interact', settings.bindings, settings.lookMode)}: авах · {promptKey('inspect', settings.bindings, settings.lookMode)}: шинжлэх · Багаж дээр дарах: хэмжээс · Зүүн чирэх: ширээгээр шилжих · Баруун чирэх: эргүүлэх · Дугуй / хоёр хуруу: ойр, хол</>}
     </div>}
     {(closeup || !!portable) && !workbench.drawer && <SubstanceCard />}{active === 'nacl' && <Microscope />}
   </>;

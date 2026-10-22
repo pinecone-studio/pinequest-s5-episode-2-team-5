@@ -24,8 +24,8 @@ export function breakItem(item: WorldItem): void {
   const y = surfaceYAt(pose.x, pose.z, pose.y + 0.02);
   useInventoryStore.getState().removeWorld(item.id);
   const chem = useChemStore.getState();
-  chem.addBurst(pose.x, Math.max(y, pose.y), pose.z);
-  if (!isEmptyMixture(m)) spillMixture(m, pose.x, y, pose.z);
+  chem.addBurst(pose.x, Math.max(y, pose.y), pose.z, item.id);
+  if (!isEmptyMixture(m)) spillMixture(m, pose.x, y, pose.z, item.id);
   chem.removeMixture(item.id);
   forget(item.id);
   sounds.play('shatter');

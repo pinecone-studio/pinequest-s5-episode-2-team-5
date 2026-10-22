@@ -9,7 +9,7 @@ import { sounds } from '../utils/sounds';
 import { SettingsPanel } from './SettingsPanel';
 import { ControlsList } from './ControlsHelp';
 import { openNaClExperiment } from '../experiments/nacl/bench';
-import { selectBenchExperiment } from '../experiments/workbench/session';
+import { selectBenchExperiment, useWorkbench } from '../experiments/workbench/session';
 
 type Tab = 'experiments' | 'settings' | 'controls';
 
@@ -53,6 +53,7 @@ function ExperimentsTab() {
   const progress = useLabStore((s) => s.progress);
   const active = useLabStore((s) => s.active);
   const [open, setOpen] = useState<string | null>(active);
+  const sessions = useWorkbench((s) => s.sessions);
   const finished = experiments.filter((x) => experimentDone(progress, x.id)).length;
   return (
     <div className="space-y-3">
@@ -102,15 +103,16 @@ function ExperimentsTab() {
                     type="button"
                     className="btn-yellow w-full py-2 text-sm"
                     onClick={() => {
-                      selectBenchExperiment(x.id);
+                      selectBenchExperiment(x.id, !sessions[x.id]);
                       sounds.play('success', 0.5);
                       resumeWalk();
                       const next = x.steps.find((s) => !done.includes(s.id));
                       if (next) useGameStore.getState().say(`«${x.title}» сонголоо. Ажлын ширээнд суугаад бэлтгэлээ хийгээрэй.`, 'wave');
                     }}
                   >
-                    {active === x.id ? '▶ Үргэлжлүүлэх' : complete ? '↻ Дахин хийх' : '▶ Эхлүүлэх'}
+                    {sessions[x.id] ? '▶ Үргэлжлүүлэх' : '▶ Эхлүүлэх'}
                   </button>
+                  {(sessions[x.id] || complete) && <button className="min-h-9 w-full rounded-lg border border-slate-300 bg-white py-2 text-sm font-semibold" onClick={() => { selectBenchExperiment(x.id, true); resumeWalk(); }}>↻ Дахин хийх</button>}
                 </div>
               )}
             </li>

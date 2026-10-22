@@ -40,6 +40,7 @@ export function note(itemId: string, key: string, cooldownMs = 8000, value?: num
 
 export function forget(itemId: string): void {
   flagsById.delete(itemId);
+  for (const key of lastEmit.keys()) if (key.startsWith(`${itemId}|`)) lastEmit.delete(key);
 }
 
 export function resetObservations(): void {

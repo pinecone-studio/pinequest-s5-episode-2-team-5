@@ -13,7 +13,15 @@ export const usePortableStore = create<{ held: Portable | null }>()(() => ({ hel
 
 /** Placement is supplied by the same surface solver used for ordinary inventory. */
 export const portableApi = { place: (): boolean => false };
-const originals = new Map<Object3D, { position: Vector3; rotation: Object3D['rotation'] }>();
+const originals = new Map<Object3D, { id: string; position: Vector3; rotation: Object3D['rotation'] }>();
+export function restoreScenePortable(id: string): boolean {
+  for (const [object, original] of originals) if (original.id === id) {
+    if (usePortableStore.getState().held?.id === id) usePortableStore.setState({ held: null });
+    object.position.copy(original.position); object.rotation.copy(original.rotation); object.updateWorldMatrix(true, true);
+    originals.delete(object); return true;
+  }
+  return false;
+}
 export function resetScenePortables() {
   usePortableStore.setState({ held: null });
   originals.forEach((original, object) => { object.position.copy(original.position); object.rotation.copy(original.rotation); });
@@ -21,7 +29,7 @@ export function resetScenePortables() {
 }
 
 export function scenePortable(id: string, label: string, object: Object3D): Portable {
-  if (!originals.has(object)) originals.set(object, { position: object.position.clone(), rotation: object.rotation.clone() });
+  if (!originals.has(object)) originals.set(object, { id, position: object.position.clone(), rotation: object.rotation.clone() });
   object.updateWorldMatrix(true, true);
   const box = new Box3().setFromObject(object);
   const originalOrientation = object.getWorldQuaternion(new Quaternion());
