@@ -28,28 +28,6 @@ import { LivePlayer } from '@/components/world/live-player';
 import type { RemoteHandle } from '@/components/world/remote-player';
 import { Bench, Fountain, Lamp, Signpost, Tree } from '@/components/world/scenery';
 import { useWalker, WalkerView } from '@/components/world/walker';
-import { HubChatOverlay } from "@/components/hub/chat-overlay";
-import { DoorTransition } from "@/components/hub/door-transition";
-import { HintCard, HudTop } from "@/components/hub/hub-hud";
-import { PlayerCard } from "@/components/hub/player-card";
-import { ProfileSheet } from "@/components/hub/profile-sheet";
-import { BuildingSprite } from "@/components/world/buildings";
-import { Ground } from "@/components/world/ground";
-import { LivePlayer } from "@/components/world/live-player";
-import {
-  buildNavGrid,
-  findPath,
-  nearestWalkable,
-} from "@/components/world/nav-grid";
-import type { RemoteHandle } from "@/components/world/remote-player";
-import {
-  Bench,
-  Fountain,
-  Lamp,
-  Signpost,
-  Tree,
-} from "@/components/world/scenery";
-import { useWalker, WalkerView } from "@/components/world/walker";
 import {
   BENCHES,
   BUILDINGS,
@@ -465,7 +443,6 @@ const styles = StyleSheet.create({
     width: WORLD.width,
     height: WORLD.height,
   },
-  topScrim: { position: 'absolute', left: 0, right: 0, top: 0, height: 120 },
   nightOverlay: {
     position: 'absolute',
     left: 0,
@@ -476,6 +453,3 @@ const styles = StyleSheet.create({
   },
   topScrim: { position: "absolute", left: 0, right: 0, top: 0, height: 120 },
 });
-// export default function OpenLab() {
-//   return <div>hi open lab</div>;
-// }
