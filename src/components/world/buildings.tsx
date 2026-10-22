@@ -47,6 +47,76 @@ export function BuildingSprite({ building, scale = 1 }: { building: BuildingDef;
   );
 }
 
+export function BuildingWindowLights({ building, scale = 1 }: { building: BuildingDef; scale?: number }) {
+  if (building.id === 'ranking') return null;
+
+  const isLessonsHall = building.id === 'lessons';
+  const { rect } = building;
+  const width = isLessonsHall ? 300 : 200;
+  const height = isLessonsHall ? 280 : 260;
+  const windows = isLessonsHall
+    ? [{ x: 54, y: 146, width: 40, height: 58 }, { x: 206, y: 146, width: 40, height: 58 }]
+    : [{ x: 39, y: 130, width: 34, height: 42 }, { x: 127, y: 130, width: 34, height: 42 }];
+
+  return (
+    <View
+      pointerEvents="none"
+      style={[
+        styles.sprite,
+        {
+          left: rect.x,
+          top: rect.y + (rect.h * (1 - scale)) / 2,
+          width: rect.w,
+          height: rect.h,
+          transform: [{ scale }],
+          zIndex: rect.y + rect.h + 1,
+        },
+      ]}>
+      <Svg width={width} height={height} viewBox={`0 0 ${width} ${height}`}>
+        {windows.map((window) => (
+          <G key={`${window.x}-${window.y}`}>
+            <Rect
+              x={window.x - 7}
+              y={window.y - 7}
+              width={window.width + 14}
+              height={window.height + 14}
+              rx={10}
+              fill="#FFC95B"
+              opacity={0.3}
+            />
+            <Rect
+              x={window.x}
+              y={window.y}
+              width={window.width}
+              height={window.height}
+              rx={isLessonsHall ? 8 : 7}
+              fill="#FFE7A6"
+              stroke={OUTLINE}
+              strokeWidth={2.5}
+            />
+            <Line
+              x1={window.x + window.width / 2}
+              y1={window.y + 1}
+              x2={window.x + window.width / 2}
+              y2={window.y + window.height - 1}
+              stroke="#FFF8DB"
+              strokeWidth={isLessonsHall ? 3 : 2.5}
+            />
+            <Line
+              x1={window.x + 1}
+              y1={window.y + window.height / 2}
+              x2={window.x + window.width - 1}
+              y2={window.y + window.height / 2}
+              stroke="#FFF8DB"
+              strokeWidth={isLessonsHall ? 3 : 2.5}
+            />
+          </G>
+        ))}
+      </Svg>
+    </View>
+  );
+}
+
 function HubHouse({ building }: { building: BuildingDef }) {
   const color = building.color;
   const friendly = building.id === 'friendly';

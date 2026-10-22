@@ -22,7 +22,8 @@ type Status = 'checking' | 'ready' | 'missing';
 
 const goBack = () => (router.canGoBack() ? router.back() : router.replace('/'));
 
-export default function OpenLabScreen() {
+/** The hub's OpenLab building: the full OpenLab 3D lab (web). */
+export function OpenLab3DScreen() {
   return Platform.OS === 'web' ? <OpenLabWeb /> : <OpenLabNative />;
 }
 
