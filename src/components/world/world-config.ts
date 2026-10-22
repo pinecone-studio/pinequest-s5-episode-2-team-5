@@ -68,7 +68,7 @@ export const BUILDINGS: BuildingDef[] = [
     rect: { x: 10, y: 710, w: 200, h: 260 }, door: { x: 110, y: 980 },
   },
   {
-    id: 'openlab', label: 'Lessons Hall', route: '/', icon: 'flask-outline', color: '#B5F23D',
+    id: 'openlab', label: 'OpenLab', route: '/openlab', icon: 'flask-outline', color: '#B5F23D',
     rect: { x: 430, y: 820, w: 200, h: 260 }, door: { x: 530, y: 1080 },
   },
 ];
