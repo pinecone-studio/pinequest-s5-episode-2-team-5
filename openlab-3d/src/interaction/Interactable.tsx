@@ -4,6 +4,8 @@ import { Outlines } from '@react-three/drei';
 import { InstancedMesh, Mesh, type Group, type Object3D } from 'three';
 import { useGameStore } from '../store/useGameStore';
 import type { EquipmentKind } from '../equipment/equipmentCatalog';
+import { scenePortable, usePortableStore } from './portable';
+import { useInventoryStore } from '../store/useInventoryStore';
 import { interactables, type InteractableEntry, type UseTarget } from './registry';
 
 export interface InteractableProps extends Omit<GroupProps, 'children' | 'onWheel' | 'id'> {
@@ -14,6 +16,8 @@ export interface InteractableProps extends Omit<GroupProps, 'children' | 'onWhee
   enabled?: boolean;
   /** Enables F-inspect using this catalog model. */
   inspectKind?: EquipmentKind;
+  /** Carry this existing scene object; inventory objects retain their own pickup. */
+  movable?: boolean;
   onInteract?: () => void;
   onGrab?: () => void;
   useTarget?: UseTarget;
@@ -37,6 +41,7 @@ export function Interactable({
   verb = 'ашиглах',
   enabled = true,
   inspectKind,
+  movable = false,
   onInteract,
   onGrab,
   useTarget,
@@ -51,6 +56,14 @@ export function Interactable({
 }: InteractableProps) {
   const ref = useRef<Group>(null);
   const entryRef = useRef<InteractableEntry | null>(null);
+  const carried = usePortableStore((s) => s.held?.id === id);
+  const carry = () => {
+    if (!ref.current) return;
+    if (usePortableStore.getState().held || useInventoryStore.getState().held) {
+      useGameStore.getState().showToast('Гар завгүй', 'Эхлээд барьж буй зүйлээ тавь.'); return;
+    }
+    usePortableStore.setState({ held: scenePortable(id, label, ref.current) });
+  };
 
   useLayoutEffect(() => {
     const object = ref.current;
@@ -70,12 +83,13 @@ export function Interactable({
     const entry = entryRef.current;
     if (!entry) return;
     entry.label = label;
-    entry.verb = verb;
-    entry.enabled = enabled;
+    entry.verb = movable ? 'авах' : verb;
+    entry.enabled = enabled && !carried;
     entry.inspectKind = inspectKind;
-    entry.onInteract = onInteract;
-    entry.onGrab = onGrab;
-    entry.useTarget = useTarget;
+    entry.onInteract = movable ? carry : onInteract;
+    entry.onUse = movable ? onInteract : undefined;
+    entry.onGrab = movable ? carry : onGrab;
+    entry.useTarget = useTarget ?? (movable && inspectKind ? { type: 'item', id, kind: inspectKind } : undefined);
     entry.onStore = onStore;
     entry.storeVerb = storeVerb;
     entry.onDrag = onDrag;

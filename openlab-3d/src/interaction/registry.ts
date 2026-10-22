@@ -17,6 +17,8 @@ export interface InteractableEntry {
   enabled: boolean;
   inspectKind?: EquipmentKind;
   onInteract?: () => void;
+  /** Operate a live scene instrument while E carries it. */
+  onUse?: () => void;
   /** Pick the object up (G); only set when E does something else, e.g. lights a burner. */
   onGrab?: () => void;
   /** Target of R with the held item (pour, measure, stir, …). */

@@ -43,3 +43,6 @@ example
 /android
 .vercel
 .env*
+
+# Local duplicate checkout; not a project submodule.
+/pinequest-s5-episode-2-team-5/

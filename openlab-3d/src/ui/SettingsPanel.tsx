@@ -55,7 +55,7 @@ function Segmented<T extends string>({ value, options, onChange, label }: { valu
   );
 }
 
-const REMAPPABLE: ActionName[] = ['forward', 'backward', 'left', 'right', 'sprint', 'jump', 'interact', 'inspect', 'drop', 'grab', 'pour', 'throw', 'cursor', 'tools', 'notes', 'map', 'turnLeft', 'turnRight'];
+const REMAPPABLE: ActionName[] = ['forward', 'backward', 'left', 'right', 'sprint', 'jump', 'interact', 'inspect', 'drop', 'grab', 'pour', 'throw', 'cursor', 'closeup', 'tools', 'notes', 'map', 'turnLeft', 'turnRight'];
 
 function KeyRemap() {
   const bindings = useSettingsStore((s) => s.bindings);

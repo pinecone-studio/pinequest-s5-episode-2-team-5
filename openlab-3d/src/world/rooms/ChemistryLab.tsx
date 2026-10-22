@@ -29,6 +29,7 @@ import { sounds } from '../../utils/sounds';
 import { metalDark } from '../../materials/metal';
 import { chemBoardTexture } from '../../utils/textures';
 import { BENCH_HEIGHT } from '../../utils/constants';
+import { NaClStation } from '../../experiments/nacl/NaClStation';
 import { StaticBatch } from '../StaticBatch';
 
 const T = BENCH_HEIGHT;
@@ -112,6 +113,7 @@ function FlammablesCabinet({ position, rotY }: { position: [number, number, numb
 
 export default function ChemistryLab() {
   useReady('chemistry');
+  const generation = useInventoryStore((s) => s.generation);
   return (
     <group>
       <StaticBatch>
@@ -160,6 +162,7 @@ export default function ChemistryLab() {
       <Poster position={[-3.89, 1.75, -13.4]} rotY={Math.PI / 2} spec={{ title: 'Нүдний шил зүү', lines: ['Энэ лабораторид', 'хамгаалалтын шил', 'заавал зүүнэ.'], color: '#2563eb', icon: 'goggles' }} />
       <WasteBin position={[4.9, 0, -14.4]} color="#ef4444" chemical />
       </StaticBatch>
+      <NaClStation key={generation} />
     </group>
   );
 }

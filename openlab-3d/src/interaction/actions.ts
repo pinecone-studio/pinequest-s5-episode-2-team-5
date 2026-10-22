@@ -7,6 +7,8 @@
  * waste, wipe up a spill. Continuous actions run while R is held.
  */
 import { create } from 'zustand';
+import { useSandbox } from '../experiments/nacl/sandbox';
+import { useBenchView } from '../experiments/nacl/view';
 import { CATALOG, STOCK_KINDS, isContainer, type EquipmentKind } from '../equipment/equipmentCatalog';
 import { CATIONS, FLAME_COLORS, SOLIDS, type Cation } from '../chemistry/species';
 import { REAGENTS } from '../chemistry/reagents';
@@ -407,8 +409,9 @@ function targetKey(t: UseTarget | null): string {
 }
 
 function currentTarget(): UseTarget | null {
-  const focus = useGameStore.getState().focus;
-  const entry = focus ? interactables.get(focus.id) : undefined;
+  const game = useGameStore.getState();
+  const id = game.mode === 'bench' ? useSandbox.getState().hovered ?? useBenchView.getState().selected : game.focus?.id;
+  const entry = id ? interactables.get(id) : undefined;
   return entry?.useTarget ?? null;
 }
 
@@ -498,7 +501,7 @@ export function tickUse(dt: number): void {
   const s = session;
   if (!s) return;
   const inv = useInventoryStore.getState();
-  if (!inv.held || inv.held.id !== s.held.id || targetKey(currentTarget()) !== s.key || useGameStore.getState().mode !== 'walk') {
+  if (!inv.held || inv.held.id !== s.held.id || targetKey(currentTarget()) !== s.key || !['walk', 'bench'].includes(useGameStore.getState().mode)) {
     if (!(s.kind === 'extinguish' && inv.held?.id === s.held.id)) {
       endUse();
       return;

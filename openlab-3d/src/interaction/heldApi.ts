@@ -1,4 +1,8 @@
 import type { Placement } from './surfaces';
+import { Vector2, type Vector3 } from 'three';
+
+/** Worktop placement follows this cursor ray; walking uses the crosshair. */
+export const tablePointer = { ndc: new Vector2(), active: false, angle: 0, lastPoint: null as Vector3 | null };
 
 /** Bridge between keyboard handling (outside the canvas) and the held-item renderer. */
 export const heldApi: {
@@ -7,10 +11,12 @@ export const heldApi: {
   /** Throws the held item forward; power 0..1. */
   throwHeld: (power: number) => boolean;
   target: Placement | null;
+  refreshTarget: () => Placement | null;
 } = {
   place: () => false,
   throwHeld: () => false,
   target: null,
+  refreshTarget: () => null,
 };
 
 /** Throw wind-up: when T went down (ms), or null. */

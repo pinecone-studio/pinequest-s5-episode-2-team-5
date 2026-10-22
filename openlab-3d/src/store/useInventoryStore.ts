@@ -1,4 +1,5 @@
 import { create } from 'zustand';
+import { usePortableStore } from '../interaction/portable';
 import { CATALOG, type EquipmentKind } from '../equipment/equipmentCatalog';
 import { createInitialItems, type ItemVariant, type WorldItem } from '../world/itemsLayout';
 import { HOLDER_CAPACITY, holderType, seedHolder, type StoredItem } from '../interaction/holders';
@@ -62,6 +63,7 @@ export const useInventoryStore = create<InventoryState>()((set, get) => ({
   brokenCount: 0,
   generation: 0,
   pickUp: (id) => {
+    if (usePortableStore.getState().held) return false;
     const held = get().held;
     const item = get().worldItems.find((w) => w.id === id);
     if (!item) return false;
@@ -116,6 +118,7 @@ export const useInventoryStore = create<InventoryState>()((set, get) => ({
       return s;
     }),
   takeStored: (holderId, itemId) => {
+    if (usePortableStore.getState().held) return false;
     const s = get();
     const list = storedIn(s.storage, holderId);
     const item = list.find((it) => it.id === itemId);

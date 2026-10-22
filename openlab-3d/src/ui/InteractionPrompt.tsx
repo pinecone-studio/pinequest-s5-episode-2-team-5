@@ -4,6 +4,7 @@ import { useInventoryStore } from '../store/useInventoryStore';
 import { useChemStore } from '../store/useChemStore';
 import { useSettingsStore } from '../store/useSettingsStore';
 import { CATALOG } from '../equipment/equipmentCatalog';
+import { usePortableStore } from '../interaction/portable';
 import { keyLabel, promptKey } from '../controls/keyMap';
 import { describeUse } from '../interaction/actions';
 import { interactables } from '../interaction/registry';
@@ -21,6 +22,7 @@ function Chip({ k, children, primary = false }: { k?: string; children: React.Re
 export function InteractionPrompt() {
   const focus = useGameStore((s) => s.focus);
   const held = useInventoryStore((s) => s.held);
+  const portable = usePortableStore((s) => s.held);
   // Re-render when the held or focused vessel's contents change (R may switch from pour to draw).
   useChemStore((s) => (held ? s.mixtures[held.id] : undefined));
   useChemStore((s) => (focus ? s.mixtures[focus.id] : undefined));
@@ -39,7 +41,7 @@ export function InteractionPrompt() {
   return (
     <div className="pointer-events-none fixed inset-x-0 bottom-24 z-20 flex justify-center px-4 sm:bottom-10" aria-live="polite">
       <AnimatePresence mode="wait">
-        {(focus || held) && (
+        {(focus || held || portable) && (
           <motion.div key={key} className="flex max-w-3xl flex-wrap items-center justify-center gap-2" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 6 }} transition={{ duration: 0.14 }}>
             {focus?.canUse && (
               <Chip k={e} primary>
@@ -48,6 +50,7 @@ export function InteractionPrompt() {
             )}
             {focus && !focus.canUse && <Chip primary>{focus.label}</Chip>}
             {use && <Chip k={r}>{use.verb}{use.continuous ? ' (дарсаар)' : ''}</Chip>}
+            {portable && <><Chip k={q}>{portable.label} тавих</Chip><Chip k={r}>Чиглүүлж ашиглах</Chip></>}
             {held && focus?.canStore && <Chip k={q}>{focus.storeVerb ?? 'энд хийх'}</Chip>}
             {focus?.canGrab && <Chip k={g}>Авах</Chip>}
             {focus?.canInspect && <Chip k={f}>Ойроос харах</Chip>}

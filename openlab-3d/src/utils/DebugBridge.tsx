@@ -10,14 +10,24 @@ import { useExperimentStore } from '../store/useExperimentStore';
 import { useInventoryStore } from '../store/useInventoryStore';
 import { useSettingsStore } from '../store/useSettingsStore';
 import { useLoadingStore } from '../store/useLoadingStore';
+import { bench } from '../experiments/nacl/bench';
+import { useSandbox, labUse, mixture, simulateLab, resetSandbox } from '../experiments/nacl/sandbox';
+import { usePortableStore } from '../interaction/portable';
+import { restartSession } from '../ui/SummaryScreen';
+import { benchView, useBenchView } from '../experiments/nacl/view';
+import { experimentGuide } from '../experiments/nacl/guidance';
+import { heldApi, tablePointer } from '../interaction/heldApi';
+import { beginHeldUse, endHeldUse } from '../interaction/useHeld';
 import { interactables } from '../interaction/registry';
 import { useChemStore } from '../store/useChemStore';
 import { useLabStore } from '../store/useLabStore';
-import { beginUse, endUse, describeUse } from '../interaction/actions';
+import { beginUse, endUse, describeUse, tickUse, transfer } from '../interaction/actions';
 import { bodies } from '../interaction/bodies';
-import { heldApi } from '../interaction/heldApi';
 import { emitLab, onLab } from '../lab/events';
 import { equilibrate } from '../chemistry/equilibrium';
+import { emptyMixture, reagentMixture, liquidMl, contentMassG } from '../chemistry/mixture';
+import { updateBenchMixture } from '../experiments/nacl/chemistry';
+import { step as chemistryStep, DEFAULT_ENV } from '../chemistry/kinetics';
 import { mixtureLook } from '../chemistry/color';
 
 declare global {
@@ -39,12 +49,18 @@ export function DebugBridge() {
       chem: useChemStore,
       lab: useLabStore,
       bodies,
-      use: { begin: beginUse, end: endUse, describe: describeUse },
+      use: { begin: beginUse, end: endUse, describe: describeUse, tick: tickUse, transfer },
       heldApi,
       labEvents: { emit: emitLab, on: onLab },
-      chemistry: { equilibrate, mixtureLook },
+      chemistry: { equilibrate, mixtureLook, emptyMixture, reagentMixture, liquidMl, contentMassG, updateBenchMixture, step: chemistryStep, DEFAULT_ENV },
       player: playerState,
       interactables,
+      station: bench,
+      portable: usePortableStore,
+      sandbox: { useSandbox, labUse, mixture, simulateLab, resetSandbox },
+      restartSession, worktop: benchView, worktopView: useBenchView, placement: heldApi, tablePointer, guide: experimentGuide,
+      camera: () => get().camera,
+      beginHeldUse, endHeldUse,
       teleport: (x: number, z: number, yaw = 0) => playerApi.teleport(x, z, yaw),
       look: (yaw: number, pitch = 0) => {
         playerState.yaw = yaw;

@@ -8,6 +8,7 @@
  */
 import { useEffect, useRef } from 'react';
 import { useFrame } from '@react-three/fiber';
+import { interactables } from '../interaction/registry';
 import { CATALOG, isContainer, type EquipmentKind } from '../equipment/equipmentCatalog';
 import { liquidMl, takeLiquid, type Mixture } from '../chemistry/mixture';
 import { DEFAULT_ENV, step } from '../chemistry/kinetics';
@@ -75,7 +76,9 @@ function simulate(dt: number): void {
   const patch: Record<string, Mixture> = {};
   tickCount++;
   for (const id of ids) {
-    const kind = world.get(id)?.kind ?? (inv.held?.id === id ? inv.held.kind : null) ?? kindFromId(id);
+    if (id.startsWith('nacl-')) continue; // The textbook bench advances these shared mixtures at its accelerated rate.
+    const sceneTarget = interactables.get(id)?.useTarget;
+    const kind = (sceneTarget?.type === 'item' ? sceneTarget.kind : null) ?? world.get(id)?.kind ?? (inv.held?.id === id ? inv.held.kind : null) ?? kindFromId(id);
     if (!kind) continue;
     const before = chem.mixtures[id] ?? seedMixture(variants.get(id));
     const heatW = heat.get(id) ?? 0;

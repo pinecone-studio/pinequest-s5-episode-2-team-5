@@ -10,8 +10,9 @@ import { emitLab } from '../lab/events';
  * paused      – Esc pause menu
  * ui          – a HUD panel (menu, notes, tools, help) has the cursor
  * inspect     – an object floats in front of the camera (F)
+ * bench       – seated at an experiment bench: free mouse, orbit/zoom camera (NaCl station)
  */
-export type Mode = 'loading' | 'start' | 'walk' | 'paused' | 'ui' | 'inspect' | 'ended';
+export type Mode = 'loading' | 'start' | 'walk' | 'paused' | 'ui' | 'inspect' | 'bench' | 'ended';
 export type Panel = 'none' | 'menu' | 'notes' | 'tools' | 'help' | 'endConfirm';
 export type RobotMood = 'idle' | 'wave' | 'happy' | 'think';
 

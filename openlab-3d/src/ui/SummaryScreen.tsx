@@ -8,6 +8,9 @@ import { useChemStore } from '../store/useChemStore';
 import { experimentDone, useLabStore } from '../store/useLabStore';
 import { EXPERIMENTS } from '../lab/experiments';
 import { eventText } from '../chemistry/describe';
+import { resetSandbox } from '../experiments/nacl/sandbox';
+import { resetScenePortables } from '../interaction/portable';
+import { endHeldUse } from '../interaction/useHeld';
 import { resetObservations } from '../lab/observe';
 
 function duration(ms: number): string {
@@ -17,9 +20,12 @@ function duration(ms: number): string {
 }
 
 export function restartSession(): void {
+  endHeldUse();
+  resetScenePortables();
   useExperimentStore.getState().reset();
   useInventoryStore.getState().reset();
   useChemStore.getState().reset();
+  resetSandbox();
   useLabStore.getState().resetSession();
   resetObservations();
   playerApi.teleport(SPAWN.x, SPAWN.z, SPAWN.yaw);

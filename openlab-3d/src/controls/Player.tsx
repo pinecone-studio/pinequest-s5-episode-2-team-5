@@ -202,6 +202,8 @@ export function Player() {
 
   /** Camera, head bob and footsteps, once per rendered frame. */
   useFrame((_, rawDt) => {
+    // At an experiment bench the bench's orbit controls own the camera.
+    if (useGameStore.getState().mode === 'bench') return;
     const dt = Math.min(rawDt, 1 / 20);
     const settings = useSettingsStore.getState();
     const nx = playerState.position.x;

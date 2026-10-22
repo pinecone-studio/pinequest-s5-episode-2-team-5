@@ -24,13 +24,17 @@ import { ClickToLookHint, FpsCounter, RoomToast } from './RoomToast';
 import { TouchControls } from './TouchControls';
 import { isTouchDevice } from '../utils/device';
 import { InspectMode } from '../interaction/InspectMode';
+import { NaClHUD } from '../experiments/nacl/NaClHUD';
+import { useSandbox } from '../experiments/nacl/sandbox';
 import { ActionGauge, ExperimentCard, SafetyBadges, ThrowMeter } from './LabHud';
 
 export function HUD() {
   const mode = useGameStore((s) => s.mode);
   const showFps = useSettingsStore((s) => s.showFps);
   const inGame = mode !== 'loading' && mode !== 'start' && mode !== 'ended';
-  const showChrome = inGame && mode !== 'inspect';
+  const bench = mode === 'bench';
+  const nearNaCl = useSandbox((s) => s.near);
+  const showChrome = inGame && mode !== 'inspect' && !bench;
   const touch = isTouchDevice();
   return (
     <>
@@ -52,10 +56,11 @@ export function HUD() {
           <RoomToast />
           <Minimap />
           <SafetyBadges />
-          <ExperimentCard />
+          {!nearNaCl && <ExperimentCard />}
         </>
       )}
-      {inGame && <ToolTab />}
+      {(mode === 'walk' || bench) && <NaClHUD />}
+      {inGame && !bench && <ToolTab />}
       {inGame && <RobotAssistant hidden={!showChrome} />}
       {showFps && <FpsCounter />}
       <MenuPanel />

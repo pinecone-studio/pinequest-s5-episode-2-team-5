@@ -4,7 +4,11 @@ import { useInventoryStore } from '../store/useInventoryStore';
 import { useSettingsStore } from '../store/useSettingsStore';
 import { interactables } from '../interaction/registry';
 import { dragState, heldApi, throwCharge } from '../interaction/heldApi';
-import { beginUse, endUse } from '../interaction/actions';
+import { beginHeldUse, endHeldUse } from '../interaction/useHeld';
+import { usePortableStore, portableApi } from '../interaction/portable';
+import { heldObjectId, mixture, useSandbox, warn } from '../experiments/nacl/sandbox';
+import { enterBench, exitBench } from '../experiments/nacl/bench';
+import { benchView, useBenchView } from '../experiments/nacl/view';
 import { sounds } from '../utils/sounds';
 import { actionsForKey } from './keyMap';
 import { isPointerLocked, lookBy, releaseLock, requestLock } from './usePointerLock';
@@ -62,9 +66,11 @@ export function resumeWalk(): void {
   requestLock();
 }
 
-function inspectFocusOrHeld(): void {
+export function inspectFocusOrHeld(): void {
   const game = useGameStore.getState();
   const focus = game.focus;
+  const id = heldObjectId() ?? focus?.id;
+  if (id && (id.startsWith('nacl-') || usePortableStore.getState().held)) { mixture(id); useSandbox.setState({ inspected: id }); releaseLock(); return; }
   const entry = focus ? interactables.get(focus.id) : undefined;
   if (entry?.inspectKind) {
     releaseLock();
@@ -121,6 +127,11 @@ export function toggleCursor(): void {
 }
 
 export function dropHeld(): void {
+  endHeldUse();
+  if (usePortableStore.getState().held) {
+    if (!portableApi.place()) warn('Хоосон гадаргуу руу чиглүүл. Ногоон хүрээ гарсан газарт тавина.');
+    return;
+  }
   if (!useInventoryStore.getState().held) return;
   // An open drawer, cabinet or rack in focus takes the item instead of the bench.
   const focus = useGameStore.getState().focus;
@@ -144,6 +155,7 @@ export function useGameKeys(canvas: HTMLElement | null): void {
         return;
       }
       if (e.ctrlKey || e.metaKey) return;
+      if ((e.code === 'Enter' || e.code === 'Space') && (e.target as HTMLElement | null)?.closest('button, summary')) return;
       const game = useGameStore.getState();
       const { bindings, lookMode } = useSettingsStore.getState();
       const mode = game.mode;
@@ -161,13 +173,14 @@ export function useGameKeys(canvas: HTMLElement | null): void {
             return;
           }
           if (e.repeat) return;
+          if (actions.includes('closeup') && useSandbox.getState().near) { enterBench(); return; }
           if (actions.includes('interact')) {
             if (!startDrag('key')) interactWithFocus();
           }
           if (actions.includes('inspect')) inspectFocusOrHeld();
           if (actions.includes('drop')) dropHeld();
           if (actions.includes('grab')) grabFocus();
-          if (actions.includes('pour')) beginUse();
+          if (actions.includes('pour')) beginHeldUse();
           if (actions.includes('throw')) startThrow();
           if (actions.includes('cursor')) toggleCursor();
           if (actions.includes('tools')) openPanelFromGame('tools');
@@ -195,6 +208,18 @@ export function useGameKeys(canvas: HTMLElement | null): void {
           if (e.code === 'Escape' && lookMode === 'keyboard') resumeWalk();
           return;
         }
+        case 'bench': {
+          if (e.code === 'Escape' || actions.includes('closeup')) { e.preventDefault(); exitBench(); return; }
+          if (e.repeat) return;
+          const selected = useSandbox.getState().hovered ?? useBenchView.getState().selected;
+          if (actions.includes('drop')) dropHeld();
+          if (actions.includes('pour')) beginHeldUse(selected);
+          if (actions.includes('inspect') && selected) benchView.focus(selected);
+          if ((actions.includes('interact') || actions.includes('grab')) && selected) {
+            const entry = interactables.get(selected); (entry?.onGrab ?? entry?.onInteract)?.();
+          }
+          return;
+        }
         case 'inspect': {
           if (e.code === 'Escape' || actions.includes('inspect') || actions.includes('interact')) {
             e.preventDefault();
@@ -212,7 +237,7 @@ export function useGameKeys(canvas: HTMLElement | null): void {
       const { bindings, lookMode } = useSettingsStore.getState();
       const actions = actionsForKey(e.code, bindings, lookMode);
       if (dragState.id && dragState.source === 'key' && actions.includes('interact')) endDrag();
-      if (actions.includes('pour')) endUse();
+      if (actions.includes('pour')) endHeldUse();
       if (actions.includes('throw')) releaseThrow();
     };
 
@@ -249,7 +274,7 @@ export function useGameKeys(canvas: HTMLElement | null): void {
     const onBlur = () => {
       if (dragState.id) endDrag();
       keyboardLookDrag = false;
-      endUse();
+      endHeldUse();
       throwCharge.since = null;
     };
 

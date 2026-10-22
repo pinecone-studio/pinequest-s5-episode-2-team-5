@@ -15,6 +15,25 @@ geometries at real-world scale. No external assets are downloaded at runtime (fo
 bundled from `@fontsource`, the environment map is rendered in-scene, all sounds are
 synthesized with the Web Audio API).
 
+## Integrated NaCl worktop
+
+Walking and free equipment use remain available without choosing a lesson. The north
+window worktop includes the NaCl experiment (Туршилт 1), with current instructions,
+measured volumes, warnings, molecules and an optional eight-step checklist.
+
+Press **V** near that worktop for a smooth middle-distance table view. Click an item to
+select and frame it, then use **Авах / зөөх** to carry it. Left drag pans, right drag
+orbits, and wheel/pinch or the visible +/− and slider zoom. Place held apparatus at the
+cursor's green preview; there is no nearest-surface fallback. **Ажлын харагдац** and
+**Бүтэн ширээ** reset the camera without moving any apparatus. V/Esc returns to walking.
+
+The NaCl apparatus and shelf stock share one hand with the room's physical inventory.
+`useChemStore` owns all contents, so solutions and their individual species remain with
+objects across bench/room transfers, storage and pickup. The room retains its chemistry,
+drawers, grip tools, burner actions, throwing and breakage. The NaCl geometry uses its
+accelerated textbook model; those procedural parts are movable scene objects rather
+than throwable physics bodies. See [the integration notes](src/experiments/nacl/README.md).
+
 ## Run
 
 ```bash
@@ -46,6 +65,7 @@ with base `/openlab/` into `../public/openlab/`, which the Expo web app serves; 
 | Q | Also puts the held item into an open drawer, cabinet or test-tube rack in focus |
 | T (hold) | Throw the held item (longer press = harder); glass breaks on hard impacts |
 | Mouse wheel | Burette flow (closed / drops / slow / fast) |
+| V | NaCl worktop camera / return to walking |
 | C | Free the mouse to click HUD buttons; press again (or click the view) to take it back |
 | Shift | Sprint |
 | Space | Jump (can be disabled) |
@@ -60,7 +80,7 @@ drag-to-look (right half) and E/F/Q/sprint buttons appear. All keys are remappab
 
 ### Equipment, storage and chemistry
 
-Every piece of equipment is a loose, physical rapier body that can be picked up, carried,
+The room’s inventory equipment consists of loose, physical rapier bodies that can be picked up, carried,
 placed, thrown and inspected (F). Glass and porcelain shatter above ~3.5 m/s impacts
 (shards + a puddle of the contents); upright vessels spill when knocked over; walking into
 items on the floor pushes them. Tongs and the test-tube holder grip items (E while holding
