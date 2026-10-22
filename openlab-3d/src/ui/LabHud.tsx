@@ -10,7 +10,7 @@ import { throwCharge } from '../interaction/heldApi';
 import { useChemStore } from '../store/useChemStore';
 import { useGameStore } from '../store/useGameStore';
 import { useLabStore } from '../store/useLabStore';
-import { experimentById } from '../lab/experiments';
+import { useExperimentCatalog } from '../lab/experiments';
 import { spawnNearPlayer } from '../interaction/spawn';
 import { sounds } from '../utils/sounds';
 
@@ -89,10 +89,11 @@ export function SafetyBadges() {
 
 /** The active experiment, its next step and progress (top left, under the menu button). */
 export function ExperimentCard() {
+  const experiments = useExperimentCatalog((s) => s.experiments);
   const active = useLabStore((s) => s.active);
   const progress = useLabStore((s) => s.progress);
   const [collapsed, setCollapsed] = useState(false);
-  const x = active ? experimentById(active) : undefined;
+  const x = active ? experiments.find((experiment) => experiment.id === active) : undefined;
   if (!x) return null;
   const done = progress[x.id] ?? [];
   const next = x.steps.find((s) => !done.includes(s.id));

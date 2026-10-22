@@ -3,7 +3,7 @@ import { AnimatePresence, motion } from 'framer-motion';
 import { useGameStore } from '../store/useGameStore';
 import { SKILLS, useExperimentStore } from '../store/useExperimentStore';
 import { experimentDone, useLabStore } from '../store/useLabStore';
-import { EXPERIMENTS } from '../lab/experiments';
+import { useExperimentCatalog } from '../lab/experiments';
 import { resumeWalk } from '../controls/useGameKeys';
 import { sounds } from '../utils/sounds';
 import { SettingsPanel } from './SettingsPanel';
@@ -47,17 +47,18 @@ function SkillsCard() {
 }
 
 function ExperimentsTab() {
+  const experiments = useExperimentCatalog((s) => s.experiments);
   const progress = useLabStore((s) => s.progress);
   const active = useLabStore((s) => s.active);
   const [open, setOpen] = useState<string | null>(active);
-  const finished = EXPERIMENTS.filter((x) => experimentDone(progress, x.id)).length;
+  const finished = experiments.filter((x) => experimentDone(progress, x.id)).length;
   return (
     <div className="space-y-3">
       <div className="rounded-2xl bg-emerald-50 p-3 text-sm text-emerald-900">
-        <b>Туршилтын заавар</b> · {finished}/{EXPERIMENTS.length} дууссан. Туршилтаа сонгоод «Эхлүүлэх» дарвал алхмууд нь дэлгэцийн зүүн дээд буланд харагдаж, хийх бүрт автоматаар тэмдэглэгдэнэ.
+        <b>Туршилтын заавар</b> · {finished}/{experiments.length} дууссан. Туршилтаа сонгоод «Эхлүүлэх» дарвал алхмууд нь дэлгэцийн зүүн дээд буланд харагдаж, хийх бүрт автоматаар тэмдэглэгдэнэ.
       </div>
       <ul className="space-y-2">
-        {EXPERIMENTS.map((x) => {
+        {experiments.map((x) => {
           const done = progress[x.id] ?? [];
           const complete = experimentDone(progress, x.id);
           const expanded = open === x.id;

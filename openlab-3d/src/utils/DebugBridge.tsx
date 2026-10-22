@@ -15,6 +15,7 @@ import { useSandbox, labUse, mixture, simulateLab, resetSandbox } from '../exper
 import { usePortableStore } from '../interaction/portable';
 import { restartSession } from '../ui/SummaryScreen';
 import { benchView, useBenchView } from '../experiments/nacl/view';
+import { useExperimentCatalog } from '../lab/experiments';
 import { experimentGuide } from '../experiments/nacl/guidance';
 import { heldApi, tablePointer } from '../interaction/heldApi';
 import { beginHeldUse, endHeldUse } from '../interaction/useHeld';
@@ -48,6 +49,7 @@ export function DebugBridge() {
       loading: useLoadingStore,
       chem: useChemStore,
       lab: useLabStore,
+      catalog: useExperimentCatalog,
       bodies,
       use: { begin: beginUse, end: endUse, describe: describeUse, tick: tickUse, transfer },
       heldApi,

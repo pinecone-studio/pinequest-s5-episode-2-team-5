@@ -6,7 +6,7 @@ import { SPAWN } from '../world/layout';
 import { CATALOG } from '../equipment/equipmentCatalog';
 import { useChemStore } from '../store/useChemStore';
 import { experimentDone, useLabStore } from '../store/useLabStore';
-import { EXPERIMENTS } from '../lab/experiments';
+import { useExperimentCatalog } from '../lab/experiments';
 import { eventText } from '../chemistry/describe';
 import { resetSandbox } from '../experiments/nacl/sandbox';
 import { resetScenePortables } from '../interaction/portable';
@@ -34,6 +34,7 @@ export function restartSession(): void {
 
 /** End-of-session summary: time, bench skills, inspected and placed equipment. */
 export function SummaryScreen() {
+  const experiments = useExperimentCatalog((s) => s.experiments);
   const game = useGameStore();
   const skills = useExperimentStore((s) => s.skills);
   const placed = useInventoryStore((s) => s.placedCount);
@@ -43,7 +44,7 @@ export function SummaryScreen() {
   const measurements = useLabStore((s) => s.measurements);
   const open = game.mode === 'ended';
   const done = SKILLS.filter((s) => skills[s.id]).length;
-  const finished = EXPERIMENTS.filter((x) => experimentDone(progress, x.id));
+  const finished = experiments.filter((x) => experimentDone(progress, x.id));
   const reactions = seen.filter((k) => !k.startsWith('wear:') && k !== 'wipe' && k !== 'break' && !k.startsWith('waste')).map((k) => eventText(k)?.title).filter(Boolean) as string[];
   return (
     <AnimatePresence>
@@ -58,7 +59,7 @@ export function SummaryScreen() {
               {[
                 ['Лабд өнгөрүүлсэн хугацаа', duration((game.endedAt ?? Date.now()) - game.sessionStart)],
                 ['Лабораторийн дадал', `${done} / ${SKILLS.length}`],
-                ['Дууссан туршилт', `${finished.length} / ${EXPERIMENTS.length}`],
+                ['Дууссан туршилт', `${finished.length} / ${experiments.length}`],
                 ['Ажигласан урвал', String(reactions.length)],
                 ['Хэмжилт', String(measurements)],
                 ['Хагарсан шил', String(broken)],
@@ -73,7 +74,7 @@ export function SummaryScreen() {
             </div>
             <div className="mt-5 grid gap-4 sm:grid-cols-2">
               <section className="rounded-2xl border border-slate-200 bg-white p-4">
-                <h3 className="font-semibold">Туршилт · {finished.length}/{EXPERIMENTS.length}</h3>
+                <h3 className="font-semibold">Туршилт · {finished.length}/{experiments.length}</h3>
                 {finished.length > 0 ? (
                   <ul className="mt-2 space-y-1 text-sm text-slate-700">
                     {finished.map((x) => (

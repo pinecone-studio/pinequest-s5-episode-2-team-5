@@ -34,6 +34,17 @@ drawers, grip tools, burner actions, throwing and breakage. The NaCl geometry us
 accelerated textbook model; those procedural parts are movable scene objects rather
 than throwable physics bodies. See [the integration notes](src/experiments/nacl/README.md).
 
+## Supabase JSON lesson catalog
+
+The 14 experiment definitions live in `src/data/experiments.json`. ChemQuest reads
+published JSON from Supabase and sends the catalog into the same-origin OpenLab frame.
+The bundled catalog remains available if the database is unavailable. Definitions use
+declarative completion events and measurement bounds rather than executable callbacks.
+
+Run the generated [`supabase/experiments.sql`](../supabase/experiments.sql) once in the
+Supabase SQL Editor. See [setup and editing instructions](../supabase/README.md).
+Standalone Vite previews use the bundled catalog; cloud loading occurs inside ChemQuest.
+
 ## Run
 
 ```bash

@@ -14,7 +14,7 @@ import { SKILLS, useExperimentStore, type SkillId } from '../store/useExperiment
 import { useInventoryStore } from '../store/useInventoryStore';
 import { CATALOG } from '../equipment/equipmentCatalog';
 import { useLabStore } from '../store/useLabStore';
-import { experimentById } from '../lab/experiments';
+import { experimentById, getExperiments } from '../lab/experiments';
 import { sounds } from '../utils/sounds';
 
 const shell = new MeshPhysicalMaterial({ color: '#f7f8fa', roughness: 0.32, clearcoat: 0.8, clearcoatRoughness: 0.2 });
@@ -146,7 +146,7 @@ function contextualHint(): string {
     'Tab дарахад багаж, бодисын жагсаалт нээгдэнэ — дарвал хамгийн ойрын ширээн дээр гарч ирнэ.',
     'Ширээний шургуулга, шүүгээ бүр шошготой. E дарж нээгээд доторх зүйлийг аваарай.',
     'Шил унавал хагарна! Асгарсан уусмалыг E дарж арчаарай.',
-    'Цэс → Туршилт хэсэгт 14 туршилтын алхам алхмаар заавар бий.',
+    `Цэс → Туршилт хэсэгт ${getExperiments().length} туршилтын алхам алхмаар заавар бий.`,
     'Хамгаалалтын нүдний шил баруун хананы ширээн дээр байна. Аюулгүй байдал хамгийн түрүүнд!',
     'Аюулгүйн шүршүүр зүүн өмнөд буланд, гал унтраагуур өмнөд цонхны дэргэд өлгөөтэй байна.',
     'Ажигласан зүйлээ лабораторийн тэмдэглэлд (N) бичээрэй.',
