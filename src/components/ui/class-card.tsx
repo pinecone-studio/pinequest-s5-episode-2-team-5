@@ -4,6 +4,7 @@ import { Pressable, StyleSheet, View } from 'react-native';
 import Animated, { useAnimatedStyle, useSharedValue, withSpring } from 'react-native-reanimated';
 
 import { Colors, Radius } from '@/constants/theme';
+import { CLASS_TEXT_MN } from '@/data/classes';
 import { haptics } from '@/lib/haptics';
 import type { ChemClass } from '@/types';
 
@@ -21,6 +22,7 @@ export function ClassCard({ chemClass, selected, onSelect }: ClassCardProps) {
   const { color } = chemClass;
   const scale = useSharedValue(1);
   const maxXp = chemClass.lessons.reduce((sum, l) => sum + l.xp, 0);
+  const text = CLASS_TEXT_MN[chemClass.id];
 
   useEffect(() => {
     scale.set(withSpring(selected ? 1.02 : 1, { damping: 14, stiffness: 220 }));
@@ -36,7 +38,7 @@ export function ClassCard({ chemClass, selected, onSelect }: ClassCardProps) {
       }}
       accessibilityRole="radio"
       accessibilityState={{ checked: selected }}
-      accessibilityLabel={`${chemClass.name}: ${chemClass.title}. ${chemClass.description}`}>
+      accessibilityLabel={`${text.name}: ${text.title}. ${text.description}`}>
       <Animated.View
         style={[
           styles.card,
@@ -46,22 +48,22 @@ export function ClassCard({ chemClass, selected, onSelect }: ClassCardProps) {
         <ClassMedallion icon={chemClass.icon} color={color} size={58} />
         <View style={styles.body}>
           <View style={styles.titleRow}>
-            <AppText variant="heading">{chemClass.name}</AppText>
+            <AppText variant="heading">{text.name}</AppText>
             <View style={[styles.pill, { backgroundColor: `${color.main}2E` }]}>
               <AppText variant="caption" color={color.main} style={styles.pillText}>
-                {chemClass.title}
+                {text.title}
               </AppText>
             </View>
           </View>
-          <AppText variant="caption">{chemClass.description}</AppText>
+          <AppText variant="caption">{text.description}</AppText>
           <View style={styles.metaRow}>
             <MaterialCommunityIcons name="book-open-variant" size={14} color={Colors.textDim} />
             <AppText variant="caption" color={Colors.textDim}>
-              {chemClass.lessons.length} lessons
+              {chemClass.lessons.length} хичээл
             </AppText>
             <MaterialCommunityIcons name="star-four-points" size={13} color={Colors.textDim} />
             <AppText variant="caption" color={Colors.textDim}>
-              up to {maxXp} XP
+              {maxXp} XP хүртэл
             </AppText>
           </View>
         </View>

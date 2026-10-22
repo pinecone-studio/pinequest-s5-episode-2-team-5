@@ -9,9 +9,11 @@ import { AppText } from './app-text';
 interface ClassBadgeProps {
   classId: ClassId;
   size?: 'sm' | 'md';
+  /** Text instead of the class name (e.g. the Mongolian name on the sign-up screen). */
+  label?: string;
 }
 
-export function ClassBadge({ classId, size = 'md' }: ClassBadgeProps) {
+export function ClassBadge({ classId, size = 'md', label }: ClassBadgeProps) {
   const chemClass = getClass(classId);
   const small = size === 'sm';
   return (
@@ -23,7 +25,7 @@ export function ClassBadge({ classId, size = 'md' }: ClassBadgeProps) {
       ]}>
       <MaterialCommunityIcons name={chemClass.icon} size={small ? 11 : 14} color={chemClass.color.main} />
       <AppText variant="caption" color={chemClass.color.main} style={small ? styles.smallText : styles.text}>
-        {chemClass.name}
+        {label ?? chemClass.name}
       </AppText>
     </View>
   );

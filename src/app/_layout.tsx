@@ -5,10 +5,12 @@ import {
   Fredoka_700Bold,
   useFonts,
 } from '@expo-google-fonts/fredoka';
+import { Nunito_400Regular, Nunito_500Medium, Nunito_600SemiBold, Nunito_700Bold } from '@expo-google-fonts/nunito';
 import { DarkTheme, Stack, ThemeProvider } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
 import { useEffect } from 'react';
+import { Platform } from 'react-native';
 
 import { Colors } from '@/constants/theme';
 import { SessionProvider, useSession } from '@/context/session';
@@ -27,12 +29,16 @@ const navigationTheme = {
   },
 };
 
+// Cyrillic fallback for the web only (see Fonts in constants/theme).
+const CYRILLIC_FONTS = Platform.OS === 'web' ? { Nunito_400Regular, Nunito_500Medium, Nunito_600SemiBold, Nunito_700Bold } : {};
+
 export default function RootLayout() {
   const [fontsLoaded, fontError] = useFonts({
     Fredoka_400Regular,
     Fredoka_500Medium,
     Fredoka_600SemiBold,
     Fredoka_700Bold,
+    ...CYRILLIC_FONTS,
   });
 
   return (

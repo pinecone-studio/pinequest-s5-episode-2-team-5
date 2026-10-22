@@ -614,6 +614,25 @@ export const CLASSES: ChemClass[] = [
 
 export const CLASS_ORDER: ClassId[] = CLASSES.map((c) => c.id);
 
+/** Mongolian names of the classes, shown on the sign-up screen. */
+export const CLASS_TEXT_MN: Record<ClassId, { name: string; title: string; description: string }> = {
+  beginner: {
+    name: 'Анхан шат',
+    title: 'Шинэхэн лаборант',
+    description: 'Лабораторид аюулгүй ажиллаж сурч, атомтай танилцаж, үелэх системд чөлөөтэй чиглэнэ.',
+  },
+  medium: {
+    name: 'Дунд шат',
+    title: 'Лаборант шавь',
+    description: 'Химийн холбоо, тэгшитгэл тэнцүүлэх, хүчил ба моль — жинхэнэ химийн цөм.',
+  },
+  hard: {
+    name: 'Ахисан шат',
+    title: 'Мастер химич',
+    description: 'Урвалыг мэргэжлийн химич шиг тооцоолж, урьдчилан таамаглаж, удирдана.',
+  },
+};
+
 export function getClass(id: ClassId): ChemClass {
   const found = CLASSES.find((c) => c.id === id);
   if (!found) throw new Error(`Unknown class: ${id}`);

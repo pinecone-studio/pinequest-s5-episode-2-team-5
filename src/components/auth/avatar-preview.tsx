@@ -6,7 +6,7 @@ import { Scientist } from '@/components/avatar/scientist';
 import { AppText } from '@/components/ui/app-text';
 import { ClassBadge } from '@/components/ui/class-badge';
 import { Colors, Fonts, Radius } from '@/constants/theme';
-import { getClass } from '@/data/classes';
+import { CLASS_TEXT_MN, getClass } from '@/data/classes';
 import { lookFor } from '@/lib/avatar-look';
 import type { ClassId } from '@/types';
 
@@ -29,17 +29,17 @@ export function AvatarPreview({ nickname, classId }: { nickname: string; classId
       <Animated.View style={[styles.character, hopStyle]}>
         <View style={[styles.tag, name ? styles.tagFilled : null]}>
           <AppText style={[styles.tagText, !name && styles.tagPlaceholder]} numberOfLines={1}>
-            {name || 'your nickname'}
+            {name || 'таны хоч нэр'}
           </AppText>
         </View>
         <Scientist look={lookFor(name, classId)} height={118} />
       </Animated.View>
       <View style={styles.badgeSlot}>
         {classId ? (
-          <ClassBadge classId={classId} />
+          <ClassBadge classId={classId} label={CLASS_TEXT_MN[classId].name} />
         ) : (
           <AppText variant="caption" color={Colors.textDim}>
-            No class picked yet
+            Түвшин сонгоогүй байна
           </AppText>
         )}
       </View>

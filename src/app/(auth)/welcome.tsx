@@ -12,9 +12,9 @@ import { APP_NAME, Colors } from '@/constants/theme';
 import type { IconName } from '@/types';
 
 const FEATURES: { icon: IconName; color: string; text: string }[] = [
-  { icon: 'account-group', color: Colors.cyan, text: 'Walk around a campus full of players' },
-  { icon: 'flask', color: Colors.lime, text: 'Learn chemistry through lab lessons' },
-  { icon: 'trophy', color: Colors.gold, text: 'Earn XP and climb the global ranking' },
+  { icon: 'account-group', color: Colors.cyan, text: 'Олон тоглогчтой кампусаар чөлөөтэй алхаарай' },
+  { icon: 'flask', color: Colors.lime, text: 'Лабораторийн хичээлээр хими сураарай' },
+  { icon: 'trophy', color: Colors.gold, text: 'XP цуглуулж, нийт чансаанд дээшлээрэй' },
 ];
 
 export default function WelcomeScreen() {
@@ -33,7 +33,7 @@ export default function WelcomeScreen() {
             {APP_NAME}
           </AppText>
           <AppText variant="body" align="center">
-            A virtual chem lab you can walk around in.
+            Дотор нь алхаж болох виртуал химийн лаборатори.
           </AppText>
         </Animated.View>
 
@@ -51,8 +51,8 @@ export default function WelcomeScreen() {
         </Animated.View>
 
         <Animated.View entering={FadeInDown.delay(320).duration(500)} style={styles.actions}>
-          <GameButton title="Create account" icon="account-plus" onPress={() => router.push('/sign-up')} />
-          <GameButton title="I already have an account" variant="secondary" size="md" onPress={() => router.push('/sign-in')} />
+          <GameButton title="Бүртгэл үүсгэх" icon="account-plus" onPress={() => router.push('/sign-up')} />
+          <GameButton title="Би бүртгэлтэй" variant="secondary" size="md" onPress={() => router.push('/sign-in')} />
         </Animated.View>
       </ScrollView>
     </LabBackground>

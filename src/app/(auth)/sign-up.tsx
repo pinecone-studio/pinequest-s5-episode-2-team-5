@@ -38,9 +38,9 @@ type Field = AuthField | 'classId';
 
 const STRENGTH = [
   { label: '', color: Colors.border },
-  { label: 'Weak', color: Colors.danger },
-  { label: 'Good', color: Colors.gold },
-  { label: 'Strong', color: Colors.success },
+  { label: 'Сул', color: Colors.danger },
+  { label: 'Дунд', color: Colors.gold },
+  { label: 'Хүчтэй', color: Colors.success },
 ];
 
 export default function SignUpScreen() {
@@ -63,7 +63,7 @@ export default function SignUpScreen() {
     email: validateEmail(email),
     password: validatePassword(password),
     nickname: validateNickname(nickname),
-    classId: classId ? null : 'Pick the class you want to start in',
+    classId: classId ? null : 'Эхлэх түвшнээ сонгоно уу',
   };
 
   const errorFor = (field: Field) => {
@@ -76,7 +76,7 @@ export default function SignUpScreen() {
     touch('nickname');
     if (validateNickname(nickname)) return;
     if (!(await isNicknameAvailable(nickname))) {
-      setServerError({ field: 'nickname', message: 'That nickname is already taken' });
+      setServerError({ field: 'nickname', message: 'Энэ хоч нэрийг өөр хүн авсан байна' });
     }
   };
   const clearServerError = (field: AuthField) => {
@@ -102,7 +102,7 @@ export default function SignUpScreen() {
       setServerError(
         error instanceof AuthError
           ? { field: error.field, message: error.message }
-          : { message: 'Something went wrong. Please try again.' },
+          : { message: 'Алдаа гарлаа. Дахин оролдоно уу.' },
       );
       setSubmitting(false);
     }
@@ -113,7 +113,7 @@ export default function SignUpScreen() {
   return (
     <LabBackground bubbles={6}>
       <KeyboardAvoidingView style={styles.flex} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
-        <ScreenHeader title="Create your scientist" subtitle="It takes less than a minute" />
+        <ScreenHeader title="Эрдэмтнээ бүтээ" subtitle="Нэг минут ч хүрэхгүй" />
         <ScrollView
           ref={scrollRef}
           keyboardShouldPersistTaps="handled"
@@ -121,11 +121,11 @@ export default function SignUpScreen() {
           contentContainerStyle={[styles.content, { paddingBottom: insets.bottom + 32 }]}>
           <AvatarPreview nickname={nickname} classId={classId} />
 
-          <FormSection title="Account" icon="shield-account">
+          <FormSection title="Бүртгэл" icon="shield-account">
             <TextField
-              label="Email"
+              label="Имэйл"
               icon="email-outline"
-              placeholder="you@example.com"
+              placeholder="example@gmail.com"
               value={email}
               onChangeText={(v) => {
                 setEmail(v);
@@ -144,14 +144,14 @@ export default function SignUpScreen() {
             />
             <TextField
               ref={passwordRef}
-              label="Password"
+              label="Нууц үг"
               icon="lock-outline"
-              placeholder="At least 8 characters"
+              placeholder="Дор хаяж 8 тэмдэгт"
               value={password}
               onChangeText={setPassword}
               onBlur={() => touch('password')}
               error={errorFor('password')}
-              hint="Use 8+ characters with letters and numbers"
+              hint="Үсэг, тоо холисон 8-аас доошгүй тэмдэгт ашиглана уу"
               password
               autoCapitalize="none"
               autoComplete="new-password"
@@ -180,12 +180,12 @@ export default function SignUpScreen() {
             />
           </FormSection>
 
-          <FormSection title="Your scientist" icon="account-outline">
+          <FormSection title="Таны эрдэмтэн" icon="account-outline">
             <TextField
               ref={nicknameRef}
-              label="Nickname"
+              label="Хоч нэр"
               icon="account-outline"
-              placeholder="e.g. AtomAce"
+              placeholder="жишээ нь: AtomAce"
               value={nickname}
               onChangeText={(v) => {
                 setNickname(v);
@@ -193,7 +193,7 @@ export default function SignUpScreen() {
               }}
               onBlur={checkNickname}
               error={errorFor('nickname')}
-              hint={`Shown above your character and on the ranking · ${nickname.trim().length}/${NICKNAME_MAX}`}
+              hint={`Дүрийн тань дээр болон чансаанд харагдана · ${nickname.trim().length}/${NICKNAME_MAX}`}
               maxLength={NICKNAME_MAX}
               autoCapitalize="none"
               autoCorrect={false}
@@ -203,9 +203,9 @@ export default function SignUpScreen() {
             />
           </FormSection>
 
-          <FormSection title="Starting class" icon="school-outline">
+          <FormSection title="Эхлэх түвшин" icon="school-outline">
             <AppText variant="caption">
-              Pick where you begin. Classes below yours stay open, so you can always review the basics.
+              Хаанаас эхлэхээ сонго. Доод түвшний хичээлүүд нээлттэй хэвээр байх тул үндсээ хэзээ ч давтаж болно.
             </AppText>
             <View style={styles.classes} accessibilityRole="radiogroup">
               {CLASSES.map((c) => (
@@ -229,13 +229,13 @@ export default function SignUpScreen() {
 
           {serverError && !serverError.field && <FormError message={serverError.message} />}
 
-          <GameButton title="Start my adventure" icon="rocket-launch" loading={submitting} onPress={submit} />
+          <GameButton title="Адал явдлаа эхлүүлэх" icon="rocket-launch" loading={submitting} onPress={submit} />
 
           <View style={styles.switchRow}>
-            <AppText variant="body">Already have an account?</AppText>
+            <AppText variant="body">Бүртгэлтэй юу?</AppText>
             <Pressable onPress={() => router.replace('/sign-in')} hitSlop={10} accessibilityRole="link">
               <AppText variant="bodyStrong" color={Colors.lime} style={styles.link}>
-                Sign in
+                Нэвтрэх
               </AppText>
             </Pressable>
           </View>
@@ -257,7 +257,7 @@ const styles = StyleSheet.create({
   },
   strengthRow: { flexDirection: 'row', alignItems: 'center', gap: 6 },
   strengthBar: { flex: 1, height: 6, borderRadius: 3 },
-  strengthLabel: { width: 52, textAlign: 'right' },
+  strengthLabel: { width: 60, textAlign: 'right' },
   classes: { gap: 12 },
   switchRow: { flexDirection: 'row', justifyContent: 'center', alignItems: 'center', gap: 6 },
   link: { fontFamily: Fonts.bold },
