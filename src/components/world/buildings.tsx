@@ -42,15 +42,15 @@ export function BuildingSprite({ building, scale = 1 }: { building: BuildingDef;
           zIndex: rect.y + rect.h,
         },
       ]}>
-      {building.id === 'lessons' ? <LessonsHall /> : building.id === 'ranking' ? <RankingTower /> : <HubHouse building={building} />}
+      {building.sprite === 'hall' ? <LessonsHall /> : building.sprite === 'tower' ? <RankingTower /> : <HubHouse building={building} />}
     </View>
   );
 }
 
 export function BuildingWindowLights({ building, scale = 1 }: { building: BuildingDef; scale?: number }) {
-  if (building.id === 'ranking') return null;
+  if (building.sprite === 'tower') return null;
 
-  const isLessonsHall = building.id === 'lessons';
+  const isLessonsHall = building.sprite === 'hall';
   const { rect } = building;
   const width = isLessonsHall ? 300 : 200;
   const height = isLessonsHall ? 280 : 260;

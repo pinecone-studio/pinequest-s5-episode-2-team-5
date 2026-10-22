@@ -27,7 +27,7 @@ export function NamePlate({ building, scale = 1 }: { building: BuildingDef; scal
   const { rect } = building;
   const plateWidth = rect.w * scale;
   const plateHeight = PLATE_OFFSET * scale;
-  const roofOverlap = ['versus', 'friendly', 'openlab'].includes(building.id) ? 20 * scale : 0;
+  const roofOverlap = building.sprite === 'house' ? 20 * scale : 0;
   return (
     <Animated.View
       pointerEvents="none"

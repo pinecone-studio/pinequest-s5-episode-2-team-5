@@ -65,13 +65,13 @@ const HUB_HOUSE_HIT_SHAPE = [
   { x: 5, y: 113 }, { x: 5, y: 100 }, { x: 8, y: 105 },
 ];
 
-const BUILDING_HIT_SHAPES: Record<BuildingDef['id'], readonly (readonly Point[])[]> = {
-  lessons: [[
+const BUILDING_HIT_SHAPES: Record<BuildingDef['sprite'], readonly (readonly Point[])[]> = {
+  hall: [[
     { x: 150, y: 50 }, { x: 278, y: 116 }, { x: 278, y: 130 }, { x: 262, y: 130 },
     { x: 262, y: 240 }, { x: 274, y: 240 }, { x: 274, y: 266 }, { x: 26, y: 266 },
     { x: 26, y: 240 }, { x: 38, y: 240 }, { x: 38, y: 130 }, { x: 22, y: 130 }, { x: 22, y: 116 },
   ]],
-  ranking: [
+  tower: [
     [
       { x: 12, y: 308 }, { x: 178, y: 308 }, { x: 178, y: 280 }, { x: 150, y: 284 },
       { x: 142, y: 120 }, { x: 158, y: 122 }, { x: 158, y: 104 }, { x: 136, y: 104 },
@@ -86,9 +86,7 @@ const BUILDING_HIT_SHAPES: Record<BuildingDef['id'], readonly (readonly Point[])
       { x: 70, y: 31 }, { x: 66, y: 24 },
     ],
   ],
-  versus: [HUB_HOUSE_HIT_SHAPE],
-  friendly: [HUB_HOUSE_HIT_SHAPE],
-  openlab: [HUB_HOUSE_HIT_SHAPE],
+  house: [HUB_HOUSE_HIT_SHAPE],
 };
 
 /** Keeps the target centered, clamped so the camera never shows past the map edge. */
@@ -123,7 +121,7 @@ function isOnBuilding(building: BuildingDef, point: Point) {
     x: (point.x - rect.x - (rect.w * (1 - MAP_SPRITE_SCALE)) / 2) / MAP_SPRITE_SCALE,
     y: (point.y - rect.y - rect.h * (1 - MAP_SPRITE_SCALE)) / MAP_SPRITE_SCALE,
   };
-  return BUILDING_HIT_SHAPES[building.id].some((shape) => pointInPolygon(localPoint, shape));
+  return BUILDING_HIT_SHAPES[building.sprite].some((shape) => pointInPolygon(localPoint, shape));
 }
 
 export default function HubScreen() {

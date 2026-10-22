@@ -26,8 +26,12 @@ const TOP_STRIP = 112;
 
 export type BuildingId = 'lessons' | 'ranking' | 'versus' | 'friendly' | 'openlab';
 
+/** Which sprite (and hit shape) a building is drawn with. */
+export type BuildingSprite = 'hall' | 'tower' | 'house';
+
 export interface BuildingDef {
   id: BuildingId;
+  sprite: BuildingSprite;
   label: string;
   route: Href;
   icon: IconName;
@@ -42,16 +46,18 @@ export interface BuildingDef {
 /** Add a hub here (and a sprite in buildings.tsx) to grow the campus. */
 export const BUILDINGS: BuildingDef[] = [
   {
-    id: 'lessons',
+    id: 'openlab',
+    sprite: 'hall',
     label: 'OpenLab',
-    route: '/lessons',
-    icon: 'flask',
-    color: '#7C4DFF',
+    route: '/openlab',
+    icon: 'flask-outline',
+    color: '#B5F23D',
     rect: { x: 170, y: 130, w: 300, h: 280 },
     door: { x: 320, y: 434 },
   },
   {
     id: 'ranking',
+    sprite: 'tower',
     label: 'Global Ranking',
     route: '/ranking',
     icon: 'trophy',
@@ -60,15 +66,15 @@ export const BUILDINGS: BuildingDef[] = [
     door: { x: 535, y: 812 },
   },
   {
-    id: 'versus', label: 'Versus Hub', route: '/versus', icon: 'sword-cross', color: '#FF5C7A',
+    id: 'versus', sprite: 'house', label: 'Versus Hub', route: '/versus', icon: 'sword-cross', color: '#FF5C7A',
     rect: { x: 10, y: 390, w: 200, h: 260 }, door: { x: 110, y: 662 },
   },
   {
-    id: 'friendly', label: 'Friendly Hub', route: '/friendly', icon: 'heart-multiple', color: '#3DE0F5',
+    id: 'friendly', sprite: 'house', label: 'Friendly Hub', route: '/friendly', icon: 'heart-multiple', color: '#3DE0F5',
     rect: { x: 10, y: 710, w: 200, h: 260 }, door: { x: 110, y: 980 },
   },
   {
-    id: 'openlab', label: 'OpenLab', route: '/openlab', icon: 'flask-outline', color: '#B5F23D',
+    id: 'lessons', sprite: 'house', label: 'Lesson Hall', route: '/lessons', icon: 'book-open-variant', color: '#7C4DFF',
     rect: { x: 430, y: 820, w: 200, h: 260 }, door: { x: 530, y: 1080 },
   },
 ];
