@@ -10,6 +10,7 @@ export interface ReactionObservation {
   preset: ReactionKind; key: string; reactants: MoleculeSpec[]; products: MoleculeSpec[]; spectators?: MoleculeSpec[];
   rate: number; temp: number; equation: string; sentence: string; effect: 'gas' | 'foam' | 'precipitate' | 'color' | 'water';
   rateUnit?: 'mol/s' | 'g/s';
+  info?: boolean; catalyst?: 'iodide';
 }
 export const atom = (id: string, name: string, formula: string, color: string, count = 1, phase?: MoleculeSpec['phase']): MoleculeSpec => ({ id, name, formula, color, count, ...(phase ? { phase } : {}) });
 const H = () => atom('H', 'Устөрөгчийн ион', 'H⁺', '#ffffff');
@@ -47,6 +48,21 @@ export function evaporationReaction(rate: number, temp: number, crystal?: SolidI
   }
   return r;
 }
+/** A known incomplete mixture is still an observation, never a blocked action. */
+export function incompletePeroxide(m: Mixture, rate = 0): ReactionObservation | null {
+  const peroxide = (m.aq.H2O2 ?? 0) > 1e-9;
+  const soap = (m.aq.soap ?? 0) > 1e-9;
+  if (peroxide && !(m.aq.I || m.aq.Fe3 || m.s.MnO2)) {
+    const r = observation('peroxide', [{ ...ion('H2O2'), count: 2 }], [{ ...W(), count: 2 }, atom('O2', 'Хүчилтөрөгч', 'O₂', '#ff3030', 1, 'gas')], rate, m.temp, 'gas', `${soap ? 'Саван бол катализатор биш. ' : ''}H₂O₂ маш удаан задардаг тул өөрчлөлт бараг харагдахгүй. Катализатор (KI) нэмээрэй.`);
+    r.info = true; return r;
+  }
+  if (!peroxide && soap) {
+    const r = observation('peroxide', [ion('soap')], [], 0, m.temp, 'water', 'H₂O₂ байхгүй тул урвал явахгүй.');
+    r.info = true; r.key += ':missing-peroxide'; r.equation = 'H₂O₂ байхгүй — урвал явахгүй';
+    r.spectators = m.aq.I ? [ion('K'), ion('I')] : []; return r;
+  }
+  return null;
+}
 export function mixObservations(dst: Mixture, added: Mixture, after: Mixture, neutralized: number, formed: SolidId[], duration = .25): ReactionObservation[] {
   const result: ReactionObservation[] = [];
   for (const id of formed) {
@@ -79,6 +95,7 @@ export function mixObservations(dst: Mixture, added: Mixture, after: Mixture, ne
     result.push(observation('generic', [atom('HIn', `${AQ[id].name} (хүчиллэг хэлбэр)`, 'HIn', '#f0b1b6')], [H(), atom('In', `${AQ[id].name} (суурилаг хэлбэр)`, 'In⁻', '#8095e7')], Math.abs(acidityToNeutral(dst) - acidityToNeutral(after)) / duration, after.temp, 'color', `${AQ[id].name} хүчил, шүлттэй холилдоход индикаторын өнгөт хэлбэрийн харьцаа өөрчлөгдөж байна (өнгө өөрчлөгдөнө).`));
     result[result.length - 1].equation = 'HIn ⇌ H⁺ + In⁻';
   }
+  if (!result.length) { const info = incompletePeroxide(after); if (info) result.push(info); }
   return result;
 }
 export function stepObservations(before: Mixture, result: StepResult, dt: number): ReactionObservation[] {
@@ -92,10 +109,11 @@ export function stepObservations(before: Mixture, result: StepResult, dt: number
   if (result.gas.O2 > 1e-10 && !redox && (before.aq.H2O2 ?? 0) > (m.aq.H2O2 ?? 0)) {
     const r = observation('peroxide', [{ ...ion('H2O2'), count: 2 }], [{ ...W(), count: 2 }, atom('O2', 'Хүчилтөрөгч', 'O₂', '#f25460', 1, 'gas')], result.gas.O2, m.temp, m.foam > .1 ? 'foam' : 'gas', 'Устөрөгчийн хэт исэл катализаторын нөлөөгөөр ус, хүчилтөрөгч болж задарч байна; саван хийг хөөс болгон барина.');
     r.equation = `2H₂O₂ → 2H₂O + O₂↑${(before.aq.I ?? 0) > 0 ? '  (KI — катализатор)' : ''}`;
-        if (before.aq.I) { r.spectators = [ion('I')]; r.key += ':KI'; }
+        if (before.aq.I) { r.spectators = [ion('K'), ion('I')]; r.key += ':KI'; r.catalyst = 'iodide'; }
     const catalyst = before.aq.I || before.aq.Fe3 || before.s.MnO2;
     r.sentence = `Устөрөгчийн хэт исэл ${catalyst ? 'катализаторын нөлөөгөөр' : 'аажмаар'} ус, хүчилтөрөгч болж задарч байна (хий ялгарна).${before.aq.soap ? ' Саван хийг хөөс болгон барина.' : ''}`;
-    out.push(r);
+    const info = incompletePeroxide(before, r.rate);
+    out.push(info ?? r);
   }
   if (redox) {
     const acidic = (m.aq.Mn ?? 0) > (before.aq.Mn ?? 0);
@@ -128,5 +146,6 @@ export function stepObservations(before: Mixture, result: StepResult, dt: number
     const produced = (Object.keys(m.s) as SolidId[]).filter((id) => (m.s[id] ?? 0) > (before.s[id] ?? 0) + 1e-9).map((id) => solid(id));
     if (consumed.length && produced.length) { const r = observation('generic', consumed, produced, consumed.reduce((n, s) => n + (before.s[s.id.replace('solid-', '') as SolidId] ?? 0), 0) / dt, m.temp, 'color'); r.equation = 'A + B → C · ажиглагдсан хувирал'; out.push(r); }
   }
-  return out.filter((r) => r.rate > 0 && Number.isFinite(r.rate) && liquidMl(m) >= 0);
+  if (!out.length) { const info = incompletePeroxide(m); if (info) out.push(info); }
+  return out.filter((r) => (r.info || r.rate > 0) && Number.isFinite(r.rate) && liquidMl(m) >= 0);
 }

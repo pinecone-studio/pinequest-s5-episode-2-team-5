@@ -1,3 +1,5 @@
+import { ExperimentSuccess } from './ExperimentSuccess';
+import { MoleculeViewerPanel } from './MoleculeViewer';
 /**
  * Heads-up display, laid out like the reference: yellow round menu (top left), notes +
  * End (top right), yellow tools tab (right edge), robot assistant (bottom left),
@@ -25,18 +27,15 @@ import { TouchControls } from './TouchControls';
 import { isTouchDevice } from '../utils/device';
 import { InspectMode } from '../interaction/InspectMode';
 import { NaClHUD } from '../experiments/nacl/NaClHUD';
-import { useSandbox } from '../experiments/nacl/sandbox';
 import { ActionGauge, ExperimentCard, SafetyBadges, ThrowMeter } from './LabHud';
 import { PreparationLabels } from '../experiments/workbench/PreparationHints';
 import { ReactionLens } from '../experiments/workbench/ReactionLens';
-import { BenchDrawer } from '../experiments/workbench/BenchDrawer';
 
 export function HUD() {
   const mode = useGameStore((s) => s.mode);
   const showFps = useSettingsStore((s) => s.showFps);
   const inGame = mode !== 'loading' && mode !== 'start' && mode !== 'ended';
   const bench = mode === 'bench';
-  const nearNaCl = useSandbox((s) => s.near);
   const showChrome = inGame && mode !== 'inspect' && !bench;
   const touch = isTouchDevice();
   return (
@@ -56,15 +55,14 @@ export function HUD() {
             <NotesButton />
             <EndButton />
           </div>
-          <RoomToast />
           <Minimap />
           <SafetyBadges />
           <ExperimentCard />
         </>
       )}
       {(mode === 'walk' || bench) && <NaClHUD />}
-      {inGame && !bench && !nearNaCl && <ToolTab />}
-      {(bench || mode === 'walk' && nearNaCl) && <BenchDrawer />}
+      {inGame && <ToolTab />}
+      {inGame && <RoomToast />}
       {inGame && <RobotAssistant hidden={!showChrome} />}
       {showFps && <FpsCounter />}
       <MenuPanel />
@@ -75,6 +73,8 @@ export function HUD() {
       <PreparationLabels />
       <InspectMode />
       {inGame && <ReactionLens />}
+      <MoleculeViewerPanel />
+      <ExperimentSuccess />
       <LoadingScreen />
       <SummaryScreen />
     </>

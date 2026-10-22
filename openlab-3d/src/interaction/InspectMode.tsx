@@ -1,3 +1,4 @@
+import { MoleculeViewerButton } from '../ui/MoleculeViewer';
 /**
  * F-inspect: the focused object floats in front of the (blurred, paused) lab in its own
  * transparent canvas. Drag to rotate, scroll to zoom. A side card shows the catalog
@@ -185,7 +186,7 @@ export function InspectMode() {
                   ))}
                 </div>
               )}
-              {isContainer(target.kind) && <Contents m={mixture} capacity={def.capacityMl ?? 0} />}
+              {isContainer(target.kind) && <><Contents m={mixture} capacity={def.capacityMl ?? 0} /><MoleculeViewerButton id={target.sourceId}/></>}
               {target.kind === 'thermometer' && tool?.reading !== undefined && (
                 <div className="mt-4 rounded-xl border border-sky-200 bg-sky-50 p-3 text-sm text-sky-900">🌡 Сүүлийн хэмжилт: <b>{tool.reading.toFixed(1)} °C</b></div>
               )}

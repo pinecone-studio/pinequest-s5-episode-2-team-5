@@ -1,22 +1,29 @@
+import { co2Until, coverUntil, stirUntil, heldHeat } from '../../interaction/actions';
+import { clearExperimentFeedback } from '../../lab/announcer';
+import { endHeldUse } from '../../interaction/useHeld';
+import { forget } from '../../lab/observe';
+import { vesselFx } from '../../lab/vesselFx';
+import { useExperimentStore } from '../../store/useExperimentStore';
+import { resetPresentation } from '../../lab/presentation';
 /** Bench preparation and selection. Session objects remain in the shared room. */
 import { create } from 'zustand';
-import { Box3, Vector3 } from 'three';
+import { Box3, Quaternion, Vector3 } from 'three';
 import { CATALOG, SPAWNABLE_KINDS, type EquipmentKind } from '../../equipment/equipmentCatalog';
 import { REAGENTS, REAGENT_LIST, type ReagentId } from '../../chemistry/reagents';
 import { useLabStore } from '../../store/useLabStore';
-import { useInventoryStore } from '../../store/useInventoryStore';
+import { storedIn, useInventoryStore } from '../../store/useInventoryStore';
 import { useChemStore } from '../../store/useChemStore';
 import { useGameStore } from '../../store/useGameStore';
 import { solidMassG } from '../../chemistry/mixture';
-import { livePose } from '../../interaction/bodies';
+import { bodies, livePose } from '../../interaction/bodies';
 import { benchView, useBenchView } from '../nacl/view';
-import { stock } from '../../world/itemsLayout';
+import { stock, type WorldItem } from '../../world/itemsLayout';
 import { BENCH_HEIGHT } from '../../utils/constants';
 import { bench } from '../nacl/bench';
 import { LABEL_KEYS, NAMES, USES, SUBSTANCES, type PartKey } from '../nacl/data';
-import { warn, heldObjectId, partKey, useSandbox } from '../nacl/sandbox';
+import { warn, heldObjectId, partKey, useSandbox, resetSandbox } from '../nacl/sandbox';
 import { interactables, isVisibleInScene } from '../../interaction/registry';
-import { usePortableStore } from '../../interaction/portable';
+import { restoreScenePortable, usePortableStore } from '../../interaction/portable';
 import { clearReactionViews } from '../../lab/reaction-view';
 import { sounds } from '../../utils/sounds';
 import { isWorkbenchPosition } from './placement';
@@ -46,7 +53,7 @@ const RECIPES: Record<string, BenchSupply[]> = {
 };
 export const suppliesFor = (id: string | null) => id ? RECIPES[id] ?? [] : [];
 export const supplySubstance = (supply: BenchSupply) => supply.part === 'bottle' ? SUBSTANCES.hcl : supply.part === 'jar' ? SUBSTANCES.na2co3 : supply.part === 'lamp' ? SUBSTANCES.ethanol : null;
-export interface BenchSession { found: string[]; objects: Record<string, string>; ready: boolean; stepOverride: number | null }
+export interface BenchSession { found: string[]; placed: string[]; owned: string[]; teacher: boolean; objects: Record<string, string>; ready: boolean; stepOverride: number | null }
 export interface SupplyItem { id: string; kind?: EquipmentKind; reagent?: ReagentId; part?: PartKey }
 export const PART_KINDS: Partial<Record<PartKey, EquipmentKind>> = { bottle: 'reagentBottle', cyl: 'graduatedCylinder', beaker: 'beaker', spat: 'spatula', rod: 'glassRod', funnel: 'funnel', flask: 'erlenmeyer', dish: 'evaporatingDish', tripod: 'tripod', waste: 'beaker', watch: 'watchGlass' };
 export const ALL_SUPPLIES: BenchSupply[] = [
@@ -58,13 +65,17 @@ export const useWorkbench = create<{
   sessions: Record<string, BenchSession>; drawer: boolean;
   loose: Record<string, string>; availableParts: PartKey[];
 }>()(() => ({ sessions: {}, drawer: false, loose: {}, availableParts: [] }));
+// Capture inventory origins before pickup removes the world/holder entry. Scene-owned
+// meshes use portable.ts's original transform; spawned stock has no room origin.
+const origins = new Map<string, { world?: WorldItem; holder?: string; item?: { id: string; kind: EquipmentKind; variant?: WorldItem['variant'] } }>();
+let cleaning = false;
 const picked = new Map<string, SupplyItem>();
 let focusTicket = 0;
 export function currentSession() { const id = useLabStore.getState().active; return id ? useWorkbench.getState().sessions[id] : undefined; }
 export function beginPreparation() {
   const id = useLabStore.getState().active;
   if (!id || useWorkbench.getState().sessions[id]) return;
-  useWorkbench.setState((s) => ({ sessions: { ...s.sessions, [id]: { found: [], objects: {}, ready: suppliesFor(id).length === 0, stepOverride: null } } }));
+  useWorkbench.setState((s) => ({ sessions: { ...s.sessions, [id]: { found: [], placed: [], owned: [], teacher: false, objects: {}, ready: suppliesFor(id).length === 0, stepOverride: null } } }));
 }
 export function matchesSupply(supply: BenchSupply, item: SupplyItem): boolean {
   if (supply.part) {
@@ -113,7 +124,7 @@ export function supplyObject(supply: BenchSupply): string | null {
   return null;
 }
 /** A card can always add stock. Merely spawning it does NOT complete preparation. */
-export function collectSupply(supply: BenchSupply): boolean {
+export function collectSupply(supply: BenchSupply, pickup = false): boolean {
   beginPreparation();
   const required = suppliesFor(useLabStore.getState().active);
   const wrong = !!currentSession() && !currentSession()!.ready && !required.some((r) => r.key === supply.key || matchesSupply(r, { id: supply.key, kind: supply.kind, reagent: supply.reagent, part: supply.part }));
@@ -130,13 +141,18 @@ export function collectSupply(supply: BenchSupply): boolean {
     }
     if (!id) { warn('Ширээнд зай хүрэхгүй байна. Нэг хэрэгслээ хураагаад дахин сонго.'); return false; }
     useWorkbench.setState((s) => ({ loose: { ...s.loose, [supply.key]: id! } }));
-    warn(wrong ? 'Энэ туршилтад хэрэггүй. Чөлөөтэй ашиглаж болно.' : `${supply.name} гаргалаа. Авч, ширээнд буцааж тавихад ✓ болно.`);
+    warn(wrong ? 'Энэ туршилтад хэрэггүй. Чөлөөтэй ашиглаж болно.' : `${supply.name} гаргалаа. Авмагц ✓ олдлоо, тавихад ✓ ширээнд болно.`);
   } else warn(wrong ? 'Энэ туршилтад хэрэггүй. Чөлөөтэй ашиглаж болно.' : `${supply.name} энд байна. Авч, ширээнд тавиарай.`);
+  const activeId = useLabStore.getState().active;
+  if (activeId) useWorkbench.setState((s) => {const session=s.sessions[activeId];return session ? {sessions:{...s.sessions,[activeId]:{...session,owned:[...new Set([...(session.owned??[]),id!])]}}} : s;});
   // Inventory spawning commits before the R3F Interactable layout effect registers.
   // Keep the selected identity visible and frame only once its actual mesh exists.
   const selected = id, ticket = ++focusTicket, deadline = performance.now() + 3000;
+  if (pickup && !heldObjectId() && useInventoryStore.getState().worldItems.some((w) => w.id === selected)) useInventoryStore.getState().pickUp(selected);
   const frame = () => {
     if (ticket !== focusTicket) return;
+    if (pickup && !heldObjectId()) interactables.get(selected)?.onGrab?.();
+    if (useGameStore.getState().mode !== 'bench' || heldObjectId() === selected) return;
     if (interactables.has(selected) || partKey(selected)) benchView.focus(selected);
     else if (performance.now() < deadline) requestAnimationFrame(frame);
   };
@@ -148,30 +164,51 @@ export function collectSupply(supply: BenchSupply): boolean {
 export function recordBenchPlacement(item: SupplyItem, at: { x: number; y: number; z: number }, teacher = false): void {
   const active = useLabStore.getState().active;
   const session = currentSession();
-  if (!active || !session || session.ready || !onWorkbench(at) || (!teacher && !picked.has(item.id))) return;
+  if (!active || !session || cleaning || !onWorkbench(at) || (!teacher && !picked.has(item.id))) return;
   const required = suppliesFor(active);
   const supply = required.find((s) => matchesSupply(s, item));
   if (!supply) { warn('Энэ туршилтад хэрэггүй. Тавихыг хориглоогүй.'); return; }
   const objects = { ...session.objects, [supply.key]: item.id };
   const found = [...new Set([...session.found, supply.key])];
-  const ready = required.every((r) => found.includes(r.key) && onWorkbench(r.key === supply.key ? at : itemPosition(objects[r.key])) && heldObjectId() !== objects[r.key]);
-  useWorkbench.setState((s) => ({ sessions: { ...s.sessions, [active]: { ...session, found, objects, ready } } }));
+  const placed = [...new Set([...session.placed, supply.key])];
+  const ready = session.ready || required.every((r) => placed.includes(r.key) && onWorkbench(r.key === supply.key ? at : itemPosition(objects[r.key])) && heldObjectId() !== objects[r.key]);
+  useWorkbench.setState((s) => ({ sessions: { ...s.sessions, [active]: { ...session, found, placed, objects, ready } } }));
   useSandbox.setState((s) => ({ participants: [...new Set([...s.participants, item.id])] }));
-  warn(ready ? 'Бэлтгэл дууслаа. Эхний алхмаа эхлүүлээрэй.' : `${supply.name} ✓`);
-  if (ready) { sounds.play('success', .6); useGameStore.getState().say('Хэрэгтэй бүх зүйл ширээн дээр бэлэн боллоо. Эхний алхмаа эхлүүлээрэй.', 'happy'); }
+  warn(ready && !session.ready ? 'Бэлтгэл дууслаа. Эхний алхмаа эхлүүлээрэй.' : `${supply.name} · ✓ ширээнд`);
+  if (ready && !session.ready) { sounds.play('success', .6); useGameStore.getState().say('Хэрэгтэй бүх зүйл ширээн дээр бэлэн боллоо. Эхний алхмаа эхлүүлээрэй.', 'happy'); }
 }
 function notePickup(item: SupplyItem) {
+  if (cleaning) return;
   picked.set(item.id, item);
+  beginPreparation();
   const active = useLabStore.getState().active, session = currentSession();
-  if (active && session && !session.ready) {
-    const found = session.found.filter((key) => session.objects[key] !== item.id);
-    if (found.length !== session.found.length) useWorkbench.setState((s) => ({ sessions: { ...s.sessions, [active]: { ...session, found } } }));
+  if (!active || !session) return;
+  const required = suppliesFor(active), supply = required.find((r) => matchesSupply(r, item));
+  if (!supply) { useWorkbench.setState((s)=>({sessions:{...s.sessions,[active]:{...session,owned:[...new Set([...(session.owned??[]),item.id])]}}})); warn('Энэ туршилтад хэрэггүй. Чөлөөтэй ашиглаж болно.'); return; }
+  const fresh = !session.found.includes(supply.key);
+  const found = fresh ? [...session.found, supply.key] : session.found;
+  const placed = session.placed.filter((key) => key !== supply.key && session.objects[key] !== item.id);
+  useWorkbench.setState((s) => ({ sessions: { ...s.sessions, [active]: { ...session, found, placed, owned: [...new Set([...(session.owned??[]),item.id])], objects: { ...session.objects, [supply.key]: item.id } } } }));
+  if (fresh) {
+    sounds.play('tick', .8);
+    useGameStore.getState().showToast(`✓ ${supply.name} олдлоо (${found.length}/${required.length})`, 'Ажлын ширээнд тавихад ✓ ширээнд болно.');
   }
 }
 export function startWorkbenchTracking(): () => void {
   beginPreparation();
   const a = useInventoryStore.subscribe((s, previous) => {
-    if (s.held && s.held.id !== previous.held?.id) notePickup(itemDescription(s.held.id));
+    if (s.held && s.held.id !== previous.held?.id && !cleaning) {
+      const id = s.held.id;
+      if (!origins.has(id) && !id.startsWith('spawn-')) {
+        const world = previous.worldItems.find((w) => w.id === id);
+        if (world) origins.set(id, { world });
+        else {
+          const holder = Object.keys(s.storage).find((h) => storedIn(previous.storage,h).some((it)=>it.id===id));
+          if (holder) origins.set(id, { holder, item: { id, kind: s.held.kind, variant: s.held.variant } });
+        }
+      }
+      notePickup(itemDescription(id));
+    }
     if (previous.held && previous.held.id !== s.held?.id && s.placedCount > previous.placedCount) {
       const w = s.worldItems.find((w) => w.id === previous.held!.id);
       if (w) recordBenchPlacement(picked.get(w.id) ?? itemDescription(w.id), new Vector3(...w.position));
@@ -185,8 +222,18 @@ export function startWorkbenchTracking(): () => void {
 }
 /** Explicit teacher bypass; the ordinary path requires an actual pickup and placement. */
 export function demonstratePreparation() {
+  beginPreparation();
+  const active = useLabStore.getState().active, session = currentSession();
+  if (active && session) useWorkbench.setState((s) => ({ sessions: { ...s.sessions, [active]: { ...session, teacher: true } } }));
+  const held=heldObjectId();
+  if(held) {
+    const slot=Math.max(0,suppliesFor(active).findIndex((s)=>matchesSupply(s,itemDescription(held))));
+    const at=new Vector3(7.55+slot%8*.2,BENCH_HEIGHT+.015,-14.78+Math.floor(slot/8)*.22);
+    if(useInventoryStore.getState().held)useInventoryStore.getState().place([at.x,at.y,at.z],0);
+    else {usePortableStore.getState().held?.move(at,0,0);usePortableStore.setState({held:null});useSandbox.setState({heldId:null});}
+  }
   for (const supply of suppliesFor(useLabStore.getState().active)) {
-    if (currentSession()?.found.includes(supply.key)) continue;
+    if (currentSession()?.placed.includes(supply.key)) continue;
     if (!collectSupply(supply)) break;
     const id = supplyObject(supply);
     if (id) recordBenchPlacement(itemDescription(id), itemPosition(id), true);
@@ -197,25 +244,74 @@ export function jumpToStep(index: number) {
   if (id && session?.ready) useWorkbench.setState((s) => ({ sessions: { ...s.sessions, [id]: { ...session, stepOverride: index } } }));
   else warn('Эхлээд хэрэгтэй зүйлсээ авчирч ширээнд тавиарай.');
 }
-export function resetWorkbench() { focusTicket++; picked.clear(); clearReactionViews(); useWorkbench.setState({ sessions: {}, drawer: false, loose: {}, availableParts: [] }); }
-export function selectBenchExperiment(id: string) {
-  const inventory = useInventoryStore.getState();
-  const owned = new Set(Object.values(useWorkbench.getState().sessions).flatMap((s) => Object.values(s.objects)));
-  useInventoryStore.setState({ worldItems: inventory.worldItems.map((w) => {
-    if (!owned.has(w.id)) return w;
-    const p = livePose(w); return { ...w, position: [p.x, p.y, p.z] };
-  }) });
+/** Fresh attempt: owned stock disappears; room apparatus goes back to its origin.
+ * Cleanup is scoped to this experiment, including its held/off-bench objects on restart. */
+export function clearExperimentSession(id: string, worktopOnly = false) {
+  const session = useWorkbench.getState().sessions[id];
+  if (!session) return;
+  const ids = new Set([...(session.owned??[]), ...Object.values(session.objects)]);
+  for (const [key, object] of Object.entries(useWorkbench.getState().loose)) if (suppliesFor(id).some((s) => s.key === key)) ids.add(object);
+  endHeldUse();
+  cleaning = true;
+  try {
+    for (const object of ids) {
+      if (worktopOnly && !onWorkbench(itemPosition(object))) continue;
+      const origin = origins.get(object);
+      if (usePortableStore.getState().held?.id === object && partKey(object)) { usePortableStore.setState({held:null}); useSandbox.setState({heldId:null}); }
+      if (!partKey(object) && !restoreScenePortable(object)) {
+        useInventoryStore.getState().consume(object);
+        if (origin?.world) useInventoryStore.setState((s) => ({ worldItems: [...s.worldItems.filter((w) => w.id !== object), origin.world!] }));
+        if (origin?.holder && origin.item) useInventoryStore.setState((s) => ({ storage: { ...s.storage, [origin.holder!]: [...(s.storage[origin.holder!] ?? []).filter((it) => it.id !== object), origin.item!].sort((a,b)=>{const order=storedIn({},origin.holder!);const rank=(id:string)=>{const index=order.findIndex((it)=>it.id===id);return index<0?Number.MAX_SAFE_INTEGER:index;};return rank(a.id)-rank(b.id);}) } }));
+        const body = bodies.get(object);
+        if (body && origin?.world) { const p = origin.world.position; body.setTranslation({ x:p[0], y:p[1], z:p[2] }, true); const rotation=origin.world.quaternion; body.setRotation(rotation?{x:rotation[0],y:rotation[1],z:rotation[2],w:rotation[3]}:new Quaternion().setFromAxisAngle(new Vector3(0,1,0),origin.world.rotY),true); body.setLinvel({ x:0,y:0,z:0 }, true); body.setAngvel({ x:0,y:0,z:0 }, true); }
+      }
+      useChemStore.getState().removeMixture(object); co2Until.delete(object); coverUntil.delete(object); stirUntil.delete(object); if(heldHeat.id===object)heldHeat.id=null; forget(object); vesselFx.delete(object); picked.delete(object); origins.delete(object);
+    }
+    if (id === 'nacl' || [...ids].some((object)=>!!partKey(object))) { const near=useSandbox.getState().near; bench.engine?.prepareFreePlay(); resetSandbox(); useSandbox.setState({near}); }
+    useChemStore.setState((s) => ({
+      tools: Object.fromEntries(Object.entries(s.tools).filter(([key]) => !ids.has(key))),
+      puddles: s.puddles.filter((p) => !onWorkbench(p) && !p.sourceIds?.some((source)=>ids.has(source))),
+      bursts: s.bursts.filter((p) => !onWorkbench(p) && (!p.sourceId || !ids.has(p.sourceId))),
+    }));
+    useExperimentStore.setState((s)=>({toggles:Object.fromEntries(Object.entries(s.toggles).filter(([key])=>!ids.has(key))),values:Object.fromEntries(Object.entries(s.values).filter(([key])=>!ids.has(key)))}));
+    clearReactionViews([...ids]);
+    useWorkbench.setState((s) => ({
+      sessions: Object.fromEntries(Object.entries(s.sessions).filter(([key]) => key !== id)),
+      loose: Object.fromEntries(Object.entries(s.loose).filter(([, object]) => !ids.has(object))),
+      availableParts: id === 'nacl' ? [] : s.availableParts.filter((key)=>!ids.has(`nacl-${key}`)),
+    }));
+  } finally { cleaning = false; }
+}
+export function resetWorkbench() { resetPresentation(); focusTicket++; picked.clear(); origins.clear(); clearReactionViews(); useWorkbench.setState({ sessions: {}, drawer: false, loose: {}, availableParts: [] }); }
+export function selectBenchExperiment(id: string, fresh = false) {
+  focusTicket++;
+  const previous = useLabStore.getState().active;
+  if (previous && previous !== id) {
+    clearExperimentSession(previous);
+  }
+  if (fresh) {
+    resetPresentation(id);
+    clearExperimentSession(id);
+    useLabStore.setState((s) => ({ progress: { ...s.progress, [id]: [] } }));
+  }
+  if (fresh || previous !== id) { clearExperimentFeedback(); warn('Бэлтгэл: хэрэгтэй багаж, бодисоо авч, ажлын ширээнд тавиарай. Зааврыг дагаарай.'); }
+  if (previous && previous !== id) useGameStore.getState().showToast('Өмнөх туршилтын багажийг хураалаа.');
   useLabStore.getState().setActive(id);
   beginPreparation();
+  useSandbox.setState({ inspected: null, hovered: null });
   useBenchView.setState({ selected: null, inspecting: false, level: 'table' });
   useWorkbench.setState({ drawer: false });
+  updateStationVisibility();
+  if (useGameStore.getState().mode === 'bench') benchView.table();
 }
-// Apparatus stays in the free laboratory when another guide is chosen.
-export function isInactiveBenchObject(_id: string): boolean { return false; }
+export function isInactiveBenchObject(id: string): boolean {
+  const key = partKey(id);
+  return !!key && !useWorkbench.getState().availableParts.includes(key);
+}
 export function isWorkbenchObject(id: string): boolean { return onWorkbench(itemPosition(id)); }
 export function isBenchPaused(id: string): boolean {
   const mode = useGameStore.getState().mode;
-  return Object.values(useWorkbench.getState().sessions).some((s) => Object.values(s.objects).includes(id)) && !['bench', 'inspect'].includes(mode) && !(mode === 'walk' && (useSandbox.getState().near || heldObjectId() === id));
+  return Object.values(useWorkbench.getState().sessions).some((s) => [...(s.owned??[]),...Object.values(s.objects)].includes(id)) && !['bench', 'inspect'].includes(mode) && !(mode === 'walk' && (useSandbox.getState().near || heldObjectId() === id));
 }
 export function updateStationVisibility() { bench.engine?.showParts(useWorkbench.getState().availableParts); }
 export function supplyAmount(supply: BenchSupply): { current: string; used: string; color: string; formula: string; hazard: string } | null {

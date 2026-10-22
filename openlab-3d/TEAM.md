@@ -158,3 +158,34 @@ npm run build:chemquest     # ChemQuest-д зориулж ../public/openlab ру
 - **Хүн 1:** ширээн дээр илүү нарийн чимэглэл, бодит GLTF загвар оруулах, гэрэлтүүлэг/материалыг сайжруулах, Low тохиргоонд гүйцэтгэлийг дахин шалгах.
 - **Хүн 2:** шинэ урвал нэмэхдээ `species.ts` (бодис), `reagents.ts` (лонх), `kinetics.ts` эсвэл `equilibrium.ts` (урвал), `describe.ts` (монгол тайлбар), `experiments.ts` (туршилтын алхам)-ыг өргөтгөнө.
 - **Хүн 3:** сургалтын (tutorial) горим, хүртээмжийн шалгалт, гар утасны UI-г сайжруулах. Интерфейс аль хэдийн монгол хэл дээр болсон; шинэ бичвэр нэмэхдээ монголоор бичнэ.
+
+### Workbench round 4 (current contract)
+
+`Mode` and `Panel` are unchanged. The original `ui/ToolTab.tsx` is now the only
+apparatus/reagent drawer. Its normal two shelves, category filters and 3D thumbnails
+remain. A required-supplies section is pinned near the station. Nearby walking Tab
+stays in walking/tools UI; seated Tab uses `useWorkbench.drawer` over the same camera.
+Capture-phase Tab still closes from a focused search. `BenchDrawer.tsx` is removed.
+
+A real pickup sets `BenchSession.found`; a real worktop placement separately sets
+`placed`. `owned` also tracks optional/wrong apparatus for cleanup, and `teacher`
+marks the explicit visible preparation bypass. Guide credit still starts at `ready`.
+Seated E now grabs (G remains an alias); configurable bindings and the keyboard-look
+Enter/Backspace alternatives still apply. Desktop action/zoom buttons are hidden;
+touch retains them. Wheel delta now sets a useful zoom amount; pinch stays native.
+
+Starting/restarting clears the selected attempt, guide steps, owned spawned items,
+mixtures, owned spills, tool effects and reaction views. `Puddle.sourceIds` and
+`Burst.sourceId` are optional transient metadata so off-bench spills/shards can be
+removed for one attempt while unrelated room spills remain. Room objects return to their
+original shelf/holder, preserving the initial holder order. NaCl apparatus restores
+initial poses/contents. Selecting a different guide packs away the previous attempt.
+Continue preserves the current attempt. Queued old reaction feedback is discarded.
+
+`lab/presentation.ts` owns transient molecule/success overlays without new game modes.
+`chemistry/molecules3d.ts` owns explanatory geometry, independent of the chemistry
+ledger. `info` observations allow known zero-rate mixes; an `iodide` catalyst changes
+the reaction episode and drives the illustrative I⁻/IO⁻ cycle. Macroscopic particles
+and audio follow the canonical mixture/rate. No database, iframe, Expo, XP, URL,
+remote catalog schema or deployment contract changed. See `WORKBENCH-ROUND4.md`.
+This is an in-repository team notice; no external teammate message was sent.

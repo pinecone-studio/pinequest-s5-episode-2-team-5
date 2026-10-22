@@ -204,7 +204,7 @@ export function transfer(src: Vessel, dst: Vessel, amount: number): { moved: num
     const parts = takeLiquid(taken, keep);
     into = parts.taken;
     const [x, y, z] = placeOf(dst);
-    spillMixture(parts.rest, x + 0.05, y, z);
+    spillMixture(parts.rest, x + 0.05, y, z, dst.id);
     take = keep;
   }
   prime(dst.id, dm);

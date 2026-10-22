@@ -25,13 +25,15 @@ export function PreparationChecklist() {
   if (!active || session?.ready) return null;
   const required = suppliesFor(active);
   const next = required.find((r) => !session?.found.includes(r.key));
+  const unplaced = required.find((r) => !session?.placed.includes(r.key));
   return <div className="mt-1 text-lab-ink" aria-label="Бэлтгэлийн жагсаалт">
     <b className="text-[11px]">Бэлтгэл · {session?.found.length ?? 0}/{required.length}</b>
-    <div className="mt-1 flex gap-3 overflow-x-auto whitespace-nowrap pb-1 text-[10px]">{required.map((s) => <span key={s.key} data-supply={s.key} data-found={session?.found.includes(s.key) ? 'true' : 'false'} className={session?.found.includes(s.key) ? 'text-emerald-700' : 'text-slate-600'}>{session?.found.includes(s.key) ? '✓ ' : '○ '}{s.name}</span>)}</div>
+    <button className="mt-2 min-h-8 rounded-full border border-indigo-600 bg-white px-3 py-2 text-xs font-semibold text-indigo-700" onClick={demonstratePreparation}>👩‍🏫 Алгасах (багшийн горим)</button>
+    <div className="mt-1 flex gap-3 overflow-x-auto whitespace-nowrap pb-1 text-[10px]">{required.map((s) => <span key={s.key} data-supply={s.key} data-placed={session?.placed.includes(s.key) ? 'true' : 'false'} data-found={session?.found.includes(s.key) ? 'true' : 'false'} className={session?.found.includes(s.key) ? 'text-emerald-700' : 'text-slate-600'}>{session?.found.includes(s.key) ? '✓ ' : '○ '}{s.name}{session?.placed.includes(s.key) ? ' · ✓ ширээнд' : session?.found.includes(s.key) ? ' · олдлоо' : ''}</span>)}</div>
+    {!next && unplaced && <p className="text-[11px]">{unplaced.name} → ажлын ширээнд тавиарай.</p>}
     {next && <p className="text-[11px]">{supplyLocation(next)} → авч, ажлын ширээнд тавь.</p>}
     <p role="status" className="mt-1 text-[10px] text-slate-600">{warning}</p>
-    <p className="mt-1 text-[10px] text-slate-500">Tab / цагаан сум: бүх бодис, багаж</p>
-    <button className="mt-1 text-[10px] text-slate-500 underline" onClick={demonstratePreparation}>Алгасах (багшийн горим)</button>
+    <p className="mt-1 text-[10px] text-slate-500">Tab / хажуугийн сум: бүх бодис, багаж</p>
   </div>;
 }
 export const preparationSpots: { x: number; y: number; text: string; visible: boolean }[] = [];

@@ -10,6 +10,8 @@ export class MolecularModel {
   products = 0;
   escaped = 0;
   lattice = 0;
+  intermediates = 0;
+  turnovers = 0;
   private credit = 0;
   private clock = 0;
   private consumed = new WeakMap<Particle, Map<string, number>>();
@@ -148,6 +150,22 @@ export class MolecularModel {
   private react(p: Particle, q: Particle): void {
     const recipe = this.recipe;
     if (!recipe || this.credit < .5 || recipe.preset === 'evap') return;
+    if (recipe.catalyst === 'iodide') {
+      const catalyst = ['I', 'IO'].includes(p.species) ? p : ['I', 'IO'].includes(q.species) ? q : null;
+      const peroxide = p.species === 'H2O2' ? p : q.species === 'H2O2' ? q : null;
+      if (!catalyst || !peroxide) return;
+      this.credit -= .5;
+      const at = { ...peroxide };
+      peroxide.active = false;
+      this.add('H2O', at);
+      catalyst.hits++;
+      if (catalyst.species === 'I') { catalyst.species = 'IO'; this.intermediates++; }
+      else {
+        catalyst.species = 'I'; this.turnovers++; this.products++;
+        const oxygen = this.add('O2', at); if (oxygen) oxygen.vy = .6;
+      }
+      return;
+    }
     const a = recipe.reactants[0];
     let anchor: Particle, contact: Particle;
     if (p.species === a.id) { anchor = p; contact = q; }

@@ -25,6 +25,8 @@ export interface ToolState {
 }
 
 export interface Puddle {
+  /** Vessel identities contributing to this spill, for scoped attempt cleanup. */
+  sourceIds?: string[];
   id: string;
   x: number;
   y: number;
@@ -37,6 +39,7 @@ export interface Puddle {
 }
 
 export interface Burst {
+  sourceId?: string;
   id: string;
   x: number;
   y: number;
@@ -81,7 +84,7 @@ interface ChemState {
   setTool: (id: string, patch: Partial<ToolState>) => void;
   addPuddle: (p: Omit<Puddle, 'id' | 't0'>) => void;
   removePuddle: (id: string) => void;
-  addBurst: (x: number, y: number, z: number) => void;
+  addBurst: (x: number, y: number, z: number, sourceId?: string) => void;
   setFlame: (burnerId: string, color: string, seconds: number) => void;
   setWorn: (what: 'goggles' | 'gloves', on: boolean) => void;
   reset: () => void;
@@ -109,13 +112,13 @@ export const useChemStore = create<ChemState>()((set, get) => ({
     // Merge into a nearby puddle on the same surface.
     const near = puddles.find((q) => Math.abs(q.y - p.y) < 0.05 && Math.hypot(q.x - p.x, q.z - p.z) < 0.12);
     if (near) {
-      set({ puddles: puddles.map((q) => (q === near ? { ...q, ml: q.ml + p.ml, color: p.ml > q.ml ? p.color : q.color, hazardous: q.hazardous || p.hazardous, t0: now } : q)) });
+      set({ puddles: puddles.map((q) => (q === near ? { ...q, sourceIds: [...new Set([...(q.sourceIds ?? []), ...(p.sourceIds ?? [])])], ml: q.ml + p.ml, color: p.ml > q.ml ? p.color : q.color, hazardous: q.hazardous || p.hazardous, t0: now } : q)) });
       return;
     }
     set({ puddles: [...puddles.slice(-(MAX_PUDDLES - 1)), { ...p, id: `puddle-${puddleCounter++}`, t0: now }] });
   },
   removePuddle: (id) => set((s) => ({ puddles: s.puddles.filter((p) => p.id !== id) })),
-  addBurst: (x, y, z) => set((s) => ({ bursts: [...s.bursts.filter((b) => performance.now() - b.t0 < 3000), { id: `burst-${burstCounter++}`, x, y, z, t0: performance.now() }] })),
+  addBurst: (x, y, z, sourceId) => set((s) => ({ bursts: [...s.bursts.filter((b) => performance.now() - b.t0 < 3000), { id: `burst-${burstCounter++}`, x, y, z, sourceId, t0: performance.now() }] })),
   setFlame: (burnerId, color, seconds) => set((s) => ({ flames: { ...s.flames, [burnerId]: { color, until: performance.now() + seconds * 1000 } } })),
   setWorn: (what, on) => set((s) => ({ worn: { ...s.worn, [what]: on } })),
   reset: () => set({ mixtures: {}, tools: {}, puddles: [], bursts: [], flames: {}, worn: { goggles: false, gloves: false } }),

@@ -156,7 +156,7 @@ function simulate(dt: number): void {
     const out = Math.min(liquidMl(m), 45 * dt);
     const { taken, rest } = takeLiquid(m, out);
     spills[w.id] = rest;
-    spillMixture(taken, p.x, surfaceYAt(p.x, p.z, p.y + 0.05), p.z);
+    spillMixture(taken, p.x, surfaceYAt(p.x, p.z, p.y + 0.05), p.z, w.id);
     note(w.id, 'spill', 6000);
   }
   if (Object.keys(spills).length > 0) chem.setMixtures(spills);
@@ -184,7 +184,7 @@ function simulate(dt: number): void {
       const { taken, rest } = takeLiquid(m, amount);
       moved = liquidMl(taken);
       useChemStore.getState().setMixtures({ [w.id]: rest });
-      spillMixture(taken, tip.x, surfaceYAt(tip.x, tip.z, tip.y), tip.z);
+      spillMixture(taken, tip.x, surfaceYAt(tip.x, tip.z, tip.y), tip.z, w.id);
     }
     useChemStore.getState().setTool(w.id, { delivered: (tool?.delivered ?? 0) + moved });
   }

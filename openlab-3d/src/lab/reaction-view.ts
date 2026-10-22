@@ -4,7 +4,7 @@ export interface VesselReaction extends ReactionObservation { vesselId: string; 
 export const useReactionView = create<{ vessels: Record<string, VesselReaction> }>()(() => ({ vessels: {} }));
 let episode = 0;
 export function publishReaction(vesselId: string, observation: ReactionObservation, duration = 650) {
-  if (!(observation.rate > 0) || !Number.isFinite(observation.rate)) return;
+  if ((!observation.info && !(observation.rate > 0)) || observation.rate < 0 || !Number.isFinite(observation.rate)) return;
   const now = performance.now(), current = useReactionView.getState().vessels;
   const prior = current[vesselId];
   const same = prior?.key === observation.key && prior.until > now;
@@ -12,4 +12,4 @@ export function publishReaction(vesselId: string, observation: ReactionObservati
   vessels[vesselId] = { ...observation, vesselId, until: now + duration, episode: same ? prior.episode : ++episode };
   useReactionView.setState({ vessels });
 }
-export function clearReactionViews() { useReactionView.setState({ vessels: {} }); }
+export function clearReactionViews(ids?: string[]) { useReactionView.setState((s) => ({ vessels: ids ? Object.fromEntries(Object.entries(s.vessels).filter(([id]) => !ids.includes(id))) : {} })); }

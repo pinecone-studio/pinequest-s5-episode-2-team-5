@@ -15,11 +15,11 @@ export function RoomToast() {
     return () => window.clearTimeout(id);
   }, [toast]);
   return (
-    <div className="pointer-events-none fixed inset-x-0 top-5 z-30 flex justify-center px-20" aria-live="polite">
+    <div className="pointer-events-none fixed inset-x-0 top-20 z-[55] flex justify-center px-3 sm:px-20" aria-live="polite">
       <AnimatePresence>
         {visible && toast && (
-          <motion.div key={toast.id} className="rounded-2xl bg-white/95 px-5 py-2.5 text-center text-lab-ink shadow-hud backdrop-blur" initial={{ opacity: 0, y: -12 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }}>
-            <div className="font-display text-lg font-semibold leading-tight">{toast.title}</div>
+          <motion.div key={toast.id} className="max-w-lg rounded-2xl bg-white/95 px-4 py-2.5 text-center text-lab-ink shadow-hud backdrop-blur" initial={{ opacity: 0, y: -12 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }}>
+            <div className="font-display text-sm font-semibold leading-tight">{toast.title}</div>
             {toast.subtitle && <div className="text-xs text-slate-600">{toast.subtitle}</div>}
           </motion.div>
         )}

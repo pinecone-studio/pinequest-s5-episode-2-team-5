@@ -1,3 +1,4 @@
+import { ReactionEffects } from './world/ReactionEffects';
 import { Suspense, useCallback, useEffect, useMemo, useState } from 'react';
 import { Canvas } from '@react-three/fiber';
 import { KeyboardControls } from '@react-three/drei';
@@ -79,6 +80,7 @@ export default function App() {
               <ChemSim />
               <WorkbenchRuntime />
               <LabFx />
+              <ReactionEffects />
             </Physics>
             <Effects />
             <GlassLOD />

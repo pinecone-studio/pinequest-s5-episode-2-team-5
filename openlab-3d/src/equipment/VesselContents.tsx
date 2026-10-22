@@ -52,8 +52,7 @@ function useLiquidMaterial(color: string, turbidity: number): MeshPhysicalMateri
   useEffect(() => () => material.dispose(), [material]);
   useEffect(() => {
     const c = new Color(color);
-    material.color.copy(c);
-    material.emissive.copy(c);
+
     material.roughness = 0.08 + turbidity * 0.6;
     material.clearcoat = 1 - turbidity * 0.8;
     if (!transmission) {
@@ -61,6 +60,8 @@ function useLiquidMaterial(color: string, turbidity: number): MeshPhysicalMateri
       material.opacity = Math.min(0.97, 0.55 + Math.max(turbidity, dark) * 0.45);
     }
   }, [material, color, turbidity, transmission]);
+  const target=useMemo(()=>new Color(),[]);
+  useFrame((_,dt)=>{target.set(color);material.color.lerp(target,Math.min(1,dt*4));material.emissive.copy(material.color);});
   return material;
 }
 

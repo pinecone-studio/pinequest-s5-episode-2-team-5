@@ -12,6 +12,7 @@ import { onLab, type LabEvent } from './events';
 
 const queue: { title: string; subtitle?: string }[] = [];
 let pumping = false;
+let toastTimer: number | null = null;
 
 function toast(title: string, subtitle?: string): void {
   if (queue.length > 3) queue.shift();
@@ -21,11 +22,11 @@ function toast(title: string, subtitle?: string): void {
   const next = () => {
     const t = queue.shift();
     if (!t) {
-      pumping = false;
+      pumping = false; toastTimer = null;
       return;
     }
     useGameStore.getState().showToast(t.title, t.subtitle);
-    window.setTimeout(next, 1900);
+    toastTimer = window.setTimeout(next, 1900);
   };
   next();
 }
@@ -99,4 +100,11 @@ export function startAnnouncer(): () => void {
     stop?.();
     stop = null;
   };
+}
+
+/** Discard feedback queued by the attempt that has just been packed away. */
+export function clearExperimentFeedback() {
+  if(toastTimer!==null) window.clearTimeout(toastTimer);
+  toastTimer=null;queue.length=0;pumping=false;
+  useGameStore.setState({toast:null});
 }

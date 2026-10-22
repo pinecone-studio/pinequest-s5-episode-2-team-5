@@ -69,7 +69,7 @@ for(const [preset,reactants,products] of [
 
 // Bundle the existing pure engine for Node; no browser, stores or mocked chemistry.
 import { build } from 'esbuild';
-const pure=await build({stdin:{contents:`export * from './src/chemistry/reaction-view.ts'; export * from './src/chemistry/mixture.ts'; export * from './src/chemistry/mix.ts'; export * from './src/chemistry/kinetics.ts';`,resolveDir:process.cwd()},bundle:true,write:false,format:'esm',platform:'node'});
+const pure=await build({stdin:{contents:`export * from './src/chemistry/reaction-view.ts'; export * from './src/chemistry/mixture.ts'; export * from './src/chemistry/mix.ts'; export * from './src/chemistry/kinetics.ts'; export * from './src/chemistry/molecules3d.ts';`,resolveDir:process.cwd()},bundle:true,write:false,format:'esm',platform:'node'});
 const chem=await import(`data:text/javascript;base64,${Buffer.from(pure.outputFiles[0].text).toString('base64')}`);
 test('actual HCl/NaOH transfer publishes balanced neutralisation, water/water does not',()=>{
   const a=chem.reagentMixture('hcl',5),b=chem.reagentMixture('naoh',5),mix=chem.equilibrateHeat(a,b,100);
@@ -101,7 +101,7 @@ import { join } from 'node:path';
 import { pathToFileURL } from 'node:url';
 const storeTmp=await mkdtemp(join(tmpdir(),'openlab-preparation-test-'));
 test.after(()=>rm(storeTmp,{recursive:true,force:true}));
-await build({stdin:{contents:`export { useLabStore } from './src/store/useLabStore.ts'; export { useWorkbench } from './src/experiments/workbench/session.ts';`,resolveDir:process.cwd()},bundle:true,outfile:join(storeTmp,'stores.mjs'),format:'esm',platform:'node'});
+await build({stdin:{contents:`export { useLabStore } from './src/store/useLabStore.ts'; export * from './src/experiments/workbench/session.ts'; export {useInventoryStore,storedIn} from './src/store/useInventoryStore.ts'; export {useChemStore} from './src/store/useChemStore.ts'; export {useGameStore} from './src/store/useGameStore.ts'; export * from './src/lab/reaction-view.ts'; export {registerHolder,seedHolder} from './src/interaction/holders.ts';`,resolveDir:process.cwd()},bundle:true,outfile:join(storeTmp,'stores.mjs'),format:'esm',platform:'node'});
 globalThis.localStorage={getItem:()=>null,setItem:()=>{},removeItem:()=>{}};
 const stores=await import(pathToFileURL(join(storeTmp,'stores.mjs')).href);
 test('guide starts after preparation; earlier real observations are still recorded',()=>{
@@ -115,4 +115,84 @@ test('guide starts after preparation; earlier real observations are still record
   stores.useWorkbench.setState({sessions:{titration:{...pending,ready:true}}});
   assert.equal(stores.useLabStore.getState().record({key:'neutralization'}).length,1);
   assert.ok(stores.useLabStore.getState().progress.titration.includes('neutral'));
+});
+
+test('soap no-change observations preserve the actual near-zero peroxide rate',()=>{
+  const peroxide=chem.reagentMixture('h2o2',30),soap=chem.reagentMixture('soap',2);
+  const mix=chem.equilibrateHeat(peroxide,soap,100), [info]=chem.mixObservations(peroxide,soap,mix.m,mix.neutralized,mix.formed);
+  assert.equal(info.info,true);assert.match(info.sentence,/Саван бол катализатор биш/);assert.equal(info.rate,0);
+  const step=chem.step(mix.m,.1,chem.DEFAULT_ENV), [slow]=chem.stepObservations(mix.m,step,.1);
+  assert.equal(slow.info,true);assert.equal(slow.rate,step.gas.O2);assert.ok(Math.abs(slow.rate - mix.m.aq.H2O2*(1-Math.exp(-.0008*.1))/.2)<1e-12);
+  assert.doesNotMatch(chem.incompletePeroxide(peroxide).sentence,/Саван/);
+  const absent=chem.equilibrateHeat(soap,chem.reagentMixture('ki',3),100).m;
+  assert.equal(chem.incompletePeroxide(absent).sentence,'H₂O₂ байхгүй тул урвал явахгүй.');
+});
+test('KI addition rekeys the published episode and boosts the actual O2 rate',()=>{
+  const before=chem.reagentMixture('h2o2',30),slowStep=chem.step(before,.1,chem.DEFAULT_ENV);
+  const [slow]=chem.stepObservations(before,slowStep,.1);
+  const afterKI=chem.equilibrateHeat(before,chem.reagentMixture('ki',5),100).m;
+  const fastStep=chem.step(afterKI,.1,chem.DEFAULT_ENV),[fast]=chem.stepObservations(afterKI,fastStep,.1);
+  assert.notEqual(slow.key,fast.key);assert.equal(fast.catalyst,'iodide');assert.ok(fast.rate>slow.rate*100);
+  assert.deepEqual(fast.spectators.map(s=>s.id),['K','I']);
+  stores.publishReaction('test-vessel',slow);const episode=stores.useReactionView.getState().vessels['test-vessel'].episode;
+  stores.publishReaction('test-vessel',fast);assert.notEqual(stores.useReactionView.getState().vessels['test-vessel'].episode,episode);
+});
+test('iodide collision cycle makes IO then regenerates I, leaving K untouched',()=>{
+  const recipe={preset:'peroxide',catalyst:'iodide',reactants:[spec('H2O2',2)],products:[spec('H2O',2),spec('O2',1,'gas')],spectators:[spec('K'),spec('I')]};
+  const m=new MolecularModel(recipe,40,()=>.5);
+  m.particles=[particle('I',0,0),particle('H2O2',-.18,.3),particle('K',.7,0)];m.advance(.04,10,22);
+  assert.equal(m.intermediates,1);assert.equal(m.turnovers,0);assert.equal(m.particles[0].species,'IO');
+  m.particles[0].x=0;m.particles[0].vx=0;m.particles.push(particle('H2O2',-.18,.3));m.advance(.04,10,22);
+  assert.equal(m.turnovers,1);assert.equal(m.particles[0].species,'I');assert.equal(m.particles.filter(p=>p.active&&p.species==='O2').length,1);
+  assert.equal(m.particles.filter(p=>p.active&&p.species==='H2O').length,2);assert.equal(m.particles.filter(p=>p.active&&p.species==='K').length,1);
+});
+test('pickup immediately marks found; placement separately marks worktop; restart is fresh',()=>{
+  globalThis.requestAnimationFrame=()=>0;
+  stores.resetWorkbench();stores.useLabStore.setState({active:'elephant',progress:{elephant:['h2o2']}});
+  stores.beginPreparation();const stop=stores.startWorkbenchTracking();
+  const inv=stores.useInventoryStore.getState(),id=inv.spawn('graduatedCylinder',[4,.9,-10]);
+  assert.equal(stores.currentSession().found.length,0);
+  inv.pickUp(id);assert.deepEqual(stores.currentSession().found,['graduatedCylinder']);assert.deepEqual(stores.currentSession().placed,[]);
+  assert.match(stores.useGameStore.getState().toast.title,/олдлоо \(1\/4\)/);
+  stores.useInventoryStore.getState().place([8.25,.915,-14.5],0);assert.deepEqual(stores.currentSession().placed,['graduatedCylinder']);
+  stores.useChemStore.getState().setMixtures({[id]:chem.reagentMixture('h2o2',20)});
+  stores.publishReaction(id,chem.incompletePeroxide(chem.reagentMixture('h2o2',20)));
+  stores.useChemStore.getState().addPuddle({x:4,y:0,z:-9,ml:5,color:'#ffffff',hazardous:false,sourceIds:[id]});
+  stores.useChemStore.getState().addPuddle({x:1,y:0,z:-9,ml:5,color:'#ffffff',hazardous:false,sourceIds:['unrelated']});
+  const previous=stores.currentSession();stores.selectBenchExperiment('elephant');assert.equal(stores.currentSession(),previous);
+  stores.selectBenchExperiment('elephant',true);
+  assert.deepEqual(stores.currentSession().found,[]);assert.deepEqual(stores.currentSession().placed,[]);assert.deepEqual(stores.currentSession().objects,{});assert.equal(stores.currentSession().ready,false);
+  assert.deepEqual(stores.useLabStore.getState().progress.elephant,[]);
+  assert.ok(!stores.useInventoryStore.getState().worldItems.some(w=>w.id===id));assert.ok(!stores.useChemStore.getState().mixtures[id]);assert.ok(!stores.useReactionView.getState().vessels[id]);assert.ok(!stores.useChemStore.getState().puddles.some(p=>p.sourceIds?.includes(id)));assert.ok(stores.useChemStore.getState().puddles.some(p=>p.sourceIds?.includes('unrelated')));stop();
+});
+test('restart returns room inventory to its shelf origin and keeps unrelated equipment',()=>{
+  stores.resetWorkbench();stores.useInventoryStore.getState().reset();stores.useLabStore.setState({active:'elephant'});stores.beginPreparation();const stop=stores.startWorkbenchTracking();
+  const origin=stores.useInventoryStore.getState().worldItems.find(w=>w.kind==='graduatedCylinder');assert.ok(origin);
+  const unrelated=stores.useInventoryStore.getState().worldItems.find(w=>w.id!==origin.id);
+  stores.useInventoryStore.getState().pickUp(origin.id);stores.useInventoryStore.getState().place([8.25,.915,-14.5],0);
+  stores.selectBenchExperiment('elephant',true);
+  assert.deepEqual(stores.useInventoryStore.getState().worldItems.find(w=>w.id===origin.id),origin);
+  assert.deepEqual(stores.useInventoryStore.getState().worldItems.find(w=>w.id===unrelated.id),unrelated);stop();
+});
+
+test('water has a 104.5 degree bend; peroxide is non-planar; oxygen has a double bond',()=>{
+  const water=chem.moleculeGeometry('H2O'),o=water.atoms[0].at;
+  const v=water.atoms.slice(1).map(a=>a.at.map((n,i)=>n-o[i]));
+  const angle=Math.acos(v[0].reduce((sum,n,i)=>sum+n*v[1][i],0)/(Math.hypot(...v[0])*Math.hypot(...v[1])))*180/Math.PI;
+  assert.ok(Math.abs(angle-104.5)<1e-9);
+  const peroxide=chem.moleculeGeometry('H2O2');assert.deepEqual(peroxide.atoms.map(a=>a.element),['O','O','H','H']);assert.ok(Math.abs(peroxide.atoms[3].at[2])>.5);
+  assert.equal(chem.moleculeGeometry('O2').bonds[0].order,2);assert.equal(chem.moleculeGeometry('K').atoms[0].charge,'+');assert.equal(chem.moleculeGeometry('I').atoms[0].charge,'-');
+  assert.equal(chem.moleculeGeometry('unknown','X').atoms.length,1);assert.match(chem.moleculeGeometry('unknown','X').note,/геометр биш/);
+});
+test('zero-rate info is publishable but inert observations cannot fabricate an episode',()=>{
+  const info=chem.incompletePeroxide(chem.reagentMixture('h2o2',20));stores.publishReaction('zero-info',info);
+  assert.equal(stores.useReactionView.getState().vessels['zero-info'].rate,0);
+  stores.publishReaction('not-real',{...info,info:false});assert.ok(!stores.useReactionView.getState().vessels['not-real']);
+});
+test('restart restores apparatus to the original seeded drawer slot',()=>{
+  stores.resetWorkbench();stores.useInventoryStore.getState().reset();stores.useLabStore.setState({active:'titration'});stores.beginPreparation();
+  stores.registerHolder('round4-drawer','glassware');const seeded=stores.seedHolder('round4-drawer'),item=seeded.find(x=>x.kind==='erlenmeyer');assert.ok(item);
+  const stop=stores.startWorkbenchTracking();stores.useInventoryStore.getState().takeStored('round4-drawer',item.id);
+  assert.ok(stores.currentSession().found.includes('erlenmeyer'));stores.useInventoryStore.getState().place([8,.915,-14.5],0);
+  stores.selectBenchExperiment('titration',true);assert.deepEqual(stores.storedIn(stores.useInventoryStore.getState().storage,'round4-drawer'),seeded);stop();
 });
