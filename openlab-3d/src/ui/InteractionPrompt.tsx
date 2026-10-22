@@ -3,7 +3,7 @@ import { useGameStore } from '../store/useGameStore';
 import { useInventoryStore } from '../store/useInventoryStore';
 import { useSettingsStore } from '../store/useSettingsStore';
 import { CATALOG } from '../equipment/equipmentCatalog';
-import { promptKey } from '../controls/keyMap';
+import { keyLabel, promptKey } from '../controls/keyMap';
 
 function Chip({ k, children, primary = false }: { k?: string; children: React.ReactNode; primary?: boolean }) {
   return (
@@ -23,6 +23,8 @@ export function InteractionPrompt() {
   const e = promptKey('interact', bindings, lookMode);
   const f = promptKey('inspect', bindings, lookMode);
   const q = promptKey('drop', bindings, lookMode);
+  const g = keyLabel(bindings.grab[0]);
+  const r = keyLabel(bindings.pour[0]);
   const key = focus ? `${focus.id}-${focus.verb}-${focus.label}` : held ? `held-${held.id}` : 'none';
   return (
     <div className="pointer-events-none fixed inset-x-0 bottom-24 z-20 flex justify-center px-4 sm:bottom-10" aria-live="polite">
@@ -35,6 +37,8 @@ export function InteractionPrompt() {
               </Chip>
             )}
             {focus && !focus.canUse && <Chip primary>{focus.label}</Chip>}
+            {focus?.canGrab && <Chip k={g}>Авах</Chip>}
+            {focus?.canPour && focus.pourVerb && <Chip k={r}>{focus.pourVerb}</Chip>}
             {focus?.canInspect && <Chip k={f}>Ойроос харах</Chip>}
             {focus?.canScroll && <Chip k="⇕">Гүйлгэж тохируулах</Chip>}
             {focus?.canDrag && <Chip k={e}>дарсаар чирэх</Chip>}

@@ -60,7 +60,7 @@ export function Beaker({ modelUrl, liquidColor = '#2f7ff0', fill = 0.55, ...prop
         <mesh key={y} geometry={ringGeometry()} material={markMaterial} position={[0, y, 0]} userData={{ noOutline: true }} />
       ))}
       {level > 0.002 && (
-        <mesh material={liquid} position={[0, WALL + level / 2, 0]} userData={{ noOutline: true }}>
+        <mesh material={liquid} position={[0, WALL + level / 2, 0]} userData={{ noOutline: true, noBatch: true }}>
           <cylinderGeometry args={[R - WALL - 0.0006, R - 0.0045, level, 32]} />
         </mesh>
       )}

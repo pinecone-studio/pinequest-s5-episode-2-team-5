@@ -9,6 +9,11 @@ export interface InteractableEntry {
   enabled: boolean;
   inspectKind?: EquipmentKind;
   onInteract?: () => void;
+  /** Pick the object up (G); only set when E does something else, e.g. lights a burner. */
+  onGrab?: () => void;
+  /** Pour the held vessel into this one, or draw from this one into the empty held vessel (R). */
+  onPour?: () => void;
+  pourVerb?: string;
   /** Hold E (or the mouse button) and move the mouse: dx, dy in pixels. */
   onDrag?: (dx: number, dy: number) => void;
   onDragEnd?: () => void;

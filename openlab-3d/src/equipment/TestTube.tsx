@@ -39,7 +39,7 @@ export function TestTube({ modelUrl, liquidColor = '#ff5a5a', fill = 0.5, ...pro
       {/* Modeled upright, then laid on its side so a loose tube rests stably on a bench. */}
       <group rotation={[Math.PI / 2, 0, 0]} position={[0, R, -L / 2]}>
         <mesh geometry={testTubeGeometry()} material={glass} renderOrder={1} castShadow />
-        {fill > 0.01 && <mesh geometry={tubeLiquid()} material={liquid} scale={[1, fill * 2, 1]} userData={{ noOutline: true }} />}
+        {fill > 0.01 && <mesh geometry={tubeLiquid()} material={liquid} scale={[1, fill * 2, 1]} userData={{ noOutline: true, noBatch: true }} />}
       </group>
     </ModelOr>
   );

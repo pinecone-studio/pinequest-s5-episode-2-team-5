@@ -14,12 +14,13 @@ import { useInventoryStore } from '../store/useInventoryStore';
 import { useSettingsStore } from '../store/useSettingsStore';
 import { sounds } from '../utils/sounds';
 import { heldApi } from './heldApi';
+import { panHeightAt } from './balance';
 import { nearestSurfacePoint, raycastSurfaces, type Placement } from './surfaces';
 import { playerBodyRef } from '../controls/Player';
 
 const ghostOk = new MeshBasicMaterial({ color: '#bff3ff', transparent: true, opacity: 0.35, depthWrite: false });
 const ghostFloor = new MeshBasicMaterial({ color: '#ffd27a', transparent: true, opacity: 0.35, depthWrite: false });
-const GLASS_KINDS = new Set(['beaker', 'erlenmeyer', 'testTube', 'graduatedCylinder', 'reagentBottle', 'petriDish', 'pipette', 'thermometer', 'specimenJar', 'testTubeRack']);
+const GLASS_KINDS = new Set(['beaker', 'erlenmeyer', 'testTube', 'graduatedCylinder', 'reagentBottle', 'petriDish', 'pipette', 'thermometer', 'specimenJar', 'testTubeRack', 'glassRod', 'funnel', 'watchGlass', 'evaporatingDish', 'volumetricFlask', 'washBottle', 'mortar']);
 
 const offset = new Vector3(0.2, -0.24, -0.42);
 const tmpV = new Vector3();
@@ -46,7 +47,10 @@ export function HeldItem() {
       const target = heldApi.target;
       const h = useInventoryStore.getState().held;
       if (!target || !h) return false;
-      const ok = useInventoryStore.getState().place([target.point.x, target.point.y + 0.012, target.point.z], playerState.yaw);
+      const inv = useInventoryStore.getState();
+      // Over a balance pan the item rests on the pan, not on the bench beside it.
+      const y = (h.kind === 'scale' ? null : panHeightAt(target.point.x, target.point.z, inv.worldItems)) ?? target.point.y;
+      const ok = inv.place([target.point.x, y + 0.012, target.point.z], playerState.yaw);
       if (ok) sounds.play(GLASS_KINDS.has(h.kind) ? 'clink' : 'tick', 1);
       return ok;
     };

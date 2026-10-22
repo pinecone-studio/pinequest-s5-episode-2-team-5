@@ -9,6 +9,10 @@ import { CatmullRomCurve3, MeshPhysicalMaterial, TubeGeometry, Vector3, type Mes
 import { metalChrome, metalBrushed } from '../../materials/metal';
 import { plasticBlack } from '../../materials/plastic';
 import { Interactable } from '../../interaction/Interactable';
+import { sinkPour } from '../../interaction/pour';
+import { isContainer } from '../../equipment/equipmentCatalog';
+import { totalMl } from '../../chemistry/substances';
+import { useInventoryStore } from '../../store/useInventoryStore';
 import { sounds } from '../../utils/sounds';
 import { lazy } from '../../utils/lazy';
 
@@ -30,6 +34,11 @@ const waterMaterial = new MeshPhysicalMaterial({ color: '#cfe9ff', transparent: 
 export function Sink({ id, position, rotY = 0 }: { id: string; position: [number, number, number]; rotY?: number }) {
   const [running, setRunning] = useState(false);
   const stream = useRef<Mesh>(null);
+  const pourVerb = useInventoryStore((s) => {
+    const h = s.held;
+    if (!h || !isContainer(h.kind) || h.kind === 'reagentBottle') return undefined;
+    return totalMl(h.variant?.contents) > 0.01 ? 'хоослох' : 'усаар дүүргэх';
+  });
   useFrame((state) => {
     if (stream.current && running) stream.current.scale.x = stream.current.scale.z = 1 + Math.sin(state.clock.elapsedTime * 40) * 0.08;
   });
@@ -57,7 +66,7 @@ export function Sink({ id, position, rotY = 0 }: { id: string; position: [number
       <mesh material={plasticBlack} position={[0, -0.199, 0.02]} rotation={[-Math.PI / 2, 0, 0]}>
         <circleGeometry args={[0.025, 20]} />
       </mesh>
-      <Interactable id={id} label="Усны цорго" verb={running ? 'хаах' : 'нээх'} onInteract={() => { setRunning((r) => !r); sounds.play('click', 0.5); }}>
+      <Interactable id={id} label="Усны цорго" verb={running ? 'хаах' : 'нээх'} onPour={pourVerb ? sinkPour : undefined} pourVerb={pourVerb} onInteract={() => { setRunning((r) => !r); sounds.play('click', 0.5); }}>
         <group position={[0, 0.005, -0.21]}>
           <mesh material={metalChrome} position={[0, 0.015, 0]}>
             <cylinderGeometry args={[0.028, 0.034, 0.03, 20]} />

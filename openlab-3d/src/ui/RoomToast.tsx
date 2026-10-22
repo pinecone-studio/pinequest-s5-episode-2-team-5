@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { useGameStore } from '../store/useGameStore';
 import { useSettingsStore } from '../store/useSettingsStore';
+import { keyLabel } from '../controls/keyMap';
 
 /** Short banner at the top center for quick notices. */
 export function RoomToast() {
@@ -30,9 +31,19 @@ export function RoomToast() {
 /** Shown in mouse-look mode while the pointer is free (e.g. after a panel closed). */
 export function ClickToLookHint() {
   const mouse = useSettingsStore((s) => s.lookMode === 'mouse');
+  const key = useSettingsStore((s) => keyLabel(s.bindings.cursor[0]));
   const show = useGameStore((s) => s.mode === 'walk' && !s.pointerLocked) && mouse;
+  const cursorFree = useGameStore((s) => s.cursorFree);
   return show ? (
-    <div className="pointer-events-none fixed left-1/2 top-[58%] z-20 -translate-x-1/2 rounded-full bg-black/50 px-4 py-1.5 text-sm font-medium text-white backdrop-blur">Эргэн харахын тулд дарна уу</div>
+    <div className="pointer-events-none fixed left-1/2 top-[58%] z-20 -translate-x-1/2 rounded-full bg-black/50 px-4 py-1.5 text-sm font-medium text-white backdrop-blur">
+      {cursorFree ? (
+        <>
+          Хулган чөлөөтэй · <span className="kbd !border-white/30 !bg-white/15 !text-white !shadow-none">{key}</span> эсвэл дэлгэц дээр дарж эргэн харна
+        </>
+      ) : (
+        'Эргэн харахын тулд дарна уу'
+      )}
+    </div>
   ) : null;
 }
 

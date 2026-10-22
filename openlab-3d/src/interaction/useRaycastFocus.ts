@@ -84,6 +84,9 @@ export function useRaycastFocus(): void {
           verb: best.verb,
           canUse: !!best.onInteract,
           canInspect: !!best.inspectKind,
+          canGrab: !!best.onGrab && best.onGrab !== best.onInteract,
+          canPour: !!best.onPour,
+          pourVerb: best.pourVerb,
           canDrag: !!best.onDrag,
           canScroll: !!best.onWheel,
         }

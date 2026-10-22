@@ -15,6 +15,9 @@ export interface InteractableProps extends Omit<GroupProps, 'children' | 'onWhee
   /** Enables F-inspect using this catalog model. */
   inspectKind?: EquipmentKind;
   onInteract?: () => void;
+  onGrab?: () => void;
+  onPour?: () => void;
+  pourVerb?: string;
   onDrag?: (dx: number, dy: number) => void;
   onDragEnd?: () => void;
   onWheel?: (direction: number) => void;
@@ -34,6 +37,9 @@ export function Interactable({
   enabled = true,
   inspectKind,
   onInteract,
+  onGrab,
+  onPour,
+  pourVerb,
   onDrag,
   onDragEnd,
   onWheel,
@@ -47,7 +53,7 @@ export function Interactable({
   useLayoutEffect(() => {
     const object = ref.current;
     if (!object) return;
-    const entry: InteractableEntry = { id, object, label, verb, enabled, inspectKind, onInteract, onDrag, onDragEnd, onWheel, bounds: null };
+    const entry: InteractableEntry = { id, object, label, verb, enabled, inspectKind, onInteract, onGrab, onPour, pourVerb, onDrag, onDragEnd, onWheel, bounds: null };
     entryRef.current = entry;
     interactables.set(id, entry);
     return () => {
@@ -66,6 +72,9 @@ export function Interactable({
     entry.enabled = enabled;
     entry.inspectKind = inspectKind;
     entry.onInteract = onInteract;
+    entry.onGrab = onGrab;
+    entry.onPour = onPour;
+    entry.pourVerb = pourVerb;
     entry.onDrag = onDrag;
     entry.onDragEnd = onDragEnd;
     entry.onWheel = onWheel;

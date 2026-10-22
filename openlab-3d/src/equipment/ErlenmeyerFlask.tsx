@@ -60,7 +60,7 @@ export function ErlenmeyerFlask({ modelUrl, liquidColor = '#8b4fd8', fill = 0.4,
   return (
     <ModelOr modelUrl={modelUrl} {...props}>
       <mesh geometry={flaskGeometry()} material={glass} castShadow renderOrder={1} />
-      {fill > 0.01 && <mesh geometry={liquidGeometry(fill)} material={liquid} userData={{ noOutline: true }} />}
+      {fill > 0.01 && <mesh geometry={liquidGeometry(fill)} material={liquid} userData={{ noOutline: true, noBatch: true }} />}
     </ModelOr>
   );
 }
