@@ -11,6 +11,18 @@ import { metalPainted, metalAluminum } from '../../materials/metal';
 import { plastic } from '../../materials/plastic';
 import { decorGlass } from '../../materials/glass';
 import { lazy } from '../../utils/lazy';
+import { Interactable } from '../../interaction/Interactable';
+import { useSandbox } from '../../experiments/nacl/sandbox';
+
+function StockFill({ id, capacity, radius, height }: { id: string; capacity: number; radius: number; height: number }) {
+  const content = useSandbox((s) => s.contents[id]);
+  if (!content || content.ml <= 0.01) return null;
+  const level = Math.min(1, content.ml / capacity) * height;
+  return <mesh position={[0, 0.004 + level / 2, 0]} raycast={() => undefined}>
+    <cylinderGeometry args={[radius, radius, level, 16]} />
+    <meshPhysicalMaterial color={content.carbonate > 0 ? '#e9eef1' : '#cfe6ff'} transparent opacity={0.6} depthWrite={false} />
+  </mesh>;
+}
 
 /** Simple 250 mL beaker silhouette for decorative stock (open top). */
 const stockBeakerGeometry = lazy(() => {
@@ -137,8 +149,8 @@ export function ShelvingUnits({ units, width = 1.8, height = 2.0, depth = 0.5, l
     <group>
       <Instanced geometry={unit()} material={metalPainted} items={data.frame} castShadow />
       <Instanced geometry={unit()} material={plastic('#ffffff', 0.85)} items={data.boxes} castShadow />
-      <Instanced geometry={stockBeakerGeometry()} material={glass} items={data.beakers} />
-      <Instanced geometry={stockFlaskGeometry()} material={glass} items={data.flasks} />
+      {data.beakers.map(({ matrix: m }, i) => <Interactable key={`beaker-${i}`} id={`stock-${seed}-beaker-${i}`} label="Тавиурын шилэн аяга" inspectKind="beaker"><mesh geometry={stockBeakerGeometry()} material={glass} position={m.position} rotation={m.rotation} scale={m.scale}><StockFill id={`stock-${seed}-beaker-${i}`} capacity={250} radius={0.032} height={0.085} /></mesh></Interactable>)}
+      {data.flasks.map(({ matrix: m }, i) => <Interactable key={`flask-${i}`} id={`stock-${seed}-flask-${i}`} label="Тавиурын конус колбо" inspectKind="erlenmeyer"><mesh geometry={stockFlaskGeometry()} material={glass} position={m.position} rotation={m.rotation} scale={m.scale}><StockFill id={`stock-${seed}-flask-${i}`} capacity={250} radius={0.027} height={0.055} /></mesh></Interactable>)}
       {units.map((u, i) => (
         <CuboidCollider key={i} args={[width / 2, height / 2, depth / 2]} position={[u.x, height / 2, u.z]} rotation={[0, u.rotY, 0]} />
       ))}
@@ -176,8 +188,15 @@ export function ReagentShelf({ position, rotY = 0, width = 2.2, seed = 3 }: { po
   return (
     <group>
       <Instanced geometry={unit()} material={metalAluminum} items={data.frame} castShadow />
-      <Instanced geometry={bottleGeo()} material={plastic('#ffffff', 0.25)} items={data.bottles} castShadow />
-      <Instanced geometry={capGeo()} material={plastic('#ffffff', 0.5)} items={data.caps} />
+      {data.bottles.map(({ matrix: m, color }, i) => (
+        <Interactable key={i} id={`stock-${seed}-bottle-${i}`} label="Тавиурын урвалжийн шил (хоосон)" inspectKind="reagentBottle">
+          <group position={m.position} rotation={m.rotation} scale={m.scale}>
+            <mesh geometry={bottleGeo()} material={plastic(`#${color?.getHexString() ?? 'ffffff'}`, 0.25)} castShadow />
+            <mesh geometry={capGeo()} material={plastic(`#${data.caps[i].color?.getHexString() ?? '111111'}`, 0.5)} />
+            <StockFill id={`stock-${seed}-bottle-${i}`} capacity={100} radius={0.026} height={0.1} />
+          </group>
+        </Interactable>
+      ))}
     </group>
   );
 }

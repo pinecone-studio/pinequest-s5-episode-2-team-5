@@ -4,6 +4,8 @@ import { SKILLS, useExperimentStore } from '../store/useExperimentStore';
 import { useInventoryStore } from '../store/useInventoryStore';
 import { SPAWN } from '../world/layout';
 import { CATALOG } from '../equipment/equipmentCatalog';
+import { resetScenePortables } from '../interaction/portable';
+import { resetSandbox } from '../experiments/nacl/sandbox';
 
 function duration(ms: number): string {
   const s = Math.max(0, Math.round(ms / 1000));
@@ -12,6 +14,8 @@ function duration(ms: number): string {
 }
 
 export function restartSession(): void {
+  resetScenePortables();
+  resetSandbox();
   useExperimentStore.getState().reset();
   useInventoryStore.getState().reset();
   playerApi.teleport(SPAWN.x, SPAWN.z, SPAWN.yaw);

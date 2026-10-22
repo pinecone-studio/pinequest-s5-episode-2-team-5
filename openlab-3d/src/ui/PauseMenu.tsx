@@ -3,6 +3,7 @@ import { useGameStore } from '../store/useGameStore';
 import { useSettingsStore } from '../store/useSettingsStore';
 import { resumeWalk } from '../controls/useGameKeys';
 import { sounds } from '../utils/sounds';
+import { openNaClExperiment } from '../experiments/nacl/bench';
 
 /** Shown when Esc releases the mouse. */
 export function PauseMenu() {
@@ -22,6 +23,9 @@ export function PauseMenu() {
             </h2>
             <p className="mt-1 text-sm text-slate-500">{lookMode === 'mouse' ? 'Хулганаа дахин ашиглахын тулд «Үргэлжлүүлэх» дарна уу.' : 'Үргэлжлүүлэхийн тулд Esc эсвэл «Үргэлжлүүлэх» дарна уу.'}</p>
             <div className="mt-5 flex flex-col gap-2">
+              <button className="btn-yellow py-3 text-base" onClick={openNaClExperiment}>
+                NaCl ажлын ширээнд очих →
+              </button>
               <button className="btn-yellow py-3 text-base" onClick={resumeWalk} autoFocus>
                 ▶ Үргэлжлүүлэх
               </button>

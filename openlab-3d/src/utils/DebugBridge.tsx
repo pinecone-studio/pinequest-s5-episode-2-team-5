@@ -11,6 +11,13 @@ import { useInventoryStore } from '../store/useInventoryStore';
 import { useSettingsStore } from '../store/useSettingsStore';
 import { useLoadingStore } from '../store/useLoadingStore';
 import { interactables } from '../interaction/registry';
+import { bench } from '../experiments/nacl/bench';
+import { useSandbox, labUse, mixture, simulateLab, resetSandbox } from '../experiments/nacl/sandbox';
+import { usePortableStore } from '../interaction/portable';
+import { restartSession } from '../ui/SummaryScreen';
+import { benchView, useBenchView } from '../experiments/nacl/view';
+import { experimentGuide } from '../experiments/nacl/guidance';
+import { heldApi, tablePointer } from '../interaction/heldApi';
 
 declare global {
   interface Window {
@@ -30,6 +37,16 @@ export function DebugBridge() {
       loading: useLoadingStore,
       player: playerState,
       interactables,
+      station: bench,
+      portable: usePortableStore,
+      sandbox: { useSandbox, labUse, mixture, simulateLab, resetSandbox },
+      restartSession,
+      worktop: benchView,
+      worktopView: useBenchView,
+      placement: heldApi,
+      tablePointer,
+      guide: experimentGuide,
+      camera: () => get().camera,
       teleport: (x: number, z: number, yaw = 0) => playerApi.teleport(x, z, yaw),
       look: (yaw: number, pitch = 0) => {
         playerState.yaw = yaw;

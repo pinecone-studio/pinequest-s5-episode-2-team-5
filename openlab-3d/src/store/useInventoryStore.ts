@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import type { EquipmentKind } from '../equipment/equipmentCatalog';
 import { createInitialItems, type ItemVariant, type WorldItem } from '../world/itemsLayout';
+import { usePortableStore } from '../interaction/portable';
 
 export interface HeldItem {
   id: string;
@@ -32,7 +33,7 @@ export const useInventoryStore = create<InventoryState>()((set, get) => ({
   spawnedCount: 0,
   generation: 0,
   pickUp: (id) => {
-    if (get().held) return false;
+    if (get().held || usePortableStore.getState().held) return false;
     const item = get().worldItems.find((w) => w.id === id);
     if (!item) return false;
     set((s) => ({

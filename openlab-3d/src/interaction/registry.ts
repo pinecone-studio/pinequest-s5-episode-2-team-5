@@ -9,6 +9,8 @@ export interface InteractableEntry {
   enabled: boolean;
   inspectKind?: EquipmentKind;
   onInteract?: () => void;
+  /** Secondary use (R) keeps controls usable while E carries equipment. */
+  onUse?: () => void;
   /** Hold E (or the mouse button) and move the mouse: dx, dy in pixels. */
   onDrag?: (dx: number, dy: number) => void;
   onDragEnd?: () => void;

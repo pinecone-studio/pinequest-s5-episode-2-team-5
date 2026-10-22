@@ -4,6 +4,7 @@ import { useInventoryStore } from '../store/useInventoryStore';
 import { useSettingsStore } from '../store/useSettingsStore';
 import { CATALOG } from '../equipment/equipmentCatalog';
 import { promptKey } from '../controls/keyMap';
+import { usePortableStore } from '../interaction/portable';
 
 function Chip({ k, children, primary = false }: { k?: string; children: React.ReactNode; primary?: boolean }) {
   return (
@@ -18,6 +19,7 @@ function Chip({ k, children, primary = false }: { k?: string; children: React.Re
 export function InteractionPrompt() {
   const focus = useGameStore((s) => s.focus);
   const held = useInventoryStore((s) => s.held);
+  const portable = usePortableStore((s) => s.held);
   const bindings = useSettingsStore((s) => s.bindings);
   const lookMode = useSettingsStore((s) => s.lookMode);
   const e = promptKey('interact', bindings, lookMode);
@@ -27,7 +29,7 @@ export function InteractionPrompt() {
   return (
     <div className="pointer-events-none fixed inset-x-0 bottom-24 z-20 flex justify-center px-4 sm:bottom-10" aria-live="polite">
       <AnimatePresence mode="wait">
-        {(focus || held) && (
+        {(focus || held || portable) && (
           <motion.div key={key} className="flex flex-wrap items-center justify-center gap-2" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 6 }} transition={{ duration: 0.14 }}>
             {focus?.canUse && (
               <Chip k={e} primary>
@@ -38,6 +40,8 @@ export function InteractionPrompt() {
             {focus?.canInspect && <Chip k={f}>Ойроос харах</Chip>}
             {focus?.canScroll && <Chip k="⇕">Гүйлгэж тохируулах</Chip>}
             {focus?.canDrag && <Chip k={e}>дарсаар чирэх</Chip>}
+            {portable && <Chip k={q}>{portable.label} тавих</Chip>}
+            {(held || portable) && <Chip k="R">Чиглүүлж ашиглах (дарж барих)</Chip>}
             {held && !focus && (
               <>
                 <Chip k={q} primary>

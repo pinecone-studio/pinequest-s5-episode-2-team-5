@@ -6,6 +6,7 @@ import { resumeWalk } from '../controls/useGameKeys';
 import { sounds } from '../utils/sounds';
 import { SettingsPanel } from './SettingsPanel';
 import { ControlsList } from './ControlsHelp';
+import { openNaClExperiment } from '../experiments/nacl/bench';
 
 type Tab = 'experiments' | 'settings' | 'controls';
 
@@ -13,6 +14,13 @@ function ExperimentsTab() {
   const skills = useExperimentStore((s) => s.skills);
   const doneCount = SKILLS.filter((s) => skills[s.id]).length;
   return (
+    <div className="space-y-4">
+    <section className="rounded-2xl border-2 border-lab-yellow bg-amber-50 p-4">
+      <div className="text-xs font-bold text-amber-700">Өрөө доторх ажлын ширээ</div>
+      <h3 className="mt-1 font-display text-lg font-bold">Карбонатаас NaCl гарган авах</h3>
+      <p className="mt-2 text-sm text-slate-600">Энэ өрөөний бүх багажтай хамт ашиглана. Ямар ч алхам сонгох шаардлагагүй, хүссэн зүйлээ авч зөөж болно. Зааврыг анхаараарай.</p>
+      <button type="button" className="btn-yellow mt-3 w-full py-3" onClick={openNaClExperiment}>NaCl ширээнд очих →</button>
+    </section>
     <div className="rounded-2xl border border-slate-200 bg-white p-4">
       <div className="flex items-start justify-between gap-2">
         <div>
@@ -32,6 +40,7 @@ function ExperimentsTab() {
           </li>
         ))}
       </ol>
+    </div>
     </div>
   );
 }

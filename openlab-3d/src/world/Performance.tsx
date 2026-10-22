@@ -10,6 +10,7 @@ import { AdaptiveDpr, BakeShadows, PerformanceMonitor } from '@react-three/drei'
 import { Mesh, Vector3, type Object3D } from 'three';
 import { useFrame } from '@react-three/fiber';
 import { transmissionOriginals, transmissionTwins } from '../materials/glass';
+import { usePortableStore } from '../interaction/portable';
 import { QUALITY_PRESETS, useSettingsStore } from '../store/useSettingsStore';
 import { useInventoryStore } from '../store/useInventoryStore';
 import { LOAD_STEPS, useLoadingStore } from '../store/useLoadingStore';
@@ -44,6 +45,7 @@ export function PerformanceManager({ onDpr }: { onDpr: (dpr: number) => void }) 
 export function ShadowUpdater() {
   const gl = useThree((s) => s.gl);
   const items = useInventoryStore((s) => s.worldItems);
+  const portable = usePortableStore((s) => s.held?.id);
   const shadows = useSettingsStore((s) => QUALITY_PRESETS[s.quality].shadows);
   useEffect(() => {
     gl.shadowMap.enabled = shadows;
@@ -51,7 +53,7 @@ export function ShadowUpdater() {
       gl.shadowMap.needsUpdate = true;
     }, 400);
     return () => window.clearTimeout(id);
-  }, [gl, items, shadows]);
+  }, [gl, items, shadows, portable]);
   return <BakeShadows />;
 }
 

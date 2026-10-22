@@ -6,6 +6,7 @@ import { requestLock } from '../controls/usePointerLock';
 import { sounds } from '../utils/sounds';
 import { useSettingsStore } from '../store/useSettingsStore';
 import { ControlsList } from './ControlsHelp';
+import { openNaClExperiment } from '../experiments/nacl/bench';
 
 function Logo() {
   return (
@@ -28,7 +29,7 @@ export function enterLab(): void {
   requestLock();
   window.setTimeout(() => {
     if (!useGameStore.getState().robot.text) {
-      useGameStore.getState().say('Химийн лабораторид тавтай морил! Бунзены горелк асаах, жинг тэглэх эсвэл татах шүүгээний хаалтыг өргөж үзээрэй. Зөвлөгөө хэрэгтэй бол над дээр дараарай.', 'wave');
+      useGameStore.getState().say('Чөлөөт лабораторид тавтай морил! E дарж дурын багажийг ав, Q дарж тавь, R дарж барьж ашигла эсвэл цутга. NaCl ширээ энэ өрөөний нэг хэсэг. Заавар ба анхааруулгыг дагаарай.', 'wave');
     }
   }, 700);
 }
@@ -75,7 +76,15 @@ export function LoadingScreen() {
               <div className="mt-5 rounded-2xl bg-slate-50 p-4">
                 <ControlsList compact />
               </div>
-              <button type="button" className="btn-yellow mt-6 w-full py-4 text-lg" onClick={enterLab} autoFocus>
+              <div className="mt-5 rounded-2xl border-2 border-lab-yellow bg-amber-50 p-4">
+                <div className="text-xs font-bold uppercase text-amber-700">Нэг орон зай · Чөлөөт лаборатори</div>
+                <h2 className="mt-1 font-display text-xl font-bold">Багажаа аваад, өөрөө туршаарай</h2>
+                <p className="mt-2 text-sm text-slate-600">NaCl ширээ нь энэ өрөөний нэг хэсэг. Дурын багажийг E дарж авч, Q дарж тавь. R дарж барьж цутга. Заавар чиглүүлнэ, алхам түгжихгүй.</p>
+                <button type="button" className="btn-ghost mt-3 w-full py-3 text-sm" onClick={openNaClExperiment}>
+                  NaCl ажлын ширээнд очих (заавал биш) →
+                </button>
+              </div>
+              <button type="button" className="btn-yellow mt-3 w-full py-3 text-base" onClick={enterLab} autoFocus>
                 Лабораторид орох
               </button>
               <p className="mt-2 text-center text-xs text-slate-400">Эргэн харахад хулгана түгжигдэнэ — хүссэн үедээ Esc дарж чөлөөлнө.</p>

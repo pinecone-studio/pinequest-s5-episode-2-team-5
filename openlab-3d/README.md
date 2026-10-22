@@ -12,6 +12,24 @@ geometries at real-world scale. No external assets are downloaded at runtime (fo
 bundled from `@fontsource`, the environment map is rendered in-scene, all sounds are
 synthesized with the Web Audio API).
 
+
+## Current interaction model: one free laboratory
+
+Enter the room normally; no lesson or experiment selection is required. The NaCl
+apparatus is part of the north worktop. Pick any loose apparatus, shelf bottle or
+movable instrument with **E**, carry it through the room, and place with **Q**.
+Hold **R** while aiming at a receiving vessel to pour or use a tool. Use **R** to
+operate a burner or tare the balance. Ordinary room vessels can hold the experiment's
+solutions; contents remain with the item as it moves. **F** shows current vessel
+contents. **V** near the worktop is an optional zoom/orbit view of the same room.
+Click equipment in table view to read its scale and current volume; use the separate pickup button to move it. Left drag pans, right drag orbits, and wheel/pinch or the visible +/− controls zoom. Place held items at the cursor preview. Current instructions and warnings stay visible; an optional checklist explains all eight steps. Guidance does not lock equipment or enforce a step sequence.
+
+The NaCl model supports carbonate/acid reaction, CO2, filtering, heating, evaporation,
+cooling, crystals, slide samples, spills and overflow. Other reagent reactions are
+not invented. Installed furniture remains fixed; this is not a full breaking/throwing
+or fluid-physics simulator. State is local to the tab and resets with a new session.
+See [the free-lab implementation notes](src/experiments/nacl/README.md).
+
 ## Run
 
 ```bash
@@ -38,6 +56,8 @@ with base `/openlab/` into `../public/openlab/`, which the Expo web app serves; 
 | E (or click) | Interact / pick up |
 | F | Inspect the focused or held object |
 | Q | Drop / place the held item (ghost preview shows where) |
+| R (hold) | Use / pour from the held item onto the focused target |
+| V | Optional worktop close-up / return to walking |
 | Shift | Sprint |
 | Space | Jump (can be disabled) |
 | Tab | Tools drawer |
@@ -54,7 +74,7 @@ drag-to-look (right half) and E/F/Q/sprint buttons appear. All keys are remappab
 The menu's **Experiments** tab, the robot assistant and the end-of-session lab report
 track three bench skills:
 
-1. **Light a Bunsen burner** on one of the island benches (E toggles the flame).
+1. **Light a Bunsen burner** on one of the island benches (R toggles the flame; E carries it).
 2. **Tare the analytical balance** on the west bench, then place glassware on its pan —
    the display shows the summed catalog mass minus the tare.
 3. **Raise the fume-hood sash** on the north wall.

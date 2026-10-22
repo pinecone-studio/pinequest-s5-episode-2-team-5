@@ -29,6 +29,9 @@ import { chemBoardTexture } from '../../utils/textures';
 import { sounds } from '../../utils/sounds';
 import { BENCH_HEIGHT } from '../../utils/constants';
 import { StaticBatch } from '../StaticBatch';
+import { NaClStation } from '../../experiments/nacl/NaClStation';
+import { usePortableStore } from '../../interaction/portable';
+import { interactables } from '../../interaction/registry';
 
 const T = BENCH_HEIGHT;
 
@@ -67,7 +70,9 @@ function Burner({ id, position, withTripod = false }: { id: string; position: [n
           <mesh material={plastic('#9aa3ad', 0.9)} position={[0, 0.224, 0]}>
             <boxGeometry args={[0.15, 0.002, 0.15]} />
           </mesh>
-          <Beaker position={[0, 0.226, 0]} liquidColor="#7dd3fc" fill={0.5} />
+          <Interactable id={`${id}-beaker`} label="Суурин дээрх шилэн аяга" inspectKind="beaker">
+            <Beaker position={[0, 0.226, 0]} fill={0} />
+          </Interactable>
         </group>
       )}
     </group>
@@ -76,11 +81,13 @@ function Burner({ id, position, withTripod = false }: { id: string; position: [n
 
 /** Balance that weighs whatever was placed on its pan (sum of catalog masses). */
 function LiveBalance({ position }: { position: [number, number, number] }) {
+  usePortableStore((s) => s.held?.id);
   const tare = useExperimentStore((s) => s.values['balance-tare'] ?? 0);
   const items = useInventoryStore((s) => s.worldItems);
   // Pan center in world space (balance faces +x on the west bench).
-  const panX = position[0] - 0.03;
-  const panZ = position[2];
+  const moved = interactables.get('chem-balance')?.object.position;
+  const panX = position[0] - 0.03 + (moved?.x ?? 0);
+  const panZ = position[2] + (moved?.z ?? 0);
   const grams = items
     .filter((w) => Math.hypot(w.position[0] - panX, w.position[2] - panZ) < 0.07 && w.position[1] > T + 0.05)
     .reduce((sum, w) => sum + CATALOG[w.kind].massKg * 1000, 0);
@@ -126,6 +133,7 @@ function FlammablesCabinet({ position, rotY }: { position: [number, number, numb
 
 export default function ChemistryLab() {
   useReady('chemistry');
+  const generation = useInventoryStore((s) => s.generation);
   return (
     <group>
       <StaticBatch>
@@ -180,6 +188,8 @@ export default function ChemistryLab() {
       <Poster position={[-3.89, 1.75, -13.4]} rotY={Math.PI / 2} spec={{ title: 'Нүдний шил зүү', lines: ['Энэ лабораторид', 'хамгаалалтын шил', 'заавал зүүнэ.'], color: '#2563eb', icon: 'goggles' }} />
       <WasteBin position={[4.9, 0, -14.4]} color="#ef4444" />
       </StaticBatch>
+      {/* Live experiment bench (kept outside StaticBatch: its glassware moves). */}
+      <NaClStation key={generation} />
     </group>
   );
 }

@@ -43,6 +43,29 @@
 
 ## Хэсэг хоорондын "гэрээ" (өөрчлөхөөсөө өмнө ярилцах)
 
+### NaCl bench integration (2026-10-22)
+
+**Current contract: free laboratory.** Walking is the default; no experiment selection
+or ordered-step gate is required. `experiments/nacl/sandbox.ts` owns shared local vessel
+contents. Live scene equipment uses `interaction/portable.ts`; physics-backed inventory
+retains its inventory pipeline (`movable={false}` on its Interactable). E picks up,
+Q places, R uses/pours, F inspects. Movable instruments keep their original use as
+`InteractableEntry.onUse` (R). Shelves' bottles/glassware are individually interactable.
+`bench` now means only an optional V orbit/zoom camera in the same room; it does not
+activate the legacy engine step runner. Keep moving equipment outside static batching.
+Warnings guide without locking pickup, mixing, spilling or movement. Restart resets the
+chemistry and portable placements. See `src/experiments/nacl/README.md` for the full contract.
+
+The earlier seated integration below is retained as history; its step-runner behavior
+is superseded by the free laboratory contract above.
+
+Shared `Mode` now includes `'bench'` for `src/experiments/nacl/` (Туршилт 1).
+Owners 1/2/3: keep the station outside `StaticBatch`; its meshes animate.
+While seated, OrbitControls owns the camera, walking inputs and normal HUD stay inactive,
+and Escape calls `exitBench()`. Engine progress pauses on exit and resumes on re-entry.
+This is local tab state; no ChemQuest XP or Supabase result is written.
+This note records the contract change; no external teammate message was sent.
+
 - **1 ↔ 2:** Лаб багажийг `<BunsenBurner />`, `<Scale />` гэх мэт компонентоор
   байрлуулна. Ширээнүүд `registerSurface()`-ээр гадаргуугаа бүртгүүлж, шургуулга/хаалганууд
   `<Interactable>` ашиглана. Багажны байрлалыг `itemsLayout.ts`-д тохирно.

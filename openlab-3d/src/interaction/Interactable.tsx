@@ -5,6 +5,8 @@ import { InstancedMesh, Mesh, type Group, type Object3D } from 'three';
 import { useGameStore } from '../store/useGameStore';
 import type { EquipmentKind } from '../equipment/equipmentCatalog';
 import { interactables, type InteractableEntry } from './registry';
+import { scenePortable, usePortableStore } from './portable';
+import { useInventoryStore } from '../store/useInventoryStore';
 
 export interface InteractableProps extends Omit<GroupProps, 'children' | 'onWheel' | 'id'> {
   id: string;
@@ -14,6 +16,7 @@ export interface InteractableProps extends Omit<GroupProps, 'children' | 'onWhee
   enabled?: boolean;
   /** Enables F-inspect using this catalog model. */
   inspectKind?: EquipmentKind;
+  movable?: boolean;
   onInteract?: () => void;
   onDrag?: (dx: number, dy: number) => void;
   onDragEnd?: () => void;
@@ -33,6 +36,7 @@ export function Interactable({
   verb = 'ашиглах',
   enabled = true,
   inspectKind,
+  movable = !!inspectKind,
   onInteract,
   onDrag,
   onDragEnd,
@@ -43,6 +47,16 @@ export function Interactable({
 }: InteractableProps) {
   const ref = useRef<Group>(null);
   const entryRef = useRef<InteractableEntry | null>(null);
+  const carried = usePortableStore((s) => s.held?.id === id);
+  const interact = () => {
+    if (!movable) { onInteract?.(); return; }
+    if (!ref.current) return;
+    if (usePortableStore.getState().held || useInventoryStore.getState().held) {
+      useGameStore.getState().showToast('Гар завгүй', 'Q дарж барьж буй зүйлээ эхлээд тавь.'); return;
+    }
+    usePortableStore.setState({ held: scenePortable(id, label, ref.current) });
+    useGameStore.getState().showToast('Багаж авлаа', 'Q: тавих · R: ашиглах. Заавар ба халуун гадаргууг анхаар.');
+  };
 
   useLayoutEffect(() => {
     const object = ref.current;
@@ -62,10 +76,11 @@ export function Interactable({
     const entry = entryRef.current;
     if (!entry) return;
     entry.label = label;
-    entry.verb = verb;
-    entry.enabled = enabled;
+    entry.verb = movable ? 'авах · R: ашиглах' : verb;
+    entry.enabled = enabled && !carried;
     entry.inspectKind = inspectKind;
-    entry.onInteract = onInteract;
+    entry.onInteract = movable ? interact : onInteract;
+    entry.onUse = movable ? onInteract : undefined;
     entry.onDrag = onDrag;
     entry.onDragEnd = onDragEnd;
     entry.onWheel = onWheel;

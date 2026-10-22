@@ -12,6 +12,7 @@ import { PICKABLE_COLLISION } from '../utils/constants';
 import { sounds } from '../utils/sounds';
 import type { WorldItem } from '../world/itemsLayout';
 import { Interactable } from './Interactable';
+import { usePortableStore } from './portable';
 
 export const Pickable = memo(function Pickable({ item }: { item: WorldItem }) {
   const def = CATALOG[item.kind];
@@ -40,8 +41,9 @@ export const Pickable = memo(function Pickable({ item }: { item: WorldItem }) {
         label={def.name}
         verb="авах"
         inspectKind={item.kind}
+        movable={false}
         onInteract={() => {
-          if (useInventoryStore.getState().held) {
+          if (useInventoryStore.getState().held || usePortableStore.getState().held) {
             useGameStore.getState().showToast('Гар завгүй байна', 'Эхлээд барьж буй зүйлээ Q дарж тавь');
             return;
           }

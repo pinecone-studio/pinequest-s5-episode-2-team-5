@@ -6,9 +6,8 @@ import { useEffect, useRef, useState } from 'react';
 import { useGameStore } from '../store/useGameStore';
 import { touchInput } from '../interaction/heldApi';
 import { lookBy } from '../controls/usePointerLock';
-import { interactWithFocus } from '../controls/useGameKeys';
-import { heldApi } from '../interaction/heldApi';
-import { useInventoryStore } from '../store/useInventoryStore';
+import { dropHeld, interactWithFocus } from '../controls/useGameKeys';
+import { describe, heldObjectId, labUse, mixture, useSandbox } from '../experiments/nacl/sandbox';
 import { interactables } from '../interaction/registry';
 import { releaseLock } from '../controls/usePointerLock';
 
@@ -76,6 +75,9 @@ export function TouchControls() {
   };
   const inspect = () => {
     const focus = useGameStore.getState().focus;
+    const vesselId = heldObjectId() ?? focus?.id;
+    if (vesselId && describe(vesselId).capacity > 0) { mixture(vesselId); useSandbox.setState({ inspected: vesselId }); return; }
+    if (focus?.id.startsWith('nacl-')) { useSandbox.setState({ inspected: focus.id }); return; }
     const entry = focus ? interactables.get(focus.id) : undefined;
     if (entry?.inspectKind) {
       releaseLock();
@@ -98,8 +100,11 @@ export function TouchControls() {
         <button className={btn} onClick={inspect} aria-label="Ойроос харах">
           F
         </button>
-        <button className={btn} onClick={() => useInventoryStore.getState().held && heldApi.place()} aria-label="Тавих">
+        <button className={btn} onClick={dropHeld} aria-label="Тавих">
           Q
+        </button>
+        <button className={btn} onPointerDown={(e) => { e.currentTarget.setPointerCapture(e.pointerId); labUse.start(useGameStore.getState().focus?.id ?? null); }} onPointerUp={() => labUse.end()} onPointerCancel={() => labUse.end()} aria-label="Цутгах эсвэл ашиглах">
+          R
         </button>
         <button className={`${btn} ${sprint ? '!bg-lab-yellow' : ''}`} onClick={() => setSprint((s) => !s)} aria-label="Гүйх горим" aria-pressed={sprint}>
           ⇧
