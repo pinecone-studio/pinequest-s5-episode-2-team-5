@@ -3,7 +3,7 @@
  * (0.9 m), white enclosure with black epoxy work surface, slotted back baffle, LED light
  * strip, airflow monitor, exhaust duct to the ceiling, and a vertical sliding glass sash.
  */
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useFrame } from '@react-three/fiber';
 import { Text } from '@react-three/drei';
 import { CuboidCollider } from '@react-three/rapier';
@@ -12,6 +12,8 @@ import { paintedWhite, plasticBlack, plasticDark } from '../../materials/plastic
 import { metalAluminum, metalBrushed } from '../../materials/metal';
 import { windowGlass } from '../../materials/glass';
 import { Interactable } from '../../interaction/Interactable';
+import { rectFromBox, registerSurface } from '../../interaction/surfaces';
+import { emitLab } from '../../lab/events';
 import { useExperimentStore } from '../../store/useExperimentStore';
 import { useGameStore } from '../../store/useGameStore';
 import { sounds } from '../../utils/sounds';
@@ -45,6 +47,8 @@ export function FumeHood({ id, position, rotY = 0 }: { id: string; position: [nu
   });
   const [x, z] = position;
   const innerH = top - base - 0.35;
+  // The black work surface inside the hood is a placement surface.
+  useEffect(() => registerSurface({ id: `${id}-work`, ...rectFromBox(x, z + 0.02, W - 0.2, D - 0.16, rotY), y: base + 0.03 }), [id, x, z, rotY]);
   return (
     <group>
       <LabBench id={`${id}-base`} position={[x, z]} rotY={rotY} width={W} depth={D} modules={['door', 'door', 'door']} surface={false} />
@@ -86,7 +90,10 @@ export function FumeHood({ id, position, rotY = 0 }: { id: string; position: [nu
           verb={raised ? 'буулгах' : 'өргөх'}
           onInteract={() => {
             const up = toggle(`${id}-sash`);
-            if (up) useExperimentStore.getState().markSkill('hood');
+            if (up) {
+              useExperimentStore.getState().markSkill('hood');
+              emitLab({ key: 'hood:open', quiet: true });
+            }
             useGameStore.getState().logEvent(up ? 'Татах шүүгээний хаалтыг өргөлөө.' : 'Татах шүүгээний хаалтыг буулгалаа.');
             setBusy(true);
             sounds.play('door', 0.5);
@@ -130,7 +137,12 @@ export function FumeHood({ id, position, rotY = 0 }: { id: string; position: [nu
         <mesh material={metalBrushed} position={[0, top + (WALL_HEIGHT - top) / 2, -0.1]}>
           <cylinderGeometry args={[0.13, 0.13, WALL_HEIGHT - top, 20]} />
         </mesh>
-        <CuboidCollider args={[W / 2, (top - base) / 2, D / 2]} position={[0, base + (top - base) / 2, 0]} />
+        {/* Walls, roof and work slab only: the inside is open so items can be placed in the hood. */}
+        <CuboidCollider args={[0.04, (top - base) / 2, D / 2]} position={[-(W - 0.08) / 2, base + (top - base) / 2, 0]} />
+        <CuboidCollider args={[0.04, (top - base) / 2, D / 2]} position={[(W - 0.08) / 2, base + (top - base) / 2, 0]} />
+        <CuboidCollider args={[W / 2, (top - base) / 2, 0.04]} position={[0, base + (top - base) / 2, -D / 2 + 0.04]} />
+        <CuboidCollider args={[W / 2, 0.175, D / 2]} position={[0, top - 0.175, 0]} />
+        <CuboidCollider args={[W / 2, 0.015, D / 2]} position={[0, base + 0.015, 0]} />
       </group>
     </group>
   );

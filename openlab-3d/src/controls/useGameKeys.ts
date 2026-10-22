@@ -3,7 +3,8 @@ import { useGameStore, type Panel } from '../store/useGameStore';
 import { useInventoryStore } from '../store/useInventoryStore';
 import { useSettingsStore } from '../store/useSettingsStore';
 import { interactables } from '../interaction/registry';
-import { dragState, heldApi } from '../interaction/heldApi';
+import { dragState, heldApi, throwCharge } from '../interaction/heldApi';
+import { beginUse, endUse } from '../interaction/actions';
 import { sounds } from '../utils/sounds';
 import { actionsForKey } from './keyMap';
 import { isPointerLocked, lookBy, releaseLock, requestLock } from './usePointerLock';
@@ -86,12 +87,17 @@ function grabFocus(): void {
   entry?.onGrab?.();
 }
 
-/** R: pour the held vessel into the focused one (or the sink), or fill the held one from it. */
-function pourIntoFocus(): void {
-  const focus = useGameStore.getState().focus;
-  const entry = focus ? interactables.get(focus.id) : undefined;
-  if (entry?.onPour) entry.onPour();
-  else useGameStore.getState().showToast('Асгах сав олдсонгүй', 'Гартаа сав барьж, өөр аяга, колб эсвэл угаалтуур руу хараад R дар');
+/** T down: start winding up a throw; T up: let go (a longer press throws harder). */
+export function startThrow(): void {
+  if (!useInventoryStore.getState().held) return;
+  throwCharge.since = performance.now();
+}
+
+export function releaseThrow(): void {
+  if (throwCharge.since === null) return;
+  const power = Math.min(1, (performance.now() - throwCharge.since) / 900);
+  throwCharge.since = null;
+  heldApi.throwHeld(power);
 }
 
 /**
@@ -114,8 +120,15 @@ export function toggleCursor(): void {
   }
 }
 
-function dropHeld(): void {
+export function dropHeld(): void {
   if (!useInventoryStore.getState().held) return;
+  // An open drawer, cabinet or rack in focus takes the item instead of the bench.
+  const focus = useGameStore.getState().focus;
+  const entry = focus ? interactables.get(focus.id) : undefined;
+  if (entry?.onStore) {
+    entry.onStore();
+    return;
+  }
   if (!heldApi.place()) {
     useGameStore.getState().showToast('Энд тавих боломжгүй', 'Ширээний гадаргуу эсвэл ойрхон шал руу хар');
   }
@@ -154,7 +167,8 @@ export function useGameKeys(canvas: HTMLElement | null): void {
           if (actions.includes('inspect')) inspectFocusOrHeld();
           if (actions.includes('drop')) dropHeld();
           if (actions.includes('grab')) grabFocus();
-          if (actions.includes('pour')) pourIntoFocus();
+          if (actions.includes('pour')) beginUse();
+          if (actions.includes('throw')) startThrow();
           if (actions.includes('cursor')) toggleCursor();
           if (actions.includes('tools')) openPanelFromGame('tools');
           if (actions.includes('notes')) openPanelFromGame('notes');
@@ -195,10 +209,11 @@ export function useGameKeys(canvas: HTMLElement | null): void {
     };
 
     const onKeyUp = (e: KeyboardEvent) => {
-      if (dragState.id && dragState.source === 'key') {
-        const { bindings, lookMode } = useSettingsStore.getState();
-        if (actionsForKey(e.code, bindings, lookMode).includes('interact')) endDrag();
-      }
+      const { bindings, lookMode } = useSettingsStore.getState();
+      const actions = actionsForKey(e.code, bindings, lookMode);
+      if (dragState.id && dragState.source === 'key' && actions.includes('interact')) endDrag();
+      if (actions.includes('pour')) endUse();
+      if (actions.includes('throw')) releaseThrow();
     };
 
     let keyboardLookDrag = false;
@@ -234,6 +249,8 @@ export function useGameKeys(canvas: HTMLElement | null): void {
     const onBlur = () => {
       if (dragState.id) endDrag();
       keyboardLookDrag = false;
+      endUse();
+      throwCharge.since = null;
     };
 
     window.addEventListener('keydown', onKeyDown);

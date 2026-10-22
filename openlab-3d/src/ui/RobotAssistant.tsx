@@ -13,6 +13,8 @@ import { useGameStore } from '../store/useGameStore';
 import { SKILLS, useExperimentStore, type SkillId } from '../store/useExperimentStore';
 import { useInventoryStore } from '../store/useInventoryStore';
 import { CATALOG } from '../equipment/equipmentCatalog';
+import { useLabStore } from '../store/useLabStore';
+import { experimentById } from '../lab/experiments';
 import { sounds } from '../utils/sounds';
 
 const shell = new MeshPhysicalMaterial({ color: '#f7f8fa', roughness: 0.32, clearcoat: 0.8, clearcoatRoughness: 0.2 });
@@ -119,7 +121,7 @@ const SKILL_HINTS: Record<SkillId, string> = {
   burner: 'Голын ширээнүүд дээрх Бунзены горелк руу ойртоод E дарж асаагаарай.',
   tare: 'Аналитик жин баруун хананы ширээн дээр байна. E дарж тэглээд, дараа нь тавган дээр нь шилэн сав тавиарай.',
   hood: 'Татах шүүгээ хойд хананд байна. Утаа гардаг ажил хийхээсээ өмнө хаалтан дээр нь E дарж өргөөрэй.',
-  mix: 'Давсны хүчил (HCl) эсвэл Натрийн гидроксидын (NaOH) лонхыг аваад (E), хоосон аяга руу R дарж асгаарай. Дараа нь нөгөө бодисоо мөн ингэж нэм. Заагч (фенолфталеин) нэмбэл өнгө нь солигдоно.',
+  mix: 'Шүүгээ (E дарж нээ) эсвэл ширээн дээрээс урвалжийн лонх аваад, хоосон аяга руу хараад R-ийг дарсаар асга. Дараа нь өөр бодис нэмж урвалыг ажигла.',
 };
 
 const SKILL_PRAISE: Record<SkillId, string> = {
@@ -132,12 +134,19 @@ const SKILL_PRAISE: Record<SkillId, string> = {
 function contextualHint(): string {
   const skills = useExperimentStore.getState().skills;
   const held = useInventoryStore.getState().held;
-  if (held) return `Гартаа: ${CATALOG[held.kind].name}. Q дарж тавих, F дарж ойроос харах${CATALOG[held.kind].capacityMl ? ', өөр сав руу хараад R дарж асгах' : ''} боломжтой.`;
+  const lab = useLabStore.getState();
+  const x = lab.active ? experimentById(lab.active) : undefined;
+  const step = x?.steps.find((s) => !(lab.progress[x.id] ?? []).includes(s.id));
+  if (held) return `Гартаа: ${CATALOG[held.kind].name}. Q — тавих (нээлттэй шургуулга руу хараад Q — хадгалах), T — шидэх, F — ойроос харах${CATALOG[held.kind].capacityMl ? ', сав руу хараад R-ийг дарсаар — асгах' : ', ямар нэг зүйл рүү хараад R — ашиглах'}.${step ? ` Одоогийн алхам: ${step.hint}` : ''}`;
+  if (x && step) return `«${x.title}»: ${step.text}. ${step.hint}`;
   const next = SKILLS.find((s) => !skills[s.id]);
   if (next) return SKILL_HINTS[next.id];
   const tips = [
     'Ямар ч зүйл дээр F дарж ойроос харж болно.',
-    'Tab дарахад багажны шургуулга нээгдэнэ — хамгийн ойрын ширээн дээр шилэн сав нэмж тавиарай.',
+    'Tab дарахад багаж, бодисын жагсаалт нээгдэнэ — дарвал хамгийн ойрын ширээн дээр гарч ирнэ.',
+    'Ширээний шургуулга, шүүгээ бүр шошготой. E дарж нээгээд доторх зүйлийг аваарай.',
+    'Шил унавал хагарна! Асгарсан уусмалыг E дарж арчаарай.',
+    'Цэс → Туршилт хэсэгт 14 туршилтын алхам алхмаар заавар бий.',
     'Хамгаалалтын нүдний шил баруун хананы ширээн дээр байна. Аюулгүй байдал хамгийн түрүүнд!',
     'Аюулгүйн шүршүүр зүүн өмнөд буланд, гал унтраагуур өмнөд цонхны дэргэд өлгөөтэй байна.',
     'Ажигласан зүйлээ лабораторийн тэмдэглэлд (N) бичээрэй.',
@@ -196,7 +205,7 @@ export function RobotAssistant({ hidden }: { hidden: boolean }) {
           </mesh>
         </Canvas>
       </button>
-      <AnimatePresence>
+      <AnimatePresence mode="wait">
         {robot.open && robot.text && (
           <motion.div
             key={robot.id}

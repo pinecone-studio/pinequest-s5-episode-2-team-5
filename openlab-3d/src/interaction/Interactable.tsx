@@ -4,7 +4,7 @@ import { Outlines } from '@react-three/drei';
 import { InstancedMesh, Mesh, type Group, type Object3D } from 'three';
 import { useGameStore } from '../store/useGameStore';
 import type { EquipmentKind } from '../equipment/equipmentCatalog';
-import { interactables, type InteractableEntry } from './registry';
+import { interactables, type InteractableEntry, type UseTarget } from './registry';
 
 export interface InteractableProps extends Omit<GroupProps, 'children' | 'onWheel' | 'id'> {
   id: string;
@@ -16,8 +16,9 @@ export interface InteractableProps extends Omit<GroupProps, 'children' | 'onWhee
   inspectKind?: EquipmentKind;
   onInteract?: () => void;
   onGrab?: () => void;
-  onPour?: () => void;
-  pourVerb?: string;
+  useTarget?: UseTarget;
+  onStore?: () => void;
+  storeVerb?: string;
   onDrag?: (dx: number, dy: number) => void;
   onDragEnd?: () => void;
   onWheel?: (direction: number) => void;
@@ -38,8 +39,9 @@ export function Interactable({
   inspectKind,
   onInteract,
   onGrab,
-  onPour,
-  pourVerb,
+  useTarget,
+  onStore,
+  storeVerb,
   onDrag,
   onDragEnd,
   onWheel,
@@ -53,7 +55,7 @@ export function Interactable({
   useLayoutEffect(() => {
     const object = ref.current;
     if (!object) return;
-    const entry: InteractableEntry = { id, object, label, verb, enabled, inspectKind, onInteract, onGrab, onPour, pourVerb, onDrag, onDragEnd, onWheel, bounds: null };
+    const entry: InteractableEntry = { id, object, label, verb, enabled, inspectKind, onInteract, onGrab, useTarget, onStore, storeVerb, onDrag, onDragEnd, onWheel, bounds: null };
     entryRef.current = entry;
     interactables.set(id, entry);
     return () => {
@@ -73,8 +75,9 @@ export function Interactable({
     entry.inspectKind = inspectKind;
     entry.onInteract = onInteract;
     entry.onGrab = onGrab;
-    entry.onPour = onPour;
-    entry.pourVerb = pourVerb;
+    entry.useTarget = useTarget;
+    entry.onStore = onStore;
+    entry.storeVerb = storeVerb;
     entry.onDrag = onDrag;
     entry.onDragEnd = onDragEnd;
     entry.onWheel = onWheel;

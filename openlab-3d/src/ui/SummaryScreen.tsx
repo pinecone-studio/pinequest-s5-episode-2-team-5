@@ -4,6 +4,11 @@ import { SKILLS, useExperimentStore } from '../store/useExperimentStore';
 import { useInventoryStore } from '../store/useInventoryStore';
 import { SPAWN } from '../world/layout';
 import { CATALOG } from '../equipment/equipmentCatalog';
+import { useChemStore } from '../store/useChemStore';
+import { experimentDone, useLabStore } from '../store/useLabStore';
+import { EXPERIMENTS } from '../lab/experiments';
+import { eventText } from '../chemistry/describe';
+import { resetObservations } from '../lab/observe';
 
 function duration(ms: number): string {
   const s = Math.max(0, Math.round(ms / 1000));
@@ -14,6 +19,9 @@ function duration(ms: number): string {
 export function restartSession(): void {
   useExperimentStore.getState().reset();
   useInventoryStore.getState().reset();
+  useChemStore.getState().reset();
+  useLabStore.getState().resetSession();
+  resetObservations();
   playerApi.teleport(SPAWN.x, SPAWN.z, SPAWN.yaw);
   useGameStore.getState().restart();
 }
@@ -23,8 +31,14 @@ export function SummaryScreen() {
   const game = useGameStore();
   const skills = useExperimentStore((s) => s.skills);
   const placed = useInventoryStore((s) => s.placedCount);
+  const broken = useInventoryStore((s) => s.brokenCount);
+  const progress = useLabStore((s) => s.progress);
+  const seen = useLabStore((s) => s.seen);
+  const measurements = useLabStore((s) => s.measurements);
   const open = game.mode === 'ended';
   const done = SKILLS.filter((s) => skills[s.id]).length;
+  const finished = EXPERIMENTS.filter((x) => experimentDone(progress, x.id));
+  const reactions = seen.filter((k) => !k.startsWith('wear:') && k !== 'wipe' && k !== 'break' && !k.startsWith('waste')).map((k) => eventText(k)?.title).filter(Boolean) as string[];
   return (
     <AnimatePresence>
       {open && (
@@ -38,8 +52,12 @@ export function SummaryScreen() {
               {[
                 ['Лабд өнгөрүүлсэн хугацаа', duration((game.endedAt ?? Date.now()) - game.sessionStart)],
                 ['Лабораторийн дадал', `${done} / ${SKILLS.length}`],
-                ['Ойроос харсан багаж', String(game.inspectedKinds.length)],
+                ['Дууссан туршилт', `${finished.length} / ${EXPERIMENTS.length}`],
+                ['Ажигласан урвал', String(reactions.length)],
+                ['Хэмжилт', String(measurements)],
+                ['Хагарсан шил', String(broken)],
                 ['Тавьсан эд зүйл', String(placed)],
+                ['Ойроос харсан багаж', String(game.inspectedKinds.length)],
               ].map(([label, value]) => (
                 <div key={label} className="rounded-xl border border-slate-200 bg-white p-3">
                   <div className="text-xs text-slate-500">{label}</div>
@@ -48,6 +66,26 @@ export function SummaryScreen() {
               ))}
             </div>
             <div className="mt-5 grid gap-4 sm:grid-cols-2">
+              <section className="rounded-2xl border border-slate-200 bg-white p-4">
+                <h3 className="font-semibold">Туршилт · {finished.length}/{EXPERIMENTS.length}</h3>
+                {finished.length > 0 ? (
+                  <ul className="mt-2 space-y-1 text-sm text-slate-700">
+                    {finished.map((x) => (
+                      <li key={x.id}>✅ {x.title}</li>
+                    ))}
+                  </ul>
+                ) : (
+                  <p className="mt-2 text-sm text-slate-500">Цэс → Туршилт хэсгээс алхам алхмаар заавартай туршилт сонгоорой.</p>
+                )}
+              </section>
+              <section className="rounded-2xl border border-slate-200 bg-white p-4">
+                <h3 className="font-semibold">Ажигласан үзэгдэл</h3>
+                {reactions.length > 0 ? (
+                  <p className="mt-2 text-sm text-slate-600">{reactions.join(' · ')}</p>
+                ) : (
+                  <p className="mt-2 text-sm text-slate-500">Энэ удаа урвал ажиглаагүй байна.</p>
+                )}
+              </section>
               <section className="rounded-2xl border border-slate-200 bg-white p-4">
                 <h3 className="font-semibold">Лабораторийн дадал · {done}/{SKILLS.length}</h3>
                 <ul className="mt-2 space-y-1 text-sm">

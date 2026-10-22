@@ -65,3 +65,13 @@ export function nearestSurfacePoint(pos: Vector3, maxDist: number, margin = 0.06
   }
   return best;
 }
+
+/** Height of the surface under (x, z) at or below `maxY`, else the floor (0). */
+export function surfaceYAt(x: number, z: number, maxY: number): number {
+  let best = 0;
+  for (const s of surfaces.values()) {
+    if (x < s.minX - 0.04 || x > s.maxX + 0.04 || z < s.minZ - 0.04 || z > s.maxZ + 0.04) continue;
+    if (s.y <= maxY + 0.03 && s.y > best) best = s.y;
+  }
+  return best;
+}

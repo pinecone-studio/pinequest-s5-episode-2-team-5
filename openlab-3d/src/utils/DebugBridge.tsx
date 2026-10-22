@@ -11,6 +11,14 @@ import { useInventoryStore } from '../store/useInventoryStore';
 import { useSettingsStore } from '../store/useSettingsStore';
 import { useLoadingStore } from '../store/useLoadingStore';
 import { interactables } from '../interaction/registry';
+import { useChemStore } from '../store/useChemStore';
+import { useLabStore } from '../store/useLabStore';
+import { beginUse, endUse, describeUse } from '../interaction/actions';
+import { bodies } from '../interaction/bodies';
+import { heldApi } from '../interaction/heldApi';
+import { emitLab, onLab } from '../lab/events';
+import { equilibrate } from '../chemistry/equilibrium';
+import { mixtureLook } from '../chemistry/color';
 
 declare global {
   interface Window {
@@ -28,6 +36,13 @@ export function DebugBridge() {
       inventory: useInventoryStore,
       settings: useSettingsStore,
       loading: useLoadingStore,
+      chem: useChemStore,
+      lab: useLabStore,
+      bodies,
+      use: { begin: beginUse, end: endUse, describe: describeUse },
+      heldApi,
+      labEvents: { emit: emitLab, on: onLab },
+      chemistry: { equilibrate, mixtureLook },
       player: playerState,
       interactables,
       teleport: (x: number, z: number, yaw = 0) => playerApi.teleport(x, z, yaw),

@@ -3,6 +3,7 @@ import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { SPAWN } from '../world/layout';
 import type { EquipmentKind } from '../equipment/equipmentCatalog';
+import { emitLab } from '../lab/events';
 
 /**
  * walk        – free first-person movement
@@ -22,9 +23,9 @@ export interface FocusInfo {
   canInspect: boolean;
   /** G picks it up although E does something else. */
   canGrab: boolean;
-  /** R pours into / draws from it. */
-  canPour: boolean;
-  pourVerb?: string;
+  /** Q puts the held item in here (open drawer, cabinet, rack). */
+  canStore: boolean;
+  storeVerb?: string;
   canDrag: boolean;
   canScroll: boolean;
 }
@@ -110,11 +111,12 @@ export const useGameStore = create<GameState>()(
       setCursorFree: (cursorFree) => set({ cursorFree }),
       setFocus: (focus) => {
         const prev = get().focus;
-        if (prev?.id === focus?.id && prev?.label === focus?.label && prev?.verb === focus?.verb && prev?.pourVerb === focus?.pourVerb && prev?.canPour === focus?.canPour) return;
+        if (prev?.id === focus?.id && prev?.label === focus?.label && prev?.verb === focus?.verb && prev?.canStore === focus?.canStore && prev?.canScroll === focus?.canScroll) return;
         set({ focus });
       },
       setDragging: (dragging) => set({ dragging }),
       startInspect: (kind, sourceId) => {
+        emitLab({ key: `inspect:${kind}`, quiet: true, itemId: sourceId });
         const inspected = get().inspectedKinds;
         set({
           mode: 'inspect',

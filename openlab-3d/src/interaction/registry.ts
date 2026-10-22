@@ -1,5 +1,13 @@
 import { Box3, Sphere, Vector3, type Object3D } from 'three';
 import type { EquipmentKind } from '../equipment/equipmentCatalog';
+import type { ItemVariant } from '../world/itemsLayout';
+
+/** What R ("use the held item on …") can act on. */
+export type UseTarget =
+  | { type: 'item'; id: string; kind: EquipmentKind; variant?: ItemVariant; holderId?: string }
+  | { type: 'sink' }
+  | { type: 'waste' }
+  | { type: 'puddle'; id: string };
 
 export interface InteractableEntry {
   id: string;
@@ -11,9 +19,11 @@ export interface InteractableEntry {
   onInteract?: () => void;
   /** Pick the object up (G); only set when E does something else, e.g. lights a burner. */
   onGrab?: () => void;
-  /** Pour the held vessel into this one, or draw from this one into the empty held vessel (R). */
-  onPour?: () => void;
-  pourVerb?: string;
+  /** Target of R with the held item (pour, measure, stir, …). */
+  useTarget?: UseTarget;
+  /** Q while focused: put the held item in here (open drawer, cabinet, rack). */
+  onStore?: () => void;
+  storeVerb?: string;
   /** Hold E (or the mouse button) and move the mouse: dx, dy in pixels. */
   onDrag?: (dx: number, dy: number) => void;
   onDragEnd?: () => void;

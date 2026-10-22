@@ -2,6 +2,8 @@ import { useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { useGameStore } from '../store/useGameStore';
 import { SKILLS, useExperimentStore } from '../store/useExperimentStore';
+import { experimentDone, useLabStore } from '../store/useLabStore';
+import { EXPERIMENTS } from '../lab/experiments';
 import { resumeWalk } from '../controls/useGameKeys';
 import { sounds } from '../utils/sounds';
 import { SettingsPanel } from './SettingsPanel';
@@ -9,22 +11,21 @@ import { ControlsList } from './ControlsHelp';
 
 type Tab = 'experiments' | 'settings' | 'controls';
 
-function ExperimentsTab() {
+function SkillsCard() {
   const skills = useExperimentStore((s) => s.skills);
   const doneCount = SKILLS.filter((s) => skills[s.id]).length;
   return (
     <div className="rounded-2xl border border-slate-200 bg-white p-4">
       <div className="flex items-start justify-between gap-2">
         <div>
-          <div className="text-xs font-semibold uppercase tracking-wider text-emerald-600">Химийн лаборатори</div>
+          <div className="text-xs font-semibold uppercase tracking-wider text-emerald-600">Үндсэн дадал</div>
           <h3 className="font-display text-lg font-bold">Лабораторийн дадал</h3>
         </div>
         <span className="rounded-full bg-slate-100 px-2 py-0.5 text-xs font-semibold text-slate-600">
           {doneCount}/{SKILLS.length}
         </span>
       </div>
-      <p className="mt-1 text-sm text-slate-600">Бунзены горелк асааж, шилэн савыг жинд жигнэж (эхлээд тэглээрэй!), татах шүүгээний хаалтыг өргөөрэй.</p>
-      <ol className="mt-3 space-y-1.5">
+      <ol className="mt-2 space-y-1.5">
         {SKILLS.map((s, i) => (
           <li key={s.id} className="flex items-start gap-2 text-sm">
             <span className={`mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full text-[11px] font-bold ${skills[s.id] ? 'bg-green-500 text-white' : 'bg-slate-200 text-slate-500'}`}>{skills[s.id] ? '✓' : i + 1}</span>
@@ -32,6 +33,82 @@ function ExperimentsTab() {
           </li>
         ))}
       </ol>
+    </div>
+  );
+}
+
+function ExperimentsTab() {
+  const progress = useLabStore((s) => s.progress);
+  const active = useLabStore((s) => s.active);
+  const [open, setOpen] = useState<string | null>(active);
+  const finished = EXPERIMENTS.filter((x) => experimentDone(progress, x.id)).length;
+  return (
+    <div className="space-y-3">
+      <div className="rounded-2xl bg-emerald-50 p-3 text-sm text-emerald-900">
+        <b>Туршилтын заавар</b> · {finished}/{EXPERIMENTS.length} дууссан. Туршилтаа сонгоод «Эхлүүлэх» дарвал алхмууд нь дэлгэцийн зүүн дээд буланд харагдаж, хийх бүрт автоматаар тэмдэглэгдэнэ.
+      </div>
+      <ul className="space-y-2">
+        {EXPERIMENTS.map((x) => {
+          const done = progress[x.id] ?? [];
+          const complete = experimentDone(progress, x.id);
+          const expanded = open === x.id;
+          return (
+            <li key={x.id} className={`rounded-2xl border bg-white ${active === x.id ? 'border-lab-yellow' : 'border-slate-200'}`}>
+              <button type="button" className="focus-ring flex w-full items-center gap-3 p-3 text-left" onClick={() => setOpen(expanded ? null : x.id)} aria-expanded={expanded}>
+                <span className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-sm font-bold ${complete ? 'bg-green-500 text-white' : 'bg-slate-100 text-slate-500'}`}>{complete ? '✓' : `${done.length}/${x.steps.length}`}</span>
+                <span className="flex-1">
+                  <span className="block font-semibold leading-tight">{x.title}</span>
+                  <span className="block text-xs text-slate-500">{x.level} · {x.steps.length} алхам{active === x.id ? ' · идэвхтэй' : ''}</span>
+                </span>
+                <span className="text-xs text-slate-400">{expanded ? '▲' : '▼'}</span>
+              </button>
+              {expanded && (
+                <div className="space-y-3 border-t border-slate-100 p-3 text-sm">
+                  <p className="text-slate-600">{x.goal}</p>
+                  <div>
+                    <div className="mb-1 text-xs font-bold uppercase tracking-wider text-slate-400">Хэрэгсэл ба бодис</div>
+                    <ul className="space-y-0.5 text-xs text-slate-600">
+                      {x.materials.map((m) => (
+                        <li key={m}>📍 {m}</li>
+                      ))}
+                    </ul>
+                  </div>
+                  <div className="rounded-xl bg-amber-50 p-2 text-xs text-amber-900">⚠ {x.safety}</div>
+                  <ol className="space-y-1">
+                    {x.steps.map((s, i) => (
+                      <li key={s.id} className="flex items-start gap-2 text-xs">
+                        <span className={`mt-0.5 flex h-4 w-4 shrink-0 items-center justify-center rounded-full text-[10px] font-bold ${done.includes(s.id) ? 'bg-green-500 text-white' : 'bg-slate-200 text-slate-500'}`}>{done.includes(s.id) ? '✓' : i + 1}</span>
+                        <span>
+                          <span className={done.includes(s.id) ? 'text-slate-400 line-through' : 'font-medium text-slate-700'}>{s.text}</span>
+                          <span className="block text-slate-500">{s.hint}</span>
+                        </span>
+                      </li>
+                    ))}
+                  </ol>
+                  {complete && <div className="rounded-xl bg-sky-50 p-2 text-xs text-sky-900">🔬 {x.explain}</div>}
+                  <button
+                    type="button"
+                    className="btn-yellow w-full py-2 text-sm"
+                    onClick={() => {
+                      useLabStore.getState().setActive(x.id);
+                      sounds.play('success', 0.5);
+                      resumeWalk();
+                      const next = x.steps.find((s) => !done.includes(s.id));
+                      if (next) useGameStore.getState().say(`«${x.title}» эхэллээ! ${next.hint}`, 'wave');
+                    }}
+                  >
+                    {active === x.id ? '▶ Үргэлжлүүлэх' : complete ? '↻ Дахин хийх' : '▶ Эхлүүлэх'}
+                  </button>
+                </div>
+              )}
+            </li>
+          );
+        })}
+      </ul>
+      <SkillsCard />
+      <button type="button" className="btn-ghost w-full text-xs" onClick={() => useLabStore.getState().resetProgress()}>
+        Туршилтын явцыг арилгах
+      </button>
     </div>
   );
 }
