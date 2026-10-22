@@ -9,6 +9,7 @@ import { sounds } from '../utils/sounds';
 import { SettingsPanel } from './SettingsPanel';
 import { ControlsList } from './ControlsHelp';
 import { openNaClExperiment } from '../experiments/nacl/bench';
+import { selectBenchExperiment } from '../experiments/workbench/session';
 
 type Tab = 'experiments' | 'settings' | 'controls';
 
@@ -17,11 +18,12 @@ function SkillsCard() {
   const doneCount = SKILLS.filter((s) => skills[s.id]).length;
   return (
     <div className="space-y-4">
-    <section className="rounded-2xl border-2 border-lab-yellow bg-amber-50 p-4">
-      <div className="text-xs font-bold text-amber-700">Өрөө доторх ажлын ширээ</div>
-      <h3 className="mt-1 font-display text-lg font-bold">Карбонатаас NaCl гарган авах</h3>
-      <p className="mt-2 text-sm text-slate-600">Энэ өрөөний бүх багажтай хамт ашиглана. Ямар ч алхам сонгох шаардлагагүй, хүссэн зүйлээ авч зөөж болно. Зааврыг анхаараарай.</p>
-      <button type="button" className="btn-yellow mt-3 w-full py-3" onClick={openNaClExperiment}>NaCl ширээнд очих →</button>
+    <section className="rounded-2xl border border-slate-200 bg-white p-4">
+      <div className="text-xs font-bold text-slate-700">Өрөө доторх ажлын ширээ</div>
+      <h3 className="mt-1 font-display text-lg font-bold">Нээлттэй ажлын ширээ</h3>
+      <p className="mt-2 text-sm text-slate-600">Туршилтаа сонгоод ширээнд суу. Tab-аас хэрэгслээ олж бэлдээд, хэмжиж, цутгаж, урвалыг ойроос ажигла.</p>
+      <button type="button" className="mt-3 w-full rounded-lg border border-slate-200 bg-white py-3 font-semibold" onClick={openNaClExperiment}>NaCl ширээнд очих →</button>
+      <button type="button" className="mt-2 text-xs text-sky-800 underline" onClick={() => selectBenchExperiment('nacl')}>NaCl туршилтыг сонгох</button>
     </section>
     <div className="rounded-2xl border border-slate-200 bg-white p-4">
       <div className="flex items-start justify-between gap-2">
@@ -100,11 +102,11 @@ function ExperimentsTab() {
                     type="button"
                     className="btn-yellow w-full py-2 text-sm"
                     onClick={() => {
-                      useLabStore.getState().setActive(x.id);
+                      selectBenchExperiment(x.id);
                       sounds.play('success', 0.5);
                       resumeWalk();
                       const next = x.steps.find((s) => !done.includes(s.id));
-                      if (next) useGameStore.getState().say(`«${x.title}» эхэллээ! ${next.hint}`, 'wave');
+                      if (next) useGameStore.getState().say(`«${x.title}» сонголоо. Ажлын ширээнд суугаад бэлтгэлээ хийгээрэй.`, 'wave');
                     }}
                   >
                     {active === x.id ? '▶ Үргэлжлүүлэх' : complete ? '↻ Дахин хийх' : '▶ Эхлүүлэх'}

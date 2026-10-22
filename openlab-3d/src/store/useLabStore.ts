@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
+import { currentSession } from '../experiments/workbench/session';
 import { getExperiments, experimentById, matchesCompletion } from '../lab/experiments';
 import type { LabEvent } from '../lab/events';
 
@@ -12,7 +13,7 @@ interface LabState {
   seen: string[];
   measurements: number;
   setActive: (id: string | null) => void;
-  /** Applies an event to every experiment; returns the steps it completed. */
+  /** Applies an event only to the explicitly selected experiment. */
   record: (e: LabEvent) => { experiment: string; step: string }[];
   resetSession: () => void;
   resetProgress: () => void;
@@ -22,7 +23,7 @@ export const useLabStore = create<LabState>()(
   persist(
     (set, get) => ({
       progress: {},
-      active: 'safety',
+      active: null,
       seen: [],
       measurements: 0,
       setActive: (active) => set({ active }),
@@ -30,7 +31,7 @@ export const useLabStore = create<LabState>()(
         const progress = get().progress;
         const completed: { experiment: string; step: string }[] = [];
         let next: Record<string, string[]> | null = null;
-        for (const x of getExperiments()) {
+        for (const x of getExperiments().filter((x) => x.id === get().active && currentSession()?.ready === true)) {
           const done = progress[x.id] ?? [];
           for (const step of x.steps) {
             if (done.includes(step.id) || !matchesCompletion(e, step.completion)) continue;
@@ -49,11 +50,17 @@ export const useLabStore = create<LabState>()(
         return completed;
       },
       resetSession: () => set({ seen: [], measurements: 0 }),
-      resetProgress: () => set({ progress: {}, active: 'safety' }),
+      resetProgress: () => set({ progress: {}, active: null }),
     }),
     {
       name: 'openlab3d-experiments',
-      version: 1,
+      version: 2,
+      migrate: (persisted) => {
+        // Version 1 auto-assigned "safety" and subsequent lessons. Those ids do not
+        // prove a student chose an experiment. Preserve progress, ask for a choice once.
+        const previous = (persisted ?? {}) as Partial<LabState>;
+        return { progress: previous.progress ?? {}, active: null };
+      },
       partialize: (s) => ({ progress: s.progress, active: s.active }),
     },
   ),

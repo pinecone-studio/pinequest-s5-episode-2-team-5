@@ -23,6 +23,12 @@ import { spillMixture } from '../lab/spill';
 import { vesselFx } from '../lab/vesselFx';
 import { startAnnouncer } from '../lab/announcer';
 import type { ItemVariant, WorldItem } from './itemsLayout';
+import { stepObservations } from '../chemistry/reaction-view';
+import { publishReaction } from '../lab/reaction-view';
+import { isBenchPaused, isWorkbenchObject, useWorkbench } from '../experiments/workbench/session';
+import { benchView, useBenchView } from '../experiments/nacl/view';
+import { useSettingsStore } from '../store/useSettingsStore';
+import { useGameStore } from '../store/useGameStore';
 
 const TICK = 0.1;
 const BURETTE_RATE = [0, 0.25, 1, 3.5];
@@ -30,6 +36,7 @@ const BURETTE_RATE = [0, 0.25, 1, 3.5];
 /** Vessels that have settled: same mixture object as last tick and nothing going on. */
 const settled = new Map<string, { m: Mixture; ticks: number }>();
 let tickCount = 0;
+const reacting = new Set<string>();
 
 function isCalm(m: Mixture): boolean {
   return Math.abs(m.temp - 22) < 0.3 && m.cloud < 0.02 && m.foam < 1 && !m.burning;
@@ -58,7 +65,7 @@ function simulate(dt: number): void {
 
   // Which vessels sit over a lit burner (on a tripod)?
   const heat = new Map<string, number>();
-  const burners = inv.worldItems.filter((w) => w.kind === 'bunsenBurner' && toggles[w.id]).map(livePose);
+  const burners = inv.worldItems.filter((w) => w.kind === 'bunsenBurner' && toggles[w.id] && !isBenchPaused(w.id)).map(livePose);
   if (burners.length > 0) {
     for (const w of inv.worldItems) {
       if (!isContainer(w.kind) || w.kind === 'burette') continue;
@@ -76,6 +83,7 @@ function simulate(dt: number): void {
   const patch: Record<string, Mixture> = {};
   tickCount++;
   for (const id of ids) {
+    if (isBenchPaused(id)) continue;
     if (id.startsWith('nacl-')) continue; // The textbook bench advances these shared mixtures at its accelerated rate.
     const sceneTarget = interactables.get(id)?.useTarget;
     const kind = (sceneTarget?.type === 'item' ? sceneTarget.kind : null) ?? world.get(id)?.kind ?? (inv.held?.id === id ? inv.held.kind : null) ?? kindFromId(id);
@@ -100,8 +108,15 @@ function simulate(dt: number): void {
     };
     if (heatW > 0) note(id, 'heat:start', 20000);
     const r = step(before, dt, env);
+    for (const reaction of stepObservations(before, r, dt)) publishReaction(id, reaction);
     const m = r.m;
     const fizz = r.gas.CO2 + r.gas.H2 + r.gas.O2;
+    const reactionNow = fizz > 1e-8 || r.gas.steam > 1e-5 || r.notes.some((n) => n.startsWith('ppt:') || n === 'neutralization' || n === 'foam');
+    if (reactionNow && !reacting.has(id) && isWorkbenchObject(id)) {
+      const settings = useSettingsStore.getState();
+      if (useGameStore.getState().mode === 'bench' && settings.reactionAutoZoom && settings.quality !== 'low' && !settings.reducedMotion && !useBenchView.getState().inspecting && !useWorkbench.getState().drawer) benchView.reaction(id);
+    }
+    if (reactionNow) reacting.add(id); else reacting.delete(id);
     const bubbles = Math.min(1, fizz * 900 + (r.boiling ? 0.95 : m.temp > 80 ? (m.temp - 80) / 25 : 0));
     const steam = r.gas.steam > 0 ? Math.min(1, 0.35 + r.gas.steam * 2) : m.temp > 65 && liquidMl(m) > 0.1 ? Math.min(0.6, (m.temp - 65) / 50) : 0;
     const smoke = Math.min(1, r.gas.smoke * 4 + (m.burning ? 0.3 : 0));
@@ -131,6 +146,7 @@ function simulate(dt: number): void {
   // Knocked-over vessels spill; a loose test tube cannot hold liquid at all.
   const spills: Record<string, Mixture> = {};
   for (const w of inv.worldItems) {
+    if (isBenchPaused(w.id)) continue;
     const def = CATALOG[w.kind];
     if (!def.upright && w.kind !== 'testTube') continue;
     const m = useChemStore.getState().mixtures[w.id] ?? seedMixture(w.variant);
@@ -147,6 +163,7 @@ function simulate(dt: number): void {
 
   // Burette: drops fall into the vessel under the tip.
   for (const w of inv.worldItems) {
+    if (isBenchPaused(w.id)) continue;
     if (w.kind !== 'burette') continue;
     const tool = useChemStore.getState().tools[w.id];
     const flow = tool?.flow ?? 0;
@@ -182,7 +199,13 @@ export function ChemSim() {
   const acc = useRef(0);
   useEffect(() => startSpeedRecorder(), []);
   useEffect(() => startAnnouncer(), []);
+  useEffect(() => {
+    // The room canvas freezes during ordinary F-inspect; keep its live chemistry at 10 Hz.
+    const timer = window.setInterval(() => { if (useGameStore.getState().mode === 'inspect') simulate(TICK); }, TICK * 1000);
+    return () => window.clearInterval(timer);
+  }, []);
   useFrame((_, dt) => {
+    if (useGameStore.getState().mode === 'inspect') return;
     tickUse(Math.min(dt, 0.1));
     acc.current += dt;
     if (acc.current < TICK) return;

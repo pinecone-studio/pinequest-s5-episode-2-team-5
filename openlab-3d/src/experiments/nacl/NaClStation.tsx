@@ -2,10 +2,11 @@
 import { useEffect, useLayoutEffect, useMemo, useRef, type ElementRef } from 'react';
 import { useFrame, useThree } from '@react-three/fiber';
 import { OrbitControls } from '@react-three/drei';
-import { Box3, MOUSE, TOUCH, Raycaster, Sphere, Vector3, type PerspectiveCamera } from 'three';
+import { Box3, Box3Helper, MOUSE, TOUCH, Raycaster, Sphere, Vector3, type PerspectiveCamera } from 'three';
 import { SignText } from '../../world/furniture/Decor';
 import { playerState, useGameStore } from '../../store/useGameStore';
 import { useInventoryStore } from '../../store/useInventoryStore';
+import { CATALOG } from '../../equipment/equipmentCatalog';
 import { interactables, isVisibleInScene, localBounds, resolveInteractable, type InteractableEntry } from '../../interaction/registry';
 import { endHeldUse } from '../../interaction/useHeld';
 import { portableApi, usePortableStore } from '../../interaction/portable';
@@ -16,15 +17,24 @@ import { experimentGuide } from './guidance';
 import { BENCH_HEIGHT } from '../../utils/constants';
 import { seedBenchChemistry } from './chemistry';
 import { livePose } from '../../interaction/bodies';
-import { createNaClEngine } from './engine';
+import { createNaClEngine, type BenchVisual } from './engine';
+import { useChemStore } from '../../store/useChemStore';
+import { mixtureLook } from '../../chemistry/color';
 import { bench } from './bench';
 import { type PartKey } from './data';
+import { Interactable } from '../../interaction/Interactable';
+import { enterBench } from './bench';
+import { useLabStore } from '../../store/useLabStore';
+import { currentSession, itemPosition, updateStationVisibility, useWorkbench } from '../workbench/session';
+import { experimentById } from '../../lab/experiments';
+import { emitLab } from '../../lab/events';
 import { crystalMass, describe, heldObjectId, labSpace, labUse, mixture, partId, partKey, simulateLab, useSandbox, warn } from './sandbox';
 
 export const STATION_POSITION: [number, number, number] = [8.254, BENCH_HEIGHT, -14.585];
 type Controls = ElementRef<typeof OrbitControls>;
 
 export function NaClStation() {
+  const active = useLabStore((s) => s.active);
   const engine = useMemo(() => createNaClEngine(), []);
   const inBench = useGameStore((s) => s.mode === 'bench');
   const camera = useThree((s) => s.camera) as PerspectiveCamera;
@@ -34,6 +44,16 @@ export function NaClStation() {
   const previousMode = useRef('');
   const motion = useRef<{ from: Vector3; to: Vector3; fromTarget: Vector3; toTarget: Vector3; elapsed: number; duration: number } | null>(null);
   const viewClock = useRef(0);
+  const lastReaction = useRef('');
+  const inspectReturn = useRef<{ position: Vector3; target: Vector3 } | null>(null);
+  const inspecting = useBenchView((s) => s.inspecting);
+  const highlight = useMemo(() => {
+    const helper = new Box3Helper(new Box3(), 0xffffff);
+    helper.raycast = () => undefined;
+    if (!Array.isArray(helper.material)) { helper.material.transparent = true; helper.material.depthTest = false; }
+    return helper;
+  }, []);
+  useEffect(() => () => highlight.dispose(), [highlight]);
 
   const take = (key: PartKey) => {
     if (heldObjectId()) { warn('Эхлээд барьж буй зүйлээ Q дарж тавь. Дараа нь хүссэн багажийг ав.'); return; }
@@ -44,22 +64,23 @@ export function NaClStation() {
     if (key === 'paper') useSandbox.setState({ paperIn: false });
     if (key === 'lamp' && useSandbox.getState().lit) warn('Асаалттай дэнг зөөж байна! Зааврыг дагаж, R дарж унтраагаарай.');
     else if (mixture(id).temp > 50) warn('Халуун сав! Заавар ба халууныг анхаар. Зөөхийг хориглоогүй.');
-    else warn('Багаж авлаа. Q: хаана ч тавих · R дарж барих: чиглүүлсэн савандаа ашиглах. Зааврыг дагаарай.');
+    else warn('Багаж авлаа. Q: тавих · R дарж барих: цутгах / ашиглах.');
     usePortableStore.setState({ held: { id, label: engine.parts.find((p) => p.key === key)!.label, footprint: key === 'scope' ? 0.04 : 0.025,
       move: (bottom, yaw, tilt) => engine.movePart(key, bottom, yaw, tilt) } });
     useSandbox.setState({ heldId: id });
     const guide = experimentGuide();
-    if (!guide.recommended.includes(id)) warn(`Та багажийг чөлөөтэй авч болно. Дарааллын зөвлөгөө: ${guide.current.title}. ${guide.current.hint}`);
+    if (useLabStore.getState().active === 'nacl' && !guide.recommended.includes(id)) warn(`Дарааллын зөвлөгөө: ${guide.current.title}.`);
   };
 
   useEffect(() => {
     bench.engine = engine;
     engine.prepareFreePlay();
     seedBenchChemistry(useSandbox.getState().contents, false);
+    updateStationVisibility();
     const entries: InteractableEntry[] = engine.parts.map(({ key, hit, label }) => {
       const id = partId(key);
       hit.userData.interactableId = id;
-      const entry: InteractableEntry = { id, object: hit, label, verb: 'авах', enabled: true, bounds: null, onInteract: () => take(key) };
+      const entry: InteractableEntry = { id, object: hit, label, verb: 'сонгох', enabled: true, bounds: null, onInteract: () => { if (useGameStore.getState().mode === 'walk') enterBench(id); else benchView.focus(id); }, onGrab: () => take(key) };
       interactables.set(id, entry);
       return entry;
     });
@@ -97,19 +118,46 @@ export function NaClStation() {
     };
     benchView.table = () => table(false);
     benchView.overview = () => table(true);
-    benchView.focus = (id) => {
+    const focus = (id: string, duration = .45) => {
       const key = partKey(id);
       const entry = interactables.get(id);
-      if (!key && !entry) return;
-      const box = key ? engine.partBounds(key) : new Box3().setFromObject(entry!.object);
+      const liveHeld = heldObjectId() === id ? benchView.heldObject() : null;
+      if (!key && !entry && !liveHeld) return;
+      const held = useInventoryStore.getState().held;
+      const kind = entry?.inspectKind ?? (held?.id === id ? held.kind : undefined);
+      const definition = kind ? CATALOG[kind] : undefined;
+      let box: Box3;
+      if (key) box = engine.partBounds(key);
+      else if (definition) {
+        // Live models include large pooled gas/steam bounds. Frame the vessel and
+        // its current foam, rather than letting invisible particles zoom us out.
+        const at = liveHeld ? liveHeld.getWorldPosition(new Vector3()) : itemPosition(id);
+        const foam = useChemStore.getState().mixtures[id]?.foam ?? 0;
+        const height = definition.size[1] * (1 + Math.min(2, foam / Math.max(1, definition.capacityMl ?? 100)));
+        const width = Math.max(definition.size[0], definition.size[2]);
+        box = new Box3().setFromCenterAndSize(at.add(new Vector3(0, height / 2, 0)), new Vector3(width, height, width));
+      } else box = new Box3().setFromObject(liveHeld ?? entry!.object);
       const target = box.getCenter(new Vector3());
       const size = box.getSize(new Vector3());
       const distance = Math.max(0.12, size.y / (2 * Math.tan(42 * Math.PI / 360)) * 1.3, size.x / (2 * Math.tan(42 * Math.PI / 360) * camera.aspect) * 1.2);
-      move(target.clone().add(new Vector3(0, 0.06, 1).normalize().multiplyScalar(distance)), target);
+      move(target.clone().add(new Vector3(0, 0.06, 1).normalize().multiplyScalar(distance)), target, duration);
       useBenchView.setState({ selected: id, level: 'detail' });
       mixture(id);
       useSandbox.setState({ inspected: id, hovered: null });
       tablePointer.active = false;
+    };
+    benchView.focus = (id) => { if (useBenchView.getState().inspecting) benchView.back(); focus(id); };
+    benchView.reaction = (id) => focus(id, .7);
+    benchView.inspect = (id) => {
+      if (!useBenchView.getState().inspecting) inspectReturn.current = { position: camera.position.clone(), target: ctl.target.clone() };
+      endHeldUse();
+      useBenchView.setState({ inspecting: true });
+      focus(id);
+    };
+    benchView.back = () => {
+      useBenchView.setState({ inspecting: false });
+      const pose = inspectReturn.current; inspectReturn.current = null;
+      if (pose) move(pose.position, pose.target, .35); else table();
     };
     benchView.setDistance = (distance) => {
       motion.current = null; ctl.enabled = true; ctl.enableDamping = true;
@@ -129,10 +177,10 @@ export function NaClStation() {
     };
     // Explicit target prevents OrbitControls from starting around the room origin.
     ctl.target.copy(engine.benchTarget());
-    if (useBenchView.getState().level === 'detail' && useBenchView.getState().selected) benchView.focus(useBenchView.getState().selected!);
+    if (useBenchView.getState().level === 'detail' && useBenchView.getState().selected) focus(useBenchView.getState().selected!);
     else table();
     return () => {
-      endHeldUse(); motion.current = null; tablePointer.active = false;
+      endHeldUse(); motion.current = null; inspectReturn.current = null; tablePointer.active = false;
       engine.attach(camera, null);
       camera.near = previous.near; camera.fov = previous.fov;
       camera.position.copy(previous.position); camera.quaternion.copy(previous.rotation); camera.updateProjectionMatrix();
@@ -189,7 +237,7 @@ export function NaClStation() {
     };
     const onUp = (e: PointerEvent) => {
       pointers.delete(e.pointerId);
-      if (down?.id === e.pointerId && e.target === el && Math.hypot(e.clientX - down.x, e.clientY - down.y) < 6) {
+      if (!useWorkbench.getState().drawer && !useBenchView.getState().inspecting && down?.id === e.pointerId && e.target === el && Math.hypot(e.clientX - down.x, e.clientY - down.y) < 6) {
         const id = point(e);
         if (id) {
           useSandbox.setState({ inspected: id, hovered: id });
@@ -205,12 +253,12 @@ export function NaClStation() {
     const onLeave = () => useSandbox.setState({ hovered: null });
     const onCancel = () => { down = null; pointers.clear(); endHeldUse(); };
     const noMenu = (e: Event) => e.preventDefault();
-    el.addEventListener('pointerdown', onDown); el.addEventListener('pointermove', onMove); el.addEventListener('pointerleave', onLeave);
+    el.addEventListener('pointerdown', onDown, true); el.addEventListener('pointermove', onMove); el.addEventListener('pointerleave', onLeave);
     el.addEventListener('wheel', cancelMotion, { capture: true, passive: true });
     el.addEventListener('contextmenu', noMenu);
     window.addEventListener('pointerup', onUp); window.addEventListener('pointercancel', onCancel); window.addEventListener('blur', onCancel);
     return () => {
-      onCancel(); el.removeEventListener('pointerdown', onDown); el.removeEventListener('pointermove', onMove); el.removeEventListener('pointerleave', onLeave);
+      onCancel(); el.removeEventListener('pointerdown', onDown, true); el.removeEventListener('pointermove', onMove); el.removeEventListener('pointerleave', onLeave);
       el.removeEventListener('wheel', cancelMotion, true); el.removeEventListener('contextmenu', noMenu);
       window.removeEventListener('pointerup', onUp); window.removeEventListener('pointercancel', onCancel); window.removeEventListener('blur', onCancel);
     };
@@ -225,18 +273,27 @@ export function NaClStation() {
       if (k === 1) { motion.current = null; ctl.enabled = true; ctl.enableDamping = true; useBenchView.setState({ moving: false }); }
     }
     viewClock.current += rawDt;
-    if (inBench && ctl && viewClock.current > 0.1) { viewClock.current = 0; useBenchView.setState({ distance: ctl.getDistance() }); }
+    if (inBench && ctl && viewClock.current > 0.1) { viewClock.current = 0; if (Math.abs(useBenchView.getState().distance - ctl.getDistance()) > .002) useBenchView.setState({ distance: ctl.getDistance() }); }
     const mode = useGameStore.getState().mode;
-    const working = mode === 'walk' || mode === 'bench';
+    const working = mode === 'bench' || (mode === 'walk' && (useSandbox.getState().near || !!heldObjectId()));
     if (previousMode.current !== mode) { if (!working) labUse.end(); previousMode.current = mode; }
     const near = Math.hypot(playerState.position.x - STATION_POSITION[0], playerState.position.z - STATION_POSITION[2]) < 2.4;
     if (useSandbox.getState().near !== near) useSandbox.setState({ near });
+    updateStationVisibility();
     engine.root.updateWorldMatrix(true, true);
+    const selectedObject = useBenchView.getState().selected;
+    const selectedKey = selectedObject ? partKey(selectedObject) : null;
+    const object = selectedKey ? engine.partObject(selectedKey) : selectedObject ? interactables.get(selectedObject)?.object : null;
+    highlight.visible = inBench && !!object && isVisibleInScene(object) && !inspecting;
+    if (highlight.visible && object) {
+      highlight.box.setFromObject(object).expandByScalar(.003);
+      if (!Array.isArray(highlight.material)) highlight.material.opacity = useSettingsStore.getState().reducedMotion ? .8 : .65 + .25 * Math.sin(performance.now() / 180);
+    }
     engine.parts.forEach(({ key }) => {
       const entry = interactables.get(partId(key));
       if (entry) entry.enabled = engine.partVisible(key) && usePortableStore.getState().held?.id !== entry.id;
     });
-    if (!working) return;
+    if (!working) { engine.guideMarkers([]); return; }
     const dt = Math.min(0.05, rawDt);
     const position = (id: string) => {
         const key = partKey(id);
@@ -244,20 +301,20 @@ export function NaClStation() {
         if (useInventoryStore.getState().held?.id === id) return camera.position.clone().add(new Vector3(0, -0.2, -0.45).applyQuaternion(camera.quaternion));
         const item = useInventoryStore.getState().worldItems.find((x) => x.id === id);
         if (item) { const p = livePose(item); return new Vector3(p.x, p.y, p.z); }
-        return interactables.get(id)?.object.getWorldPosition(new Vector3()) ?? new Vector3(1000, 1000, 1000);
+        return itemPosition(id);
     };
     const distance = (a: string, b: string) => position(a).distanceTo(position(b));
     labSpace.distance = distance;
     labSpace.position = position;
     simulateLab(dt, distance);
     const state = useSandbox.getState();
-    const values: Partial<Record<PartKey, { volume: number; crystals: number; solid: number }>> = {};
+    const values: Partial<Record<PartKey, BenchVisual>> = {};
     for (const [id, m] of Object.entries(state.contents)) {
-      const key = partKey(id); if (key) values[key] = { volume: m.ml, crystals: crystalMass(m), solid: m.carbonate };
+      const key = partKey(id); if (key) values[key] = { volume: m.ml, crystals: crystalMass(m), solid: m.carbonate, color: mixtureLook(useChemStore.getState().mixtures[id]).liquid };
     }
-    const reacting = Object.entries(state.contents).find(([, m]) => m.acid > 0.001 && m.carbonate > 0.001);
+    const reacting = state.reaction?.kind === 'acid' ? [state.reaction.id, mixture(state.reaction.id)] as const : null;
     engine.reactionOrigin(reacting ? position(reacting[0]) : null, reacting ? Math.min(0.1, reacting[1].ml / Math.max(1, describe(reacting[0]).capacity) * 0.1) : 0);
-    engine.freeVisuals(values, state.lit, state.rx === 'acid' ? 0.8 : 0, state.rx === 'evap' ? 0.7 : 0, state.rx, dt, state.paperIn);
+    engine.freeVisuals(values, state.lit, state.reaction?.kind === 'acid' ? Math.min(1, state.reaction.rate / 1.8) : 0, state.rx === 'evap' ? 0.7 : 0, state.rx, dt, state.paperIn);
     const from = labUse.source; const to = labUse.target;
     const flowing = !!from && !!to && describe(from).capacity > 0 && describe(to).capacity > 0 && mixture(from).ml > 0 && distance(from, to) < 1;
     engine.transferStream(flowing ? position(from!).add(new Vector3(0, 0.08, 0)) : null, flowing ? position(to!).add(new Vector3(0, 0.03, 0)) : null);
@@ -268,20 +325,34 @@ export function NaClStation() {
       useSandbox.setState({ completed: [...state.completed, 'microscope'] });
       warn('NaCl: куб хэлбэртэй талст ажиглагдлаа. Цааш чөлөөтэй ажиллаж болно.');
     }
+    const reactionKey = state.reaction ? `${state.reaction.id}:${state.reaction.kind}` : '';
+    if (reactionKey && reactionKey !== lastReaction.current && !useBenchView.getState().inspecting && !useWorkbench.getState().drawer) {
+      const settings = useSettingsStore.getState();
+      if (settings.reactionAutoZoom && !settings.reducedMotion && settings.quality !== 'low') benchView.reaction(state.reaction!.id);
+    }
+    lastReaction.current = reactionKey;
     const guide = experimentGuide();
+    const progress = useLabStore.getState().progress.nacl ?? [];
+    guide.steps.forEach((step, i) => {
+      if (useLabStore.getState().active === 'nacl' && currentSession()?.ready && step.done && !progress.includes(`step-${i + 1}`)) emitLab({ key: `nacl:${step.letter}`, quiet: true });
+    });
     const selected = useBenchView.getState().selected;
     const markerKeys = (inBench && useBenchView.getState().level === 'detail' && selected ? [selected] : guide.recommended).map(partKey).filter((key): key is PartKey => !!key);
-    engine.guideMarkers(markerKeys);
+    engine.guideMarkers(useLabStore.getState().active === 'nacl' && currentSession()?.ready ? markerKeys : []);
     engine.update(dt);
   });
 
   return (
     <group>
       <group position={STATION_POSITION}><primitive object={engine.root} /></group>
-      <SignText text={'NaCl · Нээлттэй ажлын ширээ\nБүх багажийг авч, зөөж болно'} color="#1e4db5" width={0.9} height={0.22} position={[8.3, 1.5, -14.885]} />
-      {inBench && <OrbitControls ref={controls} target={initialTarget} enableDamping dampingFactor={0.12} minDistance={0.018} maxDistance={3.5} minPolarAngle={0.12} maxPolarAngle={1.48}
+      <primitive object={highlight} />
+      <Interactable id="open-workbench" label="Ажлын ширээ" verb="суух" onInteract={() => enterBench()} highlight="none" position={[8.25, BENCH_HEIGHT, -14.5]}>
+        <mesh><boxGeometry args={[1.6, .025, .8]} /><meshBasicMaterial transparent opacity={0} colorWrite={false} depthWrite={false} /></mesh>
+      </Interactable>
+      <SignText text={active ? `Ажлын ширээ\n${experimentById(active)?.title ?? 'Туршилт олдсонгүй'}` : 'Ажлын ширээ\nТуршилт сонгоогүй байна'} color="#1e4db5" width={0.9} height={0.22} position={[8.3, 1.5, -14.885]} />
+      {inBench && <OrbitControls ref={controls} target={initialTarget} enablePan={!inspecting} enableDamping dampingFactor={0.12} minDistance={0.018} maxDistance={3.5} minPolarAngle={0.12} maxPolarAngle={1.48}
         zoomSpeed={0.7} panSpeed={0.7} rotateSpeed={0.5} screenSpacePanning={false} zoomToCursor
-        mouseButtons={{ LEFT: MOUSE.PAN, MIDDLE: MOUSE.DOLLY, RIGHT: MOUSE.ROTATE }} touches={{ ONE: TOUCH.PAN, TWO: TOUCH.DOLLY_PAN }} /> }
+        mouseButtons={{ LEFT: inspecting ? MOUSE.ROTATE : MOUSE.PAN, MIDDLE: MOUSE.DOLLY, RIGHT: MOUSE.ROTATE }} touches={{ ONE: inspecting ? TOUCH.ROTATE : TOUCH.PAN, TWO: TOUCH.DOLLY_PAN }} /> }
     </group>
   );
 }

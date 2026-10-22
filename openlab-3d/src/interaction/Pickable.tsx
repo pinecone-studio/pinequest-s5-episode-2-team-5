@@ -5,7 +5,8 @@
  * item's own action: light a burner, tare the balance, open the burette, wear goggles…),
  * G always picks it up, F inspects, R uses the held item on it, Q stores into a rack.
  */
-import { memo, useEffect, useRef, useState } from 'react';
+import { memo, useEffect, useLayoutEffect, useRef, useState } from 'react';
+import type { Group } from 'three';
 import { useFrame } from '@react-three/fiber';
 import { CuboidCollider, CylinderCollider, RigidBody, type CollisionEnterPayload, type RapierRigidBody } from '@react-three/rapier';
 import { CATALOG, isContainer, type ColliderShape } from '../equipment/equipmentCatalog';
@@ -27,6 +28,8 @@ import { Interactable } from './Interactable';
 import { NameTag } from './NameTag';
 import { HolderContents } from './StoredItems';
 import { storeInto, mayTake } from './storage';
+import { isInactiveBenchObject, isWorkbenchObject, useWorkbench } from '../experiments/workbench/session';
+import { useLabStore } from '../store/useLabStore';
 
 const FLOW_WORDS = ['хаалттай', 'дуслаар', 'удаан урсгал', 'хурдан урсгал'];
 
@@ -210,6 +213,10 @@ export const Pickable = memo(function Pickable({ item }: { item: WorldItem }) {
   };
 
   // Optional props must be left out entirely: rapier's option setters do not accept undefined.
+  const benchVisual = useRef<Group>(null);
+  useLayoutEffect(() => {
+    if (isWorkbenchObject(item.id)) benchVisual.current?.traverse((object) => { object.castShadow = false; });
+  });
   const motion = {
     ...(item.quaternion ? { quaternion: item.quaternion } : { rotation: [0, item.rotY, 0] as [number, number, number] }),
     ...(item.velocity ? { linearVelocity: item.velocity } : {}),
@@ -242,7 +249,7 @@ export const Pickable = memo(function Pickable({ item }: { item: WorldItem }) {
         onStore={item.kind === 'testTubeRack' && holdingTube ? () => storeInto(item.id) : undefined}
         storeVerb="тавиурт хийх"
       >
-        <EquipmentModel kind={item.kind} variant={item.variant} mixture={mixture} itemId={item.id} lit={lit} flameColor={flameColor} reading={reading} tool={tool} />
+        <group ref={benchVisual}><EquipmentModel kind={item.kind} variant={item.variant} mixture={mixture} itemId={item.id} lit={lit} flameColor={flameColor} reading={reading} tool={tool} /></group>
         {item.kind === 'testTubeRack' && <HolderContents holderId={item.id} layout={{ type: 'rack' }} />}
       </Interactable>
       {focused && <NameTag title={name} subtitle={detail} height={def.size[1]} />}
@@ -251,11 +258,13 @@ export const Pickable = memo(function Pickable({ item }: { item: WorldItem }) {
 });
 
 export function WorldItems() {
+  useWorkbench((s) => s.sessions);
+  useLabStore((s) => s.active);
   const items = useInventoryStore((s) => s.worldItems);
   const generation = useInventoryStore((s) => s.generation);
   return (
     <group>
-      {items.map((item) => (
+      {items.filter((item) => !isInactiveBenchObject(item.id)).map((item) => (
         <Pickable key={`${generation}-${item.id}`} item={item} />
       ))}
     </group>

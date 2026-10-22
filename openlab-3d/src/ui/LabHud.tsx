@@ -12,6 +12,8 @@ import { useGameStore } from '../store/useGameStore';
 import { useLabStore } from '../store/useLabStore';
 import { useExperimentCatalog } from '../lab/experiments';
 import { spawnNearPlayer } from '../interaction/spawn';
+import { currentSession, useWorkbench } from '../experiments/workbench/session';
+import { PreparationChecklist } from '../experiments/workbench/PreparationHints';
 import { sounds } from '../utils/sounds';
 
 export function ActionGauge() {
@@ -92,13 +94,15 @@ export function ExperimentCard() {
   const experiments = useExperimentCatalog((s) => s.experiments);
   const active = useLabStore((s) => s.active);
   const progress = useLabStore((s) => s.progress);
+  useWorkbench((s) => s.sessions);
   const [collapsed, setCollapsed] = useState(false);
   const x = active ? experiments.find((experiment) => experiment.id === active) : undefined;
   if (!x) return null;
   const done = progress[x.id] ?? [];
   const next = x.steps.find((s) => !done.includes(s.id));
+  if (!currentSession()?.ready) return <div className="fixed left-4 top-[76px] z-30 w-[min(320px,calc(100vw-80px))] rounded-xl bg-white/95 p-3 text-lab-ink shadow-hud"><b className="block text-xs">{x.title}</b><PreparationChecklist /></div>;
   return (
-    <div className="pointer-events-auto fixed left-4 top-[76px] z-30 w-[min(300px,calc(100vw-120px))] max-sm:hidden">
+    <div className="pointer-events-auto fixed left-4 top-[76px] z-30 w-[min(300px,calc(100vw-120px))] ">
       <div className="rounded-2xl bg-white/90 p-3 text-lab-ink shadow-hud backdrop-blur">
         <button type="button" className="focus-ring flex w-full items-center justify-between gap-2 text-left" onClick={() => setCollapsed((c) => !c)} aria-expanded={!collapsed}>
           <span>
@@ -115,7 +119,7 @@ export function ExperimentCard() {
                 const isNext = s === next;
                 return (
                   <li key={s.id} className={`flex items-start gap-2 text-xs ${ok ? 'text-slate-400 line-through' : isNext ? 'font-semibold text-slate-800' : 'text-slate-600'}`}>
-                    <span className={`mt-0.5 flex h-4 w-4 shrink-0 items-center justify-center rounded-full text-[10px] font-bold ${ok ? 'bg-green-500 text-white' : isNext ? 'bg-lab-yellow text-white' : 'bg-slate-200 text-slate-500'}`}>{ok ? '✓' : i + 1}</span>
+                    <span className={`mt-0.5 flex h-4 w-4 shrink-0 items-center justify-center rounded-full text-[10px] font-bold ${ok ? 'bg-green-500 text-white' : isNext ? 'bg-slate-200 text-slate-900' : 'bg-slate-200 text-slate-500'}`}>{ok ? '✓' : i + 1}</span>
                     {s.text}
                   </li>
                 );
@@ -124,7 +128,7 @@ export function ExperimentCard() {
             {next && (
               <button
                 type="button"
-                className="focus-ring mt-2 w-full rounded-lg bg-amber-50 px-2 py-1 text-left text-[11px] text-amber-900 hover:bg-amber-100"
+                className="focus-ring mt-2 w-full rounded-lg bg-white px-2 py-1 text-left text-[11px] text-slate-700 hover:bg-slate-100"
                 onClick={() => useGameStore.getState().say(next.hint, 'think')}
               >
                 💡 Зөвлөгөө: {next.hint}

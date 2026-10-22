@@ -2,7 +2,7 @@
  * Tiny procedural sound engine on the Web Audio API — every sound is synthesized,
  * so there are no audio files to download.
  */
-type SoundName = 'footstep' | 'door' | 'click' | 'tick' | 'puff' | 'clink' | 'pickup' | 'ui' | 'beep' | 'whoosh' | 'success' | 'pour' | 'fizz' | 'shatter' | 'thud' | 'bubble' | 'throw';
+export type SoundName = 'footstep' | 'door' | 'click' | 'tick' | 'puff' | 'clink' | 'pickup' | 'ui' | 'beep' | 'whoosh' | 'success' | 'pour' | 'fizz' | 'shatter' | 'thud' | 'bubble' | 'throw' | 'moleculeTick' | 'reactionFizz' | 'crystalCrackle';
 
 class SoundEngine {
   private ctx: AudioContext | null = null;
@@ -73,6 +73,16 @@ class SoundEngine {
     const t = this.ctx.currentTime + 0.005;
     const k = intensity;
     switch (name) {
+      case 'moleculeTick':
+        this.tone(t, 1600 + Math.random() * 700, { peak: .015 * k, attack: .001, decay: .018 });
+        break;
+      case 'reactionFizz':
+        this.noiseBurst(t, { type: 'highpass', freq: 3500, peak: .07 * k, attack: .03, decay: .18 });
+        break;
+      case 'crystalCrackle':
+        this.noiseBurst(t, { type: 'bandpass', freq: 2700, peak: .035 * k, attack: .002, decay: .045 });
+        this.tone(t, 3200, { peak: .012 * k, attack: .002, decay: .06 });
+        break;
       case 'footstep':
         this.noiseBurst(t, { type: 'lowpass', freq: 520 + Math.random() * 220, q: 0.7, peak: 0.16 * k, attack: 0.004, decay: 0.09 });
         this.tone(t, 90 + Math.random() * 20, { peak: 0.05 * k, attack: 0.003, decay: 0.06 });

@@ -13,6 +13,8 @@ import { CATALOG, STOCK_KINDS, isContainer, type EquipmentKind } from '../equipm
 import { CATIONS, FLAME_COLORS, SOLIDS, type Cation } from '../chemistry/species';
 import { REAGENTS } from '../chemistry/reagents';
 import { emptyMixture, heatCapacity, isEmptyMixture, liquidMl, merge, reagentMixture, solidMassG, solidVolumeMl, takeLiquid, takeSolid, type Mixture } from '../chemistry/mixture';
+import { mixObservations } from '../chemistry/reaction-view';
+import { publishReaction } from '../lab/reaction-view';
 import { equilibrateHeat } from '../chemistry/mix';
 import { phOf } from '../chemistry/equilibrium';
 import { mixtureLook, universalColor } from '../chemistry/color';
@@ -208,6 +210,7 @@ export function transfer(src: Vessel, dst: Vessel, amount: number): { moved: num
   prime(dst.id, dm);
   const mixed = equilibrateHeat(dm, into, CATALOG[dst.kind].heatJK ?? 100);
   chem.setMixtures({ [src.id]: rest, [dst.id]: mixed.m });
+  for (const reaction of mixObservations(dm, into, mixed.m, mixed.neutralized, mixed.formed)) publishReaction(dst.id, reaction, 1800);
   if (mixed.neutralized > 2e-5) note(dst.id, 'neutralization', 5000);
   observe(dst.id, mixed.m);
   useEvents(src);

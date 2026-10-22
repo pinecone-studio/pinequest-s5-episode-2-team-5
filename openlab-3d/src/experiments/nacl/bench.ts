@@ -5,6 +5,7 @@ import { sounds } from '../../utils/sounds';
 import type { NaClEngine } from './engine';
 import { endHeldUse } from '../../interaction/useHeld';
 import { useBenchView } from './view';
+import { beginPreparation, useWorkbench } from '../workbench/session';
 
 /** The mounted bench engine (set by NaClStation), so the DOM overlay can call into it. */
 export const bench: { engine: NaClEngine | null } = { engine: null };
@@ -26,12 +27,13 @@ export function openNaClExperiment(): void {
 export function enterBench(readId?: string): void {
   const game = useGameStore.getState();
   if (game.mode !== 'walk') return;
+  beginPreparation();
   useBenchView.setState(readId ? { selected: readId, level: 'detail' } : { level: 'table' });
   endHeldUse();
   game.setCursorFree(true);
   releaseLock();
   game.setMode('bench');
-  game.logEvent('Ажлын ширээг ойроос харлаа (чөлөөт горим).');
+  game.logEvent('Ажлын ширээнд суулаа.');
   sounds.play('whoosh');
 }
 
@@ -39,6 +41,8 @@ export function enterBench(readId?: string): void {
 export function exitBench(): void {
   const game = useGameStore.getState();
   if (game.mode !== 'bench') return;
+  useWorkbench.setState({ drawer: false });
+  useBenchView.setState({ inspecting: false });
   endHeldUse();
   game.setCursorFree(false);
   game.setMode('walk');

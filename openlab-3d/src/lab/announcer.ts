@@ -83,11 +83,6 @@ function onEvent(e: LabEvent): void {
       toast(`🎉 Туршилт амжилттай: ${x.title}`, 'Цэс → Туршилт хэсгээс дараагийнхаа сонгоорой');
       game.logEvent(`Туршилт дууслаа: ${x.title}. ${x.explain}`);
       window.setTimeout(() => useGameStore.getState().say(`«${x.title}» туршилт дууслаа! ${x.explain}`, 'happy'), 2200);
-      const active = useLabStore.getState().active;
-      if (active === x.id) {
-        const nextX = getExperiments().find((ex) => !experimentDone(progress, ex.id));
-        useLabStore.getState().setActive(nextX?.id ?? null);
-      }
     } else if (useLabStore.getState().active === x.id) {
       sounds.play('ui', 0.8);
       toast(`✓ ${step.text}`, x.title);

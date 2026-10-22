@@ -10,7 +10,8 @@ import { useExperimentStore } from '../store/useExperimentStore';
 import { useInventoryStore } from '../store/useInventoryStore';
 import { useSettingsStore } from '../store/useSettingsStore';
 import { useLoadingStore } from '../store/useLoadingStore';
-import { bench } from '../experiments/nacl/bench';
+import { bench, enterBench, exitBench } from '../experiments/nacl/bench';
+import { useWorkbench, selectBenchExperiment, demonstratePreparation, currentSession } from '../experiments/workbench/session';
 import { useSandbox, labUse, mixture, simulateLab, resetSandbox } from '../experiments/nacl/sandbox';
 import { usePortableStore } from '../interaction/portable';
 import { restartSession } from '../ui/SummaryScreen';
@@ -58,6 +59,7 @@ export function DebugBridge() {
       player: playerState,
       interactables,
       station: bench,
+      workbench: { store: useWorkbench, select: selectBenchExperiment, prepare: demonstratePreparation, session: currentSession, enter: enterBench, exit: exitBench },
       portable: usePortableStore,
       sandbox: { useSandbox, labUse, mixture, simulateLab, resetSandbox },
       restartSession, worktop: benchView, worktopView: useBenchView, placement: heldApi, tablePointer, guide: experimentGuide,

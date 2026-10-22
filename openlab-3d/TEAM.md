@@ -55,9 +55,53 @@
 
 ## Хэсэг хоорондын "гэрээ" (өөрчлөхөөсөө өмнө ярилцах)
 
-### NaCl bench integration (2026-10-22)
+### Workbench round 2 (2026-10-22) — current contract
 
-**Current contract: free laboratory.** Walking is the default; no experiment selection
+The bench now displays only the explicitly chosen experiment (`useLabStore.active`).
+No proximity lesson trigger or automatic next-lesson choice. Selection/guide progress
+use `openlab3d-experiments` v2; migration keeps progress and clears v1's potentially
+auto-assigned selection once. Preparation and physical contents remain tab-local.
+
+`Mode` and `Panel` unions are unchanged. The seated Tab drawer and F live-inspection
+subview keep `mode: bench`; closing them never calls `resumeWalk` or pointer lock.
+Walking tools and ordinary F inspect retain their original routing.
+
+**Shared settings change:** `SettingsState.reactionAutoZoom: boolean` defaults true.
+Low quality/reduced motion disables automatic camera motion and reduces molecular
+particle count to 40 (otherwise capped at 150). New synthesized sounds use master audio.
+
+NaCl's canonical chemistry is still owned by `useChemStore`; `sandbox.ts` publishes
+transient vessel/rate/temperature metadata. Prepared experiments pause while walking.
+The physical station's old scripted `goto` runner remains unused. Drawer preparation
+reveals its original meshes, preserving free placement and live contents; no new Rapier
+bodies are created for the special NaCl glassware. Other guide recipes retain the normal
+inventory pipeline. The built-in local lesson id `nacl` is always in the guide menu.
+No new Expo/iframe/URL contract or database change.
+
+See `WORKBENCH-ROUND2.md` for the complete file ownership/change list and checks.
+This is an in-repository team notice; no external teammate message was sent.
+
+### Workbench round 3 (current contract)
+
+The nearby walking and seated bench share one all-supplies drawer. Required supplies
+are pinned; browsing/spawning never completes preparation. Actual pickup plus placement
+on the `chem-n4` worktop completes an item, including shelf/storage objects. Wrong items
+remain usable. Guide-step credit waits for preparation; real observations and measurements still record. Teacher bypass is a small explicit link. Selection survives approach and
+the bench waypoint; NaCl selection is a separate menu action.
+
+`chemistry/reaction-view.ts` observes actual equilibrium/kinetics changes;
+`lab/reaction-view.ts` owns only transient vessel reaction display metadata. One generic
+lens in `HUD.tsx` covers walking, bench and ordinary inspection. `useChemStore` remains
+the sole source of material contents. Ordinary inspect advances chemistry at 10 Hz while
+its background canvas is frozen. No shared `Mode`/`Panel` union changed in this round.
+See `WORKBENCH-ROUND3.md` for changes and concrete embedded-build verification.
+This is an in-repository team notice; no external teammate message was sent.
+
+### Earlier NaCl bench integration (history; superseded by round 2)
+
+
+
+**Earlier contract: free laboratory.** Walking is the default; no experiment selection
 or ordered-step gate is required. `store/useChemStore.ts` owns shared local vessel contents; `experiments/nacl/chemistry.ts` projects those contents for the textbook view. `sandbox.ts` advances only NaCl apparatus; the room’s `ChemSim` advances ordinary vessels. Live scene equipment uses `interaction/portable.ts`; physics-backed inventory retains its inventory pipeline (`movable` defaults to false). E picks up ordinary items or operates an instrument; G always grabs inventory instruments. Q places, R uses/pours, F inspects. Movable instruments keep their original use as
 `InteractableEntry.onUse` (R). Shelves' bottles/glassware are individually interactable.
 `bench` means an optional V work/detail camera in the same room; it does not
