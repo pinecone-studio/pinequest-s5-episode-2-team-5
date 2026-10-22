@@ -1,5 +1,5 @@
-import { QuizHub } from '@/components/hub/quiz-hub';
+import { VersusGame } from '@/components/hub/versus-game';
 
 export default function VersusScreen() {
-  return <QuizHub versus />;
+  return <VersusGame />;
 }
