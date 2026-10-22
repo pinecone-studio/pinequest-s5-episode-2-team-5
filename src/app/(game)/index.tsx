@@ -1,27 +1,43 @@
-import { LinearGradient } from 'expo-linear-gradient';
-import { router, useFocusEffect, type Href } from 'expo-router';
-import { useCallback, useEffect, useRef, useState } from 'react';
-import { Pressable, StyleSheet, useWindowDimensions, View, type GestureResponderEvent } from 'react-native';
+import { LinearGradient } from "expo-linear-gradient";
+import { router, useFocusEffect, type Href } from "expo-router";
+import { useCallback, useEffect, useRef, useState } from "react";
+import {
+  Pressable,
+  StyleSheet,
+  useWindowDimensions,
+  View,
+  type GestureResponderEvent,
+} from "react-native";
 import Animated, {
   useAnimatedStyle,
   useDerivedValue,
   useSharedValue,
   withTiming,
-} from 'react-native-reanimated';
-import { scheduleOnRN } from 'react-native-worklets';
+} from "react-native-reanimated";
+import { scheduleOnRN } from "react-native-worklets";
 
-import { DoorTransition } from '@/components/hub/door-transition';
-import { HubChatOverlay } from '@/components/hub/chat-overlay';
-import { HintCard, HudTop } from '@/components/hub/hub-hud';
-import { PlayerCard } from '@/components/hub/player-card';
-import { ProfileSheet } from '@/components/hub/profile-sheet';
-import { BuildingSprite } from '@/components/world/buildings';
-import { Ground } from '@/components/world/ground';
-import { buildNavGrid, findPath, nearestWalkable } from '@/components/world/nav-grid';
-import { LivePlayer } from '@/components/world/live-player';
-import type { RemoteHandle } from '@/components/world/remote-player';
-import { Bench, Fountain, Lamp, Signpost, Tree } from '@/components/world/scenery';
-import { useWalker, WalkerView } from '@/components/world/walker';
+import { HubChatOverlay } from "@/components/hub/chat-overlay";
+import { DoorTransition } from "@/components/hub/door-transition";
+import { HintCard, HudTop } from "@/components/hub/hub-hud";
+import { PlayerCard } from "@/components/hub/player-card";
+import { ProfileSheet } from "@/components/hub/profile-sheet";
+import { BuildingSprite } from "@/components/world/buildings";
+import { Ground } from "@/components/world/ground";
+import { LivePlayer } from "@/components/world/live-player";
+import {
+  buildNavGrid,
+  findPath,
+  nearestWalkable,
+} from "@/components/world/nav-grid";
+import type { RemoteHandle } from "@/components/world/remote-player";
+import {
+  Bench,
+  Fountain,
+  Lamp,
+  Signpost,
+  Tree,
+} from "@/components/world/scenery";
+import { useWalker, WalkerView } from "@/components/world/walker";
 import {
   BENCHES,
   BUILDINGS,
@@ -33,14 +49,14 @@ import {
   worldObstacles,
   type BuildingDef,
   type Point,
-} from '@/components/world/world-config';
-import { NamePlate, TapMarker } from '@/components/world/world-markers';
-import { useSession } from '@/context/session';
-import { lookFor } from '@/lib/avatar-look';
-import { haptics } from '@/lib/haptics';
-import { fetchLeaderboard } from '@/services/leaderboard';
-import { useHubPresence } from '@/services/presence';
-import type { PublicPlayer, User } from '@/types';
+} from "@/components/world/world-config";
+import { NamePlate, TapMarker } from "@/components/world/world-markers";
+import { useSession } from "@/context/session";
+import { lookFor } from "@/lib/avatar-look";
+import { haptics } from "@/lib/haptics";
+import { fetchLeaderboard } from "@/services/leaderboard";
+import { useHubPresence } from "@/services/presence";
+import type { PublicPlayer, User } from "@/types";
 
 const GRID = buildNavGrid(worldObstacles(), {
   width: WORLD.width,
@@ -54,31 +70,81 @@ const GRID = buildNavGrid(worldObstacles(), {
 const MAP_SPRITE_SCALE = 0.65;
 
 const HUB_HOUSE_HIT_SHAPE = [
-  { x: 100, y: 37 }, { x: 192, y: 105 }, { x: 195, y: 100 }, { x: 195, y: 113 },
-  { x: 173, y: 113 }, { x: 173, y: 227 }, { x: 187, y: 223 }, { x: 187, y: 248 },
-  { x: 13, y: 248 }, { x: 13, y: 223 }, { x: 27, y: 227 }, { x: 27, y: 113 },
-  { x: 5, y: 113 }, { x: 5, y: 100 }, { x: 8, y: 105 },
+  { x: 100, y: 37 },
+  { x: 192, y: 105 },
+  { x: 195, y: 100 },
+  { x: 195, y: 113 },
+  { x: 173, y: 113 },
+  { x: 173, y: 227 },
+  { x: 187, y: 223 },
+  { x: 187, y: 248 },
+  { x: 13, y: 248 },
+  { x: 13, y: 223 },
+  { x: 27, y: 227 },
+  { x: 27, y: 113 },
+  { x: 5, y: 113 },
+  { x: 5, y: 100 },
+  { x: 8, y: 105 },
 ];
 
-const BUILDING_HIT_SHAPES: Record<BuildingDef['id'], readonly (readonly Point[])[]> = {
-  lessons: [[
-    { x: 150, y: 50 }, { x: 278, y: 116 }, { x: 278, y: 130 }, { x: 262, y: 130 },
-    { x: 262, y: 240 }, { x: 274, y: 240 }, { x: 274, y: 266 }, { x: 26, y: 266 },
-    { x: 26, y: 240 }, { x: 38, y: 240 }, { x: 38, y: 130 }, { x: 22, y: 130 }, { x: 22, y: 116 },
-  ]],
+const BUILDING_HIT_SHAPES: Record<
+  BuildingDef["id"],
+  readonly (readonly Point[])[]
+> = {
+  lessons: [
+    [
+      { x: 150, y: 50 },
+      { x: 278, y: 116 },
+      { x: 278, y: 130 },
+      { x: 262, y: 130 },
+      { x: 262, y: 240 },
+      { x: 274, y: 240 },
+      { x: 274, y: 266 },
+      { x: 26, y: 266 },
+      { x: 26, y: 240 },
+      { x: 38, y: 240 },
+      { x: 38, y: 130 },
+      { x: 22, y: 130 },
+      { x: 22, y: 116 },
+    ],
+  ],
   ranking: [
     [
-      { x: 12, y: 308 }, { x: 178, y: 308 }, { x: 178, y: 280 }, { x: 150, y: 284 },
-      { x: 142, y: 120 }, { x: 158, y: 122 }, { x: 158, y: 104 }, { x: 136, y: 104 },
-      { x: 136, y: 96 }, { x: 132, y: 74 }, { x: 126, y: 60 }, { x: 114, y: 50 },
-      { x: 95, y: 44 }, { x: 76, y: 50 }, { x: 64, y: 60 }, { x: 58, y: 74 },
-      { x: 54, y: 96 }, { x: 54, y: 104 }, { x: 32, y: 104 }, { x: 32, y: 122 },
-      { x: 48, y: 120 }, { x: 40, y: 284 }, { x: 12, y: 280 },
+      { x: 12, y: 308 },
+      { x: 178, y: 308 },
+      { x: 178, y: 280 },
+      { x: 150, y: 284 },
+      { x: 142, y: 120 },
+      { x: 158, y: 122 },
+      { x: 158, y: 104 },
+      { x: 136, y: 104 },
+      { x: 136, y: 96 },
+      { x: 132, y: 74 },
+      { x: 126, y: 60 },
+      { x: 114, y: 50 },
+      { x: 95, y: 44 },
+      { x: 76, y: 50 },
+      { x: 64, y: 60 },
+      { x: 58, y: 74 },
+      { x: 54, y: 96 },
+      { x: 54, y: 104 },
+      { x: 32, y: 104 },
+      { x: 32, y: 122 },
+      { x: 48, y: 120 },
+      { x: 40, y: 284 },
+      { x: 12, y: 280 },
     ],
     [
-      { x: 66, y: 7 }, { x: 124, y: 7 }, { x: 124, y: 24 }, { x: 120, y: 31 },
-      { x: 108, y: 37 }, { x: 108, y: 47 }, { x: 82, y: 47 }, { x: 82, y: 37 },
-      { x: 70, y: 31 }, { x: 66, y: 24 },
+      { x: 66, y: 7 },
+      { x: 124, y: 7 },
+      { x: 124, y: 24 },
+      { x: 120, y: 31 },
+      { x: 108, y: 37 },
+      { x: 108, y: 47 },
+      { x: 82, y: 47 },
+      { x: 82, y: 37 },
+      { x: 70, y: 31 },
+      { x: 66, y: 24 },
     ],
   ],
   versus: [HUB_HOUSE_HIT_SHAPE],
@@ -88,7 +154,7 @@ const BUILDING_HIT_SHAPES: Record<BuildingDef['id'], readonly (readonly Point[])
 
 /** Keeps the target centered, clamped so the camera never shows past the map edge. */
 function cameraOffset(target: number, viewport: number, world: number) {
-  'worklet';
+  "worklet";
   if (world <= viewport) return (viewport - world) / 2;
   return Math.min(0, Math.max(viewport - world, viewport / 2 - target));
 }
@@ -99,14 +165,22 @@ function pointInPolygon(point: Point, polygon: readonly Point[]) {
     const current = polygon[i];
     const previous = polygon[j];
     const onEdge =
-      Math.abs((point.y - previous.y) * (current.x - previous.x) - (point.x - previous.x) * (current.y - previous.y)) < 0.001 &&
-      point.x >= Math.min(previous.x, current.x) && point.x <= Math.max(previous.x, current.x) &&
-      point.y >= Math.min(previous.y, current.y) && point.y <= Math.max(previous.y, current.y);
+      Math.abs(
+        (point.y - previous.y) * (current.x - previous.x) -
+          (point.x - previous.x) * (current.y - previous.y),
+      ) < 0.001 &&
+      point.x >= Math.min(previous.x, current.x) &&
+      point.x <= Math.max(previous.x, current.x) &&
+      point.y >= Math.min(previous.y, current.y) &&
+      point.y <= Math.max(previous.y, current.y);
     if (onEdge) return true;
 
     const crosses =
-      (current.y > point.y) !== (previous.y > point.y) &&
-      point.x < ((previous.x - current.x) * (point.y - current.y)) / (previous.y - current.y) + current.x;
+      current.y > point.y !== previous.y > point.y &&
+      point.x <
+        ((previous.x - current.x) * (point.y - current.y)) /
+          (previous.y - current.y) +
+          current.x;
     if (crosses) inside = !inside;
   }
   return inside;
@@ -115,10 +189,14 @@ function pointInPolygon(point: Point, polygon: readonly Point[]) {
 function isOnBuilding(building: BuildingDef, point: Point) {
   const { rect } = building;
   const localPoint = {
-    x: (point.x - rect.x - (rect.w * (1 - MAP_SPRITE_SCALE)) / 2) / MAP_SPRITE_SCALE,
+    x:
+      (point.x - rect.x - (rect.w * (1 - MAP_SPRITE_SCALE)) / 2) /
+      MAP_SPRITE_SCALE,
     y: (point.y - rect.y - rect.h * (1 - MAP_SPRITE_SCALE)) / MAP_SPRITE_SCALE,
   };
-  return BUILDING_HIT_SHAPES[building.id].some((shape) => pointInPolygon(localPoint, shape));
+  return BUILDING_HIT_SHAPES[building.id].some((shape) =>
+    pointInPolygon(localPoint, shape),
+  );
 }
 
 export default function HubScreen() {
@@ -145,10 +223,17 @@ function Hub({ user }: { user: User }) {
   const transition = useSharedValue(0);
 
   const camX = useDerivedValue(
-    () => cameraOffset(player.x.get() * mapZoom, width, WORLD.width * mapZoom) - mapOriginX,
+    () =>
+      cameraOffset(player.x.get() * mapZoom, width, WORLD.width * mapZoom) -
+      mapOriginX,
   );
   const camY = useDerivedValue(
-    () => cameraOffset((player.y.get() - 40) * mapZoom, height, WORLD.height * mapZoom) - mapOriginY,
+    () =>
+      cameraOffset(
+        (player.y.get() - 40) * mapZoom,
+        height,
+        WORLD.height * mapZoom,
+      ) - mapOriginY,
   );
   const worldStyle = useAnimatedStyle(() => ({
     transform: [{ translateX: camX.get() }, { translateY: camY.get() }],
@@ -214,7 +299,12 @@ function Hub({ user }: { user: User }) {
 
     for (const handle of remotes.current.values()) {
       const at = handle.position();
-      if (handle.isVisible() && Math.abs(p.x - at.x) < 24 && p.y > at.y - 80 && p.y < at.y + 8) {
+      if (
+        handle.isVisible() &&
+        Math.abs(p.x - at.x) < 24 &&
+        p.y > at.y - 80 &&
+        p.y < at.y + 8
+      ) {
         haptics.select();
         setSelected(handle);
         return;
@@ -243,7 +333,11 @@ function Hub({ user }: { user: User }) {
             <Lamp key={`${l.x},${l.y}`} {...l} spriteScale={MAP_SPRITE_SCALE} />
           ))}
           {BENCHES.map((b) => (
-            <Bench key={`${b.x},${b.y}`} {...b} spriteScale={MAP_SPRITE_SCALE} />
+            <Bench
+              key={`${b.x},${b.y}`}
+              {...b}
+              spriteScale={MAP_SPRITE_SCALE}
+            />
           ))}
           <Signpost {...SIGNPOST} spriteScale={MAP_SPRITE_SCALE} />
           <Fountain spriteScale={MAP_SPRITE_SCALE} />
@@ -282,11 +376,15 @@ function Hub({ user }: { user: User }) {
       />
       <LinearGradient
         pointerEvents="none"
-        colors={['rgba(18,12,51,0.55)', 'rgba(18,12,51,0)']}
+        colors={["rgba(18,12,51,0.55)", "rgba(18,12,51,0)"]}
         style={styles.topScrim}
       />
 
-      <HudTop user={user} online={peers.length + 1} onProfilePress={() => setProfileOpen(true)} />
+      <HudTop
+        user={user}
+        online={peers.length + 1}
+        onProfilePress={() => setProfileOpen(true)}
+      />
       {showHint && <HintCard nickname={user.nickname} />}
       <HubChatOverlay user={user} />
 
@@ -294,7 +392,12 @@ function Hub({ user }: { user: User }) {
 
       <PlayerCard
         player={selected?.player ?? null}
-        rank={selected ? board.findIndex((p) => p.id === selected.player.id) + 1 || undefined : undefined}
+        rank={
+          selected
+            ? board.findIndex((p) => p.id === selected.player.id) + 1 ||
+              undefined
+            : undefined
+        }
         onClose={() => setSelected(null)}
         onWave={() => {
           selected?.say(`Hi ${user.nickname}! 👋`);
@@ -315,14 +418,23 @@ function Hub({ user }: { user: User }) {
 }
 
 const styles = StyleSheet.create({
-  root: { flex: 1, backgroundColor: '#5E9E3F', overflow: 'hidden' },
-  world: { position: 'absolute', left: 0, top: 0, width: WORLD.width, height: WORLD.height },
-  zoomedWorld: {
-    position: 'absolute',
+  root: { flex: 1, backgroundColor: "#5E9E3F", overflow: "hidden" },
+  world: {
+    position: "absolute",
     left: 0,
     top: 0,
     width: WORLD.width,
     height: WORLD.height,
   },
-  topScrim: { position: 'absolute', left: 0, right: 0, top: 0, height: 120 },
+  zoomedWorld: {
+    position: "absolute",
+    left: 0,
+    top: 0,
+    width: WORLD.width,
+    height: WORLD.height,
+  },
+  topScrim: { position: "absolute", left: 0, right: 0, top: 0, height: 120 },
 });
+// export default function OpenLab() {
+//   return <div>hi open lab</div>;
+// }
