@@ -18,21 +18,21 @@ export function PauseMenu() {
         <motion.div className="fixed inset-0 z-40 flex items-center justify-center bg-slate-900/35 p-4 backdrop-blur-[3px]" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
           <motion.div role="dialog" aria-modal="true" aria-labelledby="pause-title" className="panel-card w-full max-w-xs p-6 text-center" initial={{ scale: 0.94 }} animate={{ scale: 1 }}>
             <h2 id="pause-title" className="font-display text-2xl font-bold">
-              Paused
+              Түр зогслоо
             </h2>
-            <p className="mt-1 text-sm text-slate-500">{lookMode === 'mouse' ? 'Click Resume to grab the mouse again.' : 'Press Esc or Resume to continue.'}</p>
+            <p className="mt-1 text-sm text-slate-500">{lookMode === 'mouse' ? 'Хулганаа дахин ашиглахын тулд «Үргэлжлүүлэх» дарна уу.' : 'Үргэлжлүүлэхийн тулд Esc эсвэл «Үргэлжлүүлэх» дарна уу.'}</p>
             <div className="mt-5 flex flex-col gap-2">
               <button className="btn-yellow py-3 text-base" onClick={resumeWalk} autoFocus>
-                ▶ Resume
+                ▶ Үргэлжлүүлэх
               </button>
               <button className="btn-ghost" onClick={() => go('menu')}>
-                Menu & settings
+                Цэс ба тохиргоо
               </button>
               <button className="btn-ghost" onClick={() => go('help')}>
-                Controls
+                Удирдлага
               </button>
               <button className="btn-ghost text-red-600" onClick={() => go('endConfirm')}>
-                End session
+                Сессийг дуусгах
               </button>
             </div>
           </motion.div>

@@ -6,11 +6,11 @@ export const LOAD_STEPS = ['engine', 'architecture', 'chemistry', 'fonts', 'shad
 export type LoadStep = (typeof LOAD_STEPS)[number];
 
 const LABELS: Record<LoadStep, string> = {
-  engine: 'Starting physics engine',
-  architecture: 'Raising walls',
-  chemistry: 'Filling beakers',
-  fonts: 'Printing labels',
-  shaders: 'Polishing glassware',
+  engine: 'Физикийн хөдөлгүүрийг асааж байна',
+  architecture: 'Хана босгож байна',
+  chemistry: 'Аяганд уусмал хийж байна',
+  fonts: 'Шошго хэвлэж байна',
+  shaders: 'Шилэн савыг өнгөлж байна',
 };
 
 interface LoadingState {
@@ -34,5 +34,5 @@ export function useReady(step: LoadStep): void {
 
 export function loadingProgress(done: LoadStep[]): { progress: number; label: string; complete: boolean } {
   const next = LOAD_STEPS.find((s) => !done.includes(s));
-  return { progress: done.length / LOAD_STEPS.length, label: next ? LABELS[next] : 'Ready', complete: !next };
+  return { progress: done.length / LOAD_STEPS.length, label: next ? LABELS[next] : 'Бэлэн', complete: !next };
 }

@@ -13,7 +13,7 @@ function Logo() {
       <div className="flex h-14 w-14 items-center justify-center rounded-full bg-lab-yellow font-display text-2xl font-bold text-white shadow-hud">OL</div>
       <div className="text-left">
         <div className="font-display text-3xl font-bold leading-none text-lab-ink">OpenLab 3D</div>
-        <div className="mt-1 text-sm font-medium tracking-wide text-slate-500">Virtual Chemistry Laboratory</div>
+        <div className="mt-1 text-sm font-medium tracking-wide text-slate-500">Виртуал химийн лаборатори</div>
       </div>
     </div>
   );
@@ -28,7 +28,7 @@ export function enterLab(): void {
   requestLock();
   window.setTimeout(() => {
     if (!useGameStore.getState().robot.text) {
-      useGameStore.getState().say('Welcome to the Chemistry Lab! Light a Bunsen burner, tare the balance or raise the fume-hood sash. Click me any time for a hint.', 'wave');
+      useGameStore.getState().say('Химийн лабораторид тавтай морил! Бунзены горелк асаах, жинг тэглэх эсвэл татах шүүгээний хаалтыг өргөж үзээрэй. Зөвлөгөө хэрэгтэй бол над дээр дараарай.', 'wave');
     }
   }, 700);
 }
@@ -58,7 +58,7 @@ export function LoadingScreen() {
               <div className="flex justify-center">
                 <Logo />
               </div>
-              <div className="mt-10 h-3 w-full overflow-hidden rounded-full bg-slate-200" role="progressbar" aria-valuemin={0} aria-valuemax={100} aria-valuenow={Math.round(progress * 100)} aria-label="Loading the lab">
+              <div className="mt-10 h-3 w-full overflow-hidden rounded-full bg-slate-200" role="progressbar" aria-valuemin={0} aria-valuemax={100} aria-valuenow={Math.round(progress * 100)} aria-label="Лабораторийг ачаалж байна">
                 <motion.div className="h-full rounded-full bg-lab-yellow" initial={{ width: "4%" }} animate={{ width: `${Math.max(4, progress * 100)}%` }} transition={{ ease: 'easeOut', duration: 0.35 }} />
               </div>
               <div className="mt-3 flex justify-between text-sm text-slate-500">
@@ -70,15 +70,15 @@ export function LoadingScreen() {
             <motion.div className="panel-card w-full max-w-2xl p-6 sm:p-8" initial={{ y: 20, opacity: 0 }} animate={{ y: 0, opacity: 1 }}>
               <Logo />
               <p className="mt-4 text-slate-600">
-                Step into a fully equipped <b>chemistry lab</b> in first person. Walk up to any equipment until it glows white, then use the keys shown at the bottom of the screen. Light a Bunsen burner, weigh glassware on the analytical balance and work safely at the fume hood.
+                Бүрэн тоноглогдсон <b>химийн лабораторид</b> өөрийн нүдээр орж үзээрэй. Багаж руу ойртоход цагаанаар гэрэлтэнэ, дараа нь дэлгэцийн доор харагдах товчлуурыг ашиглаарай. Бунзены горелк асааж, аналитик жингээр шилэн сав жигнэж, татах шүүгээнд аюулгүй ажиллаарай.
               </p>
               <div className="mt-5 rounded-2xl bg-slate-50 p-4">
                 <ControlsList compact />
               </div>
               <button type="button" className="btn-yellow mt-6 w-full py-4 text-lg" onClick={enterLab} autoFocus>
-                Click to enter the lab
+                Лабораторид орох
               </button>
-              <p className="mt-2 text-center text-xs text-slate-400">The mouse is captured for looking around — press Esc any time to get it back.</p>
+              <p className="mt-2 text-center text-xs text-slate-400">Эргэн харахад хулгана түгжигдэнэ — хүссэн үедээ Esc дарж чөлөөлнө.</p>
             </motion.div>
           )}
         </motion.div>

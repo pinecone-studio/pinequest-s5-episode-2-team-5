@@ -83,7 +83,7 @@ function KeyRemap() {
               type="button"
               data-capture="keys"
               onClick={() => setListening(a)}
-              aria-label={`Rebind ${ACTION_LABELS[a]}, currently ${keyLabel(bindings[a][0])}`}
+              aria-label={`${ACTION_LABELS[a]} товчийг солих, одоо ${keyLabel(bindings[a][0])}`}
               className={`focus-ring kbd min-w-[3.2em] ${listening === a ? 'animate-pulse !border-lab-yellow !bg-amber-50' : ''}`}
             >
               {listening === a ? '…' : keyLabel(bindings[a][0])}
@@ -92,9 +92,9 @@ function KeyRemap() {
         ))}
       </div>
       <div className="mt-2 flex items-center justify-between">
-        <span className="text-xs text-slate-500">{listening ? 'Press a key (Esc cancels)' : 'Click a key to remap it.'}</span>
+        <span className="text-xs text-slate-500">{listening ? 'Шинэ товчоо дарна уу (Esc цуцална)' : 'Солих товчоо дарна уу.'}</span>
         <button type="button" className="btn-ghost !px-3 !py-1 text-xs" onClick={reset}>
-          Reset keys
+          Анхны товчлуур
         </button>
       </div>
     </div>
@@ -107,66 +107,63 @@ export function SettingsPanel() {
   return (
     <div className="divide-y divide-slate-100">
       <section className="pb-3">
-        <h3 className="mb-1 text-xs font-bold uppercase tracking-wider text-slate-400">Controls</h3>
-        <Row label="Look mode" hint="Keyboard turn: ←/→ or Q/E rotate, Enter interacts">
+        <h3 className="mb-1 text-xs font-bold uppercase tracking-wider text-slate-400">Удирдлага</h3>
+        <Row label="Харах горим" hint="Товчлуураар: ←/→ эсвэл Q/E эргүүлнэ, Enter ашиглана">
           <Segmented
-            label="Look mode"
+            label="Харах горим"
             value={s.lookMode}
             onChange={(v) => s.set({ lookMode: v })}
             options={[
-              { value: 'mouse', label: 'Mouse look' },
-              { value: 'keyboard', label: 'Keyboard turn' },
+              { value: 'mouse', label: 'Хулганаар' },
+              { value: 'keyboard', label: 'Товчлуураар' },
             ]}
           />
         </Row>
-        <Row label={`Mouse sensitivity · ${s.sensitivity.toFixed(1)}`}>
-          <input aria-label="Mouse sensitivity" className="range w-36" type="range" min={0.2} max={3} step={0.1} value={s.sensitivity} onChange={(e) => s.set({ sensitivity: Number(e.target.value) })} />
+        <Row label={`Хулганы мэдрэмж · ${s.sensitivity.toFixed(1)}`}>
+          <input aria-label="Хулганы мэдрэмж" className="range w-36" type="range" min={0.2} max={3} step={0.1} value={s.sensitivity} onChange={(e) => s.set({ sensitivity: Number(e.target.value) })} />
         </Row>
-        <Row label="Invert Y axis">
-          <Toggle label="Invert Y axis" checked={s.invertY} onChange={(v) => s.set({ invertY: v })} />
+        <Row label="Босоо тэнхлэгийг урвуулах">
+          <Toggle label="Босоо тэнхлэгийг урвуулах" checked={s.invertY} onChange={(v) => s.set({ invertY: v })} />
         </Row>
-        <Row label="Allow jumping" hint="Space">
-          <Toggle label="Allow jumping" checked={s.jumpEnabled} onChange={(v) => s.set({ jumpEnabled: v })} />
-        </Row>
-      </section>
-      <section className="py-3">
-        <h3 className="mb-1 text-xs font-bold uppercase tracking-wider text-slate-400">View & comfort</h3>
-        <Row label={`Field of view · ${s.fov}°`}>
-          <input aria-label="Field of view" className="range w-36" type="range" min={60} max={100} step={1} value={s.fov} onChange={(e) => s.set({ fov: Number(e.target.value) })} />
-        </Row>
-        <Row label="Head bob">
-          <Toggle label="Head bob" checked={s.headBob} onChange={(v) => s.set({ headBob: v })} />
-        </Row>
-        <Row label="Reduced motion" hint="Disables head bob and item sway">
-          <Toggle label="Reduced motion" checked={s.reducedMotion} onChange={(v) => s.set({ reducedMotion: v })} />
-        </Row>
-        <Row label="Guided mode" hint="Floor arrows lead to the next step">
-          <Toggle label="Guided mode" checked={s.guided} onChange={(v) => s.set({ guided: v })} />
+        <Row label="Үсрэхийг зөвшөөрөх" hint="Space">
+          <Toggle label="Үсрэхийг зөвшөөрөх" checked={s.jumpEnabled} onChange={(v) => s.set({ jumpEnabled: v })} />
         </Row>
       </section>
       <section className="py-3">
-        <h3 className="mb-1 text-xs font-bold uppercase tracking-wider text-slate-400">Graphics & sound</h3>
-        <Row label="Graphics quality" hint="Low disables post-processing, shadows and glass refraction">
+        <h3 className="mb-1 text-xs font-bold uppercase tracking-wider text-slate-400">Харагдац ба тав тух</h3>
+        <Row label={`Харах өнцөг · ${s.fov}°`}>
+          <input aria-label="Харах өнцөг" className="range w-36" type="range" min={60} max={100} step={1} value={s.fov} onChange={(e) => s.set({ fov: Number(e.target.value) })} />
+        </Row>
+        <Row label="Алхахад ганхах">
+          <Toggle label="Алхахад ганхах" checked={s.headBob} onChange={(v) => s.set({ headBob: v })} />
+        </Row>
+        <Row label="Хөдөлгөөн багасгах" hint="Алхахад ганхах болон эд зүйлсийн найгалтыг унтраана">
+          <Toggle label="Хөдөлгөөн багасгах" checked={s.reducedMotion} onChange={(v) => s.set({ reducedMotion: v })} />
+        </Row>
+      </section>
+      <section className="py-3">
+        <h3 className="mb-1 text-xs font-bold uppercase tracking-wider text-slate-400">График ба дуу</h3>
+        <Row label="Графикийн чанар" hint="Бага: нэмэлт эффект, сүүдэр, шилний хугарал унтарна">
           <Segmented<Quality>
-            label="Graphics quality"
+            label="Графикийн чанар"
             value={s.quality}
             onChange={(v) => s.set({ quality: v })}
             options={[
-              { value: 'low', label: 'Low' },
-              { value: 'medium', label: 'Medium' },
-              { value: 'high', label: 'High' },
+              { value: 'low', label: 'Бага' },
+              { value: 'medium', label: 'Дунд' },
+              { value: 'high', label: 'Өндөр' },
             ]}
           />
         </Row>
-        <Row label="Show FPS">
-          <Toggle label="Show FPS" checked={s.showFps} onChange={(v) => s.set({ showFps: v })} />
+        <Row label="FPS харуулах">
+          <Toggle label="FPS харуулах" checked={s.showFps} onChange={(v) => s.set({ showFps: v })} />
         </Row>
-        <Row label={`Master volume · ${Math.round(s.volume * 100)}%`}>
-          <input aria-label="Master volume" className="range w-36" type="range" min={0} max={1} step={0.05} value={s.volume} onChange={(e) => s.set({ volume: Number(e.target.value) })} />
+        <Row label={`Дууны түвшин · ${Math.round(s.volume * 100)}%`}>
+          <input aria-label="Дууны түвшин" className="range w-36" type="range" min={0} max={1} step={0.05} value={s.volume} onChange={(e) => s.set({ volume: Number(e.target.value) })} />
         </Row>
       </section>
       <section className="pt-3">
-        <h3 className="mb-2 text-xs font-bold uppercase tracking-wider text-slate-400">Key bindings</h3>
+        <h3 className="mb-2 text-xs font-bold uppercase tracking-wider text-slate-400">Товчлуурын тохиргоо</h3>
         <KeyRemap />
       </section>
     </div>

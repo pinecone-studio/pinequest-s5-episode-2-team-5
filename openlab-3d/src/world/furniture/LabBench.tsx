@@ -59,8 +59,8 @@ function Drawer({ id, width, height, depth }: { id: string; width: number; heigh
   return (
     <Interactable
       id={id}
-      label="Drawer"
-      verb={open ? 'Close' : 'Open'}
+      label="Шургуулга"
+      verb={open ? 'хаах' : 'нээх'}
       highlight="none"
       onInteract={() => {
         setOpen((o) => !o);
@@ -93,8 +93,8 @@ function CabinetDoor({ id, width, height, hinge }: { id: string; width: number; 
   return (
     <Interactable
       id={id}
-      label="Cabinet door"
-      verb={open ? 'Close' : 'Open'}
+      label="Шүүгээний хаалга"
+      verb={open ? 'хаах' : 'нээх'}
       highlight="none"
       onInteract={() => {
         setOpen((o) => !o);

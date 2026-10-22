@@ -4,9 +4,9 @@ export type SkillId = 'burner' | 'tare' | 'hood';
 
 /** Bench skills tracked for the menu, the robot's hints and the lab report. */
 export const SKILLS: { id: SkillId; label: string }[] = [
-  { id: 'burner', label: 'Light a Bunsen burner' },
-  { id: 'tare', label: 'Tare the analytical balance' },
-  { id: 'hood', label: 'Raise the fume-hood sash' },
+  { id: 'burner', label: 'Бунзены горелк асаах' },
+  { id: 'tare', label: 'Аналитик жинг тэглэх' },
+  { id: 'hood', label: 'Татах шүүгээний хаалтыг өргөх' },
 ];
 
 const initialSkills: Record<SkillId, boolean> = { burner: false, tare: false, hood: false };

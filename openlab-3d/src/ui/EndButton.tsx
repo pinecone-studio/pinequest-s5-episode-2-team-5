@@ -7,8 +7,8 @@ import { sounds } from '../utils/sounds';
 /** "End" button (top right) and its confirmation dialog. */
 export function EndButton() {
   return (
-    <button type="button" aria-label="End session" onClick={() => openPanelFromGame('endConfirm')} className="hud-square focus-ring pointer-events-auto text-sm font-semibold tracking-wide">
-      End
+    <button type="button" aria-label="Сессийг дуусгах" onClick={() => openPanelFromGame('endConfirm')} className="hud-square focus-ring pointer-events-auto text-sm font-semibold tracking-wide">
+      Дуусгах
     </button>
   );
 }
@@ -22,12 +22,12 @@ export function EndConfirm() {
           <motion.div role="alertdialog" aria-modal="true" aria-labelledby="end-title" className="panel-card w-full max-w-sm p-6 text-center" initial={{ scale: 0.92, y: 10 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.95, opacity: 0 }}>
             <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-amber-100 text-2xl">🧪</div>
             <h2 id="end-title" className="font-display text-xl font-bold">
-              End this lab session?
+              Лабораторийн сессийг дуусгах уу?
             </h2>
-            <p className="mt-2 text-sm text-slate-600">You’ll see a summary of your measurements and progress. Your notebook text is kept.</p>
+            <p className="mt-2 text-sm text-slate-600">Хийсэн ажил, ахицын тань тайлан гарна. Тэмдэглэл тань хадгалагдана.</p>
             <div className="mt-5 flex justify-center gap-3">
               <button className="btn-ghost" onClick={resumeWalk} autoFocus>
-                Keep working
+                Үргэлжлүүлэн ажиллах
               </button>
               <button
                 className="btn-yellow"
@@ -37,7 +37,7 @@ export function EndConfirm() {
                   useGameStore.getState().endSession();
                 }}
               >
-                End session
+                Дуусгах
               </button>
             </div>
           </motion.div>

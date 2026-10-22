@@ -103,12 +103,12 @@ export function ToolTab() {
   const spawn = (kind: EquipmentKind) => {
     const res = spawnNearPlayer(kind);
     if (!res.ok) {
-      useGameStore.getState().showToast('Too many items', 'Put something away first');
+      useGameStore.getState().showToast('Хэт олон эд зүйл байна', 'Эхлээд нэг зүйлээ хураагаарай');
       return;
     }
     sounds.play('clink', 0.7);
-    useGameStore.getState().showToast(`${CATALOG[kind].name} placed`, res.onSurface ? 'On the nearest bench' : 'On the floor in front of you');
-    useGameStore.getState().logEvent(`Took a ${CATALOG[kind].name} from the tools drawer.`);
+    useGameStore.getState().showToast(`${CATALOG[kind].name} тавигдлаа`, res.onSurface ? 'Хамгийн ойрын ширээн дээр' : 'Таны өмнөх шалан дээр');
+    useGameStore.getState().logEvent(`Багажны шургуулганаас авлаа: ${CATALOG[kind].name}.`);
   };
 
   return (
@@ -116,7 +116,7 @@ export function ToolTab() {
       {/* The tab itself. */}
       <motion.button
         type="button"
-        aria-label={open ? 'Close tools drawer' : 'Open tools drawer'}
+        aria-label={open ? 'Багажны шургуулга хаах' : 'Багажны шургуулга нээх'}
         aria-expanded={open}
         onClick={() => (open ? resumeWalk() : openPanelFromGame('tools'))}
         className={`focus-ring fixed top-1/2 z-[45] flex h-20 w-9 -translate-y-1/2 items-center justify-center rounded-l-full bg-lab-yellow pl-1 text-white shadow-hud hover:bg-lab-yellowDark ${hideTab ? 'hidden' : ''}`}
@@ -132,7 +132,7 @@ export function ToolTab() {
       {/* Drawer. */}
       <motion.aside
         role="dialog"
-        aria-label="Tools drawer"
+        aria-label="Багажны шургуулга"
         aria-hidden={!open}
         className="fixed bottom-0 right-0 top-0 z-[44] flex flex-col bg-slate-50 shadow-2xl"
         style={{ width: `min(${DRAWER_W}px, calc(100vw - 40px))` }}
@@ -148,15 +148,15 @@ export function ToolTab() {
       >
         <header className="flex items-center justify-between bg-lab-yellow px-5 py-4 text-white">
           <div>
-            <h2 className="font-display text-lg font-bold leading-tight">Tools & Equipment</h2>
-            <p className="text-xs text-white/85">Click an item to place it on the nearest bench</p>
+            <h2 className="font-display text-lg font-bold leading-tight">Багаж хэрэгсэл</h2>
+            <p className="text-xs text-white/85">Дарахад хамгийн ойрын ширээн дээр тавигдана</p>
           </div>
           <span className="kbd !border-white/40 !bg-white/20 !text-white !shadow-none">{tabKey}</span>
         </header>
         {held && (
           <div className="flex items-center justify-between gap-2 border-b border-slate-200 bg-white px-5 py-3 text-sm">
             <span>
-              Holding <b>{CATALOG[held.kind].name}</b>
+              Гартаа: <b>{CATALOG[held.kind].name}</b>
             </span>
             <button
               type="button"
@@ -166,7 +166,7 @@ export function ToolTab() {
                 sounds.play('pickup');
               }}
             >
-              Put away
+              Хураах
             </button>
           </div>
         )}
@@ -182,7 +182,7 @@ export function ToolTab() {
                       tabIndex={open ? 0 : -1}
                       onClick={() => spawn(kind)}
                       className="focus-ring group flex w-full flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white text-left transition hover:-translate-y-0.5 hover:border-lab-yellow hover:shadow-md"
-                      aria-label={`Place ${def.name}`}
+                      aria-label={`${def.name} тавих`}
                     >
                       <div ref={refs[i]} className="h-24 w-full bg-gradient-to-b from-slate-100 to-white" />
                       <div className="px-3 pb-2.5 pt-1.5">

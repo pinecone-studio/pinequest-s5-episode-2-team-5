@@ -46,22 +46,22 @@ export const DEFAULT_BINDINGS: Bindings = {
 };
 
 export const ACTION_LABELS: Record<ActionName, string> = {
-  forward: 'Move forward',
-  backward: 'Move back',
-  left: 'Strafe left',
-  right: 'Strafe right',
-  sprint: 'Sprint',
-  jump: 'Jump',
-  interact: 'Interact / pick up',
-  inspect: 'Inspect',
-  drop: 'Drop / place',
-  tools: 'Tools drawer',
-  notes: 'Lab notes',
-  map: 'Toggle minimap',
-  turnLeft: 'Turn left (keyboard turn)',
-  turnRight: 'Turn right (keyboard turn)',
-  lookUp: 'Look up (keyboard turn)',
-  lookDown: 'Look down (keyboard turn)',
+  forward: 'Урагшаа',
+  backward: 'Хойшоо',
+  left: 'Зүүн тийш',
+  right: 'Баруун тийш',
+  sprint: 'Гүйх',
+  jump: 'Үсрэх',
+  interact: 'Ашиглах / авах',
+  inspect: 'Ойроос харах',
+  drop: 'Тавих',
+  tools: 'Багажны шургуулга',
+  notes: 'Лабын тэмдэглэл',
+  map: 'Газрын зураг',
+  turnLeft: 'Зүүн тийш эргэх (товчлуураар)',
+  turnRight: 'Баруун тийш эргэх (товчлуураар)',
+  lookUp: 'Дээш харах (товчлуураар)',
+  lookDown: 'Доош харах (товчлуураар)',
 };
 
 /** Alternate keys that always work, so keyboard-turn mode can reuse Q/E for turning. */

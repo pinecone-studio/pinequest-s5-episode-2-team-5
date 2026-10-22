@@ -8,7 +8,7 @@ import { CATALOG } from '../equipment/equipmentCatalog';
 function duration(ms: number): string {
   const s = Math.max(0, Math.round(ms / 1000));
   const m = Math.floor(s / 60);
-  return m > 0 ? `${m} min ${s % 60} s` : `${s} s`;
+  return m > 0 ? `${m} мин ${s % 60} сек` : `${s} сек`;
 }
 
 export function restartSession(): void {
@@ -30,16 +30,16 @@ export function SummaryScreen() {
       {open && (
         <motion.div className="fixed inset-0 z-[70] flex items-center justify-center overflow-y-auto bg-gradient-to-br from-slate-100 to-amber-50 p-4" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
           <motion.div className="panel-card w-full max-w-3xl p-6 sm:p-8" initial={{ y: 24 }} animate={{ y: 0 }} role="dialog" aria-labelledby="summary-title">
-            <div className="text-xs font-bold uppercase tracking-wider text-lab-yellowDark">Session complete</div>
+            <div className="text-xs font-bold uppercase tracking-wider text-lab-yellowDark">Сесс дууслаа</div>
             <h2 id="summary-title" className="font-display text-3xl font-bold">
-              Lab report
+              Лабораторийн тайлан
             </h2>
             <div className="mt-5 grid grid-cols-2 gap-3 sm:grid-cols-4">
               {[
-                ['Time in lab', duration((game.endedAt ?? Date.now()) - game.sessionStart)],
-                ['Bench skills', `${done} / ${SKILLS.length}`],
-                ['Equipment inspected', String(game.inspectedKinds.length)],
-                ['Items placed', String(placed)],
+                ['Лабд өнгөрүүлсэн хугацаа', duration((game.endedAt ?? Date.now()) - game.sessionStart)],
+                ['Лабораторийн дадал', `${done} / ${SKILLS.length}`],
+                ['Ойроос харсан багаж', String(game.inspectedKinds.length)],
+                ['Тавьсан эд зүйл', String(placed)],
               ].map(([label, value]) => (
                 <div key={label} className="rounded-xl border border-slate-200 bg-white p-3">
                   <div className="text-xs text-slate-500">{label}</div>
@@ -49,7 +49,7 @@ export function SummaryScreen() {
             </div>
             <div className="mt-5 grid gap-4 sm:grid-cols-2">
               <section className="rounded-2xl border border-slate-200 bg-white p-4">
-                <h3 className="font-semibold">Bench skills · {done}/{SKILLS.length}</h3>
+                <h3 className="font-semibold">Лабораторийн дадал · {done}/{SKILLS.length}</h3>
                 <ul className="mt-2 space-y-1 text-sm">
                   {SKILLS.map((s) => (
                     <li key={s.id} className={skills[s.id] ? 'text-slate-700' : 'text-slate-400'}>
@@ -59,17 +59,17 @@ export function SummaryScreen() {
                 </ul>
               </section>
               <section className="rounded-2xl border border-slate-200 bg-white p-4">
-                <h3 className="font-semibold">Equipment inspected</h3>
+                <h3 className="font-semibold">Ойроос харсан багаж</h3>
                 {game.inspectedKinds.length > 0 ? (
                   <p className="mt-2 text-sm text-slate-600">{game.inspectedKinds.map((k) => CATALOG[k].name).join(', ')}</p>
                 ) : (
-                  <p className="mt-2 text-sm text-slate-500">Nothing inspected this time. Press F on any equipment next session to see it up close.</p>
+                  <p className="mt-2 text-sm text-slate-500">Энэ удаа юу ч ойроос хараагүй байна. Дараагийн удаа аль нэг багаж дээр F дарж үзээрэй.</p>
                 )}
               </section>
             </div>
             <div className="mt-6 flex justify-end">
               <button className="btn-yellow px-6 py-3" onClick={restartSession}>
-                Start a new session
+                Шинээр эхлэх
               </button>
             </div>
           </motion.div>

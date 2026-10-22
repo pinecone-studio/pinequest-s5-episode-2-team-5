@@ -58,7 +58,7 @@ export default function App() {
             setPointerTarget(gl.domElement);
             setCanvasEl(gl.domElement);
           }}
-          aria-label="3D view of the OpenLab chemistry lab"
+          aria-label="Химийн лабораторийн 3D дүрс"
         >
           <Suspense fallback={null}>
             <Physics paused timeStep="vary" gravity={[0, -9.81, 0]}>

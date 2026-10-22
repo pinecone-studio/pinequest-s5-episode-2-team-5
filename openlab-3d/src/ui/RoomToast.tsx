@@ -3,7 +3,7 @@ import { AnimatePresence, motion } from 'framer-motion';
 import { useGameStore } from '../store/useGameStore';
 import { useSettingsStore } from '../store/useSettingsStore';
 
-/** Short banner at the top center: room names and quick hints. */
+/** Short banner at the top center for quick notices. */
 export function RoomToast() {
   const toast = useGameStore((s) => s.toast);
   const [visible, setVisible] = useState(false);
@@ -32,7 +32,7 @@ export function ClickToLookHint() {
   const mouse = useSettingsStore((s) => s.lookMode === 'mouse');
   const show = useGameStore((s) => s.mode === 'walk' && !s.pointerLocked) && mouse;
   return show ? (
-    <div className="pointer-events-none fixed left-1/2 top-[58%] z-20 -translate-x-1/2 rounded-full bg-black/50 px-4 py-1.5 text-sm font-medium text-white backdrop-blur">Click to look around</div>
+    <div className="pointer-events-none fixed left-1/2 top-[58%] z-20 -translate-x-1/2 rounded-full bg-black/50 px-4 py-1.5 text-sm font-medium text-white backdrop-blur">Эргэн харахын тулд дарна уу</div>
   ) : null;
 }
 

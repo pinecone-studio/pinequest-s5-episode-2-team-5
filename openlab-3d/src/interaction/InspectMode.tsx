@@ -95,16 +95,16 @@ export function InspectMode() {
             <h2 className="font-display text-2xl font-bold leading-tight">{def.name}</h2>
             <p className="mt-3 text-sm leading-relaxed text-slate-600">{def.description}</p>
             <div className="mt-4 rounded-xl border border-amber-200 bg-amber-50 p-3 text-sm text-amber-900">
-              <div className="mb-1 font-semibold">⚠ Safety tip</div>
+              <div className="mb-1 font-semibold">⚠ Аюулгүй ажиллагааны зөвлөгөө</div>
               {def.safety}
             </div>
             <div className="mt-3 text-xs text-slate-500">
-              Size ≈ {def.size.map((v) => Math.round(v * 1000)).join(' × ')} mm
+              Хэмжээ ≈ {def.size.map((v) => Math.round(v * 1000)).join(' × ')} мм
             </div>
             <div className="mt-4 flex items-center justify-between gap-3">
-              <span className="text-xs text-slate-500">Drag to rotate · Scroll to zoom</span>
-              <button className="btn-yellow text-sm" onClick={close} aria-label="Close inspect view">
-                Done <span className="kbd ml-1 !text-[0.7em]">F</span>
+              <span className="text-xs text-slate-500">Чирж эргүүлэх · Гүйлгэж томруулах</span>
+              <button className="btn-yellow text-sm" onClick={close} aria-label="Ойроос харах цонхыг хаах">
+                Болсон <span className="kbd ml-1 !text-[0.7em]">F</span>
               </button>
             </div>
           </motion.aside>

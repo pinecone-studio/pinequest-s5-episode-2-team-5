@@ -63,10 +63,10 @@ export function Minimap() {
           animate={{ opacity: 1, scale: 1 }}
           exit={{ opacity: 0, scale: 0.9 }}
           role="img"
-          aria-label="Minimap of the Chemistry Lab."
+          aria-label="Химийн лабораторийн газрын зураг."
         >
           <div className="flex items-center justify-between px-3 pt-2 text-[11px] font-semibold text-slate-600">
-            <span>Chemistry Lab</span>
+            <span>Химийн лаборатори</span>
             <span className="kbd !text-[10px]">M</span>
           </div>
           <svg width={W * SCALE + 12} height={H * SCALE + 12} viewBox={`-6 -6 ${W * SCALE + 12} ${H * SCALE + 12}`}>

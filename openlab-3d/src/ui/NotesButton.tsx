@@ -7,7 +7,7 @@ export function NotesButton() {
   return (
     <button
       type="button"
-      aria-label="Open lab notes"
+      aria-label="Лабораторийн тэмдэглэл нээх"
       aria-expanded={open}
       onClick={() => (open ? resumeWalk() : openPanelFromGame('notes'))}
       className="hud-square focus-ring pointer-events-auto w-11 !px-0"

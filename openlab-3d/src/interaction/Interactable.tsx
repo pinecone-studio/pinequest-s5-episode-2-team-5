@@ -30,7 +30,7 @@ export interface InteractableProps extends Omit<GroupProps, 'children' | 'onWhee
 export function Interactable({
   id,
   label,
-  verb = 'Use',
+  verb = 'ашиглах',
   enabled = true,
   inspectKind,
   onInteract,

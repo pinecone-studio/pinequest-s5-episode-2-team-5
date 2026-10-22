@@ -57,7 +57,7 @@ export function Sink({ id, position, rotY = 0 }: { id: string; position: [number
       <mesh material={plasticBlack} position={[0, -0.199, 0.02]} rotation={[-Math.PI / 2, 0, 0]}>
         <circleGeometry args={[0.025, 20]} />
       </mesh>
-      <Interactable id={id} label="Faucet" verb={running ? 'Turn off' : 'Turn on'} onInteract={() => { setRunning((r) => !r); sounds.play('click', 0.5); }}>
+      <Interactable id={id} label="Усны цорго" verb={running ? 'хаах' : 'нээх'} onInteract={() => { setRunning((r) => !r); sounds.play('click', 0.5); }}>
         <group position={[0, 0.005, -0.21]}>
           <mesh material={metalChrome} position={[0, 0.015, 0]}>
             <cylinderGeometry args={[0.028, 0.034, 0.03, 20]} />

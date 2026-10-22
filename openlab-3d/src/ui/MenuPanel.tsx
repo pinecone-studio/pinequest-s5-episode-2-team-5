@@ -16,14 +16,14 @@ function ExperimentsTab() {
     <div className="rounded-2xl border border-slate-200 bg-white p-4">
       <div className="flex items-start justify-between gap-2">
         <div>
-          <div className="text-xs font-semibold uppercase tracking-wider text-emerald-600">Chemistry Lab</div>
-          <h3 className="font-display text-lg font-bold">Bench skills</h3>
+          <div className="text-xs font-semibold uppercase tracking-wider text-emerald-600">Химийн лаборатори</div>
+          <h3 className="font-display text-lg font-bold">Лабораторийн дадал</h3>
         </div>
         <span className="rounded-full bg-slate-100 px-2 py-0.5 text-xs font-semibold text-slate-600">
           {doneCount}/{SKILLS.length}
         </span>
       </div>
-      <p className="mt-1 text-sm text-slate-600">Light a Bunsen burner, weigh glassware on the balance (tare first!), and raise the fume-hood sash.</p>
+      <p className="mt-1 text-sm text-slate-600">Бунзены горелк асааж, шилэн савыг жинд жигнэж (эхлээд тэглээрэй!), татах шүүгээний хаалтыг өргөөрэй.</p>
       <ol className="mt-3 space-y-1.5">
         {SKILLS.map((s, i) => (
           <li key={s.id} className="flex items-start gap-2 text-sm">
@@ -37,9 +37,9 @@ function ExperimentsTab() {
 }
 
 const TABS: { id: Tab; label: string }[] = [
-  { id: 'experiments', label: 'Experiments' },
-  { id: 'settings', label: 'Settings' },
-  { id: 'controls', label: 'Controls' },
+  { id: 'experiments', label: 'Туршилт' },
+  { id: 'settings', label: 'Тохиргоо' },
+  { id: 'controls', label: 'Удирдлага' },
 ];
 
 /** Left slide-in menu: Resume, Experiments, Settings, Controls help. */
@@ -54,7 +54,7 @@ export function MenuPanel() {
           <motion.aside
             role="dialog"
             aria-modal="true"
-            aria-label="Main menu"
+            aria-label="Үндсэн цэс"
             className="fixed bottom-0 left-0 top-0 z-50 flex w-[min(420px,100vw)] flex-col bg-slate-50 shadow-2xl"
             initial={{ x: '-100%' }}
             animate={{ x: 0 }}
@@ -65,15 +65,15 @@ export function MenuPanel() {
               <div className="flex h-10 w-10 items-center justify-center rounded-full bg-white/25 font-display text-lg font-bold">OL</div>
               <div className="flex-1">
                 <div className="font-display text-lg font-bold leading-tight">OpenLab 3D</div>
-                <div className="text-xs text-white/85">Virtual chemistry laboratory</div>
+                <div className="text-xs text-white/85">Виртуал химийн лаборатори</div>
               </div>
-              <button type="button" aria-label="Close menu" onClick={resumeWalk} className="focus-ring rounded-full p-2 hover:bg-white/20">
+              <button type="button" aria-label="Цэсийг хаах" onClick={resumeWalk} className="focus-ring rounded-full p-2 hover:bg-white/20">
                 ✕
               </button>
             </header>
             <div className="px-5 pt-4">
               <button type="button" className="btn-yellow w-full py-3 text-base" onClick={resumeWalk}>
-                ▶ Resume
+                ▶ Үргэлжлүүлэх
               </button>
               <nav className="mt-4 flex gap-1 rounded-xl bg-slate-200/70 p-1" role="tablist">
                 {TABS.map((t) => (

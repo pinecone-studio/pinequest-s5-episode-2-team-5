@@ -1,8 +1,8 @@
-/** Small fixtures: safety posters (CanvasTexture planes) and a pedal waste bin. */
+/** Small fixtures: safety posters and sign lettering (CanvasTexture planes) and a pedal waste bin. */
 import { useMemo } from 'react';
 import { CylinderCollider } from '@react-three/rapier';
-import { MeshStandardMaterial } from 'three';
-import { posterTexture, type PosterSpec } from '../../utils/textures';
+import { MeshBasicMaterial, MeshStandardMaterial } from 'three';
+import { posterTexture, signTexture, type PosterSpec } from '../../utils/textures';
 import { plastic } from '../../materials/plastic';
 import { metalAluminum, metalBrushed } from '../../materials/metal';
 
@@ -18,6 +18,16 @@ export function Poster({ position, rotY = 0, spec, scale = 1 }: { position: [num
         <boxGeometry args={[0.52, 0.727, 0.004]} />
       </mesh>
     </group>
+  );
+}
+
+/** Sign lettering on a `width` × `height` m plane facing +z; `text` lines are split on "\n". */
+export function SignText({ text, color = '#ffffff', width, height, position }: { text: string; color?: string; width: number; height: number; position: [number, number, number] }) {
+  const material = useMemo(() => new MeshBasicMaterial({ map: signTexture(text.split('\n'), color, width / height), transparent: true, depthWrite: false }), [text, color, width, height]);
+  return (
+    <mesh material={material} position={position}>
+      <planeGeometry args={[width, height]} />
+    </mesh>
   );
 }
 

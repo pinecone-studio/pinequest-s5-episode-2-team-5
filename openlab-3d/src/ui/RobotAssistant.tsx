@@ -116,29 +116,29 @@ function RobotModel() {
 }
 
 const SKILL_HINTS: Record<SkillId, string> = {
-  burner: 'Walk up to a Bunsen burner on the island benches and press E to light it.',
-  tare: 'The analytical balance is on the west bench. Press E on it to tare (zero) it, then put glassware on the pan.',
-  hood: 'The fume hood is on the north wall. Press E on the sash to raise it before working with fumes.',
+  burner: 'Голын ширээнүүд дээрх Бунзены горелк руу ойртоод E дарж асаагаарай.',
+  tare: 'Аналитик жин баруун хананы ширээн дээр байна. E дарж тэглээд, дараа нь тавган дээр нь шилэн сав тавиарай.',
+  hood: 'Татах шүүгээ хойд хананд байна. Утаа гардаг ажил хийхээсээ өмнө хаалтан дээр нь E дарж өргөөрэй.',
 };
 
 const SKILL_PRAISE: Record<SkillId, string> = {
-  burner: 'Nice flame! The hottest spot is just above the tip of the inner blue cone. Press E again to turn it off.',
-  tare: 'Balance tared! Place a beaker on the pan (Q) and read its mass on the display.',
-  hood: 'Sash up! Work at least 15 cm inside the hood and lower the sash when you are done.',
+  burner: 'Сайхан дөл байна! Хамгийн халуун цэг нь дотоод цэнхэр конусын оройн яг дээр байдаг. Унтраахдаа дахин E дараарай.',
+  tare: 'Жин тэглэгдлээ! Одоо тавган дээр нь химийн аяга тавиад (Q), дэлгэц дээрх массыг уншаарай.',
+  hood: 'Хаалт өргөгдлөө! Шүүгээний дотор дор хаяж 15 см гүнд ажиллаж, дуусаад хаалтаа буулгаарай.',
 };
 
 function contextualHint(): string {
   const skills = useExperimentStore.getState().skills;
   const held = useInventoryStore.getState().held;
-  if (held) return `You’re holding the ${CATALOG[held.kind].name}. Look at a bench and press Q to place it, or F to inspect it.`;
+  if (held) return `Гартаа: ${CATALOG[held.kind].name}. Ширээ рүү хараад Q дарж тавих, эсвэл F дарж ойроос харах боломжтой.`;
   const next = SKILLS.find((s) => !skills[s.id]);
   if (next) return SKILL_HINTS[next.id];
   const tips = [
-    'Press F on any object to inspect it up close.',
-    'Tab opens the tools drawer — place more glassware on the nearest bench.',
-    'Splash goggles are on the west bench. Safety first!',
-    'The safety shower is in the south-east corner; the fire extinguisher hangs by the south windows.',
-    'Write your observations in the lab notebook (N).',
+    'Ямар ч зүйл дээр F дарж ойроос харж болно.',
+    'Tab дарахад багажны шургуулга нээгдэнэ — хамгийн ойрын ширээн дээр шилэн сав нэмж тавиарай.',
+    'Хамгаалалтын нүдний шил баруун хананы ширээн дээр байна. Аюулгүй байдал хамгийн түрүүнд!',
+    'Аюулгүйн шүршүүр зүүн өмнөд буланд, гал унтраагуур өмнөд цонхны дэргэд өлгөөтэй байна.',
+    'Ажигласан зүйлээ лабораторийн тэмдэглэлд (N) бичээрэй.',
   ];
   return tips[Math.floor(Math.random() * tips.length)];
 }
@@ -179,7 +179,7 @@ export function RobotAssistant({ hidden }: { hidden: boolean }) {
   };
   return (
     <div className={`fixed bottom-2 left-2 z-30 flex items-end ${hidden ? 'hidden' : ''}`}>
-      <button type="button" aria-label="Ask the lab assistant robot for a hint" onClick={onClick} className="focus-ring pointer-events-auto h-[150px] w-[130px] rounded-3xl sm:h-[170px] sm:w-[150px]">
+      <button type="button" aria-label="Лабораторийн туслах роботоос зөвлөгөө авах" onClick={onClick} className="focus-ring pointer-events-auto h-[150px] w-[130px] rounded-3xl sm:h-[170px] sm:w-[150px]">
         <Canvas frameloop={hidden ? 'never' : 'always'} dpr={glPixel} gl={{ alpha: true, antialias: true }} camera={{ position: [0, 0.05, 3.6], fov: 30 }} style={{ pointerEvents: 'none' }}>
           <ambientLight intensity={0.6} />
           <directionalLight position={[2, 3, 3]} intensity={1.8} />
@@ -206,9 +206,9 @@ export function RobotAssistant({ hidden }: { hidden: boolean }) {
             exit={{ opacity: 0, scale: 0.9 }}
             style={{ transformOrigin: 'bottom left' }}
           >
-            <div className="mb-0.5 text-[11px] font-bold uppercase tracking-wider text-cyan-600">Pip · Lab assistant</div>
+            <div className="mb-0.5 text-[11px] font-bold uppercase tracking-wider text-cyan-600">Пип · Лабораторийн туслах</div>
             {robot.text}
-            <button type="button" aria-label="Close hint" onClick={() => setOpen(false)} className="focus-ring absolute right-2 top-1.5 rounded px-1 text-slate-400 hover:text-slate-600">
+            <button type="button" aria-label="Зөвлөгөөг хаах" onClick={() => setOpen(false)} className="focus-ring absolute right-2 top-1.5 rounded px-1 text-slate-400 hover:text-slate-600">
               ✕
             </button>
           </motion.div>

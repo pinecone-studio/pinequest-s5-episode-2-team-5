@@ -82,12 +82,12 @@ export function FumeHood({ id, position, rotY = 0 }: { id: string; position: [nu
         {/* Sash. */}
         <Interactable
           id={`${id}-sash`}
-          label="Fume hood sash"
-          verb={raised ? 'Lower' : 'Raise'}
+          label="Татах шүүгээний хаалт"
+          verb={raised ? 'буулгах' : 'өргөх'}
           onInteract={() => {
             const up = toggle(`${id}-sash`);
             if (up) useExperimentStore.getState().markSkill('hood');
-            useGameStore.getState().logEvent(up ? 'Raised the fume-hood sash.' : 'Lowered the fume-hood sash.');
+            useGameStore.getState().logEvent(up ? 'Татах шүүгээний хаалтыг өргөлөө.' : 'Татах шүүгээний хаалтыг буулгалаа.');
             setBusy(true);
             sounds.play('door', 0.5);
           }}

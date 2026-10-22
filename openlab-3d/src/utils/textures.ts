@@ -232,6 +232,33 @@ export function posterTexture(spec: PosterSpec): Texture {
   return t;
 }
 
+const signCache = new Map<string, Texture>();
+/**
+ * Centered bold sign lettering on a transparent background, sized to fit a plane of the
+ * given aspect ratio (width / height). Drawn with the DOM fonts, so Cyrillic works.
+ */
+export function signTexture(lines: string[], color: string, aspect: number): Texture {
+  const key = `${lines.join('\n')}-${color}-${aspect}`;
+  const cached = signCache.get(key);
+  if (cached) return cached;
+  const w = 1024;
+  const h = Math.round(w / aspect);
+  const [c, ctx] = makeCanvas(w, h);
+  const lineH = h / lines.length;
+  let size = lineH * 0.78;
+  ctx.font = `700 ${size}px Inter, sans-serif`;
+  const widest = Math.max(...lines.map((l) => ctx.measureText(l).width));
+  if (widest > w * 0.96) size *= (w * 0.96) / widest;
+  ctx.font = `700 ${size}px Inter, sans-serif`;
+  ctx.fillStyle = color;
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  lines.forEach((l, i) => ctx.fillText(l, w / 2, lineH * (i + 0.5)));
+  const t = toTexture(c);
+  signCache.set(key, t);
+  return t;
+}
+
 const labelCache = new Map<string, Texture>();
 /** Small white bottle label with a colored stripe and a formula. */
 export function labelTexture(text: string, stripe = '#dc2626'): Texture {
@@ -249,7 +276,7 @@ export function labelTexture(text: string, stripe = '#dc2626'): Texture {
   ctx.fillText(text, 128, 92, 236);
   ctx.font = '500 16px Inter, sans-serif';
   ctx.fillStyle = '#6b7280';
-  ctx.fillText('OPENLAB REAGENTS', 128, 118);
+  ctx.fillText('OPENLAB УРВАЛЖ', 128, 118);
   const t = toTexture(c);
   labelCache.set(key, t);
   return t;
@@ -262,10 +289,10 @@ export const chemBoardTexture = lazy(() => {
   ctx.fillRect(0, 0, 1024, 512);
   ctx.fillStyle = '#047857';
   ctx.font = 'italic 700 44px Poppins, Inter, sans-serif';
-  ctx.fillText('Today: Acids & Bases', 48, 80);
+  ctx.fillText('Өнөөдөр: Хүчил ба шүлт', 48, 80);
   ctx.fillStyle = '#111827';
   ctx.font = 'italic 500 32px Inter, sans-serif';
-  ['HCl + NaOH → NaCl + H₂O', 'pH = −log[H⁺]', 'Goggles ON at all times!', 'Burners off when unattended'].forEach((l, i) =>
+  ['HCl + NaOH → NaCl + H₂O', 'pH = −log[H⁺]', 'Нүдний шилээ үргэлж зүү!', 'Горелкийг хараа хяналтгүй бүү орхи'].forEach((l, i) =>
     ctx.fillText(l, 60, 160 + i * 66),
   );
   return toTexture(c);

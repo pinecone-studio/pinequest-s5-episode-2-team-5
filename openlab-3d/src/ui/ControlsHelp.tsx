@@ -8,17 +8,17 @@ export function ControlsList({ compact = false }: { compact?: boolean }) {
   const b = useSettingsStore((s) => s.bindings);
   const lookMode = useSettingsStore((s) => s.lookMode);
   const rows: [string, string][] = [
-    [`${keyLabel(b.forward[0])} ${keyLabel(b.left[0])} ${keyLabel(b.backward[0])} ${keyLabel(b.right[0])} / ↑ ← ↓ →`, 'Move'],
-    [lookMode === 'mouse' ? 'Mouse' : `← → / ${keyLabel(b.turnLeft[0])} ${keyLabel(b.turnRight[0])}`, 'Look around'],
-    [promptKey('interact', b, lookMode), 'Interact / pick up'],
-    [promptKey('inspect', b, lookMode), 'Inspect object'],
-    [promptKey('drop', b, lookMode), 'Drop / place item'],
-    [keyLabel(b.sprint[0]), 'Sprint'],
-    [keyLabel(b.jump[0]), 'Jump'],
-    [keyLabel(b.tools[0]), 'Tools drawer'],
-    [keyLabel(b.notes[0]), 'Lab notes'],
-    [keyLabel(b.map[0]), 'Minimap'],
-    ['Esc', 'Menu / pause'],
+    [`${keyLabel(b.forward[0])} ${keyLabel(b.left[0])} ${keyLabel(b.backward[0])} ${keyLabel(b.right[0])} / ↑ ← ↓ →`, 'Алхах'],
+    [lookMode === 'mouse' ? 'Хулгана' : `← → / ${keyLabel(b.turnLeft[0])} ${keyLabel(b.turnRight[0])}`, 'Эргэн харах'],
+    [promptKey('interact', b, lookMode), 'Ашиглах / авах'],
+    [promptKey('inspect', b, lookMode), 'Ойроос харах'],
+    [promptKey('drop', b, lookMode), 'Тавих'],
+    [keyLabel(b.sprint[0]), 'Гүйх'],
+    [keyLabel(b.jump[0]), 'Үсрэх'],
+    [keyLabel(b.tools[0]), 'Багажны шургуулга'],
+    [keyLabel(b.notes[0]), 'Лабын тэмдэглэл'],
+    [keyLabel(b.map[0]), 'Газрын зураг'],
+    ['Esc', 'Цэс / түр зогсоох'],
   ];
   return (
     <ul className={`grid gap-x-6 gap-y-2 ${compact ? 'grid-cols-2' : 'grid-cols-1 sm:grid-cols-2'}`}>
@@ -42,13 +42,13 @@ export function ControlsHelp() {
         <motion.div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 p-4 backdrop-blur-sm" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={resumeWalk}>
           <motion.div role="dialog" aria-modal="true" aria-labelledby="help-title" className="panel-card w-full max-w-xl p-6" initial={{ y: 16 }} animate={{ y: 0 }} onClick={(e) => e.stopPropagation()}>
             <h2 id="help-title" className="font-display text-xl font-bold">
-              Controls
+              Удирдлага
             </h2>
-            <p className="mb-4 mt-1 text-sm text-slate-500">Walk up to equipment until it glows white, then use the keys shown at the bottom of the screen.</p>
+            <p className="mb-4 mt-1 text-sm text-slate-500">Багаж руу ойртоход цагаанаар гэрэлтэнэ. Дараа нь дэлгэцийн доор харагдах товчлуурыг ашиглаарай.</p>
             <ControlsList />
             <div className="mt-5 flex justify-end">
               <button className="btn-yellow" onClick={resumeWalk} autoFocus>
-                Got it
+                Ойлголоо
               </button>
             </div>
           </motion.div>

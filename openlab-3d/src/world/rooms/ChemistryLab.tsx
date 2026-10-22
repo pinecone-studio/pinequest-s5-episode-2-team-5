@@ -3,7 +3,6 @@
  * Bunsen burners, a window bench run with a sink, a fume hood, a west bench with an
  * analytical balance, reagent shelving, a flammables cabinet and a safety shower.
  */
-import { Text } from '@react-three/drei';
 import { CuboidCollider } from '@react-three/rapier';
 import { BenchParts } from '../furniture/BenchParts';
 import { LabBench } from '../furniture/LabBench';
@@ -14,7 +13,7 @@ import { SafetyShower } from '../furniture/SafetyShower';
 import { Stools } from '../furniture/Stool';
 import { Whiteboard } from '../furniture/Whiteboard';
 import { WallExtinguisher } from '../furniture/FireExtinguisher';
-import { Poster, WasteBin } from '../furniture/Decor';
+import { Poster, SignText, WasteBin } from '../furniture/Decor';
 import { BunsenBurner } from '../../equipment/BunsenBurner';
 import { Scale } from '../../equipment/Scale';
 import { Beaker } from '../../equipment/Beaker';
@@ -28,7 +27,6 @@ import { plastic, plasticBlack } from '../../materials/plastic';
 import { metalDark } from '../../materials/metal';
 import { chemBoardTexture } from '../../utils/textures';
 import { sounds } from '../../utils/sounds';
-import { FONTS } from '../../utils/fonts';
 import { BENCH_HEIGHT } from '../../utils/constants';
 import { StaticBatch } from '../StaticBatch';
 
@@ -40,14 +38,14 @@ function Burner({ id, position, withTripod = false }: { id: string; position: [n
     <group>
       <Interactable
         id={id}
-        label="Bunsen burner"
-        verb={lit ? 'Turn off' : 'Light'}
+        label="Бунзены горелк"
+        verb={lit ? 'унтраах' : 'асаах'}
         inspectKind="bunsenBurner"
         onInteract={() => {
           const exp = useExperimentStore.getState();
           const on = exp.toggle(id);
           if (on) exp.markSkill('burner');
-          useGameStore.getState().logEvent(on ? 'Lit a Bunsen burner.' : 'Turned off a Bunsen burner.');
+          useGameStore.getState().logEvent(on ? 'Бунзены горелк асаалаа.' : 'Бунзены горелк унтраалаа.');
           sounds.play('puff', 0.7);
         }}
       >
@@ -90,14 +88,14 @@ function LiveBalance({ position }: { position: [number, number, number] }) {
   return (
     <Interactable
       id="chem-balance"
-      label={`Analytical balance (${reading} g)`}
-      verb="Tare"
+      label={`Аналитик жин (${reading} г)`}
+      verb="тэглэх"
       inspectKind="scale"
       onInteract={() => {
         const exp = useExperimentStore.getState();
         exp.setValue('balance-tare', grams);
         exp.markSkill('tare');
-        useGameStore.getState().logEvent(grams > 0 ? `Tared the balance with ${grams.toFixed(3)} g on the pan.` : 'Tared the empty balance.');
+        useGameStore.getState().logEvent(grams > 0 ? `Тавган дээр ${grams.toFixed(3)} г ачаатай жинг тэглэлээ.` : 'Хоосон жинг тэглэлээ.');
         sounds.play('beep');
       }}
     >
@@ -120,9 +118,7 @@ function FlammablesCabinet({ position, rotY }: { position: [number, number, numb
           <boxGeometry args={[0.02, 0.18, 0.02]} />
         </mesh>
       ))}
-      <Text font={FONTS.bold} fontSize={0.07} color="#c81e1e" position={[0, 1.35, 0.234]} anchorX="center" textAlign="center" maxWidth={0.9}>
-        {'FLAMMABLE\nKEEP FIRE AWAY'}
-      </Text>
+      <SignText text={'ШАТАМХАЙ\nГАЛААС ХОЛ БАЙЛГА'} color="#c81e1e" width={0.9} height={0.2} position={[0, 1.35, 0.234]} />
       <CuboidCollider args={[0.55, 0.85, 0.23]} position={[0, 0.85, 0]} />
     </group>
   );
@@ -180,8 +176,8 @@ export default function ChemistryLab() {
       />
       <Whiteboard position={[-1.9, 1.55, -3.11]} rotY={Math.PI} texture={chemBoardTexture()} />
       <WallExtinguisher id="chem-extinguisher" position={[2.5, 0, -3.11]} rotY={Math.PI} />
-      <Poster position={[7.4, 1.6, -3.11]} rotY={Math.PI} spec={{ title: 'Fire Safety', lines: ['Know where the', 'extinguisher and', 'shower are.'], color: '#dc2626', icon: 'fire' }} />
-      <Poster position={[-3.89, 1.75, -13.4]} rotY={Math.PI / 2} spec={{ title: 'Goggles On', lines: ['Splash goggles are', 'required in this lab.'], color: '#2563eb', icon: 'goggles' }} />
+      <Poster position={[7.4, 1.6, -3.11]} rotY={Math.PI} spec={{ title: 'Галаас сэргийл', lines: ['Гал унтраагуур,', 'шүршүүр хаана', 'байгааг мэдэж ав.'], color: '#dc2626', icon: 'fire' }} />
+      <Poster position={[-3.89, 1.75, -13.4]} rotY={Math.PI / 2} spec={{ title: 'Нүдний шил зүү', lines: ['Энэ лабораторид', 'хамгаалалтын шил', 'заавал зүүнэ.'], color: '#2563eb', icon: 'goggles' }} />
       <WasteBin position={[4.9, 0, -14.4]} color="#ef4444" />
       </StaticBatch>
     </group>

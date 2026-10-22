@@ -5,14 +5,13 @@
  */
 import { useMemo, useRef, useState } from 'react';
 import { useFrame } from '@react-three/fiber';
-import { Text } from '@react-three/drei';
 import { CylinderCollider } from '@react-three/rapier';
 import { InstancedMesh, MeshStandardMaterial, Object3D, SphereGeometry } from 'three';
 import { plastic } from '../../materials/plastic';
 import { metalChrome } from '../../materials/metal';
 import { Interactable } from '../../interaction/Interactable';
 import { sounds } from '../../utils/sounds';
-import { FONTS } from '../../utils/fonts';
+import { SignText } from './Decor';
 
 const pipe = plastic('#f2c200', 0.45);
 const green = new MeshStandardMaterial({ color: '#0f9d58', roughness: 0.5 });
@@ -48,9 +47,7 @@ function SafetySign({ position, label }: { position: [number, number, number]; l
       <mesh material={green}>
         <boxGeometry args={[0.46, 0.2, 0.01]} />
       </mesh>
-      <Text font={FONTS.bold} fontSize={0.045} color="#ffffff" position={[0, 0, 0.006]} anchorX="center" anchorY="middle" maxWidth={0.42} textAlign="center">
-        {label}
-      </Text>
+      <SignText text={label} width={0.42} height={0.17} position={[0, 0, 0.006]} />
     </group>
   );
 }
@@ -92,7 +89,7 @@ export function SafetyShower({ id, position, rotY = 0 }: { id: string; position:
           </mesh>
         ))}
       </group>
-      <Interactable id={id} label="Safety shower" verb="Pull" onInteract={run}>
+      <Interactable id={id} label="Аюулгүйн шүршүүр" verb="татах" onInteract={run}>
         <group position={[0, 1.55, 0.5]}>
           <mesh material={metalChrome} position={[0, 0.33, 0]}>
             <cylinderGeometry args={[0.006, 0.006, 0.66, 8]} />
@@ -103,7 +100,7 @@ export function SafetyShower({ id, position, rotY = 0 }: { id: string; position:
         </group>
       </Interactable>
       <WaterSpray active={running} origin={[0, 2.14, 0.5]} spread={0.25} height={2.1} />
-      <SafetySign position={[0, 2.58, 0.05]} label="SAFETY SHOWER" />
+      <SafetySign position={[0, 2.58, 0.05]} label={'АЮУЛГҮЙН\nШҮРШҮҮР'} />
       <CylinderCollider args={[1.2, 0.18]} position={[0, 1.2, 0]} />
     </group>
   );

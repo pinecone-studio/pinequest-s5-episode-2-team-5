@@ -30,7 +30,6 @@ export interface SettingsState {
   invertY: boolean;
   reducedMotion: boolean;
   jumpEnabled: boolean;
-  guided: boolean;
   showFps: boolean;
   bindings: Bindings;
   set: (patch: Partial<Omit<SettingsState, 'set' | 'rebind' | 'resetBindings'>>) => void;
@@ -50,7 +49,6 @@ export const useSettingsStore = create<SettingsState>()(
       invertY: false,
       reducedMotion: false,
       jumpEnabled: true,
-      guided: true,
       showFps: false,
       bindings: DEFAULT_BINDINGS,
       set: (patch) => set(patch),

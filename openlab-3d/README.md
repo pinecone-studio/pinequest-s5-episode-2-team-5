@@ -4,6 +4,9 @@ A browser-based, explorable first-person virtual chemistry laboratory (front end
 Walk around a 14 m × 12 m Chemistry Lab, light Bunsen burners, weigh glassware on the
 analytical balance, work at the fume hood, and pick up, place and inspect the glassware.
 
+All in-lab text — menus, prompts, the robot assistant, equipment descriptions, signs,
+posters and the whiteboard — is in Mongolian.
+
 Every piece of equipment and furniture is a procedural 3D model built from three.js
 geometries at real-world scale. No external assets are downloaded at runtime (fonts are
 bundled from `@fontsource`, the environment map is rendered in-scene, all sounds are
@@ -112,6 +115,11 @@ procedural model is replaced by the GLTF/GLB loaded with `useGLTF`, e.g.
   liquid is a glossy opaque tinted material that the glass refracts; on Low it is a
   semi-transparent tint inside alpha glass.
 - Google Fonts is replaced by the same Inter/Poppins families bundled via `@fontsource`.
+  The bundled troika fonts are Latin-only subsets, and troika would fetch missing glyphs
+  from a CDN, so Mongolian signs are drawn as canvas textures with the DOM fonts (whose
+  Cyrillic and Cyrillic-ext subsets cover Ө and Ү) instead of `<Text>`. The lab mounts
+  once those subsets have loaded (`canvasFontsReady`). Instrument readouts (`g`, `m/s`)
+  stay in SI symbols.
 - Mouse look is a small custom pointer-lock handler (instead of drei
   `PointerLockControls`) so sensitivity, invert-Y and the ±85° clamp share one input path.
 

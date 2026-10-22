@@ -82,7 +82,7 @@ function inspectFocusOrHeld(): void {
 function dropHeld(): void {
   if (!useInventoryStore.getState().held) return;
   if (!heldApi.place()) {
-    useGameStore.getState().showToast('Nowhere to place it', 'Look at a bench top or the floor nearby');
+    useGameStore.getState().showToast('Энд тавих боломжгүй', 'Ширээний гадаргуу эсвэл ойрхон шал руу хар');
   }
 }
 

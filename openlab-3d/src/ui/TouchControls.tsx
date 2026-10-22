@@ -92,16 +92,16 @@ export function TouchControls() {
         </div>
       )}
       <div className="pointer-events-none fixed bottom-[36%] right-12 grid grid-cols-2 gap-3" onTouchStart={(e) => e.stopPropagation()}>
-        <button className={btn} onClick={() => interactWithFocus()} aria-label="Interact">
+        <button className={btn} onClick={() => interactWithFocus()} aria-label="Ашиглах">
           E
         </button>
-        <button className={btn} onClick={inspect} aria-label="Inspect">
+        <button className={btn} onClick={inspect} aria-label="Ойроос харах">
           F
         </button>
-        <button className={btn} onClick={() => useInventoryStore.getState().held && heldApi.place()} aria-label="Place item">
+        <button className={btn} onClick={() => useInventoryStore.getState().held && heldApi.place()} aria-label="Тавих">
           Q
         </button>
-        <button className={`${btn} ${sprint ? '!bg-lab-yellow' : ''}`} onClick={() => setSprint((s) => !s)} aria-label="Toggle sprint" aria-pressed={sprint}>
+        <button className={`${btn} ${sprint ? '!bg-lab-yellow' : ''}`} onClick={() => setSprint((s) => !s)} aria-label="Гүйх горим" aria-pressed={sprint}>
           ⇧
         </button>
       </div>

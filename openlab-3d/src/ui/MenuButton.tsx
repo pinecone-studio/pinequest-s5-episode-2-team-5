@@ -7,7 +7,7 @@ export function MenuButton() {
   return (
     <button
       type="button"
-      aria-label={open ? 'Close menu' : 'Open menu'}
+      aria-label={open ? 'Цэсийг хаах' : 'Цэсийг нээх'}
       aria-expanded={open}
       onClick={() => (open ? useGameStore.getState().closePanel() : openPanelFromGame('menu'))}
       className="focus-ring pointer-events-auto flex h-14 w-14 items-center justify-center rounded-full bg-lab-yellow shadow-hud transition hover:scale-105 hover:bg-lab-yellowDark active:scale-95"

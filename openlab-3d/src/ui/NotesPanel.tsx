@@ -29,31 +29,31 @@ export function NotesPanel() {
           >
             <header className="flex items-center justify-between border-b border-amber-200/70 bg-lab-yellow px-5 py-3 text-white">
               <h2 id="notes-title" className="font-display text-lg font-bold">
-                📓 Lab Notebook
+                📓 Лабораторийн тэмдэглэл
               </h2>
-              <button type="button" aria-label="Close notes" className="focus-ring rounded-full px-2 py-1 hover:bg-white/20" onClick={resumeWalk}>
+              <button type="button" aria-label="Тэмдэглэлийг хаах" className="focus-ring rounded-full px-2 py-1 hover:bg-white/20" onClick={resumeWalk}>
                 ✕
               </button>
             </header>
             <div className="grid min-h-0 flex-1 grid-cols-1 overflow-hidden md:grid-cols-[1.1fr_1fr]">
               <section className="flex min-h-[220px] flex-col border-b border-amber-100 p-4 md:border-b-0 md:border-r">
                 <label htmlFor="notes-text" className="mb-2 text-xs font-bold uppercase tracking-wider text-amber-700">
-                  My notes
+                  Миний тэмдэглэл
                 </label>
                 <textarea
                   id="notes-text"
                   value={notes}
                   onChange={(e) => setNotes(e.target.value)}
-                  placeholder="Hypothesis, observations, sketches in words…"
+                  placeholder="Таамаглал, ажиглалт, дүгнэлт…"
                   className="focus-ring min-h-[180px] flex-1 resize-none rounded-lg bg-transparent px-1 font-sans text-[15px] leading-[28px] text-slate-800"
                   style={{ backgroundImage: 'repeating-linear-gradient(transparent, transparent 27px, #e7dcbf 27px, #e7dcbf 28px)', backgroundAttachment: 'local' }}
                 />
-                <div className="mt-2 text-xs text-slate-400">Saved automatically in this browser.</div>
+                <div className="mt-2 text-xs text-slate-400">Энэ хөтөч дээр автоматаар хадгалагдана.</div>
               </section>
               <section className="scrollbar-thin min-h-0 overflow-y-auto p-4">
-                <h3 className="mb-2 text-xs font-bold uppercase tracking-wider text-amber-700">Activity log</h3>
+                <h3 className="mb-2 text-xs font-bold uppercase tracking-wider text-amber-700">Үйлдлийн бүртгэл</h3>
                 {log.length === 0 ? (
-                  <p className="text-sm text-slate-500">Your actions will appear here.</p>
+                  <p className="text-sm text-slate-500">Таны үйлдлүүд энд харагдана.</p>
                 ) : (
                   <ul className="space-y-1 text-sm">
                     {[...log].reverse().slice(0, 60).map((l, i) => (

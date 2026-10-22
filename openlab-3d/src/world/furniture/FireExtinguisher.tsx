@@ -5,12 +5,11 @@
  */
 import { useMemo } from 'react';
 import type { GroupProps } from '@react-three/fiber';
-import { Text } from '@react-three/drei';
 import { CatmullRomCurve3, LatheGeometry, MeshStandardMaterial, TubeGeometry, Vector2, Vector3 } from 'three';
 import { metalChrome, metalDark, metalRed } from '../../materials/metal';
 import { rubberBlack, plasticBlack } from '../../materials/plastic';
 import { Interactable } from '../../interaction/Interactable';
-import { FONTS } from '../../utils/fonts';
+import { SignText } from './Decor';
 import { lazy } from '../../utils/lazy';
 import { ModelOr } from '../../equipment/ModelOr';
 
@@ -73,16 +72,14 @@ export function WallExtinguisher({ id, position, rotY = 0 }: { id: string; posit
       <mesh material={metalDark} position={[0, 0.85, 0.02]}>
         <boxGeometry args={[0.08, 0.12, 0.04]} />
       </mesh>
-      <Interactable id={id} label="Fire extinguisher" verb="Inspect" inspectKind="fireExtinguisher">
+      <Interactable id={id} label="Гал унтраагуур" verb="шалгах" inspectKind="fireExtinguisher">
         <FireExtinguisherModel position={[0, 0.4, 0.1]} />
       </Interactable>
       <group position={[0, 1.38, 0.01]}>
         <mesh material={redSign}>
           <boxGeometry args={[0.26, 0.32, 0.01]} />
         </mesh>
-        <Text font={FONTS.bold} fontSize={0.034} color="#ffffff" position={[0, -0.09, 0.006]} anchorX="center" anchorY="middle" textAlign="center" maxWidth={0.24}>
-          {'FIRE\nEXTINGUISHER'}
-        </Text>
+        <SignText text={'ГАЛ\nУНТРААГУУР'} width={0.24} height={0.1} position={[0, -0.09, 0.006]} />
         <mesh material={labelWhite} position={[0, 0.05, 0.006]}>
           <circleGeometry args={[0.07, 3]} />
         </mesh>

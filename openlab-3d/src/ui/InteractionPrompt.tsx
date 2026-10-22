@@ -14,7 +14,7 @@ function Chip({ k, children, primary = false }: { k?: string; children: React.Re
   );
 }
 
-/** Bottom-center prompt, e.g. "[E] Light Bunsen burner", plus inspect/drop hints. */
+/** Bottom-center prompt, e.g. "[E] Бунзены горелк асаах", plus inspect/drop hints. */
 export function InteractionPrompt() {
   const focus = useGameStore((s) => s.focus);
   const held = useInventoryStore((s) => s.held);
@@ -31,19 +31,19 @@ export function InteractionPrompt() {
           <motion.div key={key} className="flex flex-wrap items-center justify-center gap-2" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 6 }} transition={{ duration: 0.14 }}>
             {focus?.canUse && (
               <Chip k={e} primary>
-                {focus.verb} {focus.label}
+                {focus.label} {focus.verb}
               </Chip>
             )}
             {focus && !focus.canUse && <Chip primary>{focus.label}</Chip>}
-            {focus?.canInspect && <Chip k={f}>Inspect</Chip>}
-            {focus?.canScroll && <Chip k="⇕">Scroll to adjust</Chip>}
-            {focus?.canDrag && <Chip k={`Hold ${e}`}>+ drag</Chip>}
+            {focus?.canInspect && <Chip k={f}>Ойроос харах</Chip>}
+            {focus?.canScroll && <Chip k="⇕">Гүйлгэж тохируулах</Chip>}
+            {focus?.canDrag && <Chip k={e}>дарсаар чирэх</Chip>}
             {held && !focus && (
               <>
                 <Chip k={q} primary>
-                  Place {CATALOG[held.kind].name}
+                  {CATALOG[held.kind].name} тавих
                 </Chip>
-                <Chip k={f}>Inspect</Chip>
+                <Chip k={f}>Ойроос харах</Chip>
               </>
             )}
           </motion.div>

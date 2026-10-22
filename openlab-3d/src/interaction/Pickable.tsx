@@ -38,11 +38,11 @@ export const Pickable = memo(function Pickable({ item }: { item: WorldItem }) {
       <Interactable
         id={item.id}
         label={def.name}
-        verb="Pick up"
+        verb="авах"
         inspectKind={item.kind}
         onInteract={() => {
           if (useInventoryStore.getState().held) {
-            useGameStore.getState().showToast('Hands full', 'Press Q to place what you are holding first');
+            useGameStore.getState().showToast('Гар завгүй байна', 'Эхлээд барьж буй зүйлээ Q дарж тавь');
             return;
           }
           if (useInventoryStore.getState().pickUp(item.id)) sounds.play('pickup');
