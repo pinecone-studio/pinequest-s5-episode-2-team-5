@@ -5,7 +5,7 @@
 import { useEffect, useMemo, useRef } from 'react';
 import { useFrame, useThree } from '@react-three/fiber';
 import { useKeyboardControls } from '@react-three/drei';
-import { CapsuleCollider, RigidBody, useRapier, type RapierCollider, type RapierRigidBody } from '@react-three/rapier';
+import { CapsuleCollider, RigidBody, interactionGroups, useRapier, type RapierCollider, type RapierRigidBody } from '@react-three/rapier';
 import { Euler, PerspectiveCamera, Vector3 } from 'three';
 import { playerApi, playerState, useGameStore } from '../store/useGameStore';
 import { useSettingsStore } from '../store/useSettingsStore';
@@ -17,6 +17,7 @@ import {
   DECELERATION,
   EYE_OFFSET,
   GRAVITY,
+  GROUP_PICKABLE,
   JUMP_VELOCITY,
   KEY_TURN_SPEED,
   PITCH_LIMIT,
@@ -33,13 +34,18 @@ import { preStepHooks } from './PhysicsDriver';
 export const playerBodyRef: { current: RapierRigidBody | null } = { current: null };
 
 const euler = new Euler(0, 0, 0, 'YXZ');
+/** Query groups that find loose items (their filter accepts the pickable group). */
+const PUSH_QUERY = interactionGroups(GROUP_PICKABLE, [GROUP_PICKABLE]);
+const IDENTITY = { x: 0, y: 0, z: 0, w: 1 };
 const desired = new Vector3();
 const target = new Vector3();
 
 export function Player() {
   const body = useRef<RapierRigidBody>(null);
   const collider = useRef<RapierCollider>(null);
-  const { world } = useRapier();
+  const { world, rapier } = useRapier();
+  // Slightly fatter than the body: things on the floor get nudged before they are touched.
+  const pushShape = useMemo(() => new rapier.Capsule(CAPSULE_HALF_HEIGHT, CAPSULE_RADIUS + 0.05), [rapier]);
   const camera = useThree((s) => s.camera) as PerspectiveCamera;
   const [, getKeys] = useKeyboardControls<MoveAction>();
 
@@ -153,6 +159,37 @@ export function Player() {
     playerState.position.set(nx, ny - CAPSULE_CENTER_Y, nz);
     playerState.speed = Math.hypot(move.x, move.z) / dt;
     playerState.grounded = grounded.current;
+
+    // Walking into loose items on the floor pushes them along (sprinting can knock glass over).
+    if (playerState.speed > 0.3) {
+      const vx = move.x / dt;
+      const vz = move.z / dt;
+      world.intersectionsWithShape(
+        { x: nx, y: ny, z: nz },
+        IDENTITY,
+        pushShape,
+        (c) => {
+          const b = c.parent();
+          if (!b || !b.isDynamic()) return true;
+          const p = b.translation();
+          let dx = p.x - nx;
+          let dz = p.z - nz;
+          const d = Math.hypot(dx, dz) || 1;
+          dx /= d;
+          dz /= d;
+          const toward = vx * dx + vz * dz;
+          if (toward <= 0) return true;
+          const v = b.linvel();
+          const dv = toward * 1.15 - (v.x * dx + v.z * dz);
+          if (dv <= 0) return true;
+          const m = b.mass();
+          b.applyImpulse({ x: dx * dv * m, y: 0.1 * dv * m, z: dz * dv * m }, true);
+          return true;
+        },
+        undefined,
+        PUSH_QUERY,
+      );
+    }
   };
 
   useEffect(() => {

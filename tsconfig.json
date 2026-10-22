@@ -20,6 +20,7 @@
   "exclude": [
     "node_modules",
     "openlab-3d",
-    "public"
+    "public",
+    "pinequest-s5-episode-2-team-5"
   ]
 }

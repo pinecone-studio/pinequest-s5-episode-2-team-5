@@ -11,10 +11,9 @@ work area. It does not start a scripted sequence or lock the camera.
   movable instruments, and NaCl apparatus share one hand. No experiment step locks pickup.
 - **Q**: place on the aimed bench/shelf surface or the floor. In table view, the preview follows the cursor; clicking empty worktop places there. No nearest-surface snapping is used.
 - **R, hold**: use the held object on the focused object: pour, add carbonate, scoop,
-  stir, install a filter sheet, or choose a receiving vessel. R without a receiving
+  stir, install a filter sheet, or choose a receiving vessel. R with a NaCl or shelf vessel but no receiving
   vessel spills liquid; a full receiving vessel overflows. Neither mistake blocks play.
-- **R, tap** on a burner/lamp: toggle flame; on the balance: tare; on the microscope:
-  inspect the slide. Moving a burner preserves its existing use callback.
+- **E** operates the room’s burner, balance and burette; **G** picks those instruments up. **R** toggles the NaCl lamp and opens its microscope. These original instrument callbacks are preserved.
 - **F**: inspect a vessel's current contents or the equipment's normal detailed view.
 - **V**, near the work area: smoothly enter the middle-distance work view of the same room. V/Esc returns to walking. Click equipment to select and frame it, read its current volume, then use **Авах / зөөх** or E to pick it up. Camera movement preserves equipment placement.
 - In table view, left drag pans along the bench, right drag orbits, and the wheel or two-finger pinch zooms. Visible +/− buttons, a distance slider, pan arrows, **Ажлын харагдац** and **Бүтэн ширээ** also control the camera. Minimum orbit distance is 1.8 cm.
@@ -27,12 +26,11 @@ The current instruction and warning panel stays visible near the experiment; its
 excess carbonate, hot vessels, pouring without a receiver, overflowing and over-heating.
 These warnings guide rather than lock the equipment. Furniture and architecture remain
 installed; shelves' bottles and glassware, loose apparatus, burners and the balance are
-movable. Picking up a rack moves the rack assembly, not every tube separately.
+movable. A test-tube rack carries its assembly; its stored tubes can also be picked up individually.
 
 ## Shared simulation
 
-`sandbox.ts` owns local contents keyed by item identity: volume, HCl mmol, unreacted
-carbonate grams, total NaCl grams, temperature, and unknown/demo constituents. Ordinary
+`useChemStore` owns canonical contents keyed by item identity, including all species and solids. `chemistry.ts` derives the textbook view (volume, HCl mmol, carbonate grams, NaCl grams and temperature) without discarding other species. `sandbox.ts` keeps guidance and action state and mirrors that view for the overlay. Ordinary
 inventory vessels and movable shelf vessels can receive, carry, and transfer solutions.
 Contents stay with the same object after pickup and placement. The store is not persisted
 or sent to Supabase/ChemQuest.
@@ -48,9 +46,7 @@ carried state and restores scene equipment positions.
 
 Chemistry remains deliberately limited: HCl is assumed 1 mol/dm3, evaporation is accelerated,
 solubility and filtration are approximations, and other reagents do not gain invented
-reactions. Filtration cannot remove dissolved salts. The simulation does not implement
-arbitrary reactions, glass breakage, fluid dynamics, throwing, or moving installed
-furniture. Local spilled volume and puddles represent losses; they are not a full fluid
+reactions. Filtration cannot remove dissolved salts. The procedural NaCl parts do not implement glass breakage or throwing. The room’s physics inventory retains both. Neither model implements arbitrary reactions, full fluid dynamics or moving installed furniture. Local spilled volume and puddles represent losses; they are not a full fluid
 solver. The microscope is an illustrative NaCl crystal image, not rendered atoms.
 
 ## Code boundaries
@@ -59,8 +55,8 @@ solver. The microscope is an illustrative NaCl crystal image, not rendered atoms
   with the ordinary interactable registry, optional camera controls, effects and puddles.
 - `view.ts`: shared table/detail camera commands and selected-item state.
 - `guidance.ts`: measured eight-step instructions, suggested equipment and warnings without step locks.
-- `sandbox.ts`: authoritative free-play contents and chemistry, input holds, guidance,
-  warnings, spills, shared vessel metadata and reset.
+- `chemistry.ts`: bridge to canonical `useChemStore` mixtures, preserving individual species during transfer.
+- `sandbox.ts`: textbook kinetics for NaCl apparatus, input holds, guidance, warnings, shared vessel metadata and reset. `ChemSim` advances ordinary vessels; each item has a single simulation owner.
 - `NaClHUD.tsx`: unobtrusive guidance, controls, focused labels, live substance cards,
   molecule view and microscope. No step selection or quizzes.
 - `engine.ts`: procedural apparatus, particles, liquid meshes, molecule drawing and
@@ -73,8 +69,8 @@ solver. The microscope is an illustrative NaCl crystal image, not rendered atoms
   preserving callbacks/content and restoring portable scene objects on session restart.
 - `interaction/HeldItem.tsx`: shared carry/placement preview and surface solver for both
   inventory items and live scene equipment.
-- `interaction/Interactable.tsx`: instrument E pickup and R use. Physics-backed inventory
-  explicitly uses `movable={false}` because its pickup is handled by the inventory store.
+- `interaction/Interactable.tsx`: explicit `movable` scene pickup for shelf stock. It defaults to false so physical inventory and storage items retain their own pickup and use callbacks.
+- `interaction/useHeld.ts`: one R action routes to the NaCl apparatus or the room’s general action system. Both end on release, blur, camera change or reset.
 
 All new chemistry and carry state remains in this browser tab. Build from `openlab-3d/`
 with `npm run build:chemquest` to update the static files used by ChemQuest.

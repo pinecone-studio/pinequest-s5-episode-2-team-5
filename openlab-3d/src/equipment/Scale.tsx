@@ -1,6 +1,7 @@
 /**
  * Analytical balance: 220 × 300 × 320 mm. Cream body with a front keypad and LCD,
- * Ø 90 mm stainless pan, and a glass draft-shield box with aluminum frame.
+ * Ø 90 mm stainless pan, and a glass draft-shield box with aluminum frame (not targetable,
+ * so whatever stands on the pan can be focused through it).
  */
 import { Text, RoundedBox } from '@react-three/drei';
 import { MeshStandardMaterial } from 'three';
@@ -51,18 +52,18 @@ export function Scale({ modelUrl, reading = '0.000', ...props }: ModelProps & { 
           [0, 0.115, 0.12, W - 0.012, 0.23, 0.006],
           [0, 0.23, 0, W, 0.006, 0.24],
         ].map(([x, y, z, sx, sy, sz], i) => (
-          <mesh key={i} material={windowGlass} position={[x, y, z]} renderOrder={2}>
+          <mesh key={i} material={windowGlass} position={[x, y, z]} renderOrder={2} raycast={() => undefined}>
             <boxGeometry args={[sx, sy, sz]} />
           </mesh>
         ))}
         {[-1, 1].map((sx) =>
           [-1, 1].map((sz) => (
-            <mesh key={`${sx}${sz}`} material={metalAluminum} position={[(sx * (W - 0.01)) / 2, 0.115, (sz * 0.238) / 2]}>
+            <mesh key={`${sx}${sz}`} material={metalAluminum} position={[(sx * (W - 0.01)) / 2, 0.115, (sz * 0.238) / 2]} raycast={() => undefined}>
               <boxGeometry args={[0.01, 0.23, 0.01]} />
             </mesh>
           )),
         )}
-        <mesh material={metalAluminum} position={[0, 0.234, 0]}>
+        <mesh material={metalAluminum} position={[0, 0.234, 0]} raycast={() => undefined}>
           <boxGeometry args={[W, 0.008, 0.012]} />
         </mesh>
       </group>

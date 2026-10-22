@@ -1,9 +1,9 @@
-import { crystalMass, describe, partId, useSandbox } from './sandbox';
+import { crystalMass, describe, partId, partKey, useSandbox } from './sandbox';
 
 /** Measured progress guides the order, without locking equipment or changing its position. */
 export function experimentGuide() {
   const s = useSandbox.getState();
-  const entries = Object.entries(s.contents);
+  const entries = Object.entries(s.contents).filter(([id]) => partKey(id) || s.participants.includes(id));
   const mixtures = entries.filter(([id, m]) => describe(id).role !== 'bottle' && describe(id).role !== 'reagentBottle' && m.salt > 0.001);
   const reacted = mixtures.length > 0 && mixtures.every(([, m]) => m.acid < 0.02) && s.rx !== 'acid';
   const crystals = entries.some(([, m]) => crystalMass(m) > 0.01);

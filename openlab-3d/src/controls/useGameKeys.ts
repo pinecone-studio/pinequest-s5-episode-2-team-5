@@ -3,14 +3,15 @@ import { useGameStore, type Panel } from '../store/useGameStore';
 import { useInventoryStore } from '../store/useInventoryStore';
 import { useSettingsStore } from '../store/useSettingsStore';
 import { interactables } from '../interaction/registry';
-import { dragState, heldApi } from '../interaction/heldApi';
+import { dragState, heldApi, throwCharge } from '../interaction/heldApi';
+import { beginHeldUse, endHeldUse } from '../interaction/useHeld';
+import { usePortableStore, portableApi } from '../interaction/portable';
+import { heldObjectId, mixture, useSandbox, warn } from '../experiments/nacl/sandbox';
+import { enterBench, exitBench } from '../experiments/nacl/bench';
+import { benchView, useBenchView } from '../experiments/nacl/view';
 import { sounds } from '../utils/sounds';
 import { actionsForKey } from './keyMap';
 import { isPointerLocked, lookBy, releaseLock, requestLock } from './usePointerLock';
-import { enterBench, exitBench } from '../experiments/nacl/bench';
-import { portableApi, usePortableStore } from '../interaction/portable';
-import { describe, heldObjectId, labUse, mixture, useSandbox, warn } from '../experiments/nacl/sandbox';
-import { benchView, useBenchView } from '../experiments/nacl/view';
 
 function isTyping(target: EventTarget | null): boolean {
   if (!(target instanceof HTMLElement)) return false;
@@ -65,15 +66,11 @@ export function resumeWalk(): void {
   requestLock();
 }
 
-function inspectFocusOrHeld(): void {
+export function inspectFocusOrHeld(): void {
   const game = useGameStore.getState();
   const focus = game.focus;
-  const vesselId = heldObjectId() ?? focus?.id;
-  if (vesselId && describe(vesselId).capacity > 0) { mixture(vesselId); useSandbox.setState({ inspected: vesselId }); releaseLock(); return; }
-  const freeId = heldObjectId()?.startsWith('nacl-') ? heldObjectId() : focus?.id.startsWith('nacl-') ? focus.id : null;
-  if (freeId) { useSandbox.setState({ inspected: freeId }); releaseLock(); return; }
-  const portableEntry = interactables.get(usePortableStore.getState().held?.id ?? '');
-  if (portableEntry?.inspectKind) { releaseLock(); game.startInspect(portableEntry.inspectKind, portableEntry.id); return; }
+  const id = heldObjectId() ?? focus?.id;
+  if (id && (id.startsWith('nacl-') || usePortableStore.getState().held)) { mixture(id); useSandbox.setState({ inspected: id }); releaseLock(); return; }
   const entry = focus ? interactables.get(focus.id) : undefined;
   if (entry?.inspectKind) {
     releaseLock();
@@ -89,10 +86,60 @@ function inspectFocusOrHeld(): void {
   }
 }
 
-export function dropHeld(): void {
-  labUse.end();
-  if (usePortableStore.getState().held) { if (!portableApi.place()) warn('Хулгана эсвэл хараагаа ширээний хоосон гадаргуу руу чиглүүл. Ногоон хүрээ харагдсан газарт тавина.'); return; }
+/** G: pick the focused item up even when E does something else (light a burner, tare the balance). */
+function grabFocus(): void {
+  const focus = useGameStore.getState().focus;
+  const entry = focus ? interactables.get(focus.id) : undefined;
+  entry?.onGrab?.();
+}
+
+/** T down: start winding up a throw; T up: let go (a longer press throws harder). */
+export function startThrow(): void {
   if (!useInventoryStore.getState().held) return;
+  throwCharge.since = performance.now();
+}
+
+export function releaseThrow(): void {
+  if (throwCharge.since === null) return;
+  const power = Math.min(1, (performance.now() - throwCharge.since) / 900);
+  throwCharge.since = null;
+  heldApi.throwHeld(power);
+}
+
+/**
+ * C: free the mouse so HUD buttons can be clicked while standing in the lab, and take it
+ * back with the same key (or a click on the view).
+ */
+export function toggleCursor(): void {
+  const game = useGameStore.getState();
+  if (useSettingsStore.getState().lookMode !== 'mouse') {
+    game.showToast('Хулган чөлөөтэй байна', 'Товчлуураар эргэх горимд хулган үргэлж идэвхтэй');
+    return;
+  }
+  if (isPointerLocked()) {
+    releaseLock();
+    game.setCursorFree(true);
+    sounds.play('ui');
+  } else {
+    game.setCursorFree(false);
+    requestLock();
+  }
+}
+
+export function dropHeld(): void {
+  endHeldUse();
+  if (usePortableStore.getState().held) {
+    if (!portableApi.place()) warn('Хоосон гадаргуу руу чиглүүл. Ногоон хүрээ гарсан газарт тавина.');
+    return;
+  }
+  if (!useInventoryStore.getState().held) return;
+  // An open drawer, cabinet or rack in focus takes the item instead of the bench.
+  const focus = useGameStore.getState().focus;
+  const entry = focus ? interactables.get(focus.id) : undefined;
+  if (entry?.onStore) {
+    entry.onStore();
+    return;
+  }
   if (!heldApi.place()) {
     useGameStore.getState().showToast('Энд тавих боломжгүй', 'Ширээний гадаргуу эсвэл ойрхон шал руу хар');
   }
@@ -107,6 +154,8 @@ export function useGameKeys(canvas: HTMLElement | null): void {
         if (e.code === 'Escape') (e.target as HTMLElement).blur();
         return;
       }
+      if (e.ctrlKey || e.metaKey) return;
+      if ((e.code === 'Enter' || e.code === 'Space') && (e.target as HTMLElement | null)?.closest('button, summary')) return;
       const game = useGameStore.getState();
       const { bindings, lookMode } = useSettingsStore.getState();
       const mode = game.mode;
@@ -124,13 +173,16 @@ export function useGameKeys(canvas: HTMLElement | null): void {
             return;
           }
           if (e.repeat) return;
-          if (actions.includes('use')) { labUse.start(game.focus?.id ?? null); return; }
           if (actions.includes('closeup') && useSandbox.getState().near) { enterBench(); return; }
           if (actions.includes('interact')) {
             if (!startDrag('key')) interactWithFocus();
           }
           if (actions.includes('inspect')) inspectFocusOrHeld();
           if (actions.includes('drop')) dropHeld();
+          if (actions.includes('grab')) grabFocus();
+          if (actions.includes('pour')) beginHeldUse();
+          if (actions.includes('throw')) startThrow();
+          if (actions.includes('cursor')) toggleCursor();
           if (actions.includes('tools')) openPanelFromGame('tools');
           if (actions.includes('notes')) openPanelFromGame('notes');
           if (actions.includes('map')) {
@@ -157,17 +209,14 @@ export function useGameKeys(canvas: HTMLElement | null): void {
           return;
         }
         case 'bench': {
-          if (e.code === 'Escape' || actions.includes('closeup')) {
-            e.preventDefault();
-            exitBench();
-          }
-          if (actions.includes('drop')) dropHeld();
+          if (e.code === 'Escape' || actions.includes('closeup')) { e.preventDefault(); exitBench(); return; }
+          if (e.repeat) return;
           const selected = useSandbox.getState().hovered ?? useBenchView.getState().selected;
-          if (actions.includes('use') && !e.repeat) labUse.start(selected);
+          if (actions.includes('drop')) dropHeld();
+          if (actions.includes('pour')) beginHeldUse(selected);
           if (actions.includes('inspect') && selected) benchView.focus(selected);
-          if (actions.includes('interact') && !e.repeat) {
-            const id = selected;
-            if (id) interactables.get(id)?.onInteract?.();
+          if ((actions.includes('interact') || actions.includes('grab')) && selected) {
+            const entry = interactables.get(selected); (entry?.onGrab ?? entry?.onInteract)?.();
           }
           return;
         }
@@ -186,11 +235,10 @@ export function useGameKeys(canvas: HTMLElement | null): void {
 
     const onKeyUp = (e: KeyboardEvent) => {
       const { bindings, lookMode } = useSettingsStore.getState();
-      if (actionsForKey(e.code, bindings, lookMode).includes('use')) labUse.end();
-      if (dragState.id && dragState.source === 'key') {
-        const { bindings, lookMode } = useSettingsStore.getState();
-        if (actionsForKey(e.code, bindings, lookMode).includes('interact')) endDrag();
-      }
+      const actions = actionsForKey(e.code, bindings, lookMode);
+      if (dragState.id && dragState.source === 'key' && actions.includes('interact')) endDrag();
+      if (actions.includes('pour')) endHeldUse();
+      if (actions.includes('throw')) releaseThrow();
     };
 
     let keyboardLookDrag = false;
@@ -224,9 +272,10 @@ export function useGameKeys(canvas: HTMLElement | null): void {
       entry.onWheel(e.deltaY < 0 ? 1 : -1);
     };
     const onBlur = () => {
-      labUse.end();
       if (dragState.id) endDrag();
       keyboardLookDrag = false;
+      endHeldUse();
+      throwCharge.since = null;
     };
 
     window.addEventListener('keydown', onKeyDown);

@@ -1,4 +1,4 @@
-/** Reagent bottle: 250 mL amber glass (Ø 65 mm × 140 mm) with a black screw cap and a printed label. */
+/** Reagent bottle: 250 mL amber glass (Ø 65 mm × 140 mm) with a black screw cap and a printed label (stripe color by reagent). */
 import { useMemo } from 'react';
 import { LatheGeometry, MeshPhysicalMaterial, MeshStandardMaterial, Vector2 } from 'three';
 import { plasticBlack } from '../materials/plastic';
@@ -13,10 +13,8 @@ const bottleGeometry = lazy(() => {
   return new LatheGeometry(pts, 32);
 });
 
-const STRIPES: Record<string, string> = { HCl: '#dc2626', NaOH: '#2563eb', 'CuSO₄': '#0ea5e9', NaCl: '#16a34a' };
-
-export function ReagentBottle({ modelUrl, label = 'NaCl', ...props }: ModelProps & { label?: string }) {
-  const labelMat = useMemo(() => new MeshStandardMaterial({ map: labelTexture(label, STRIPES[label] ?? '#f59e0b'), roughness: 0.7 }), [label]);
+export function ReagentBottle({ modelUrl, label = '?', name, stripe = '#f59e0b', ...props }: ModelProps & { label?: string; name?: string; stripe?: string }) {
+  const labelMat = useMemo(() => new MeshStandardMaterial({ map: labelTexture(label, stripe, name), roughness: 0.7 }), [label, name, stripe]);
   return (
     <ModelOr modelUrl={modelUrl} {...props}>
       <mesh geometry={bottleGeometry()} material={amberGlass} castShadow />

@@ -6,7 +6,6 @@ import { requestLock } from '../controls/usePointerLock';
 import { sounds } from '../utils/sounds';
 import { useSettingsStore } from '../store/useSettingsStore';
 import { ControlsList } from './ControlsHelp';
-import { openNaClExperiment } from '../experiments/nacl/bench';
 
 function Logo() {
   return (
@@ -29,7 +28,7 @@ export function enterLab(): void {
   requestLock();
   window.setTimeout(() => {
     if (!useGameStore.getState().robot.text) {
-      useGameStore.getState().say('Чөлөөт лабораторид тавтай морил! E дарж дурын багажийг ав, Q дарж тавь, R дарж барьж ашигла эсвэл цутга. NaCl ширээ энэ өрөөний нэг хэсэг. Заавар ба анхааруулгыг дагаарай.', 'wave');
+      useGameStore.getState().say('Химийн лабораторид тавтай морил! Эхлээд хамгаалалтын шил, бээлийгээ өмсөөрэй. Багажийг чөлөөтэй авч, зөөж, туршиж болно; зааврууд цэс болон NaCl ширээн дээр бий. Зөвлөгөө хэрэгтэй бол над дээр дараарай.', 'wave');
     }
   }, 700);
 }
@@ -71,20 +70,12 @@ export function LoadingScreen() {
             <motion.div className="panel-card w-full max-w-2xl p-6 sm:p-8" initial={{ y: 20, opacity: 0 }} animate={{ y: 0, opacity: 1 }}>
               <Logo />
               <p className="mt-4 text-slate-600">
-                Бүрэн тоноглогдсон <b>химийн лабораторид</b> өөрийн нүдээр орж үзээрэй. Багаж руу ойртоход цагаанаар гэрэлтэнэ, дараа нь дэлгэцийн доор харагдах товчлуурыг ашиглаарай. Бунзены горелк асааж, аналитик жингээр шилэн сав жигнэж, татах шүүгээнд аюулгүй ажиллаарай.
+                Бүрэн тоноглогдсон <b>химийн лабораторид</b> 30 төрлийн багаж, 50 бодистой ажиллаарай. Шургуулга, шүүгээг нээж хэрэгслээ аваад, R-ийг дарсаар асгаж холино — тунадас, хий, өнгө, дулаан бодит хуулиар үүснэ. Шил унавал хагарна, асгарвал арчина. NaCl ширээн дээр V дарж ойроос ажиллана. <b>Цэс → Туршилт</b> хэсэгт нэмэлт заавар бий; туршилт сонгох шаардлагагүй.
               </p>
               <div className="mt-5 rounded-2xl bg-slate-50 p-4">
                 <ControlsList compact />
               </div>
-              <div className="mt-5 rounded-2xl border-2 border-lab-yellow bg-amber-50 p-4">
-                <div className="text-xs font-bold uppercase text-amber-700">Нэг орон зай · Чөлөөт лаборатори</div>
-                <h2 className="mt-1 font-display text-xl font-bold">Багажаа аваад, өөрөө туршаарай</h2>
-                <p className="mt-2 text-sm text-slate-600">NaCl ширээ нь энэ өрөөний нэг хэсэг. Дурын багажийг E дарж авч, Q дарж тавь. R дарж барьж цутга. Заавар чиглүүлнэ, алхам түгжихгүй.</p>
-                <button type="button" className="btn-ghost mt-3 w-full py-3 text-sm" onClick={openNaClExperiment}>
-                  NaCl ажлын ширээнд очих (заавал биш) →
-                </button>
-              </div>
-              <button type="button" className="btn-yellow mt-3 w-full py-3 text-base" onClick={enterLab} autoFocus>
+              <button type="button" className="btn-yellow mt-6 w-full py-4 text-lg" onClick={enterLab} autoFocus>
                 Лабораторид орох
               </button>
               <p className="mt-2 text-center text-xs text-slate-400">Эргэн харахад хулгана түгжигдэнэ — хүссэн үедээ Esc дарж чөлөөлнө.</p>

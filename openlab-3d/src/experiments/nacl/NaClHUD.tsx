@@ -73,8 +73,9 @@ function SubstanceCard() {
     {item.capacity > 0 && <div className="my-2 rounded-xl bg-sky-50 px-3 py-2"><span className="block text-[10px] font-bold uppercase tracking-wide text-slate-500">Одоогийн эзэлхүүн</span><output className="font-mono text-2xl font-bold tabular-nums sm:text-3xl text-sky-900" aria-label="Одоогийн эзэлхүүн">{m.ml.toFixed(1)} <small className="text-sm">см³</small></output>{key === 'cyl' && <div className="text-xs text-sky-800">Зорилго: 50.0 см³ · 1 см³ хуваарь<br />Менискийн доод ирмэгийг урдаас унш.</div>}</div>}
     <p className="text-xs font-semibold text-teal-700">{contentsLabel(m)} · {m.temp.toFixed(0)} °C</p>
     <div className="mt-3 flex flex-wrap gap-2">
+      {((interactables.get(id)?.onGrab && interactables.get(id)?.onGrab !== interactables.get(id)?.onInteract) || key === 'lamp' || key === 'scope') && <button className="rounded-lg bg-amber-100 px-3 py-2 text-xs font-bold" onClick={() => { const entry = interactables.get(id); if (entry?.onGrab) entry.onInteract?.(); else labUse.start(id); }}>Ашиглах</button>}
       <button className="rounded-lg bg-sky-100 px-3 py-2 text-xs font-semibold text-sky-900" onClick={() => readItem(id)}>⌕ Хуваарийг ойроос харах</button>
-      {!heldId && <button className="btn-yellow px-3 py-2 text-xs" onClick={() => interactables.get(id)?.onInteract?.()}>Авах / зөөх</button>}
+      {!heldId && <button className="btn-yellow px-3 py-2 text-xs" onClick={() => { const entry = interactables.get(id); (entry?.onGrab ?? entry?.onInteract)?.(); }}>Авах / зөөх</button>}
       {heldId === id && <button className="rounded-lg bg-emerald-100 px-3 py-2 text-xs font-semibold" onClick={() => { tablePointer.angle += Math.PI / 4; }}>Эргүүлэх 45°</button>}
     </div>
     {heldId && heldId !== id && <div className="mt-3 border-t border-slate-200 pt-3">
@@ -133,6 +134,10 @@ function CameraControls() {
 export function NaClHUD() {
   const mode = useGameStore((s) => s.mode);
   const focusedId = useGameStore((s) => s.focus?.id ?? null);
+  const toast = useGameStore((s) => s.toast);
+  useEffect(() => {
+    if (mode === 'bench' && toast) useSandbox.setState({ warning: [toast.title, toast.subtitle].filter(Boolean).join(' · ') });
+  }, [mode, toast]);
   const state = useSandbox();
   const portable = usePortableStore((s) => s.held);
   const normal = useInventoryStore((s) => s.held);
@@ -140,7 +145,7 @@ export function NaClHUD() {
   const held = portable?.label ?? (normal ? describe(normal.id).label : null);
   const heldId = portable?.id ?? normal?.id;
   const closeup = mode === 'bench';
-  const relevant = state.near || closeup || !!held || !!state.rx;
+  const relevant = state.near || closeup || !!heldId?.startsWith('nacl-') || state.participants.includes(heldId ?? '') || !!state.rx;
   const guide = experimentGuide();
   const q = promptKey('drop', settings.bindings, settings.lookMode);
   const recommended = guide.index === 0 ? partId('cyl') : guide.recommended[0];

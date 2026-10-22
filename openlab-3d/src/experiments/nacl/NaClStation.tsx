@@ -2,17 +2,20 @@
 import { useEffect, useLayoutEffect, useMemo, useRef, type ElementRef } from 'react';
 import { useFrame, useThree } from '@react-three/fiber';
 import { OrbitControls } from '@react-three/drei';
-import { Box3, MOUSE, TOUCH, Vector3, type PerspectiveCamera } from 'three';
+import { Box3, MOUSE, TOUCH, Raycaster, Sphere, Vector3, type PerspectiveCamera } from 'three';
 import { SignText } from '../../world/furniture/Decor';
 import { playerState, useGameStore } from '../../store/useGameStore';
 import { useInventoryStore } from '../../store/useInventoryStore';
-import { interactables, type InteractableEntry } from '../../interaction/registry';
+import { interactables, isVisibleInScene, localBounds, resolveInteractable, type InteractableEntry } from '../../interaction/registry';
+import { endHeldUse } from '../../interaction/useHeld';
 import { portableApi, usePortableStore } from '../../interaction/portable';
 import { heldApi, tablePointer } from '../../interaction/heldApi';
 import { useSettingsStore } from '../../store/useSettingsStore';
 import { benchView, useBenchView } from './view';
 import { experimentGuide } from './guidance';
 import { BENCH_HEIGHT } from '../../utils/constants';
+import { seedBenchChemistry } from './chemistry';
+import { livePose } from '../../interaction/bodies';
 import { createNaClEngine } from './engine';
 import { bench } from './bench';
 import { type PartKey } from './data';
@@ -29,7 +32,6 @@ export function NaClStation() {
   const controls = useRef<Controls>(null);
   const initialTarget = useMemo(() => new Vector3(STATION_POSITION[0] + 0.03, STATION_POSITION[1] + 0.075, STATION_POSITION[2]), []);
   const previousMode = useRef('');
-  const puddles = useSandbox((s) => s.puddles);
   const motion = useRef<{ from: Vector3; to: Vector3; fromTarget: Vector3; toTarget: Vector3; elapsed: number; duration: number } | null>(null);
   const viewClock = useRef(0);
 
@@ -53,6 +55,7 @@ export function NaClStation() {
   useEffect(() => {
     bench.engine = engine;
     engine.prepareFreePlay();
+    seedBenchChemistry(useSandbox.getState().contents, false);
     const entries: InteractableEntry[] = engine.parts.map(({ key, hit, label }) => {
       const id = partId(key);
       hit.userData.interactableId = id;
@@ -105,7 +108,7 @@ export function NaClStation() {
       move(target.clone().add(new Vector3(0, 0.06, 1).normalize().multiplyScalar(distance)), target);
       useBenchView.setState({ selected: id, level: 'detail' });
       mixture(id);
-      useSandbox.setState({ inspected: id });
+      useSandbox.setState({ inspected: id, hovered: null });
       tablePointer.active = false;
     };
     benchView.setDistance = (distance) => {
@@ -129,7 +132,7 @@ export function NaClStation() {
     if (useBenchView.getState().level === 'detail' && useBenchView.getState().selected) benchView.focus(useBenchView.getState().selected!);
     else table();
     return () => {
-      labUse.end(); motion.current = null; tablePointer.active = false;
+      endHeldUse(); motion.current = null; tablePointer.active = false;
       engine.attach(camera, null);
       camera.near = previous.near; camera.fov = previous.fov;
       camera.position.copy(previous.position); camera.quaternion.copy(previous.rotation); camera.updateProjectionMatrix();
@@ -143,12 +146,29 @@ export function NaClStation() {
     const el = gl.domElement;
     let down: { x: number; y: number; id: number } | null = null;
     const pointers = new Set<number>();
+    const ray = new Raycaster();
+    const sphere = new Sphere();
     const point = (e: PointerEvent) => {
       const rect = el.getBoundingClientRect();
       tablePointer.ndc.set((e.clientX - rect.left) / rect.width * 2 - 1, -(e.clientY - rect.top) / rect.height * 2 + 1);
       tablePointer.active = true;
       heldApi.refreshTarget();
-      return engine.pick(tablePointer.ndc, partKey(heldObjectId() ?? '') ?? undefined);
+      const key = engine.pick(tablePointer.ndc, partKey(heldObjectId() ?? '') ?? undefined);
+      if (key) return partId(key);
+      ray.setFromCamera(tablePointer.ndc, camera); ray.far = 3.5;
+      let best: string | null = null; let nearest = ray.far;
+      for (const entry of interactables.values()) {
+        if (!entry.inspectKind && entry.useTarget?.type !== 'item') continue;
+        if (!entry.enabled || entry.id === heldObjectId() || entry.id.startsWith('nacl-') || !isVisibleInScene(entry.object)) continue;
+        sphere.copy(localBounds(entry)).applyMatrix4(entry.object.matrixWorld);
+        if (!ray.ray.intersectsSphere(sphere)) continue;
+        for (const hit of ray.intersectObject(entry.object, true)) {
+          if (hit.distance >= nearest || !isVisibleInScene(hit.object)) continue;
+          const resolved = resolveInteractable(hit.object);
+          if (resolved) { nearest = hit.distance; best = resolved.id; break; }
+        }
+      }
+      return best;
     };
     const cancelMotion = () => {
       motion.current = null;
@@ -162,18 +182,16 @@ export function NaClStation() {
       point(e);
     };
     const onMove = (e: PointerEvent) => {
-      const key = point(e);
-      const id = key ? partId(key) : null;
+      const id = point(e);
       if (useSandbox.getState().hovered !== id) useSandbox.setState({ hovered: id });
-      el.style.cursor = heldObjectId() ? (heldApi.target ? 'copy' : 'not-allowed') : key ? 'pointer' : 'grab';
+      el.style.cursor = heldObjectId() ? (heldApi.target ? 'copy' : 'not-allowed') : id ? 'pointer' : 'grab';
       if (down && Math.hypot(e.clientX - down.x, e.clientY - down.y) > 6) down = null;
     };
     const onUp = (e: PointerEvent) => {
       pointers.delete(e.pointerId);
       if (down?.id === e.pointerId && e.target === el && Math.hypot(e.clientX - down.x, e.clientY - down.y) < 6) {
-        const key = point(e);
-        if (key) {
-          const id = partId(key);
+        const id = point(e);
+        if (id) {
           useSandbox.setState({ inspected: id, hovered: id });
           useBenchView.setState({ selected: id });
           if (!heldObjectId()) benchView.focus(id);
@@ -184,18 +202,19 @@ export function NaClStation() {
       }
       down = null;
     };
-    const onCancel = () => { down = null; pointers.clear(); labUse.end(); };
+    const onLeave = () => useSandbox.setState({ hovered: null });
+    const onCancel = () => { down = null; pointers.clear(); endHeldUse(); };
     const noMenu = (e: Event) => e.preventDefault();
-    el.addEventListener('pointerdown', onDown); el.addEventListener('pointermove', onMove);
+    el.addEventListener('pointerdown', onDown); el.addEventListener('pointermove', onMove); el.addEventListener('pointerleave', onLeave);
     el.addEventListener('wheel', cancelMotion, { capture: true, passive: true });
     el.addEventListener('contextmenu', noMenu);
     window.addEventListener('pointerup', onUp); window.addEventListener('pointercancel', onCancel); window.addEventListener('blur', onCancel);
     return () => {
-      onCancel(); el.removeEventListener('pointerdown', onDown); el.removeEventListener('pointermove', onMove);
+      onCancel(); el.removeEventListener('pointerdown', onDown); el.removeEventListener('pointermove', onMove); el.removeEventListener('pointerleave', onLeave);
       el.removeEventListener('wheel', cancelMotion, true); el.removeEventListener('contextmenu', noMenu);
       window.removeEventListener('pointerup', onUp); window.removeEventListener('pointercancel', onCancel); window.removeEventListener('blur', onCancel);
     };
-  }, [inBench, engine, gl]);
+  }, [inBench, engine, gl, camera]);
 
   useFrame((_, rawDt) => {
     const ctl = controls.current;
@@ -224,7 +243,7 @@ export function NaClStation() {
         if (key) return engine.partPosition(key);
         if (useInventoryStore.getState().held?.id === id) return camera.position.clone().add(new Vector3(0, -0.2, -0.45).applyQuaternion(camera.quaternion));
         const item = useInventoryStore.getState().worldItems.find((x) => x.id === id);
-        if (item) return new Vector3(...item.position);
+        if (item) { const p = livePose(item); return new Vector3(p.x, p.y, p.z); }
         return interactables.get(id)?.object.getWorldPosition(new Vector3()) ?? new Vector3(1000, 1000, 1000);
     };
     const distance = (a: string, b: string) => position(a).distanceTo(position(b));
@@ -260,10 +279,6 @@ export function NaClStation() {
     <group>
       <group position={STATION_POSITION}><primitive object={engine.root} /></group>
       <SignText text={'NaCl · Нээлттэй ажлын ширээ\nБүх багажийг авч, зөөж болно'} color="#1e4db5" width={0.9} height={0.22} position={[8.3, 1.5, -14.885]} />
-      {puddles.map((p, i) => <mesh key={i} position={[p.x, p.y, p.z]} rotation={[-Math.PI / 2, 0, 0]} raycast={() => undefined}>
-        <circleGeometry args={[Math.min(0.24, 0.025 + Math.sqrt(p.ml) * 0.018), 24]} />
-        <meshBasicMaterial color="#9bd7e9" transparent opacity={0.45} depthWrite={false} />
-      </mesh>)}
       {inBench && <OrbitControls ref={controls} target={initialTarget} enableDamping dampingFactor={0.12} minDistance={0.018} maxDistance={3.5} minPolarAngle={0.12} maxPolarAngle={1.48}
         zoomSpeed={0.7} panSpeed={0.7} rotateSpeed={0.5} screenSpacePanning={false} zoomToCursor
         mouseButtons={{ LEFT: MOUSE.PAN, MIDDLE: MOUSE.DOLLY, RIGHT: MOUSE.ROTATE }} touches={{ ONE: TOUCH.PAN, TWO: TOUCH.DOLLY_PAN }} /> }

@@ -3,7 +3,7 @@
  * gas inlet with an orange rubber hose, and an animated two-cone flame (inner blue
  * cone glows through Bloom) when lit.
  */
-import { useMemo, useRef } from 'react';
+import { useEffect, useMemo, useRef } from 'react';
 import { useFrame } from '@react-three/fiber';
 import { AdditiveBlending, CatmullRomCurve3, LatheGeometry, MeshBasicMaterial, TubeGeometry, Vector2, Vector3, type Group } from 'three';
 import { metalChrome, metalDark } from '../materials/metal';
@@ -25,8 +25,22 @@ const flameInnerGeo = lazy(() => new LatheGeometry([new Vector2(0.0075, 0), new 
 const outerMat = new MeshBasicMaterial({ color: '#6aa8ff', transparent: true, opacity: 0.35, blending: AdditiveBlending, depthWrite: false, toneMapped: false });
 const innerMat = new MeshBasicMaterial({ color: '#7ad7ff', transparent: true, opacity: 0.95, blending: AdditiveBlending, depthWrite: false, toneMapped: false });
 
-export function BunsenBurner({ modelUrl, lit = false, ...props }: ModelProps & { lit?: boolean }) {
+/** A flame-test color tints the outer flame (salts glow in the hot zone). */
+function useFlameMaterials(color?: string): [MeshBasicMaterial, MeshBasicMaterial] {
+  const tinted = useMemo(() => (color ? [outerMat.clone(), innerMat.clone()] : null), [color]);
+  useEffect(() => {
+    if (!tinted || !color) return;
+    tinted[0].color.set(color);
+    tinted[0].opacity = 0.85;
+    tinted[1].color.set(color).lerp(innerMat.color, 0.35);
+    return () => tinted.forEach((m) => m.dispose());
+  }, [tinted, color]);
+  return tinted ? [tinted[0], tinted[1]] : [outerMat, innerMat];
+}
+
+export function BunsenBurner({ modelUrl, lit = false, flameColor, ...props }: ModelProps & { lit?: boolean; flameColor?: string }) {
   const flame = useRef<Group>(null);
+  const [outer, inner] = useFlameMaterials(flameColor);
   const hose = useMemo(
     () => new TubeGeometry(new CatmullRomCurve3([new Vector3(0.04, 0.012, 0), new Vector3(0.09, 0.006, 0.01), new Vector3(0.16, 0.004, 0.05), new Vector3(0.22, 0.004, 0.12)]), 24, 0.006, 8, false),
     [],
@@ -57,8 +71,8 @@ export function BunsenBurner({ modelUrl, lit = false, ...props }: ModelProps & {
       <mesh geometry={hose} material={plastic('#e06a1b', 0.7)} />
       {lit && (
         <group ref={flame} position={[0, 0.16, 0]} userData={{ dynamic: true }}>
-          <mesh geometry={flameOuterGeo()} material={outerMat} userData={{ noOutline: true }} />
-          <mesh geometry={flameInnerGeo()} material={innerMat} userData={{ noOutline: true }} />
+          <mesh geometry={flameOuterGeo()} material={outer} scale={flameColor ? [1.5, 1.35, 1.5] : 1} userData={{ noOutline: true }} raycast={() => undefined} />
+          <mesh geometry={flameInnerGeo()} material={inner} userData={{ noOutline: true }} raycast={() => undefined} />
         </group>
       )}
     </ModelOr>

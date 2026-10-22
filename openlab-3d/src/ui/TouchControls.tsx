@@ -1,15 +1,14 @@
 /**
  * Touch fallback: a virtual joystick on the left half, drag-to-look on the right half,
- * and round action buttons (interact, inspect, place, sprint).
+ * and round action buttons (interact, inspect, place, use/pour (hold), throw, sprint).
  */
 import { useEffect, useRef, useState } from 'react';
 import { useGameStore } from '../store/useGameStore';
 import { touchInput } from '../interaction/heldApi';
 import { lookBy } from '../controls/usePointerLock';
-import { dropHeld, interactWithFocus } from '../controls/useGameKeys';
-import { describe, heldObjectId, labUse, mixture, useSandbox } from '../experiments/nacl/sandbox';
-import { interactables } from '../interaction/registry';
-import { releaseLock } from '../controls/usePointerLock';
+import { dropHeld, inspectFocusOrHeld, interactWithFocus, releaseThrow, startThrow } from '../controls/useGameKeys';
+import { beginHeldUse, endHeldUse } from '../interaction/useHeld';
+import { heldObjectId } from '../experiments/nacl/sandbox';
 
 const R = 56;
 
@@ -73,17 +72,6 @@ export function TouchControls() {
       if (lookId.current && t.identifier === lookId.current.id) lookId.current = null;
     }
   };
-  const inspect = () => {
-    const focus = useGameStore.getState().focus;
-    const vesselId = heldObjectId() ?? focus?.id;
-    if (vesselId && describe(vesselId).capacity > 0) { mixture(vesselId); useSandbox.setState({ inspected: vesselId }); return; }
-    if (focus?.id.startsWith('nacl-')) { useSandbox.setState({ inspected: focus.id }); return; }
-    const entry = focus ? interactables.get(focus.id) : undefined;
-    if (entry?.inspectKind) {
-      releaseLock();
-      useGameStore.getState().startInspect(entry.inspectKind, entry.id);
-    }
-  };
   const btn = 'pointer-events-auto flex h-14 w-14 items-center justify-center rounded-full bg-black/45 text-base font-bold text-white backdrop-blur active:scale-95 active:bg-black/60';
   return (
     <div className="fixed inset-0 z-10 touch-none" onTouchStart={onStart} onTouchMove={onMove} onTouchEnd={onEnd} onTouchCancel={onEnd}>
@@ -97,14 +85,17 @@ export function TouchControls() {
         <button className={btn} onClick={() => interactWithFocus()} aria-label="Ашиглах">
           E
         </button>
-        <button className={btn} onClick={inspect} aria-label="Ойроос харах">
+        <button className={btn} onClick={inspectFocusOrHeld} aria-label="Ойроос харах">
           F
         </button>
-        <button className={btn} onClick={dropHeld} aria-label="Тавих">
+        <button className={btn} onClick={() => heldObjectId() && dropHeld()} aria-label="Тавих">
           Q
         </button>
-        <button className={btn} onPointerDown={(e) => { e.currentTarget.setPointerCapture(e.pointerId); labUse.start(useGameStore.getState().focus?.id ?? null); }} onPointerUp={() => labUse.end()} onPointerCancel={() => labUse.end()} aria-label="Цутгах эсвэл ашиглах">
+        <button className={btn} onTouchStart={() => beginHeldUse()} onTouchEnd={() => endHeldUse()} onTouchCancel={() => endHeldUse()} aria-label="Ашиглах (асгах, хэмжих)">
           R
+        </button>
+        <button className={btn} onTouchStart={() => startThrow()} onTouchEnd={() => releaseThrow()} aria-label="Шидэх">
+          T
         </button>
         <button className={`${btn} ${sprint ? '!bg-lab-yellow' : ''}`} onClick={() => setSprint((s) => !s)} aria-label="Гүйх горим" aria-pressed={sprint}>
           ⇧

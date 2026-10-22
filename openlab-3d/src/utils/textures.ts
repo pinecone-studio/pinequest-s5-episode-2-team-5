@@ -261,8 +261,8 @@ export function signTexture(lines: string[], color: string, aspect: number): Tex
 
 const labelCache = new Map<string, Texture>();
 /** Small white bottle label with a colored stripe and a formula. */
-export function labelTexture(text: string, stripe = '#dc2626'): Texture {
-  const key = `${text}-${stripe}`;
+export function labelTexture(text: string, stripe = '#dc2626', subtitle = 'OPENLAB УРВАЛЖ'): Texture {
+  const key = `${text}-${stripe}-${subtitle}`;
   const cached = labelCache.get(key);
   if (cached) return cached;
   const [c, ctx] = makeCanvas(256, 128);
@@ -273,10 +273,10 @@ export function labelTexture(text: string, stripe = '#dc2626'): Texture {
   ctx.fillStyle = '#111827';
   ctx.font = '700 54px Inter, sans-serif';
   ctx.textAlign = 'center';
-  ctx.fillText(text, 128, 92, 236);
-  ctx.font = '500 16px Inter, sans-serif';
-  ctx.fillStyle = '#6b7280';
-  ctx.fillText('OPENLAB УРВАЛЖ', 128, 118);
+  ctx.fillText(text, 128, 84, 236);
+  ctx.font = '600 20px Inter, sans-serif';
+  ctx.fillStyle = '#4b5563';
+  ctx.fillText(subtitle, 128, 118, 236);
   const t = toTexture(c);
   labelCache.set(key, t);
   return t;
@@ -297,3 +297,32 @@ export const chemBoardTexture = lazy(() => {
   );
   return toTexture(c);
 });
+
+const plateCache = new Map<string, Texture>();
+/** Drawer / cabinet label plate: white card with a colored band and bold text. */
+export function plateTexture(text: string, color: string): Texture {
+  const key = `${text}-${color}`;
+  const cached = plateCache.get(key);
+  if (cached) return cached;
+  const [c, ctx] = makeCanvas(512, 128);
+  ctx.fillStyle = '#fbfbf8';
+  ctx.fillRect(0, 0, 512, 128);
+  ctx.fillStyle = color;
+  ctx.fillRect(0, 0, 34, 128);
+  ctx.fillRect(0, 118, 512, 10);
+  ctx.fillStyle = '#111827';
+  ctx.textBaseline = 'middle';
+  ctx.textAlign = 'center';
+  let size = 58;
+  ctx.font = `700 ${size}px Inter, sans-serif`;
+  const w = ctx.measureText(text).width;
+  if (w > 440) size *= 440 / w;
+  ctx.font = `700 ${size}px Inter, sans-serif`;
+  ctx.fillText(text, 273, 62);
+  ctx.strokeStyle = '#d1d5db';
+  ctx.lineWidth = 4;
+  ctx.strokeRect(2, 2, 508, 124);
+  const t = toTexture(c);
+  plateCache.set(key, t);
+  return t;
+}

@@ -5,10 +5,12 @@
 import { useLayoutEffect, useRef } from 'react';
 import { BoxGeometry, CylinderGeometry, InstancedMesh, LatheGeometry, Object3D, Vector2 } from 'three';
 import { useGlass } from '../materials/glass';
-import { useLiquid } from '../materials/liquids';
 import { plastic } from '../materials/plastic';
 import { lazy } from '../utils/lazy';
-import { ModelOr, type ModelProps } from './ModelOr';
+import { ModelOr } from './ModelOr';
+import { VesselContents } from './VesselContents';
+import { PROFILES } from './profiles';
+import type { VesselModelProps } from './Beaker';
 
 const R = 0.014;
 const H = 0.25;
@@ -21,9 +23,8 @@ const tick = lazy(() => new BoxGeometry(0.006, 0.0006, 0.0006));
 const N_TICKS = 20;
 const markMat = plastic('#20252b', 0.6);
 
-export function GraduatedCylinder({ modelUrl, liquidColor = '#7fd3ff', fill = 0.6, ...props }: ModelProps & { liquidColor?: string; fill?: number }) {
+export function GraduatedCylinder({ modelUrl, look, itemId, ...props }: VesselModelProps) {
   const glass = useGlass('#eef8fb');
-  const liquid = useLiquid(liquidColor);
   const ticks = useRef<InstancedMesh>(null);
   useLayoutEffect(() => {
     const d = new Object3D();
@@ -39,15 +40,12 @@ export function GraduatedCylinder({ modelUrl, liquidColor = '#7fd3ff', fill = 0.
       ticks.current.computeBoundingSphere();
     }
   }, []);
-  const level = Math.max(0.005, Math.min(0.95, fill) * (H - 0.03));
   return (
     <ModelOr modelUrl={modelUrl} {...props}>
       <mesh geometry={foot()} material={plastic('#2563eb', 0.5)} position={[0, 0.006, 0]} castShadow />
       <mesh geometry={tube()} material={glass} renderOrder={1} castShadow />
       <instancedMesh ref={ticks} args={[tick(), markMat, N_TICKS]} userData={{ noOutline: true }} />
-      <mesh material={liquid} position={[0, 0.0135 + level / 2, 0]} userData={{ noOutline: true }}>
-        <cylinderGeometry args={[R - 0.0022, R - 0.0022, level, 20]} />
-      </mesh>
+      {look && <VesselContents profile={PROFILES.graduatedCylinder} look={look} itemId={itemId} />}
     </ModelOr>
   );
 }

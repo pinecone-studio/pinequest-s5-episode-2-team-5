@@ -2,7 +2,7 @@
  * Tiny procedural sound engine on the Web Audio API — every sound is synthesized,
  * so there are no audio files to download.
  */
-type SoundName = 'footstep' | 'door' | 'click' | 'tick' | 'puff' | 'clink' | 'pickup' | 'ui' | 'beep' | 'whoosh' | 'success';
+type SoundName = 'footstep' | 'door' | 'click' | 'tick' | 'puff' | 'clink' | 'pickup' | 'ui' | 'beep' | 'whoosh' | 'success' | 'pour' | 'fizz' | 'shatter' | 'thud' | 'bubble' | 'throw';
 
 class SoundEngine {
   private ctx: AudioContext | null = null;
@@ -105,6 +105,29 @@ class SoundEngine {
         break;
       case 'whoosh':
         this.noiseBurst(t, { type: 'bandpass', freq: 600, sweepTo: 2400, q: 0.9, peak: 0.07 * k, attack: 0.06, decay: 0.25 });
+        break;
+      case 'pour':
+        this.noiseBurst(t, { type: 'bandpass', freq: 900, sweepTo: 2200, q: 1.4, peak: 0.1 * k, attack: 0.05, decay: 0.45 });
+        [0.12, 0.2, 0.3].forEach((d, i) => this.tone(t + d, 700 + i * 220, { type: 'sine', peak: 0.03 * k, attack: 0.004, decay: 0.07, slideTo: 1100 + i * 260 }));
+        break;
+      case 'fizz':
+        for (let i = 0; i < 6; i++) this.noiseBurst(t + i * 0.07, { type: 'highpass', freq: 4200 + Math.random() * 1500, peak: 0.05 * k, attack: 0.003, decay: 0.05 });
+        break;
+      case 'shatter':
+        // Bright noise burst plus a cluster of high, detuned glass tones.
+        this.noiseBurst(t, { type: 'highpass', freq: 2600, peak: 0.28 * k, attack: 0.002, decay: 0.32 });
+        for (let i = 0; i < 9; i++) this.tone(t + Math.random() * 0.12, 2400 + Math.random() * 4200, { peak: 0.05 * k, attack: 0.001, decay: 0.12 + Math.random() * 0.3 });
+        this.noiseBurst(t + 0.05, { type: 'bandpass', freq: 5200, q: 2, peak: 0.08 * k, attack: 0.004, decay: 0.5 });
+        break;
+      case 'thud':
+        this.tone(t, 110, { type: 'sine', peak: 0.12 * k, attack: 0.002, decay: 0.12, slideTo: 60 });
+        this.noiseBurst(t, { type: 'lowpass', freq: 700, peak: 0.12 * k, attack: 0.002, decay: 0.08 });
+        break;
+      case 'bubble':
+        for (let i = 0; i < 4; i++) this.tone(t + i * 0.06 + Math.random() * 0.04, 500 + Math.random() * 500, { type: 'sine', peak: 0.025 * k, attack: 0.004, decay: 0.05, slideTo: 1400 });
+        break;
+      case 'throw':
+        this.noiseBurst(t, { type: 'bandpass', freq: 900, sweepTo: 300, q: 1.1, peak: 0.08 * k, attack: 0.02, decay: 0.22 });
         break;
       case 'success':
         [660, 880, 1320].forEach((f, i) => this.tone(t + i * 0.09, f, { type: 'triangle', peak: 0.05 * k, attack: 0.005, decay: 0.22 }));

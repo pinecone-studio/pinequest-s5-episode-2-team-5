@@ -29,6 +29,18 @@
 | `src/interaction/` | `Interactable` (тодруулга/prompt), төвийн raycast, барих/тавих (`Pickable`, `HeldItem`), F-ээр шалгах (`InspectMode`), гадаргуу, гаргах (`spawn`) |
 | `src/store/useExperimentStore.ts`, `useInventoryStore.ts` | Горелка, татах шүүгээ, жингийн төлөв ба "лабын дадал"; дэлхий дээрх/гарт байгаа эд зүйлс |
 
+### Химийн хөдөлгүүр ба лабораторийн физик (Хүн 2-т хамаарна)
+
+| Хавтас / файл | Юу хийдэг |
+| --- | --- |
+| `src/chemistry/` | Бодисын сан (`species.ts`, `reagents.ts`), холимгийн загвар (моль), pH ба Ksp тэнцвэр (`equilibrium.ts`), хурдны урвал, халаалт, буцалгалт, гал (`kinetics.ts`), өнгө (`color.ts`), монгол тайлбар (`describe.ts`) |
+| `src/lab/` | Лабораторийн үзэгдлийн шугам (`events.ts`), урвал ажиглагч, мэдэгдэл/робот (`announcer.ts`), асгаралт, 14 туршилтын заавар (`experiments.ts`) |
+| `src/physics/breakage.ts` | Шил хагарах, мөргөлдөх дуу |
+| `src/interaction/actions.ts` | R товчны бүх үйлдэл: асгах, дусаах, халбагадах, хутгах, хэмжих, шүүх, дөлийн сорил, халаах, гал унтраах |
+| `src/interaction/holders.ts`, `StoredItems.tsx`, `storage.ts` | Шургуулга, шүүгээ, хуруу шилний тавиурын агуулга ба ангилал |
+| `src/world/ChemSim.tsx`, `LabFx.tsx` | Секундэд 10 удаагийн химийн/дулааны симуляц, асгарсан шалбааг, шилний хэлтэрхий |
+| `src/store/useChemStore.ts`, `useLabStore.ts` | Сав бүрийн агуулга, багажны заалт, туршилтын явц |
+
 ## Хүн 3 — Удирдлага, UI ба апп-ын төлөв (~3,000 мөр)
 
 Тоглогчийн хөдөлгөөн, бүх HUD/цонх, тохиргоо, дуу.
@@ -46,12 +58,9 @@
 ### NaCl bench integration (2026-10-22)
 
 **Current contract: free laboratory.** Walking is the default; no experiment selection
-or ordered-step gate is required. `experiments/nacl/sandbox.ts` owns shared local vessel
-contents. Live scene equipment uses `interaction/portable.ts`; physics-backed inventory
-retains its inventory pipeline (`movable={false}` on its Interactable). E picks up,
-Q places, R uses/pours, F inspects. Movable instruments keep their original use as
+or ordered-step gate is required. `store/useChemStore.ts` owns shared local vessel contents; `experiments/nacl/chemistry.ts` projects those contents for the textbook view. `sandbox.ts` advances only NaCl apparatus; the room’s `ChemSim` advances ordinary vessels. Live scene equipment uses `interaction/portable.ts`; physics-backed inventory retains its inventory pipeline (`movable` defaults to false). E picks up ordinary items or operates an instrument; G always grabs inventory instruments. Q places, R uses/pours, F inspects. Movable instruments keep their original use as
 `InteractableEntry.onUse` (R). Shelves' bottles/glassware are individually interactable.
-`bench` now means only an optional V orbit/zoom camera in the same room; it does not
+`bench` means an optional V work/detail camera in the same room; it does not
 activate the legacy engine step runner. Keep moving equipment outside static batching.
 Warnings guide without locking pickup, mixing, spilling or movement. Restart resets the
 chemistry and portable placements. See `src/experiments/nacl/README.md` for the full contract.
@@ -62,7 +71,7 @@ is superseded by the free laboratory contract above.
 Shared `Mode` now includes `'bench'` for `src/experiments/nacl/` (Туршилт 1).
 Owners 1/2/3: keep the station outside `StaticBatch`; its meshes animate.
 While seated, OrbitControls owns the camera, walking inputs and normal HUD stay inactive,
-and Escape calls `exitBench()`. Engine progress pauses on exit and resumes on re-entry.
+and Escape calls `exitBench()`. Textbook reaction progress continues while walking; menus pause it.
 This is local tab state; no ChemQuest XP or Supabase result is written.
 This note records the contract change; no external teammate message was sent.
 
@@ -103,5 +112,5 @@ npm run build:chemquest     # ChemQuest-д зориулж ../public/openlab ру
 ## Цааш хийж болох ажлын санаа
 
 - **Хүн 1:** ширээн дээр илүү нарийн чимэглэл, бодит GLTF загвар оруулах, гэрэлтүүлэг/материалыг сайжруулах, Low тохиргоонд гүйцэтгэлийг дахин шалгах.
-- **Хүн 2:** химийн шинэ туршилт нэмэх (титрлэлт, pH индикатор, урвалын өнгө өөрчлөгдөх), багажны дуу/анимаци.
+- **Хүн 2:** шинэ урвал нэмэхдээ `species.ts` (бодис), `reagents.ts` (лонх), `kinetics.ts` эсвэл `equilibrium.ts` (урвал), `describe.ts` (монгол тайлбар), `experiments.ts` (туршилтын алхам)-ыг өргөтгөнө.
 - **Хүн 3:** сургалтын (tutorial) горим, хүртээмжийн шалгалт, гар утасны UI-г сайжруулах. Интерфейс аль хэдийн монгол хэл дээр болсон; шинэ бичвэр нэмэхдээ монголоор бичнэ.

@@ -5,6 +5,7 @@ import { MeshBasicMaterial, MeshStandardMaterial } from 'three';
 import { posterTexture, signTexture, type PosterSpec } from '../../utils/textures';
 import { plastic } from '../../materials/plastic';
 import { metalAluminum, metalBrushed } from '../../materials/metal';
+import { Interactable } from '../../interaction/Interactable';
 
 /** Wall poster 0.5 m × 0.7 m (A2-ish). Origin at wall surface, facing +z. */
 export function Poster({ position, rotY = 0, spec, scale = 1 }: { position: [number, number, number]; rotY?: number; spec: PosterSpec; scale?: number }) {
@@ -31,8 +32,29 @@ export function SignText({ text, color = '#ffffff', width, height, position }: {
   );
 }
 
-/** Pedal waste bin Ø 0.3 m × 0.5 m. */
-export function WasteBin({ position, color = '#9ca3af' }: { position: [number, number, number]; color?: string }) {
+/** Pedal waste bin Ø 0.3 m × 0.5 m; the chemical-waste one takes used solutions (R). */
+export function WasteBin({ position, color = '#9ca3af', chemical = false }: { position: [number, number, number]; color?: string; chemical?: boolean }) {
+  const body = (
+    <>
+      <mesh material={plastic(color, 0.5)} position={[0, 0.25, 0]} castShadow>
+        <cylinderGeometry args={[0.15, 0.13, 0.5, 20]} />
+      </mesh>
+      <mesh material={metalBrushed} position={[0, 0.505, 0]}>
+        <cylinderGeometry args={[0.152, 0.152, 0.02, 20]} />
+      </mesh>
+    </>
+  );
+  if (chemical) {
+    return (
+      <group position={position}>
+        <Interactable id="chem-waste" label="Химийн хаягдлын сав" useTarget={{ type: 'waste' }}>
+          {body}
+        </Interactable>
+        <SignText text={'ХИМИЙН\nХАЯГДАЛ'} color="#ffffff" width={0.2} height={0.1} position={[0, 0.32, 0.151]} />
+        <CylinderCollider args={[0.26, 0.16]} position={[0, 0.26, 0]} />
+      </group>
+    );
+  }
   return (
     <group position={position}>
       <mesh material={plastic(color, 0.5)} position={[0, 0.25, 0]} castShadow>

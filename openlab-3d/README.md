@@ -1,8 +1,11 @@
 # OpenLab 3D
 
 A browser-based, explorable first-person virtual chemistry laboratory (front end only).
-Walk around a 14 m × 12 m Chemistry Lab, light Bunsen burners, weigh glassware on the
-analytical balance, work at the fume hood, and pick up, place and inspect the glassware.
+Walk around a 14 m × 12 m Chemistry Lab, open the labelled drawers and cabinets, take out
+any of 30 kinds of equipment and 50 reagents, pour and mix them, and watch reactions play
+out by real chemistry: precipitates, gases, indicator colors, heat, crystals and fire.
+Glass breaks when it falls, spills make puddles, and a 14-experiment guide walks you
+through classic school experiments step by step.
 
 All in-lab text — menus, prompts, the robot assistant, equipment descriptions, signs,
 posters and the whiteboard — is in Mongolian.
@@ -12,23 +15,24 @@ geometries at real-world scale. No external assets are downloaded at runtime (fo
 bundled from `@fontsource`, the environment map is rendered in-scene, all sounds are
 synthesized with the Web Audio API).
 
+## Integrated NaCl worktop
 
-## Current interaction model: one free laboratory
+Walking and free equipment use remain available without choosing a lesson. The north
+window worktop includes the NaCl experiment (Туршилт 1), with current instructions,
+measured volumes, warnings, molecules and an optional eight-step checklist.
 
-Enter the room normally; no lesson or experiment selection is required. The NaCl
-apparatus is part of the north worktop. Pick any loose apparatus, shelf bottle or
-movable instrument with **E**, carry it through the room, and place with **Q**.
-Hold **R** while aiming at a receiving vessel to pour or use a tool. Use **R** to
-operate a burner or tare the balance. Ordinary room vessels can hold the experiment's
-solutions; contents remain with the item as it moves. **F** shows current vessel
-contents. **V** near the worktop is an optional zoom/orbit view of the same room.
-Click equipment in table view to read its scale and current volume; use the separate pickup button to move it. Left drag pans, right drag orbits, and wheel/pinch or the visible +/− controls zoom. Place held items at the cursor preview. Current instructions and warnings stay visible; an optional checklist explains all eight steps. Guidance does not lock equipment or enforce a step sequence.
+Press **V** near that worktop for a smooth middle-distance table view. Click an item to
+select and frame it, then use **Авах / зөөх** to carry it. Left drag pans, right drag
+orbits, and wheel/pinch or the visible +/− and slider zoom. Place held apparatus at the
+cursor's green preview; there is no nearest-surface fallback. **Ажлын харагдац** and
+**Бүтэн ширээ** reset the camera without moving any apparatus. V/Esc returns to walking.
 
-The NaCl model supports carbonate/acid reaction, CO2, filtering, heating, evaporation,
-cooling, crystals, slide samples, spills and overflow. Other reagent reactions are
-not invented. Installed furniture remains fixed; this is not a full breaking/throwing
-or fluid-physics simulator. State is local to the tab and resets with a new session.
-See [the free-lab implementation notes](src/experiments/nacl/README.md).
+The NaCl apparatus and shelf stock share one hand with the room's physical inventory.
+`useChemStore` owns all contents, so solutions and their individual species remain with
+objects across bench/room transfers, storage and pickup. The room retains its chemistry,
+drawers, grip tools, burner actions, throwing and breakage. The NaCl geometry uses its
+accelerated textbook model; those procedural parts are movable scene objects rather
+than throwable physics bodies. See [the integration notes](src/experiments/nacl/README.md).
 
 ## Run
 
@@ -56,8 +60,13 @@ with base `/openlab/` into `../public/openlab/`, which the Expo web app serves; 
 | E (or click) | Interact / pick up |
 | F | Inspect the focused or held object |
 | Q | Drop / place the held item (ghost preview shows where) |
-| R (hold) | Use / pour from the held item onto the focused target |
-| V | Optional worktop close-up / return to walking |
+| G | Pick up an item even when E does something else (Bunsen burner, balance) |
+| R (hold) | Use the held item on the focused thing: pour (stream speeds up the longer you hold), draw from a bottle, drip with a pipette or dropper, scoop with a spatula, stir, measure temperature / pH, filter, dip the nichrome loop and hold it in a flame, heat a gripped vessel over a burner, cover or extinguish a fire, fill / empty at the sink, dispose of waste, wipe a spill |
+| Q | Also puts the held item into an open drawer, cabinet or test-tube rack in focus |
+| T (hold) | Throw the held item (longer press = harder); glass breaks on hard impacts |
+| Mouse wheel | Burette flow (closed / drops / slow / fast) |
+| V | NaCl worktop camera / return to walking |
+| C | Free the mouse to click HUD buttons; press again (or click the view) to take it back |
 | Shift | Sprint |
 | Space | Jump (can be disabled) |
 | Tab | Tools drawer |
@@ -69,15 +78,45 @@ with base `/openlab/` into `../public/openlab/`, which the Expo web app serves; 
 Enter interacts and Backspace places. On touch devices a virtual joystick (left half),
 drag-to-look (right half) and E/F/Q/sprint buttons appear. All keys are remappable.
 
+### Equipment, storage and chemistry
+
+The room’s inventory equipment consists of loose, physical rapier bodies that can be picked up, carried,
+placed, thrown and inspected (F). Glass and porcelain shatter above ~3.5 m/s impacts
+(shards + a puddle of the contents); upright vessels spill when knocked over; walking into
+items on the floor pushes them. Tongs and the test-tube holder grip items (E while holding
+them), which is required for hot vessels and for heating glass over a flame.
+
+Every bench drawer and cabinet is a labelled storage holder (`src/interaction/holders.ts`):
+drawers hold equipment by category (small tools, glassware, heating, measuring, test tubes,
+safety, filtration, dishes); cabinets hold reagents (acids, bases, salt solutions,
+indicators, solid salts, metals, special reagents, water & dyes); the yellow cabinet holds
+ethanol. Contents appear when opened; E takes an item, Q puts one back. Test-tube racks
+hold real tubes.
+
+The chemistry engine (`src/chemistry/`) tracks moles: strong ions, weak acid/base systems
+(acetate, ammonia, carbonate), molecules and solids. pH comes from the charge balance;
+hydroxides and salts precipitate by Ksp; metals react with acid or displace less active
+metals; carbonates fizz; H₂O₂ decomposes on KI/MnO₂ (foam with soap); permanganate is
+decolorized; Fe³⁺/SCN⁻, Cu²⁺/NH₃ and starch/iodine give color complexes; dissolving is
+endo- or exothermic; burners heat vessels on a tripod (boiling, evaporation to crystals,
+dehydration of CuSO₄·5H₂O, charring sugar); ethanol ignites and is put out by covering or
+CO₂. Colors follow Beer–Lambert absorption; suspended solids make the liquid cloudy, then
+settle into a sediment layer. Flame tests color the burner flame by cation.
+
+Every reaction is announced (toast, notebook, robot) and drives the experiment guide in
+the menu's **Experiments** tab (`src/lab/experiments.ts`), whose active experiment is
+shown at the top left.
+
 ### Bench skills
 
 The menu's **Experiments** tab, the robot assistant and the end-of-session lab report
-track three bench skills:
+track four bench skills:
 
-1. **Light a Bunsen burner** on one of the island benches (R toggles the flame; E carries it).
+1. **Light a Bunsen burner** on one of the island benches (E toggles the flame).
 2. **Tare the analytical balance** on the west bench, then place glassware on its pan —
    the display shows the summed catalog mass minus the tare.
 3. **Raise the fume-hood sash** on the north wall.
+4. **Mix two substances** so that they react (R).
 
 Each action is also written to the activity log in the lab notebook (N).
 
@@ -98,7 +137,11 @@ src/
                 Whiteboard, SafetyShower, FireExtinguisher, Decor
   equipment/    one component per model + equipmentCatalog.ts and the kind → model registry
   materials/    glass, plastic, metal, liquids, labPalette
-  interaction/  Interactable, useRaycastFocus, Pickable, HeldItem, InspectMode, surfaces, spawn
+  chemistry/    species, reagents, mixture model, equilibrium (pH, Ksp), kinetics, colors, texts
+  lab/          lab event bus, observation tracking, announcer, spills, experiment guide
+  physics/      breakage and impact sounds
+  interaction/  Interactable, useRaycastFocus, Pickable, HeldItem, InspectMode, surfaces, spawn,
+                actions (R), holders + StoredItems (drawers, cabinets, racks), live bodies
   ui/           HUD and every overlay (menu, notes, tools drawer, robot, minimap,
                 loading/start, pause, summary, touch)
   utils/        sounds, textures (procedural CanvasTextures), fonts, constants

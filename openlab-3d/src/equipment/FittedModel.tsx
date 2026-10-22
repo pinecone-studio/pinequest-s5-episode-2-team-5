@@ -8,11 +8,29 @@ import { Box3, Sphere, Vector3, type Group, type PerspectiveCamera } from 'three
 import type { OrbitControls as OrbitControlsImpl } from 'three-stdlib';
 import type { EquipmentKind } from './equipmentCatalog';
 import type { ItemVariant } from '../world/itemsLayout';
+import type { Mixture } from '../chemistry/mixture';
+import type { ToolState } from '../store/useChemStore';
 import { EquipmentModel } from './registry';
 
 const DEFAULT_DIR = new Vector3(0.55, 0.42, 0.85).normalize();
 
-export function FittedModel({ kind, variant, fill = 1.08, direction = DEFAULT_DIR }: { kind: EquipmentKind; variant?: ItemVariant; fill?: number; direction?: Vector3 }) {
+export function FittedModel({
+  kind,
+  variant,
+  mixture,
+  tool,
+  fill = 1.08,
+  direction = DEFAULT_DIR,
+  decorative = !mixture,
+}: {
+  kind: EquipmentKind;
+  variant?: ItemVariant;
+  mixture?: Mixture;
+  tool?: ToolState;
+  fill?: number;
+  direction?: Vector3;
+  decorative?: boolean;
+}) {
   const inner = useRef<Group>(null);
   const camera = useThree((s) => s.camera) as PerspectiveCamera;
   const controls = useThree((s) => s.controls) as OrbitControlsImpl | null;
@@ -52,7 +70,7 @@ export function FittedModel({ kind, variant, fill = 1.08, direction = DEFAULT_DI
   }, [kind, camera, controls, fill, direction]);
   return (
     <group ref={inner}>
-      <EquipmentModel kind={kind} variant={variant} />
+      <EquipmentModel kind={kind} variant={variant} mixture={mixture} tool={tool} decorative={decorative} upright />
     </group>
   );
 }

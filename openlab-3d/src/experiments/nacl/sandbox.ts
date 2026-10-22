@@ -1,4 +1,10 @@
 import { create } from 'zustand';
+import { useChemStore, mixtureOf } from '../../store/useChemStore';
+import { readBenchMixture, seedBenchChemistry, updateBenchMixture } from './chemistry';
+import { takeLiquid, takeSolid, merge as mergeMixtures } from '../../chemistry/mixture';
+import { vesselFx } from '../../lab/vesselFx';
+import { spillMixture } from '../../lab/spill';
+import { livePose } from '../../interaction/bodies';
 import { Vector3 } from 'three';
 import { CATALOG } from '../../equipment/equipmentCatalog';
 import { useInventoryStore } from '../../store/useInventoryStore';
@@ -36,6 +42,7 @@ function seeds() {
 }
 interface SandboxState {
   contents: Record<string, Mixture>;
+  participants: string[];
   guide: boolean;
   near: boolean;
   inspected: string | null;
@@ -56,7 +63,7 @@ interface SandboxState {
   puddles: { x: number; y: number; z: number; ml: number }[];
 }
 export const useSandbox = create<SandboxState>()(() => ({
-  contents: seeds(), guide: false, near: false, inspected: null, heldId: null, hovered: null,
+  contents: seeds(), participants: [], guide: false, near: false, inspected: null, heldId: null, hovered: null,
   warning: 'Чөлөөтэй туршиж болно. Зааврыг дагаарай: буруу бодис, халуун сав, хэт дүүргэлтийг анхаар.',
   completed: [], lit: false, paperIn: false, receiver: null, co2: 0, added: 0, rx: null,
   operating: false, scope: false, focus: 10,
@@ -71,24 +78,27 @@ export function describe(id: string): LabObject {
   if (!item) {
     const entry = interactables.get(id);
     const role = entry?.inspectKind ?? 'unknown';
-    const capacity = ({ beaker: 250, erlenmeyer: 250, testTube: 25, graduatedCylinder: 100, reagentBottle: 100 } as Record<string, number>)[role] ?? 0;
+    const capacity = entry?.inspectKind ? CATALOG[entry.inspectKind].capacityMl ?? 0 : 0;
     return { id, label: entry?.label ?? id, capacity, role };
   }
   const role = item.kind;
-  const capacities: Record<string, number> = { beaker: 250, erlenmeyer: 250, testTube: 25, graduatedCylinder: 100, reagentBottle: 100 };
-  return { id, label: CATALOG[item.kind].name, capacity: capacities[role] ?? 0, role };
+  return { id, label: CATALOG[item.kind].name, capacity: CATALOG[role].capacityMl ?? 0, role };
+}
+function itemVariant(id: string) {
+  const inv = useInventoryStore.getState();
+  return inv.worldItems.find((x) => x.id === id)?.variant ?? (inv.held?.id === id ? inv.held.variant : undefined)
+    ?? Object.values(inv.storage).flat().find((x) => x.id === id)?.variant;
 }
 export function mixture(id: string): Mixture {
-  const existing = useSandbox.getState().contents[id];
-  if (existing) return existing;
-  const inv = useInventoryStore.getState();
-  const item = inv.worldItems.find((x) => x.id === id) ?? (inv.held?.id === id ? inv.held : null);
-  const label = item?.variant?.label ?? '';
-  const capacity = describe(id).capacity;
-  const ml = label === 'HCl' ? 80 : Math.round(capacity * (item?.variant?.fill ?? 0));
-  const value = { ...empty(), ml, acid: label === 'HCl' ? ml : 0, salt: label === 'NaCl' ? 5 : 0, other: label && !['HCl', 'NaCl'].includes(label) ? label : item?.variant?.liquid ? 'Өнгөт жишиг уусмал' : '' };
-  useSandbox.setState((s) => ({ contents: { ...s.contents, [id]: value } }));
-  return value;
+  return readBenchMixture(id, itemVariant(id));
+}
+/** Mirror only the UI projection. All vessel contents are owned by useChemStore. */
+export function syncBenchContents() {
+  const state = useSandbox.getState();
+  const ids = new Set([...Object.keys(NAMES).map((key) => partId(key as PartKey)), ...state.participants, ...(state.inspected ? [state.inspected] : [])]);
+  const contents: Record<string, Mixture> = {};
+  for (const id of ids) contents[id] = mixture(id);
+  useSandbox.setState({ contents });
 }
 export const crystalMass = (m: Mixture) => Math.max(0, m.salt - m.ml * (m.temp > 60 ? 0.39 : 0.36));
 export function contentsLabel(m: Mixture) {
@@ -100,17 +110,8 @@ export function contentsLabel(m: Mixture) {
   return labels.join(' + ') || (m.ml > 0.01 ? 'Ус / уусмал' : 'Хоосон');
 }
 function write(id: string, m: Mixture) {
+  updateBenchMixture(id, m);
   useSandbox.setState((s) => ({ contents: { ...s.contents, [id]: m } }));
-  // Keep ordinary OpenLab vessels' colors/fill with their identity through pickup/place.
-  if (!partKey(id)) {
-    const capacity = describe(id).capacity;
-    const fill = capacity ? Math.min(1, m.ml / capacity) : 0;
-    const color = m.acid > 0 ? '#cfe6ff' : m.carbonate > 0 ? '#e9eef1' : '#d6ebff';
-    useInventoryStore.setState((s) => ({
-      worldItems: s.worldItems.map((item) => item.id === id ? { ...item, variant: { ...item.variant, fill, liquid: color } } : item),
-      held: s.held?.id === id ? { ...s.held, variant: { ...s.held.variant, fill, liquid: color } } : s.held,
-    }));
-  }
 }
 export function warn(text: string) { useSandbox.setState({ warning: text }); }
 function mark(id: string) {
@@ -120,17 +121,7 @@ function mark(id: string) {
   }
 }
 function spill(ml: number) {
-  if (ml <= 0) return;
-  const at = heldApi.target?.point;
-  useSandbox.setState((s) => {
-    const puddles = s.puddles.map((p) => ({ ...p }));
-    if (at) {
-      const old = puddles.find((p) => Math.hypot(p.x - at.x, p.z - at.z) < 0.12 && Math.abs(p.y - at.y) < 0.05);
-      if (old) old.ml += ml;
-      else puddles.push({ x: at.x, y: at.y + 0.004, z: at.z, ml });
-    }
-    return { spilled: s.spilled + ml, puddles: puddles.slice(-24) };
-  });
+  if (ml > 0) useSandbox.setState((s) => ({ spilled: s.spilled + ml }));
 }
 export function heldObjectId() { return usePortableStore.getState().held?.id ?? useInventoryStore.getState().held?.id ?? null; }
 
@@ -139,6 +130,7 @@ let actionClock = 0;
 export const labUse = {
   start(target: string | null) {
     const source = heldObjectId();
+    useSandbox.setState((s) => ({ participants: [...new Set([...s.participants, ...[source, target].filter((id): id is string => !!id)])] }));
     if (useSandbox.getState().scope) return;
     if (target) mixture(target);
     action = { source, target };
@@ -168,6 +160,7 @@ export const labUse = {
       warn('Багажийг E дарж ав. Барьж буй зүйлээ өөр сав руу чиглүүлээд R дарж ашигла.');
       action = null;
     }
+    if (!action) useSandbox.setState({ operating: false });
   },
   end() { action = null; useSandbox.setState({ operating: false }); },
   dose(target: string, amount: number) {
@@ -190,10 +183,11 @@ export function simulateLab(rawDt: number, distance: (a: string, b: string) => n
   if (act?.source && !act.target && describe(act.source).capacity > 0) {
     const from = { ...mixture(act.source) };
     const amount = Math.min(from.ml, 8 * dt);
-    const ratio = amount / Math.max(0.001, from.ml);
-    from.ml -= amount;
-    for (const field of ['acid', 'carbonate', 'salt'] as const) from[field] *= 1 - ratio;
-    write(act.source, from); spill(amount);
+    const portions = takeLiquid(mixtureOf(act.source, itemVariant(act.source)), amount);
+    useChemStore.getState().setMixtures({ [act.source]: portions.rest });
+    const at = heldApi.target?.point ?? labSpace.position(act.source);
+    spillMixture(portions.taken, at.x, at.y, at.z);
+    spill(amount);
     if (amount > 0) warn('Сав руу чиглүүлээгүй тул шингэн асгарч байна. Зааврыг дагаарай.');
   }
   if (act?.source && act.target && act.source !== act.target) {
@@ -202,20 +196,20 @@ export function simulateLab(rawDt: number, distance: (a: string, b: string) => n
     const nearby = distance(act.source, act.target) < 1.0;
     if (!nearby) {
       warn('Хүрэхгүй байна. Савандаа ойртож, чиглүүлээд дахин ашиглаарай.');
-    } else if (source.role === 'rod' && target.capacity > 0) {
+    } else if (['rod', 'glassRod'].includes(source.role) && target.capacity > 0) {
       warn('Хутгаж байна. Хий ялгарахаа болихыг ажиглаарай.');
       mark('stir');
-    } else if (source.role === 'spat' && target.role === 'jar' && from.carbonate < 0.5) {
+    } else if (['spat', 'spatula'].includes(source.role) && ['jar', 'reagentJar'].includes(target.role) && from.carbonate < 0.5) {
       const dose = Math.min(0.5 - from.carbonate, to.carbonate);
-      from.carbonate += dose; to.carbonate -= dose;
-      write(act.source, from); write(act.target, to);
-    } else if ((source.role === 'jar' || source.role === 'spat') && target.capacity > 0) {
+      const portions = takeSolid(mixtureOf(act.target, itemVariant(act.target)), dose);
+      useChemStore.getState().setMixtures({ [act.target]: portions.rest, [act.source]: mergeMixtures(mixtureOf(act.source, itemVariant(act.source)), portions.taken) });
+    } else if (['jar', 'reagentJar', 'spat', 'spatula'].includes(source.role) && target.capacity > 0) {
       const dose = Math.min(from.carbonate, 0.3 * dt);
       if (to.ml <= 0) warn('Хуурай саванд нунтаг хийж байна. Заавар: эхлээд 50 см³ хүчил хэмжээрэй.');
       else if (to.acid <= 0.01) warn('Хүчил дууссан: илүүдэл карбонат бүтээгдэхүүнд хольц болно.');
-      to.carbonate += dose; from.carbonate -= dose;
+      const portions = takeSolid(mixtureOf(act.source, itemVariant(act.source)), dose);
+      useChemStore.getState().setMixtures({ [act.source]: portions.rest, [act.target]: mergeMixtures(mixtureOf(act.target, itemVariant(act.target)), portions.taken) });
       useSandbox.setState((s) => ({ added: s.added + dose }));
-      write(act.source, from); write(act.target, to);
     } else if (target.role === 'slide' && crystalMass(from) > 0.001) {
       const dose = Math.min(0.02, crystalMass(from));
       from.salt -= dose; to.salt += dose;
@@ -229,17 +223,17 @@ export function simulateLab(rawDt: number, distance: (a: string, b: string) => n
       if (overflow > 0) { spill(overflow); warn('Сав хальж, шингэн асгарч байна. Та цутгасаар байна — R-ээ суллаад савандаа зай гаргаарай.'); }
       if (target.role === 'funnel' && !useSandbox.getState().paperIn) warn('Юүлүүрт цаас алга. Шүүлтгүйгээр бодисууд хамт дамжина.');
       if (to.other || from.other) warn('Жишиг/өөр бодистой хольж байна. Энэ хольцын урвалыг загварчилдаггүй; цэвэр NaCl гэж бүү үз.');
-      const volume = Math.max(0.001, from.ml);
-      const ratio = amount / volume;
-      const removedRatio = poured / volume;
-      to.ml += amount; from.ml -= poured;
-      for (const field of ['acid', 'carbonate', 'salt'] as const) {
-        const moved = from[field] * ratio;
-        from[field] *= 1 - removedRatio; to[field] += moved;
+      const portions = takeLiquid(mixtureOf(act.source, itemVariant(act.source)), poured);
+      const kept = takeLiquid(portions.taken, amount);
+      useChemStore.getState().setMixtures({
+        [act.source]: portions.rest,
+        [act.target]: mergeMixtures(mixtureOf(act.target, itemVariant(act.target)), kept.taken),
+      });
+      if (overflow > 0) {
+        const at = labSpace.position(act.target);
+        spillMixture(kept.rest, at.x, at.y, at.z);
       }
-      to.other ||= from.other;
-      to.temp = Math.max(to.temp, from.temp);
-      write(act.source, from); write(act.target, to);
+      to.ml += amount; from.ml -= poured;
       if (act.remaining !== undefined) { act.remaining -= poured; if (act.remaining < 0.001 || from.ml < 0.001) labUse.end(); }
       if (to.ml >= 49 && to.ml <= 51 && ['cyl', 'graduatedCylinder'].includes(target.role)) mark('measure');
       if (to.temp > 50) warn('Халуун уусмал! Түлэгдэх аюултай.');
@@ -251,8 +245,14 @@ export function simulateLab(rawDt: number, distance: (a: string, b: string) => n
   }
   let rx: 'acid' | 'evap' | null = null;
   for (const [id, original] of Object.entries(useSandbox.getState().contents)) {
-    const m = { ...original };
-    if (m.ml > 0 && m.acid > 0 && m.carbonate > 0) {
+    if (!partKey(id)) {
+      // The general engine owns ordinary vessels; only observe its carbonate gas effect.
+      const core = mixtureOf(id, itemVariant(id));
+      if ((vesselFx.get(id)?.bubbles ?? 0) > .01 && core.temp < 60 && ((core.s.Na2CO3 ?? 0) > 1e-8 || (core.aq.CO3 ?? 0) > 1e-8)) { rx = 'acid'; mark('reaction'); }
+      continue;
+    }
+    const m = mixture(id);
+    if (!m.other && m.ml > 0 && m.acid > 0 && m.carbonate > 0) {
       const factor = act?.source === partId('rod') && act.target === id ? 2 : 1;
       const mmol = Math.min(m.acid / 2, m.carbonate * 1000 / CHEM.molarCarbonate, dt * factor * 1.8);
       m.acid = Math.max(0, m.acid - 2 * mmol);
@@ -261,7 +261,7 @@ export function simulateLab(rawDt: number, distance: (a: string, b: string) => n
       useSandbox.setState((s) => ({ co2: s.co2 + mmol * CHEM.molarVolume }));
       rx = 'acid'; mark('reaction');
     }
-    const nearbyBurner = Object.entries(useExperimentStore.getState().toggles).some(([burner, lit]) => lit && burner.startsWith('burner-') && distance(id, burner) < 0.35);
+    const nearbyBurner = useInventoryStore.getState().worldItems.some((item) => item.kind === 'bunsenBurner' && useExperimentStore.getState().toggles[item.id] && Math.hypot(livePose(item).x - labSpace.position(id).x, livePose(item).z - labSpace.position(id).z) < 0.15 && Math.abs(livePose(item).y - labSpace.position(id).y) < 0.35);
     const onHeat = id === partId('dish') && ((useSandbox.getState().lit && distance(id, partId('lamp')) < 0.22) || nearbyBurner);
     if (onHeat && m.ml > 0) {
       m.temp = Math.min(100, m.temp + dt * 15);
@@ -278,18 +278,13 @@ export function simulateLab(rawDt: number, distance: (a: string, b: string) => n
   if (state.receiver && funnel.ml > 0 && distance(state.receiver, partId('funnel')) < 0.22) {
     const receiving = { ...mixture(state.receiver) };
     const amount = Math.min(funnel.ml, 3 * dt, Math.max(0, describe(state.receiver).capacity - receiving.ml));
-    const ratio = amount / Math.max(funnel.ml, 0.001);
-    receiving.ml += amount; funnel.ml -= amount;
-    for (const field of ['acid', 'salt', 'carbonate'] as const) {
-      // This simplified filter retains suspended solids; it cannot remove dissolved salts.
-      if (field === 'carbonate' && state.paperIn) continue;
-      const moved = funnel[field] * ratio;
-      receiving[field] += moved; funnel[field] -= moved;
-    }
-    receiving.other ||= funnel.other;
-    write(partId('funnel'), funnel); write(state.receiver, receiving);
+    const portions = takeLiquid(mixtureOf(partId('funnel')), amount);
+    const retained = state.paperIn ? { ...portions.taken, s: {} } : portions.taken;
+    const rest = state.paperIn ? { ...portions.rest, s: { ...mixtureOf(partId('funnel')).s } } : portions.rest;
+    useChemStore.getState().setMixtures({ [partId('funnel')]: rest, [state.receiver]: mergeMixtures(mixtureOf(state.receiver, itemVariant(state.receiver)), retained) });
     if (amount > 0) mark('filter');
   }
+  syncBenchContents();
   useSandbox.setState({ rx });
 }
 
@@ -305,5 +300,7 @@ export function guideHint() {
 export function resetSandbox() {
   labUse.end();
   actionClock = 0; simulationClock = 0;
-  useSandbox.setState({ ...useSandbox.getInitialState(), contents: seeds() });
+  const contents = seeds();
+  seedBenchChemistry(contents);
+  useSandbox.setState({ ...useSandbox.getInitialState(), contents });
 }

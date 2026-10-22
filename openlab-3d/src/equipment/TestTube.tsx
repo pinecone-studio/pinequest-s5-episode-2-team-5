@@ -1,9 +1,14 @@
-/** 16 × 150 mm test tube with a rounded bottom and flared lip (origin at the bottom). */
+/**
+ * 16 × 150 mm test tube with a rounded bottom and flared lip (origin at the bottom).
+ * Upright in a rack or in the hand it shows its contents; a loose tube lies on its side.
+ */
 import { LatheGeometry, Vector2 } from 'three';
 import { useGlass } from '../materials/glass';
-import { useLiquid } from '../materials/liquids';
 import { lazy } from '../utils/lazy';
-import { ModelOr, type ModelProps } from './ModelOr';
+import { ModelOr } from './ModelOr';
+import { VesselContents } from './VesselContents';
+import { PROFILES } from './profiles';
+import type { VesselModelProps } from './Beaker';
 
 const R = 0.008;
 const L = 0.15;
@@ -18,28 +23,21 @@ export const testTubeGeometry = lazy(() => {
   return new LatheGeometry(pts, 18);
 });
 
-export function liquidTubeGeometry(level: number): LatheGeometry {
-  const r = R - 0.0012;
-  const pts: Vector2[] = [];
-  for (let i = 0; i <= 6; i++) {
-    const a = (i / 6) * (Math.PI / 2);
-    pts.push(new Vector2(Math.sin(a) * r, R - Math.cos(a) * r));
-  }
-  pts.push(new Vector2(r, level), new Vector2(0, level));
-  return new LatheGeometry(pts, 14);
-}
-
-const tubeLiquid = lazy(() => liquidTubeGeometry(0.06));
-
-export function TestTube({ modelUrl, liquidColor = '#ff5a5a', fill = 0.5, ...props }: ModelProps & { liquidColor?: string; fill?: number }) {
+export function TestTube({ modelUrl, look, itemId, upright = false, ...props }: VesselModelProps & { upright?: boolean }) {
   const glass = useGlass('#eef8fb');
-  const liquid = useLiquid(liquidColor);
+  if (upright) {
+    return (
+      <ModelOr modelUrl={modelUrl} {...props}>
+        <mesh geometry={testTubeGeometry()} material={glass} renderOrder={1} castShadow />
+        {look && <VesselContents profile={PROFILES.testTube} look={look} itemId={itemId} />}
+      </ModelOr>
+    );
+  }
   return (
     <ModelOr modelUrl={modelUrl} {...props}>
-      {/* Modeled upright, then laid on its side so a loose tube rests stably on a bench. */}
+      {/* Laid on its side so a loose tube rests stably on a bench. */}
       <group rotation={[Math.PI / 2, 0, 0]} position={[0, R, -L / 2]}>
         <mesh geometry={testTubeGeometry()} material={glass} renderOrder={1} castShadow />
-        {fill > 0.01 && <mesh geometry={tubeLiquid()} material={liquid} scale={[1, fill * 2, 1]} userData={{ noOutline: true }} />}
       </group>
     </ModelOr>
   );

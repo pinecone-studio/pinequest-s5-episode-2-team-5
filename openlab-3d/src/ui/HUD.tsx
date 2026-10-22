@@ -25,12 +25,15 @@ import { TouchControls } from './TouchControls';
 import { isTouchDevice } from '../utils/device';
 import { InspectMode } from '../interaction/InspectMode';
 import { NaClHUD } from '../experiments/nacl/NaClHUD';
+import { useSandbox } from '../experiments/nacl/sandbox';
+import { ActionGauge, ExperimentCard, SafetyBadges, ThrowMeter } from './LabHud';
 
 export function HUD() {
   const mode = useGameStore((s) => s.mode);
   const showFps = useSettingsStore((s) => s.showFps);
   const inGame = mode !== 'loading' && mode !== 'start' && mode !== 'ended';
   const bench = mode === 'bench';
+  const nearNaCl = useSandbox((s) => s.near);
   const showChrome = inGame && mode !== 'inspect' && !bench;
   const touch = isTouchDevice();
   return (
@@ -38,6 +41,8 @@ export function HUD() {
       {inGame && touch && <TouchControls />}
       {showChrome && mode === 'walk' && <Crosshair />}
       {showChrome && mode === 'walk' && <InteractionPrompt />}
+      {showChrome && mode === 'walk' && <ActionGauge />}
+      {showChrome && mode === 'walk' && <ThrowMeter />}
       {showChrome && !touch && <ClickToLookHint />}
       {showChrome && (
         <>
@@ -50,6 +55,8 @@ export function HUD() {
           </div>
           <RoomToast />
           <Minimap />
+          <SafetyBadges />
+          {!nearNaCl && <ExperimentCard />}
         </>
       )}
       {(mode === 'walk' || bench) && <NaClHUD />}

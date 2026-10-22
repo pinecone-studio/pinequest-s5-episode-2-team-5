@@ -12,15 +12,18 @@ import { plastic } from '../../materials/plastic';
 import { decorGlass } from '../../materials/glass';
 import { lazy } from '../../utils/lazy';
 import { Interactable } from '../../interaction/Interactable';
-import { useSandbox } from '../../experiments/nacl/sandbox';
+import { useMixture } from '../../store/useChemStore';
+import { liquidMl } from '../../chemistry/mixture';
+import { mixtureLook } from '../../chemistry/color';
 
 function StockFill({ id, capacity, radius, height }: { id: string; capacity: number; radius: number; height: number }) {
-  const content = useSandbox((s) => s.contents[id]);
-  if (!content || content.ml <= 0.01) return null;
-  const level = Math.min(1, content.ml / capacity) * height;
+  const content = useMixture(id);
+  const ml = liquidMl(content);
+  if (ml <= 0.01) return null;
+  const level = Math.min(1, ml / capacity) * height;
   return <mesh position={[0, 0.004 + level / 2, 0]} raycast={() => undefined}>
     <cylinderGeometry args={[radius, radius, level, 16]} />
-    <meshPhysicalMaterial color={content.carbonate > 0 ? '#e9eef1' : '#cfe6ff'} transparent opacity={0.6} depthWrite={false} />
+    <meshPhysicalMaterial color={mixtureLook(content).liquid ?? '#cfe6ff'} transparent opacity={0.6} depthWrite={false} />
   </mesh>;
 }
 
@@ -149,8 +152,8 @@ export function ShelvingUnits({ units, width = 1.8, height = 2.0, depth = 0.5, l
     <group>
       <Instanced geometry={unit()} material={metalPainted} items={data.frame} castShadow />
       <Instanced geometry={unit()} material={plastic('#ffffff', 0.85)} items={data.boxes} castShadow />
-      {data.beakers.map(({ matrix: m }, i) => <Interactable key={`beaker-${i}`} id={`stock-${seed}-beaker-${i}`} label="Тавиурын шилэн аяга" inspectKind="beaker"><mesh geometry={stockBeakerGeometry()} material={glass} position={m.position} rotation={m.rotation} scale={m.scale}><StockFill id={`stock-${seed}-beaker-${i}`} capacity={250} radius={0.032} height={0.085} /></mesh></Interactable>)}
-      {data.flasks.map(({ matrix: m }, i) => <Interactable key={`flask-${i}`} id={`stock-${seed}-flask-${i}`} label="Тавиурын конус колбо" inspectKind="erlenmeyer"><mesh geometry={stockFlaskGeometry()} material={glass} position={m.position} rotation={m.rotation} scale={m.scale}><StockFill id={`stock-${seed}-flask-${i}`} capacity={250} radius={0.027} height={0.055} /></mesh></Interactable>)}
+      {data.beakers.map(({ matrix: m }, i) => <Interactable key={`beaker-${i}`} id={`stock-${seed}-beaker-${i}`} label="Тавиурын шилэн аяга" movable inspectKind="beaker"><mesh geometry={stockBeakerGeometry()} material={glass} position={m.position} rotation={m.rotation} scale={m.scale}><StockFill id={`stock-${seed}-beaker-${i}`} capacity={250} radius={0.032} height={0.085} /></mesh></Interactable>)}
+      {data.flasks.map(({ matrix: m }, i) => <Interactable key={`flask-${i}`} id={`stock-${seed}-flask-${i}`} label="Тавиурын конус колбо" movable inspectKind="erlenmeyer"><mesh geometry={stockFlaskGeometry()} material={glass} position={m.position} rotation={m.rotation} scale={m.scale}><StockFill id={`stock-${seed}-flask-${i}`} capacity={250} radius={0.027} height={0.055} /></mesh></Interactable>)}
       {units.map((u, i) => (
         <CuboidCollider key={i} args={[width / 2, height / 2, depth / 2]} position={[u.x, height / 2, u.z]} rotation={[0, u.rotY, 0]} />
       ))}
@@ -189,7 +192,7 @@ export function ReagentShelf({ position, rotY = 0, width = 2.2, seed = 3 }: { po
     <group>
       <Instanced geometry={unit()} material={metalAluminum} items={data.frame} castShadow />
       {data.bottles.map(({ matrix: m, color }, i) => (
-        <Interactable key={i} id={`stock-${seed}-bottle-${i}`} label="Тавиурын урвалжийн шил (хоосон)" inspectKind="reagentBottle">
+        <Interactable key={i} id={`stock-${seed}-bottle-${i}`} label="Тавиурын урвалжийн шил (хоосон)" movable inspectKind="reagentBottle">
           <group position={m.position} rotation={m.rotation} scale={m.scale}>
             <mesh geometry={bottleGeo()} material={plastic(`#${color?.getHexString() ?? 'ffffff'}`, 0.25)} castShadow />
             <mesh geometry={capGeo()} material={plastic(`#${data.caps[i].color?.getHexString() ?? '111111'}`, 0.5)} />

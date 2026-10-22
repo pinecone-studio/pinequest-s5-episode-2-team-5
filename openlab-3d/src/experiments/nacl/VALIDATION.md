@@ -1,33 +1,34 @@
-# Free-lab validation — 2026-10-22
+# Combined main/bench validation — 2026-10-22
 
-- `npm run build:chemquest` in `openlab-3d/`: passed (includes strict TypeScript build).
+Commands:
+
 - Root `npm run lint`: passed.
-- Root `npm run typecheck`: still fails in the existing nested duplicate checkout:
-  missing nightMode/onNightModePress in its hub, and its obsolete lab-scene import.
-  No errors from the current standalone OpenLab typecheck.
+- Root Expo web export to a temporary output directory: passed (1360 modules bundled).
+- Root `npm run typecheck`: passed. The local duplicate checkout is excluded and its accidentally committed gitlink removed; its on-disk files were retained.
+- `npm run build:chemquest` in `openlab-3d/`: passed, including strict TypeScript and regenerated public assets.
 
-Headless Chrome checks against the running standalone app verified:
+Headless Chrome checks against the merged running app exercised the real runtime
+stores, interaction callbacks and camera, with no browser page errors:
 
-- Default entry is walk mode, with no experiment selection.
-- E/Enter pickup works through the actual camera ray and interactable registry.
-- A microscope can be picked up before any chemistry steps.
-- The same microscope can be carried to another bench and stays placed at its surface
-  (observed y=0.904 m rather than the hand position).
-- Ordinary inventory glassware and individually movable shelf bottles share one hand.
-- A movable burner retains its R toggle callback.
-- Liquid transfers into an ordinary spawned beaker; carbonate produces NaCl and CO2.
-- Contents survive that ordinary vessel's pickup/place cycle.
-- Overflow, pouring without a receiver, out-of-range use, paper filtering, heating,
-  crystal formation, and cooling satisfy the checked state invariants.
-- Optional V close-up enters bench camera mode and Escape returns to walking.
-- New-session reset clears the hand and restores the acid stock to 100 cm3.
-- No browser page errors occurred during these checks.
+- Default walking and optional V work/detail camera; return to walking preserves apparatus placement.
+- Visible zoom buttons, mouse-wheel zoom, pan arrows and drag panning.
+- Exact 5 cm³ and 1 cm³ doses; 50 cm³ acid measurement.
+- Cursor placement of the same bottle at two distinct worktop points, 35 cm apart.
+- Mobile controls at 390×844 and desktop at 1440×1000.
+- Full NaCl sequence: react 50 cm³ of 1 M HCl with excess carbonate, filter, heat to first crystals, turn off, cool below 30 °C, collect, dry and transfer a sample to a slide.
+- Stoichiometry: 2.922 g total NaCl and 600 cm³ CO₂. Transferring 0.020 g to the slide leaves 2.902 g on the watch glass without creating or losing salt.
+- Copper/sulfate solution retains its species when transferred both into and out of NaCl apparatus.
+- Ordinary-vessel R actions still use the room’s general chemistry and conserve chloride.
+- One hand is shared by scene apparatus, inventory and stored equipment.
+- Opening a real drawer, taking an item and storing that same item back preserves its identity.
+- Room burner E toggle and G pickup callbacks both remain usable; inventory throwing retains its velocity.
+- Session restart clears all carried items and puddles and restores 100 cm³ acid.
 
-These checks include both actual keyboard/camera pickup and deterministic calls into
-live chemistry stores. They do not prove full manual scientific accuracy, real-device
-performance, arbitrary chemistry, breakage, throwing, or fluid dynamics.
+The production assets served by ChemQuest are checked for desktop/mobile loading,
+live measurements, zoom and pan controls, warnings, return to walking and absence of
+horizontal overflow. Production builds omit the development debug bridge.
 
-The rebuilt production page served by ChemQuest was also checked in headless Chrome
-at 1440x1000 and a 390x844 touch viewport. Both loaded without page errors or horizontal
-overflow. Normal walking, the optional table waypoint, optional close-up and return to
-walking worked. The production page did not expose the development debug bridge.
+These checks combine actual browser input and deterministic simulation calls. They do
+not certify scientific accuracy, every reagent combination or real-device performance.
+The NaCl procedural parts retain their accelerated model; the room’s physics inventory
+retains its original breakage, throwing, storage and general chemistry.

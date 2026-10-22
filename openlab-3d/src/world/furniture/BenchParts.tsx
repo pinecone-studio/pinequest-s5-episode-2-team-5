@@ -5,7 +5,9 @@
  */
 import type { ReactNode } from 'react';
 import { createInstances } from '@react-three/drei';
-import { BoxGeometry, BufferGeometry, Color, CylinderGeometry, Float32BufferAttribute } from 'three';
+import { BoxGeometry, BufferGeometry, Color, CylinderGeometry, Float32BufferAttribute, MeshStandardMaterial, PlaneGeometry } from 'three';
+import { STORAGE_INFO, type StorageCategory } from '../../interaction/holders';
+import { plateTexture } from '../../utils/textures';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import { benchFront, plasticLightGray } from '../../materials/plastic';
 import { metalChrome } from '../../materials/metal';
@@ -16,6 +18,38 @@ const [HandleInstances, HandleInstance] = createInstances();
 const [BoxInstances, BoxInstance] = createInstances();
 
 export { FrontInstance, HandleInstance, BoxInstance };
+
+const LABEL_CATEGORIES = (Object.keys(STORAGE_INFO) as StorageCategory[]).filter((c) => c !== 'rack');
+const LABEL_SETS = Object.fromEntries(LABEL_CATEGORIES.map((c) => [c, createInstances()])) as Record<StorageCategory, ReturnType<typeof createInstances>>;
+const labelGeometry = lazy(() => new PlaneGeometry(1, 1));
+const labelMaterials = new Map<StorageCategory, MeshStandardMaterial>();
+function labelMaterial(c: StorageCategory): MeshStandardMaterial {
+  let m = labelMaterials.get(c);
+  if (!m) {
+    m = new MeshStandardMaterial({ map: plateTexture(STORAGE_INFO[c].label, STORAGE_INFO[c].color), roughness: 0.6 });
+    labelMaterials.set(c, m);
+  }
+  return m;
+}
+
+/** Category plate on a drawer front or cabinet door (instanced per category). */
+export function LabelPlate({ category, position, scale }: { category: StorageCategory; position: [number, number, number]; scale: [number, number, number] }) {
+  const set = LABEL_SETS[category];
+  if (!set) return null;
+  const Instance = set[1];
+  return <Instance position={position} scale={scale} />;
+}
+
+function LabelProviders({ children, limit }: { children: ReactNode; limit: number }) {
+  return LABEL_CATEGORIES.reduce<ReactNode>((inner, c) => {
+    const Provider = LABEL_SETS[c][0];
+    return (
+      <Provider key={c} limit={limit} geometry={labelGeometry()} material={labelMaterial(c)} frustumCulled={false}>
+        {inner}
+      </Provider>
+    );
+  }, children);
+}
 
 /** Unit box (1 × 1 × 1) scaled per instance. */
 export const unitBox = lazy(() => new BoxGeometry(1, 1, 1));
@@ -61,7 +95,7 @@ export function BenchParts({ children, limit = 400 }: { children: ReactNode; lim
     <FrontInstances limit={limit} geometry={unitBox()} material={benchFront} castShadow receiveShadow frustumCulled={false}>
       <HandleInstances limit={limit} geometry={handleGeometry()} material={metalChrome} frustumCulled={false}>
         <BoxInstances limit={Math.round(limit / 2)} geometry={drawerBoxGeometry()} material={plasticLightGray} frustumCulled={false}>
-          {children}
+          <LabelProviders limit={64}>{children}</LabelProviders>
         </BoxInstances>
       </HandleInstances>
     </FrontInstances>

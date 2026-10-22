@@ -2,6 +2,7 @@
 import { LatheGeometry, Vector2 } from 'three';
 import { useGlass } from '../materials/glass';
 import { plastic } from '../materials/plastic';
+import { liquidMaterial } from '../materials/liquids';
 import { lazy } from '../utils/lazy';
 import { ModelOr, type ModelProps } from './ModelOr';
 
@@ -16,12 +17,17 @@ const bulb = lazy(() => {
   return new LatheGeometry(pts, 18);
 });
 
-export function Pipette({ modelUrl, ...props }: ModelProps) {
+export function Pipette({ modelUrl, liquid, ...props }: ModelProps & { liquid?: string }) {
   const glass = useGlass('#f3f9fb');
   return (
     <ModelOr modelUrl={modelUrl} {...props}>
       <group rotation={[Math.PI / 2, 0, 0]} position={[0, 0.0085, -0.1]}>
         <mesh geometry={stem()} material={glass} renderOrder={1} />
+        {liquid && (
+          <mesh material={liquidMaterial(liquid, false)} position={[0, 0.06, 0]} userData={{ noOutline: true, noBatch: true }}>
+            <cylinderGeometry args={[0.0014, 0.0011, 0.08, 8]} />
+          </mesh>
+        )}
         <mesh geometry={bulb()} material={plastic('#d9342b', 0.7)} position={[0, 0.145, 0]} castShadow />
       </group>
     </ModelOr>
