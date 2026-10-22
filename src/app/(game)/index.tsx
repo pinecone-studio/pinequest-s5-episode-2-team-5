@@ -16,6 +16,18 @@ import Animated, {
 } from "react-native-reanimated";
 import { scheduleOnRN } from "react-native-worklets";
 
+import { DoorTransition } from '@/components/hub/door-transition';
+import { HubChatOverlay } from '@/components/hub/chat-overlay';
+import { HintCard, HudTop } from '@/components/hub/hub-hud';
+import { PlayerCard } from '@/components/hub/player-card';
+import { ProfileSheet } from '@/components/hub/profile-sheet';
+import { BuildingSprite, BuildingWindowLights } from '@/components/world/buildings';
+import { Ground } from '@/components/world/ground';
+import { buildNavGrid, findPath, nearestWalkable } from '@/components/world/nav-grid';
+import { LivePlayer } from '@/components/world/live-player';
+import type { RemoteHandle } from '@/components/world/remote-player';
+import { Bench, Fountain, Lamp, Signpost, Tree } from '@/components/world/scenery';
+import { useWalker, WalkerView } from '@/components/world/walker';
 import { HubChatOverlay } from "@/components/hub/chat-overlay";
 import { DoorTransition } from "@/components/hub/door-transition";
 import { HintCard, HudTop } from "@/components/hub/hub-hud";
@@ -68,6 +80,11 @@ const GRID = buildNavGrid(worldObstacles(), {
 });
 
 const MAP_SPRITE_SCALE = 0.65;
+
+function isNightTime(date: Date) {
+  const hour = date.getHours();
+  return hour >= 20 || hour < 6;
+}
 
 const HUB_HOUSE_HIT_SHAPE = [
   { x: 100, y: 37 },
@@ -218,9 +235,18 @@ function Hub({ user }: { user: User }) {
   const [showHint, setShowHint] = useState(true);
   const [selected, setSelected] = useState<RemoteHandle | null>(null);
   const [profileOpen, setProfileOpen] = useState(false);
+  const [localNight, setLocalNight] = useState(() => isNightTime(new Date()));
+  const [nightModeOverride, setNightModeOverride] = useState<boolean | null>(null);
+  const nightMode = nightModeOverride ?? localNight;
   const [entering, setEntering] = useState<BuildingDef | null>(null);
   const [board, setBoard] = useState<PublicPlayer[]>([]);
   const transition = useSharedValue(0);
+
+  useEffect(() => {
+    const updateLocalTime = () => setLocalNight(isNightTime(new Date()));
+    const interval = setInterval(updateLocalTime, 60_000);
+    return () => clearInterval(interval);
+  }, []);
 
   const camX = useDerivedValue(
     () =>
@@ -366,6 +392,10 @@ function Hub({ user }: { user: User }) {
           {BUILDINGS.map((b) => (
             <NamePlate key={b.id} building={b} scale={MAP_SPRITE_SCALE} />
           ))}
+          {nightMode && <View pointerEvents="none" style={styles.nightOverlay} />}
+          {nightMode && BUILDINGS.map((b) => (
+            <BuildingWindowLights key={`night-${b.id}`} building={b} scale={MAP_SPRITE_SCALE} />
+          ))}
         </View>
       </Animated.View>
 
@@ -383,6 +413,8 @@ function Hub({ user }: { user: User }) {
       <HudTop
         user={user}
         online={peers.length + 1}
+        nightMode={nightMode}
+        onNightModePress={() => setNightModeOverride(!nightMode)}
         onProfilePress={() => setProfileOpen(true)}
       />
       {showHint && <HintCard nickname={user.nickname} />}
@@ -432,6 +464,15 @@ const styles = StyleSheet.create({
     top: 0,
     width: WORLD.width,
     height: WORLD.height,
+  },
+  topScrim: { position: 'absolute', left: 0, right: 0, top: 0, height: 120 },
+  nightOverlay: {
+    position: 'absolute',
+    left: 0,
+    top: 0,
+    width: WORLD.width,
+    height: WORLD.height,
+    backgroundColor: 'rgba(14, 17, 56, 0.58)',
   },
   topScrim: { position: "absolute", left: 0, right: 0, top: 0, height: 120 },
 });

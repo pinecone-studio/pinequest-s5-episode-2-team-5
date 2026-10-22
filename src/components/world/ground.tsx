@@ -2,12 +2,25 @@ import Svg, { Circle, Defs, Ellipse, G, Line, LinearGradient, Path, Rect, Stop }
 
 import { seededRandom } from '@/lib/random';
 
-import { FLOWER_BEDS, PATHS, PLAZA, POND, WORLD, type Point } from './world-config';
+import { FLOWER_BEDS, PATHS, PLAZA, WORLD, type Point } from './world-config';
 
 const FLOWER_COLORS = ['#FF7AB6', '#FFD84D', '#FFFFFF', '#B78CFF', '#FF8A5C'];
 
 function polyline(points: Point[]) {
-  return points.map((p, i) => `${i === 0 ? 'M' : 'L'}${p.x} ${p.y}`).join(' ');
+  if (points.length < 3) {
+    return points.map((p, i) => `${i === 0 ? 'M' : 'L'}${p.x} ${p.y}`).join(' ');
+  }
+
+  let path = `M${points[0].x} ${points[0].y}`;
+  for (let i = 1; i < points.length - 1; i++) {
+    const current = points[i];
+    const next = points[i + 1];
+    const midpoint = { x: (current.x + next.x) / 2, y: (current.y + next.y) / 2 };
+    path += ` Q${current.x} ${current.y} ${midpoint.x} ${midpoint.y}`;
+  }
+  const last = points[points.length - 1];
+  path += ` L${last.x} ${last.y}`;
+  return path;
 }
 
 /** Static ground layer: grass, sand paths, the plaza, the pond and flower beds. */
@@ -52,10 +65,6 @@ export function Ground() {
         <LinearGradient id="grass" x1="0" y1="0" x2="0" y2="1">
           <Stop offset="0" stopColor="#A4E06A" />
           <Stop offset="1" stopColor="#7FCB55" />
-        </LinearGradient>
-        <LinearGradient id="water" x1="0" y1="0" x2="0" y2="1">
-          <Stop offset="0" stopColor="#8DE2FA" />
-          <Stop offset="1" stopColor="#3FA7DC" />
         </LinearGradient>
       </Defs>
 
@@ -127,23 +136,6 @@ export function Ground() {
         })}
       </G>
 
-      {/* pond */}
-      <Ellipse cx={POND.x} cy={POND.y + 3} rx={POND.rx + 12} ry={POND.ry + 10} fill="#E3CC95" />
-      <Ellipse cx={POND.x} cy={POND.y} rx={POND.rx} ry={POND.ry} fill="url(#water)" stroke="#2E8FC4" strokeWidth={3} />
-      <Path
-        d={`M${POND.x - 50} ${POND.y - 22} q22 -10 44 0 M${POND.x + 10} ${POND.y + 16} q18 -8 36 0 M${POND.x - 60} ${POND.y + 22} q14 -6 28 0`}
-        stroke="#FFFFFF"
-        strokeOpacity={0.6}
-        strokeWidth={2.5}
-        strokeLinecap="round"
-        fill="none"
-      />
-      <LilyPad x={POND.x + 40} y={POND.y - 18} r={11} flower />
-      <LilyPad x={POND.x - 30} y={POND.y + 30} r={9} />
-      <LilyPad x={POND.x + 58} y={POND.y + 24} r={8} />
-      <Reeds x={POND.x - POND.rx + 8} y={POND.y - 12} />
-      <Reeds x={POND.x + POND.rx - 18} y={POND.y - 26} />
-
       {/* flower beds */}
       {FLOWER_BEDS.map((bed, i) => (
         <Ellipse
@@ -164,33 +156,5 @@ export function Ground() {
         </G>
       ))}
     </Svg>
-  );
-}
-
-function LilyPad({ x, y, r, flower = false }: { x: number; y: number; r: number; flower?: boolean }) {
-  return (
-    <G>
-      <Circle cx={x} cy={y} r={r} fill="#4CB050" stroke="#2F7D36" strokeWidth={1.5} />
-      <Path d={`M${x} ${y} L${x + r * 1.1} ${y - r * 0.35} L${x + r * 1.1} ${y + r * 0.35} Z`} fill="#5FC4EC" />
-      {flower && (
-        <G>
-          <Circle cx={x - 2} cy={y - 2} r={4.2} fill="#FF9FCB" stroke="#E0609A" strokeWidth={1} />
-          <Circle cx={x - 2} cy={y - 2} r={1.6} fill="#FFE066" />
-        </G>
-      )}
-    </G>
-  );
-}
-
-function Reeds({ x, y }: { x: number; y: number }) {
-  return (
-    <G>
-      {[0, 6, 11].map((dx, i) => (
-        <G key={i}>
-          <Line x1={x + dx} y1={y + 14} x2={x + dx + (i - 1) * 2} y2={y - 6 - i * 3} stroke="#3E8E3A" strokeWidth={2} />
-          <Ellipse cx={x + dx + (i - 1) * 2} cy={y - 8 - i * 3} rx={2.2} ry={5} fill="#8A5A2E" />
-        </G>
-      ))}
-    </G>
   );
 }
