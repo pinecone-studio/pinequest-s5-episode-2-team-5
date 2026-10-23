@@ -15,6 +15,8 @@ export type MoleculeId = 'H2O2' | 'I2' | 'starch' | 'sucrose' | 'soap' | 'phph' 
 export type AqId = Cation | Anion | WeakId | MoleculeId;
 
 export type SolidId =
+  | 'KCl'
+  | 'ZnSO4'
   | 'NaCl'
   | 'CuSO4_5'
   | 'CuSO4'
@@ -120,6 +122,8 @@ export interface SolidDef {
 }
 
 export const SOLIDS: Record<SolidId, SolidDef> = {
+  KCl: { name: 'Калийн хлорид', formula: 'KCl', color: '#f3f5f7', molarMass: 74.55, dissolve: { products: {K:1,Cl:1}, solubility:4.5, dH:17.2 } },
+  ZnSO4: { name: 'Цайрын сульфат', formula: 'ZnSO₄', color: '#f0f4f5', molarMass: 161.44, dissolve: { products: {Zn:1,SO4:1}, solubility:3.5, dH:0 } },
   NaCl: { name: 'Натрийн хлорид', formula: 'NaCl', color: '#f3f5f7', molarMass: 58.44, dissolve: { products: { Na: 1, Cl: 1 }, solubility: 6.1, dH: 3.9 } },
   CuSO4_5: { name: 'Зэсийн (II) сульфат пентагидрат', formula: 'CuSO₄·5H₂O', color: '#2f80e4', molarMass: 249.7, dissolve: { products: { Cu: 1, SO4: 1 }, solubility: 1.3, dH: 11.5, water: 5 } },
   CuSO4: { name: 'Усгүй зэсийн (II) сульфат', formula: 'CuSO₄', color: '#e6e9e4', molarMass: 159.6, dissolve: { products: { Cu: 1, SO4: 1 }, solubility: 1.3, dH: -66.5 } },

@@ -1,3 +1,4 @@
+import { investigationById } from '../../../src/lib/textbook-investigations';
 import { useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { useGameStore } from '../store/useGameStore';
@@ -53,6 +54,9 @@ function ExperimentsTab() {
   const progress = useLabStore((s) => s.progress);
   const active = useLabStore((s) => s.active);
   const [open, setOpen] = useState<string | null>(active);
+  const [search,setSearch]=useState('');
+  const [kind,setKind]=useState('all');
+  const filtered=experiments.filter((x)=>x.title.toLocaleLowerCase().includes(search.toLocaleLowerCase())&&(kind==='all'||(investigationById(x.id)?.mode??'bench')===kind));
   const sessions = useWorkbench((s) => s.sessions);
   const finished = experiments.filter((x) => experimentDone(progress, x.id)).length;
   return (
@@ -60,8 +64,10 @@ function ExperimentsTab() {
       <div className="rounded-2xl bg-emerald-50 p-3 text-sm text-emerald-900">
         <b>Туршилтын заавар</b> · {finished}/{experiments.length} дууссан. Туршилтаа сонгоод «Эхлүүлэх» дарвал алхмууд нь дэлгэцийн зүүн дээд буланд харагдаж, хийх бүрт автоматаар тэмдэглэгдэнэ.
       </div>
+      <input className="min-h-10 w-full rounded-lg border border-slate-200 p-2 text-sm" aria-label="Туршилт хайх" placeholder="Туршилт хайх…" value={search} onChange={(e)=>setSearch(e.target.value)}/>
+      <div className="flex flex-wrap gap-2">{[['all','Бүгд'],['bench','Ширээний туршилт'],['model','Виртуал багаж']].map(([id,label])=><button key={id} className={`min-h-10 rounded-full border px-3 text-xs ${kind===id?'border-sky-500 bg-sky-50':'border-slate-200'}`} aria-pressed={kind===id} onClick={()=>setKind(id)}>{label}</button>)}</div>
       <ul className="space-y-2">
-        {experiments.map((x) => {
+        {filtered.map((x) => {
           const done = progress[x.id] ?? [];
           const complete = experimentDone(progress, x.id);
           const expanded = open === x.id;
@@ -71,7 +77,7 @@ function ExperimentsTab() {
                 <span className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-sm font-bold ${complete ? 'bg-green-500 text-white' : 'bg-slate-100 text-slate-500'}`}>{complete ? '✓' : `${done.length}/${x.steps.length}`}</span>
                 <span className="flex-1">
                   <span className="block font-semibold leading-tight">{x.title}</span>
-                  <span className="block text-xs text-slate-500">{x.level} · {x.steps.length} алхам{active === x.id ? ' · идэвхтэй' : ''}</span>
+                  <span className="block text-xs text-slate-500">{x.level} · {investigationById(x.id)?.mode==='model'?'Виртуал багаж · ':''}{x.steps.length} алхам{active === x.id ? ' · идэвхтэй' : ''}</span>
                 </span>
                 <span className="text-xs text-slate-400">{expanded ? '▲' : '▼'}</span>
               </button>

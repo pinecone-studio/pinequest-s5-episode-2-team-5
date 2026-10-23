@@ -1,4 +1,4 @@
-import { router } from 'expo-router';
+import { router, useLocalSearchParams } from 'expo-router';
 import { useEffect, useRef, useState } from 'react';
 import { ActivityIndicator, Platform, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -8,6 +8,8 @@ import { IconButton } from '@/components/ui/icon-button';
 import { LabBackground } from '@/components/ui/lab-background';
 import { ScreenHeader } from '@/components/ui/screen-header';
 import { Colors, Fonts, Radius } from '@/constants/theme';
+import { useSession } from '@/context/session';
+import { saveInvestigation, validInvestigationId } from '@/lib/investigation-storage';
 import { useOpenLabCatalog } from '@/hooks/use-openlab-catalog';
 
 /**
@@ -15,7 +17,7 @@ import { useOpenLabCatalog } from '@/hooks/use-openlab-catalog';
  * writes it to `public/openlab/`, which Expo web serves as static files; this screen shows
  * it full screen in an iframe.
  */
-const OPENLAB_URL = '/openlab/index.html?v=lab-polish-1';
+const OPENLAB_URL = '/openlab/index.html?v=textbook-investigations-1';
 /** The built page's <title>; an SPA fallback page would not contain it. */
 const OPENLAB_MARKER = '<title>OpenLab 3D</title>';
 
@@ -30,9 +32,13 @@ export function OpenLab3DScreen() {
 
 function OpenLabWeb() {
   const insets = useSafeAreaInsets();
+  const { user } = useSession();
+  const { experiment } = useLocalSearchParams<{experiment?:string}>();
+  const requested = typeof experiment === 'string' && validInvestigationId(experiment) ? experiment : null;
+  const labUrl = OPENLAB_URL + (requested ? `&experiment=${encodeURIComponent(requested)}` : '');
   const [status, setStatus] = useState<Status>('checking');
   const frame = useRef<HTMLIFrameElement>(null);
-  const sendCatalog = useOpenLabCatalog(frame);
+  const sendCatalog = useOpenLabCatalog(frame, requested, user?.id);
 
   useEffect(() => {
     let cancelled = false;
@@ -55,10 +61,13 @@ function OpenLabWeb() {
       if (event.origin !== window.location.origin || event.source !== frame.current?.contentWindow) return;
       const data = event.data;
       if (data && typeof data === 'object' && 'type' in data && data.type === 'openlab:exit') goBack();
+      if (user && data && typeof data === 'object' && 'type' in data && data.type === 'openlab:investigation-result' && 'version' in data && data.version === 1 && 'id' in data && typeof data.id === 'string' && validInvestigationId(data.id) && 'attempt' in data) {
+        void saveInvestigation(user.id, data.id, data.attempt).catch(() => undefined);
+      }
     };
     window.addEventListener('message', receive);
     return () => window.removeEventListener('message', receive);
-  }, []);
+  }, [user]);
 
   if (status === 'checking') {
     return (
@@ -74,7 +83,7 @@ function OpenLabWeb() {
     <View style={styles.fill}>
       <iframe
         ref={frame}
-        src={OPENLAB_URL}
+        src={labUrl}
         title="OpenLab 3D virtual laboratory"
         allow="fullscreen; autoplay"
         onLoad={() => { frame.current?.focus(); sendCatalog(); }}

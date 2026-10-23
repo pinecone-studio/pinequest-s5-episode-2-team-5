@@ -1,3 +1,5 @@
+import { LabLaunch } from '../experiments/workbench/LabLaunch';
+import { InquiryPanel } from '../experiments/workbench/InquiryPanel';
 import { ExperimentSuccess } from './ExperimentSuccess';
 import { MoleculeViewerPanel } from './MoleculeViewer';
 /**
@@ -74,6 +76,8 @@ export function HUD() {
       <InspectMode />
       {inGame && <ReactionLens />}
       <MoleculeViewerPanel />
+      <LabLaunch />
+      <InquiryPanel />
       <ExperimentSuccess />
       <LoadingScreen />
       <SummaryScreen />

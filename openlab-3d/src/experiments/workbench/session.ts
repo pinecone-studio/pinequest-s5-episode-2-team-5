@@ -1,3 +1,5 @@
+import { clearInquiry } from './inquiry-store';
+import { INVESTIGATIONS } from '../../../../src/lib/textbook-investigations';
 import { clearMeasurements } from '../../lab/measurements';
 import { co2Until, coverUntil, stirUntil, heldHeat } from '../../interaction/actions';
 import { clearExperimentFeedback } from '../../lab/announcer';
@@ -36,6 +38,7 @@ const list = (kinds: EquipmentKind[], reagents: ReagentId[] = []) => [...kinds.m
 export const NACL_SUPPLIES = LABEL_KEYS.map((part): BenchSupply => ({ key: `nacl-${part}`, part, name: NAMES[part], use: USES[part] }));
 /** Executable apparatus lists complement the existing human-readable JSON materials. */
 const RECIPES: Record<string, BenchSupply[]> = {
+  ...Object.fromEntries(INVESTIGATIONS.map((x) => [x.id, x.supplies.map((s) => s.startsWith('reagent:') ? reagent(s.slice(8) as ReagentId) : apparatus(s as EquipmentKind))])),
   nacl: NACL_SUPPLIES,
   safety: list(['goggles', 'gloves', 'fireExtinguisher']),
   boil: list(['beaker', 'bunsenBurner', 'tripod', 'thermometer'], ['water']),
@@ -293,6 +296,7 @@ export function selectBenchExperiment(id: string, fresh = false) {
     clearExperimentSession(previous);
   }
   if (fresh) {
+    clearInquiry(id);
     resetPresentation(id);
     clearExperimentSession(id);
     useLabStore.setState((s) => ({ progress: { ...s.progress, [id]: [] } }));

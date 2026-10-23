@@ -1,3 +1,4 @@
+import { PracticalInvestigation } from './practical-investigation';
 import { router } from 'expo-router';
 import { useState } from 'react';
 import { View } from 'react-native';
@@ -30,8 +31,9 @@ export function TopicStudy({ topicId, tab }: { topicId: string; tab: string }) {
       {topic.practicals.map((practical) => <StudyCard key={practical.id}>
         <AppText variant="heading">{practical.title}</AppText><AppText variant="caption">{practical.ref}</AppText><RichText>{practical.aim}</RichText>
         {practical.steps.map((step, i) => <RichText key={i}>{`${i + 1}. ${step}`}</RichText>)}
-        <AppText variant="bodyStrong">Аюулгүй ажиллагаа</AppText><RichText>{practical.safety}</RichText><AppText variant="bodyStrong">Хүлээгдэх ажиглалт</AppText><RichText>{practical.result}</RichText>
-        <GameButton title={progress.practicals.includes(practical.id) ? 'Зааврыг давтсан ✓' : 'Зааврыг давтсан'} disabled={progress.practicals.includes(practical.id)} size="md" onPress={() => update((p) => ({ ...p, practicals: [...new Set([...p.practicals, practical.id])] }))}/>
+        <AppText variant="bodyStrong">Аюулгүй ажиллагаа</AppText><RichText>{practical.safety}</RichText>
+        <PracticalInvestigation reviewed={progress.practicals.includes(practical.id)} practicalId={practical.id} expected={practical.result} onReviewed={() => update((p) => ({ ...p, practicals: [...new Set([...p.practicals, practical.id])] }))}/>
+        {progress.practicals.includes(practical.id) && <AppText variant="caption">Өөрийн ажиглалт, дүгнэлтээ тэмдэглэсэн ✓</AppText>}
       </StudyCard>)}
     </>}
     <StudyCard><AppText variant="heading">Сэдвийн явц</AppText><AppText>{stats.notes}/{topic.notes.length} тэмдэглэл · {stats.cards}/{topic.flashcards.length} мэддэг карт · Тест {stats.quiz}% · Асуулт {stats.marks}/{stats.totalMarks}</AppText>{next && <GameButton title={`Дараагийн алхам: ${STUDY_TABS.find(([id]) => id === next)![1]}`} size="md" variant="secondary" onPress={() => openTopic(topic.id, next)}/>}</StudyCard>

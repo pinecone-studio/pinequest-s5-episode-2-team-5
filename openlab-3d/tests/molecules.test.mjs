@@ -101,7 +101,7 @@ import { join } from 'node:path';
 import { pathToFileURL } from 'node:url';
 const storeTmp=await mkdtemp(join(tmpdir(),'openlab-preparation-test-'));
 test.after(()=>rm(storeTmp,{recursive:true,force:true}));
-await build({stdin:{contents:`export * from './src/lab/quantity-guidance.ts'; export * from './src/lab/measurements.ts'; export {transfer} from './src/interaction/actions.ts'; export {vesselObservation} from './src/lab/container-observation.ts'; export {snapToSupport} from './src/interaction/supportPlacement.ts'; export {supportSpots} from './src/interaction/bodies.ts'; export {benchUseTarget} from './src/interaction/benchUseTarget.ts'; export {tablePointer} from './src/interaction/heldApi.ts'; export {useBenchView} from './src/experiments/nacl/view.ts'; export {useSandbox,labUse,labSpace,simulateLab} from './src/experiments/nacl/sandbox.ts'; export {usePortableStore} from './src/interaction/portable.ts'; export {interactItem} from './src/interaction/interactItem.ts'; export {interactables} from './src/interaction/registry.ts'; export { useLabStore } from './src/store/useLabStore.ts'; export * from './src/experiments/workbench/session.ts'; export {useInventoryStore,storedIn} from './src/store/useInventoryStore.ts'; export {useChemStore} from './src/store/useChemStore.ts'; export {useGameStore} from './src/store/useGameStore.ts'; export * from './src/lab/reaction-view.ts'; export {registerHolder,seedHolder} from './src/interaction/holders.ts';`,resolveDir:process.cwd()},bundle:true,outfile:join(storeTmp,'stores.mjs'),format:'esm',platform:'node'});
+await build({stdin:{contents:`export * from '../src/lib/textbook-investigations.ts'; export {INVESTIGATIONS as inquiryDefinitions} from '../src/lib/textbook-investigations.ts'; export {TEXTBOOK_EXPERIMENTS} from './src/experiments/workbench/textbook.ts'; export {getExperiments,applyRemoteExperiments} from './src/lab/experiments.ts'; export {useInquiry,clearInquiry} from './src/experiments/workbench/inquiry-store.ts'; export * from './src/lab/quantity-guidance.ts'; export * from './src/lab/measurements.ts'; export {transfer} from './src/interaction/actions.ts'; export {vesselObservation} from './src/lab/container-observation.ts'; export {snapToSupport} from './src/interaction/supportPlacement.ts'; export {supportSpots} from './src/interaction/bodies.ts'; export {benchUseTarget} from './src/interaction/benchUseTarget.ts'; export {tablePointer} from './src/interaction/heldApi.ts'; export {useBenchView} from './src/experiments/nacl/view.ts'; export {useSandbox,labUse,labSpace,simulateLab} from './src/experiments/nacl/sandbox.ts'; export {usePortableStore} from './src/interaction/portable.ts'; export {interactItem} from './src/interaction/interactItem.ts'; export {interactables} from './src/interaction/registry.ts'; export { useLabStore } from './src/store/useLabStore.ts'; export * from './src/experiments/workbench/session.ts'; export {useInventoryStore,storedIn} from './src/store/useInventoryStore.ts'; export {useChemStore} from './src/store/useChemStore.ts'; export {useGameStore} from './src/store/useGameStore.ts'; export * from './src/lab/reaction-view.ts'; export {registerHolder,seedHolder} from './src/interaction/holders.ts';`,resolveDir:process.cwd()},bundle:true,outfile:join(storeTmp,'stores.mjs'),format:'esm',platform:'node'});
 globalThis.localStorage={getItem:()=>null,setItem:()=>{},removeItem:()=>{}};
 const stores=await import(pathToFileURL(join(storeTmp,'stores.mjs')).href);
 test('guide starts after preparation; earlier real observations are still recorded',()=>{
@@ -498,4 +498,83 @@ test('quantity feedback supports exploration without enforcing a recipe gate',()
   assert.match(stores.amountFeedback(5,20,30),/нэмж/);
   assert.match(stores.amountFeedback(25,20,30),/хүрлээ/);
   assert.match(stores.amountFeedback(35,20,30),/харьцуулж/);
+});
+
+
+test('all textbook practical summaries have valid executable lab mappings and recipes',async()=>{
+  const {readFile}=await import('node:fs/promises');
+  const pack=JSON.parse(await readFile(new URL('../../src/data/revision-hub/g8-chem/content.json',import.meta.url),'utf8'));
+  const catalog=stores.getExperiments();
+  for(const p of pack.topics.flatMap(t=>t.practicals)){
+    const id=stores.labForPractical(p.id);assert.ok(id,`missing ${p.id}`);assert.ok(catalog.some(x=>x.id===id));
+  }
+  assert.equal(new Set(catalog.map(x=>x.id)).size,catalog.length);
+  for(const d of stores.inquiryDefinitions){
+    const supplies=stores.suppliesFor(d.id);
+    assert.equal(supplies.length,d.supplies.length);
+    assert.ok(supplies.every(s=>s.kind&&s.name));
+    if(d.mode==='model')assert.equal(supplies.length,0);
+  }
+});
+test('all model controls produce finite results within their domain and preserve provenance',()=>{
+  for(const d of stores.inquiryDefinitions.filter(x=>x.mode==='model')){
+    for(const params of [{},Object.fromEntries(d.controls.map(c=>[c.id,c.max??c.options[c.options.length-1].value]))]){
+      const result=stores.runModel(d,params,123);
+      assert.equal(result.source,'model');assert.equal(result.at,123);assert.ok(result.readings.length>0);
+      assert.ok(result.readings.every(r=>Number.isFinite(r.value)),d.id);
+    }
+  }
+  assert.throws(()=>stores.runModel(stores.inquiryDefinitions.find(x=>x.mode==='bench'),{}));
+});
+test('rate comparisons respect concentration, temperature, surface area and limiting reagent',()=>{
+  const d=stores.investigationById('rate-concentration');
+  const base={time:30,concentration:.5,temperature:25,surface:1};
+  const value=p=>stores.runModel(d,p).readings[0].value;
+  assert.equal(value({...base,time:0}),0);
+  assert.ok(value({...base,concentration:1})>value(base));
+  assert.ok(value({...base,temperature:45})>value(base));
+  assert.ok(value({...base,surface:4})>value(base));
+  assert.ok(value({...base,time:180,surface:4})<=60);
+});
+test('halogen model displaces only a less reactive halide; photosynthesis has a dark control',()=>{
+  const d=stores.investigationById('halogens');
+  for(let a=0;a<3;a++)for(let b=0;b<3;b++)assert.equal(stores.runModel(d,{halogen:a,halide:b}).readings[0].value,a<b?1:0);
+  const plant=stores.investigationById('photosynthesis');
+  assert.equal(stores.runModel(plant,{light:0,time:10}).readings[0].value,0);
+  assert.ok(stores.runModel(plant,{light:100,time:10}).readings[0].value>0);
+});
+test('investigation restore rejects malformed readings and cannot reveal an unwritten observation',()=>{
+  const a=stores.restoreAttempt({trials:[{source:'model',at:2,parameters:{},readings:[{label:'x',unit:'ml',value:Infinity}]}],revealed:true});
+  assert.deepEqual(a.trials,[]);assert.equal(a.revealed,false);
+  assert.equal(stores.restoreAttempt({observation:'Хий',revealed:true}).revealed,true,'short genuine observations stay revealed after reload');
+  const atom=stores.investigationById('atom-builder');assert.equal(stores.parameterValues(atom,{protons:6.7}).protons,7);
+  const trials=[{readings:[{label:'T',unit:'°C',value:-3}]},{readings:[{label:'V',unit:'ml',value:5}]},{readings:[{label:'T',unit:'°C',value:7}]}];
+  assert.deepEqual(stores.measurementSeries(trials,'T|°C').points,[{trial:1,value:-3},{trial:3,value:7}]);
+});
+test('KCl dissolution cools water and zinc sulphate can crystallise from concentrated solution',()=>{
+  let cold=chem.emptyMixture();cold.water=25;cold.s.KCl=.01;cold.temp=22;
+  for(let i=0;i<100;i++)cold=chem.step(cold,.1,{...chem.DEFAULT_ENV,lossWK:0,stir:1}).m;
+  assert.ok(cold.temp<22);assert.ok(cold.aq.K>0&&cold.aq.Cl>0);
+  let zinc=chem.emptyMixture();zinc.water=1;zinc.aq.Zn=.01;zinc.aq.SO4=.01;
+  zinc=chem.step(zinc,.1,chem.DEFAULT_ENV).m;
+  assert.ok(zinc.s.ZnSO4>0);
+});
+test('copper carbonate dissolves in acid, filtered excess stays behind, and copper sulfate crystallises',()=>{
+  stores.useInventoryStore.getState().reset();stores.useChemStore.getState().reset();
+  const inv=stores.useInventoryStore.getState();
+  const acid=inv.spawn('beaker',[8,.915,-14.5]),powder=inv.spawn('reagentJar',[8.3,.915,-14.5]),flask=inv.spawn('erlenmeyer',[8.5,.915,-14.5]);
+  stores.useChemStore.getState().setMixtures({[acid]:chem.reagentMixture('h2so4',10),[powder]:chem.reagentMixture('s_cuco3',2)});
+  stores.transfer({id:powder,kind:'reagentJar'},{id:acid,kind:'beaker'},2);
+  let m=stores.useChemStore.getState().mixtures[acid];
+  for(let i=0;i<600;i++)m=chem.step(m,.1,chem.DEFAULT_ENV).m;
+  stores.useChemStore.getState().setMixtures({[acid]:m});
+  assert.ok(m.aq.Cu>0,'acid dissolves carbonate');assert.ok(m.s.CuCO3>0,'excess carbonate stays solid');
+  stores.transfer({id:acid,kind:'beaker'},{id:flask,kind:'erlenmeyer'},8,'test-funnel');
+  const filtrate=stores.useChemStore.getState().mixtures[flask];assert.ok((filtrate.s.CuCO3??0)<1e-7,JSON.stringify(filtrate));assert.ok(filtrate.aq.Cu>0);
+  filtrate.water=.1;const crystals=chem.step(filtrate,.1,chem.DEFAULT_ENV).m;assert.ok(crystals.s.CuSO4_5>0,JSON.stringify(crystals));
+});
+test('remote catalogs retain local textbook investigations even before database publication',()=>{
+  assert.equal(stores.applyRemoteExperiments([]),true);
+  assert.ok(stores.inquiryDefinitions.every(x=>stores.getExperiments().some(e=>e.id===x.id)));
+  for(const id of ['nacl','metals','elephant'])assert.ok(stores.getExperiments().some(x=>x.id===id),'linked baseline guide remains available');
 });

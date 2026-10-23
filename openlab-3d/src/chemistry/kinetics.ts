@@ -39,7 +39,7 @@ export interface StepResult {
 export const DEFAULT_ENV: StepEnv = { heatW: 0, glassJK: 100, lossWK: 6, stir: 0, covered: false, co2: false, flame: false };
 
 /** Soluble solids, in the order they crystallize out when a solution dries. */
-const CRYSTALLIZE: SolidId[] = ['CuSO4_5', 'KMnO4', 'NaCl', 'Na2CO3', 'NaHCO3', 'NH4NO3', 'sucrose', 'NaOH'];
+const CRYSTALLIZE: SolidId[] = ['KCl', 'ZnSO4', 'CuSO4_5', 'KMnO4', 'NaCl', 'Na2CO3', 'NaHCO3', 'NH4NO3', 'sucrose', 'NaOH'];
 
 const LATENT_WATER = 1130; // J/g (halved latent heat so evaporation demos are quick)
 const LATENT_ETHANOL = 1500;

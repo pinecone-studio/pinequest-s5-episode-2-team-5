@@ -41,6 +41,8 @@ export type ReagentId =
   | 'dyeYellow'
   | 'dyeGreen'
   | 'dyeBlue'
+  | 's_cuco3'
+  | 's_kcl'
   | 's_nacl'
   | 's_cuso4'
   | 's_cuso4anh'
@@ -175,6 +177,8 @@ const LIST: Reagent[] = [
   L('dyeBlue', 'Хүнсний будаг (цэнхэр)', 'Цэнхэр', 'other', { dyeB: 0.01 }, { container: 'dropperBottle', note: 'Өнгө холих туршилтад.', stripe: '#2563eb' }),
   // Solids.
   S('s_nacl', 'Натрийн хлорид (талст)', 'NaCl', 'NaCl', { note: 'Хоолны давс. Усанд сайн уусна.', stripe: '#16a34a' }),
+  S('s_cuco3', 'Зэсийн (II) карбонат', 'CuCO₃', 'CuCO3', { hazards: ['irritant','env'], note: 'Хүчилтэй урвалдаж зэсийн давс ба CO₂ үүсгэнэ.', stripe: '#4cb39e' }),
+  S('s_kcl', 'Калийн хлорид (хатуу)', 'KCl', 'KCl', { note: 'Усанд уусахад дулаан шингээж хөргөнө.', stripe: '#a855f7' }),
   S('s_cuso4', 'Зэсийн (II) сульфат (талст)', 'CuSO₄·5H₂O', 'CuSO4_5', { hazards: ['irritant', 'env'], note: 'Цэнхэр талст. Халаахад усаа алдаж цагаан болно.', stripe: '#0ea5e9' }),
   S('s_cuso4anh', 'Усгүй зэсийн (II) сульфат', 'CuSO₄', 'CuSO4', { hazards: ['irritant', 'env'], note: 'Цагаан нунтаг. Ус дуслахад цэнхэр болж дулаан ялгаруулна (ус илрүүлэх).', stripe: '#94a3b8' }),
   S('s_nahco3', 'Хүнсний сод', 'NaHCO₃', 'NaHCO3', { note: 'Натрийн гидрокарбонат. Хүчилтэй хөөсөрч CO₂ ялгаруулна.', stripe: '#38bdf8' }),

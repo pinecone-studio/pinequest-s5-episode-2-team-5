@@ -1,4 +1,5 @@
-/** JSON lesson catalog. Supabase-published rows replace the bundled demo catalog. */
+import { TEXTBOOK_EXPERIMENTS } from '../experiments/workbench/textbook';
+/** JSON lesson catalog. Published rows override matching bundled guides; textbook-linked fallbacks remain available. */
 import { create } from 'zustand';
 import bundled from '../data/experiments.json';
 import { NACL_LESSON } from '../experiments/nacl/lesson';
@@ -6,7 +7,7 @@ import { parseExperiment, parseExperimentRows, type Experiment } from './experim
 export { matchesCompletion } from './experiment-schema';
 export type { CompletionRule, Experiment, ExperimentStep } from './experiment-schema';
 
-export const BUNDLED_EXPERIMENTS = [...bundled.map(parseExperiment), NACL_LESSON];
+export const BUNDLED_EXPERIMENTS = [...bundled.map(parseExperiment), ...TEXTBOOK_EXPERIMENTS.map(parseExperiment), NACL_LESSON];
 export const useExperimentCatalog = create<{
   experiments: Experiment[];
   source: 'bundled' | 'supabase';
@@ -21,7 +22,7 @@ export function experimentById(id: string): Experiment | undefined {
 export function applyRemoteExperiments(rows: unknown): boolean {
   try {
     const experiments = parseExperimentRows(rows);
-    useExperimentCatalog.setState({ experiments: [...experiments.filter((x) => x.id !== 'nacl'), NACL_LESSON], source: 'supabase' });
+    useExperimentCatalog.setState({ experiments: [...experiments.filter((x) => x.id !== 'nacl'), ...BUNDLED_EXPERIMENTS.filter((x) => x.id !== 'nacl' && !experiments.some((r) => r.id === x.id)), NACL_LESSON], source: 'supabase' });
     return true;
   } catch {
     // Preserve a usable catalog if a row is malformed or a future schema is published.

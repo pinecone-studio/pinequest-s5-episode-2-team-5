@@ -42,6 +42,8 @@ export function StudyPage({ title, subtitle, children, home = false }: { title: 
     </View>
     <View style={{ flex: 1, flexDirection: width >= 1100 ? 'row' : 'column' }}>
       {showRail && <ScrollView style={[ui.rail, width < 1100 && { maxHeight: 260, width: '100%' }]} contentContainerStyle={{ padding: 16, gap: 10 }}>
+        <StudyLink title="Сурах бичгийн зам" onPress={() => { setMenu(false); router.push('/hub/g8-chem/course'); }}/>
+        <StudyLink title="Судалгааны багажууд" onPress={() => { setMenu(false); router.push('/hub/g8-chem/investigations'); }}/>
         <StudyLink title="Давтлагын нүүр" onPress={() => { setMenu(false); router.replace('/hub/g8-chem'); }}/>
         {getPack('g8-chem').topics.map((topic) => <StudyLink key={topic.id} title={`${topic.id} ${topic.title}`} onPress={() => { setMenu(false); openTopic(topic.id); }}/>) }
         <StudyLink title="Лавлах ба явц" onPress={() => { setMenu(false); openReference('progress'); }}/>

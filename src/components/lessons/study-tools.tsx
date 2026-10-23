@@ -7,6 +7,7 @@ import { Colors, Radius } from '@/constants/theme';
 import { haptics } from '@/lib/haptics';
 
 const tools = [
+  { title: 'Хими 8 · Сурах бичгийн зам', description: 'Ойлголтоос өөрийн судалгаа руу.', detail: '11 сэдэв · хэмжилт · туршилт', icon: 'book-open-page-variant-outline', color: Colors.cyan, route: '/hub/g8-chem/course' },
   { title: 'Давтлагын төв', description: 'Нэг сэдэв сонгоод, мэдлэгээ бататгая.', detail: 'Тэмдэглэл · Карт · Тест', icon: 'book-open-variant', color: Colors.lime, route: '/hub/g8-chem' },
   { title: 'Үелэх хүснэгт', description: 'Элементүүдийн холбоог олж, нүдээр тогтооё.', detail: '118 элемент · Электроны бүтэц', icon: 'periodic-table', color: Colors.cyan, route: '/periodic' },
   { title: 'Туршилтаар суралцах', description: 'Таамагла. Ажигла. Учрыг нь нээ.', detail: 'Катализатор · 5 алхам', icon: 'flask-outline', color: Colors.gold, route: '/lessons/catalyst' },
