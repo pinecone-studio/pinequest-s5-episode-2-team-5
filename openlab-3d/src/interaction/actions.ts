@@ -22,12 +22,12 @@ import { PH_WORDS, fmtG, fmtMl, phBand } from '../chemistry/describe';
 import { mixtureOf, useChemStore } from '../store/useChemStore';
 import { useExperimentStore } from '../store/useExperimentStore';
 import { playerState, useGameStore } from '../store/useGameStore';
-import { useInventoryStore, type HeldItem } from '../store/useInventoryStore';
+import { storedIn, useInventoryStore, type HeldItem } from '../store/useInventoryStore';
 import { emitLab } from '../lab/events';
 import { note, observe, prime } from '../lab/observe';
 import { isHazardous, spillMixture } from '../lab/spill';
 import { sounds } from '../utils/sounds';
-import type { ItemVariant } from '../world/itemsLayout';
+import type { ItemVariant, WorldItem } from '../world/itemsLayout';
 import { interactables, type UseTarget } from './registry';
 import { livePose } from './bodies';
 
@@ -82,8 +82,50 @@ function capacityOf(kind: EquipmentKind): number {
   return CATALOG[kind].capacityMl ?? 0;
 }
 
+/** Does `vessel` stand under `funnel`, with the funnel's stem in its neck? */
+function underFunnel(vessel: WorldItem, funnel: WorldItem): boolean {
+  if (vessel.id === funnel.id || !isContainer(vessel.kind) || STOCK_KINDS.includes(vessel.kind)) return false;
+  const p = livePose(vessel);
+  const f = livePose(funnel);
+  const top = p.y + CATALOG[vessel.kind].size[1];
+  return Math.hypot(p.x - f.x, p.z - f.z) < 0.05 && top > f.y - 0.07 && top < f.y + 0.09;
+}
+
+/**
+ * The vessel a pour really goes into: aiming at a test-tube rack means its first tube with
+ * room; aiming at a funnel, or at a vessel with a funnel in its neck, means that vessel,
+ * poured through the funnel (`via`).
+ */
+export function resolveTarget(target: UseTarget | null): UseTarget | null {
+  if (target?.type !== 'item') return target;
+  if (target.kind === 'testTubeRack') {
+    const tubes = storedIn(useInventoryStore.getState().storage, target.id);
+    const tube = tubes.find((t) => fullness(mixtureOf(t.id, t.variant)) < capacityOf('testTube') - 0.5) ?? tubes[0];
+    return tube ? { type: 'item', id: tube.id, kind: tube.kind, variant: tube.variant, holderId: target.id } : target;
+  }
+  const items = useInventoryStore.getState().worldItems;
+  if (target.kind === 'funnel') {
+    const funnel = items.find((w) => w.id === target.id);
+    const receiver = funnel && items.find((w) => underFunnel(w, funnel));
+    return receiver ? { type: 'item', id: receiver.id, kind: receiver.kind, variant: receiver.variant, via: target.id } : target;
+  }
+  const vessel = items.find((w) => w.id === target.id);
+  const funnel = vessel && items.find((w) => w.kind === 'funnel' && underFunnel(vessel, w));
+  return funnel ? { ...target, via: funnel.id } : target;
+}
+
 /** Which action R would perform; null when nothing sensible applies. */
-export function describeUse(held: HeldItem | null, target: UseTarget | null): UseInfo | null {
+export function describeUse(held: HeldItem | null, focused: UseTarget | null): UseInfo | null {
+  const target = resolveTarget(focused);
+  const viaRack = focused?.type === 'item' && focused.kind === 'testTubeRack' && target !== focused;
+  const viaFunnel = target?.type === 'item' && !!target.via;
+  const use = describeResolved(held, target);
+  if (use?.kind === 'pour' && viaRack) return { ...use, verb: 'тавиурын хуруу шил рүү асгах' };
+  if (use?.kind === 'pour' && viaFunnel) return { ...use, verb: 'юүлүүрээр шүүж асгах' };
+  return use;
+}
+
+function describeResolved(held: HeldItem | null, target: UseTarget | null): UseInfo | null {
   if (target?.type === 'puddle') return info('wipe', 'арчиж цэвэрлэх');
   if (held?.kind === 'fireExtinguisher') return info('extinguish', 'CO₂ цацах');
   if (!held) return null;
@@ -92,8 +134,9 @@ export function describeUse(held: HeldItem | null, target: UseTarget | null): Us
   const hHas = !isEmptyMixture(hm);
   if (!target) return null;
   if (target.type === 'sink') {
-    if (!isContainer(hk) || STOCK_KINDS.includes(hk)) return null;
-    return hHas ? info('sinkEmpty', 'угаалтуурт асгаж хоослох') : info('sinkFill', 'усаар дүүргэх');
+    if (!isContainer(hk)) return null;
+    if (hHas) return info('sinkEmpty', 'угаалтуурт асгаж хоослох');
+    return STOCK_KINDS.includes(hk) ? null : info('sinkFill', 'усаар дүүргэх');
   }
   if (target.type === 'waste') {
     if (!isContainer(hk) || !hHas) return null;
@@ -146,6 +189,8 @@ function explain(held: HeldItem | null, target: UseTarget | null): [string, stri
     if (target.kind === 'bunsenBurner' && !isLit(target.id)) return ['Горелк асаагүй байна', 'Эхлээд горелк дээр E дарж асаа'];
     if (STOCK_KINDS.includes(target.kind) && isContainer(held.kind)) return ['Урвалжийн лонх руу бүү асга', 'Урвалж бохирдоно. Хоосон саваар лонхноос авна'];
     if (held.kind === 'spatula') return ['Халбагаар хатуу бодис авна', 'Хатуу бодисын сав руу хараад R дар'];
+    if (target.kind === 'funnel') return ['Юүлүүрийн доор сав алга', 'Юүлүүрийг колб эсвэл аяганы аманд тавиад (Q) дахин асга'];
+    if (target.kind === 'testTubeRack') return ['Тавиурт хуруу шил алга', 'Хуруу шил тавиур руу хараад Q дарж хий'];
   }
   return ['Энэ үйлдэл боломжгүй', `${CATALOG[held.kind].name}-ийг үүнд хэрэглэх боломжгүй`];
 }
@@ -185,7 +230,7 @@ function placeOf(v: Vessel): [number, number, number] {
  * Moves `amount` (mL of liquid, or g of solid from a dry source) from `src` to `dst`,
  * mixing, reacting and announcing. Returns the amount moved and whether it overflowed.
  */
-export function transfer(src: Vessel, dst: Vessel, amount: number): { moved: number; overflow: boolean } {
+export function transfer(src: Vessel, dst: Vessel, amount: number, viaFunnel?: string): { moved: number; overflow: boolean } {
   const chem = useChemStore.getState();
   const sm = mixtureOf(src.id, src.variant);
   const dm = mixtureOf(dst.id, dst.variant);
@@ -197,6 +242,18 @@ export function transfer(src: Vessel, dst: Vessel, amount: number): { moved: num
   let overflow = false;
   const { taken, rest } = liquid ? takeLiquid(sm, take) : takeSolid(sm, take);
   let into = taken;
+  if (viaFunnel) {
+    // The filter paper keeps every solid; only the clear filtrate runs through.
+    const caught: Mixture = { ...emptyMixture(taken.temp), s: { ...taken.s }, from: [...taken.from] };
+    if (solidMassG(caught) > 1e-6) {
+      const residue = merge(mixtureOf(viaFunnel), caught);
+      const first = Object.keys(residue.s)[0] as keyof typeof SOLIDS | undefined;
+      chem.setMixtures({ [viaFunnel]: residue });
+      if (first) chem.setTool(viaFunnel, { residue: SOLIDS[first].color });
+      note(viaFunnel, 'filter', 8000);
+    }
+    into = { ...taken, s: {}, cloud: 0 };
+  }
   if (liquid && take > room) {
     // The vessel brims over: what does not fit runs down the outside.
     overflow = true;
@@ -218,6 +275,24 @@ export function transfer(src: Vessel, dst: Vessel, amount: number): { moved: num
 }
 
 /* ---------- One-shot actions ---------- */
+
+/** Empty a vessel down the sink or into the chemical-waste bin, with the matching lab feedback. */
+export function emptyVessel(id: string, variant: ItemVariant | undefined, name: string, into: 'sink' | 'waste'): void {
+  const game = useGameStore.getState();
+  const m = mixtureOf(id, variant);
+  useChemStore.getState().setMixtures({ [id]: emptyMixture() });
+  sounds.play('pour');
+  if (into === 'waste') {
+    emitLab({ key: 'waste:proper', title: 'Хаягдлыг зөв устгалаа', detail: 'Химийн хаягдлыг тусгай саванд цуглуулж, дараа нь мэргэжлийн байгууллага устгана.' });
+    return;
+  }
+  if (isHazardous(m)) {
+    emitLab({ key: 'waste:sink', title: 'Хортой хаягдлыг угаалтуурт асгалаа!', detail: 'Хүнд металл, хүчтэй хүчил/шүлттэй хаягдлыг улаан хаягдлын саванд хийх ёстой.' });
+  } else {
+    game.showToast('Сав хоосорлоо', 'Угаалтуурт асгалаа');
+  }
+  game.logEvent(`${name}-ийг угаалтуурт хоосоллоо.`);
+}
 
 function runOnce(kind: UseKind, held: HeldItem, target: UseTarget): void {
   const chem = useChemStore.getState();
@@ -346,25 +421,12 @@ function runOnce(kind: UseKind, held: HeldItem, target: UseTarget): void {
       sounds.play('clink', 0.8);
       return;
     }
-    case 'sinkEmpty': {
-      const m = mixtureOf(held.id, held.variant);
-      const hazardous = isHazardous(m);
-      chem.setMixtures({ [held.id]: emptyMixture() });
-      sounds.play('pour');
-      if (hazardous) {
-        emitLab({ key: 'waste:sink', title: 'Хортой хаягдлыг угаалтуурт асгалаа!', detail: 'Хүнд металл, хүчтэй хүчил/шүлттэй хаягдлыг улаан хаягдлын саванд хийх ёстой.' });
-      } else {
-        game.showToast('Сав хоосорлоо', 'Угаалтуурт асгалаа');
-      }
-      game.logEvent(`${CATALOG[held.kind].name}-ийг угаалтуурт хоосоллоо.`);
+    case 'sinkEmpty':
+      emptyVessel(held.id, held.variant, CATALOG[held.kind].name, 'sink');
       return;
-    }
-    case 'waste': {
-      chem.setMixtures({ [held.id]: emptyMixture() });
-      sounds.play('pour');
-      emitLab({ key: 'waste:proper', title: 'Хаягдлыг зөв устгалаа', detail: 'Химийн хаягдлыг тусгай саванд цуглуулж, дараа нь мэргэжлийн байгууллага устгана.' });
+    case 'waste':
+      emptyVessel(held.id, held.variant, CATALOG[held.kind].name, 'waste');
       return;
-    }
     default:
       break;
   }
@@ -398,7 +460,12 @@ interface Session {
   pending: number;
   sinceCommit: number;
   dropTimer: number;
+  /** Seconds the aim has been off the target. */
+  offTarget: number;
 }
+
+/** A pour survives the crosshair slipping off a thin target (funnel, tube) this long. */
+const AIM_GRACE_S = 0.3;
 
 let session: Session | null = null;
 
@@ -449,13 +516,16 @@ export function beginUse(): void {
       return;
     }
   }
+  // A rack or funnel in focus passes the pour on to the vessel that receives it.
+  const resolved = resolveTarget(target);
   if (!use.continuous) {
-    if (target) runOnce(use.kind, held, target);
+    if (resolved) runOnce(use.kind, held, resolved);
     return;
   }
-  session = { kind: use.kind, held, target: target ?? { type: 'waste' }, key: targetKey(target), elapsed: 0, moved: 0, pending: 0, sinceCommit: 0, dropTimer: 0 };
+  session = { kind: use.kind, held, target: resolved ?? { type: 'waste' }, key: targetKey(target), elapsed: 0, moved: 0, pending: 0, sinceCommit: 0, dropTimer: 0, offTarget: 0 };
   actionVisual.kind = use.kind;
-  actionVisual.targetId = target?.type === 'item' ? target.id : null;
+  // The stream ends at what you aim at (the funnel's mouth, the rack's tube).
+  actionVisual.targetId = target?.type === 'item' ? (target.kind === 'testTubeRack' && resolved?.type === 'item' ? resolved.id : target.id) : null;
   actionVisual.strength = 0;
 }
 
@@ -488,7 +558,8 @@ function flush(s: Session): void {
   if (s.pending <= 0) return;
   const ends = endpoints(s);
   if (!ends) return;
-  const { moved, overflow } = transfer(ends.src, ends.dst, s.pending);
+  const via = s.target.type === 'item' && s.kind === 'pour' ? s.target.via : undefined;
+  const { moved, overflow } = transfer(ends.src, ends.dst, s.pending, via);
   s.moved += moved;
   s.pending = 0;
   s.sinceCommit = 0;
@@ -504,7 +575,8 @@ export function tickUse(dt: number): void {
   const s = session;
   if (!s) return;
   const inv = useInventoryStore.getState();
-  if (!inv.held || inv.held.id !== s.held.id || targetKey(currentTarget()) !== s.key || !['walk', 'bench'].includes(useGameStore.getState().mode)) {
+  s.offTarget = targetKey(currentTarget()) === s.key ? 0 : s.offTarget + dt;
+  if (!inv.held || inv.held.id !== s.held.id || s.offTarget > AIM_GRACE_S || !['walk', 'bench'].includes(useGameStore.getState().mode)) {
     if (!(s.kind === 'extinguish' && inv.held?.id === s.held.id)) {
       endUse();
       return;
@@ -543,7 +615,7 @@ export function tickUse(dt: number): void {
       if (!ends) return;
       s.dropTimer -= dt;
       if (s.dropTimer <= 0) {
-        s.dropTimer = s.kind === 'drip' ? 0.33 : 0.1;
+        s.dropTimer = s.kind === 'drip' ? Math.max(0.1, 0.33 - s.elapsed * 0.06) : 0.1;
         const amount = s.kind === 'drip' ? 0.05 : 0.15;
         const { moved } = transfer(ends.src, ends.dst, amount);
         s.moved += moved;

@@ -34,6 +34,13 @@ export function restartSession(): void {
   useGameStore.getState().restart();
 }
 
+/** Inside ChemQuest the lab runs in an iframe; the page around it goes back to the hub on 'openlab:exit'. */
+const embedded = window.parent !== window;
+
+function leaveLab(): void {
+  window.parent.postMessage({ type: 'openlab:exit', version: 1 }, window.location.origin);
+}
+
 /** End-of-session summary: time, bench skills, inspected and placed equipment. */
 export function SummaryScreen() {
   const experiments = useExperimentCatalog((s) => s.experiments);
@@ -51,8 +58,9 @@ export function SummaryScreen() {
   return (
     <AnimatePresence>
       {open && (
-        <motion.div className="fixed inset-0 z-[70] flex items-center justify-center overflow-y-auto bg-gradient-to-br from-slate-100 to-amber-50 p-4" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
-          <motion.div className="panel-card w-full max-w-3xl p-6 sm:p-8" initial={{ y: 24 }} animate={{ y: 0 }} role="dialog" aria-labelledby="summary-title">
+        // m-auto centers the card while it fits and lets a tall report scroll from its top on short screens.
+        <motion.div className="fixed inset-0 z-[70] flex overflow-y-auto bg-gradient-to-br from-slate-100 to-amber-50 p-4" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+          <motion.div className="panel-card m-auto w-full max-w-3xl p-6 sm:p-8" initial={{ y: 24 }} animate={{ y: 0 }} role="dialog" aria-labelledby="summary-title">
             <div className="text-xs font-bold uppercase tracking-wider text-lab-yellowDark">Сесс дууслаа</div>
             <h2 id="summary-title" className="font-display text-3xl font-bold">
               Лабораторийн тайлан
@@ -114,7 +122,13 @@ export function SummaryScreen() {
                 )}
               </section>
             </div>
-            <div className="mt-6 flex justify-end">
+            {/* Sticks to the bottom edge while a tall report scrolls, so both actions stay in reach. */}
+            <div className={`sticky bottom-0 -mx-6 -mb-6 mt-6 flex flex-wrap items-center gap-3 rounded-b-2xl border-t border-slate-100 bg-white px-6 pb-6 pt-4 sm:-mx-8 sm:-mb-8 sm:px-8 sm:pb-8 ${embedded ? 'justify-between' : 'justify-end'}`}>
+              {embedded && (
+                <button type="button" className="btn-ghost px-6 py-3" onClick={leaveLab} title="ChemQuest hub руу буцах" aria-label="Лабаас гарч ChemQuest hub руу буцах">
+                  ← Лабаас гарах
+                </button>
+              )}
               <button className="btn-yellow px-6 py-3" onClick={restartSession}>
                 Шинээр эхлэх
               </button>

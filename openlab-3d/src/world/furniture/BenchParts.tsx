@@ -1,7 +1,8 @@
 /**
- * Instanced parts shared by all benches/cabinets in a room: drawer and door fronts,
- * chrome bar handles and open-top drawer boxes. A room wraps its furniture in
- * <BenchParts> so hundreds of fronts cost only three draw calls.
+ * Instanced parts shared by all benches/cabinets in a room: drawer and door fronts with
+ * a raised center panel, chrome bar handles, open-top drawer boxes with a rubber liner,
+ * and the brushed-metal holders of the category labels. A room wraps its furniture in
+ * <BenchParts> so hundreds of fronts cost only a handful of draw calls.
  */
 import type { ReactNode } from 'react';
 import { createInstances } from '@react-three/drei';
@@ -10,14 +11,22 @@ import { STORAGE_INFO, type StorageCategory } from '../../interaction/holders';
 import { plateTexture } from '../../utils/textures';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import { benchFront, plasticLightGray } from '../../materials/plastic';
-import { metalChrome } from '../../materials/metal';
+import { metalBrushed, metalChrome } from '../../materials/metal';
 import { lazy } from '../../utils/lazy';
 
 const [FrontInstances, FrontInstance] = createInstances();
 const [HandleInstances, HandleInstance] = createInstances();
 const [BoxInstances, BoxInstance] = createInstances();
+const [PanelInstances, PanelInstance] = createInstances();
+const [LinerInstances, LinerInstance] = createInstances();
+const [HolderInstances, HolderInstance] = createInstances();
 
-export { FrontInstance, HandleInstance, BoxInstance };
+export { FrontInstance, HandleInstance, BoxInstance, PanelInstance, LinerInstance, HolderInstance };
+
+/** Raised center panel of a front: a shade lighter than the frame around it. */
+const panelMaterial = new MeshStandardMaterial({ color: '#646a73', roughness: 0.45 });
+/** Ribbed rubber mat on the floor of a drawer tray. */
+const linerMaterial = new MeshStandardMaterial({ color: '#2b2f35', roughness: 0.95 });
 
 const LABEL_CATEGORIES = (Object.keys(STORAGE_INFO) as StorageCategory[]).filter((c) => c !== 'rack');
 const LABEL_SETS = Object.fromEntries(LABEL_CATEGORIES.map((c) => [c, createInstances()])) as Record<StorageCategory, ReturnType<typeof createInstances>>;
@@ -68,9 +77,12 @@ export const handleGeometry = lazy(() => {
   return merged ?? bar;
 });
 
+/** Wall and floor thickness of the drawer tray, as a fraction of its size. */
+export const TRAY_WALL = 0.025;
+
 /** Open-top drawer tray of unit size (centered, open at +y). */
 export const drawerBoxGeometry = lazy(() => {
-  const t = 0.04;
+  const t = TRAY_WALL;
   const parts: BufferGeometry[] = [];
   const add = (w: number, h: number, d: number, x: number, y: number, z: number) => {
     const g = new BoxGeometry(w, h, d);
@@ -88,14 +100,21 @@ export const drawerBoxGeometry = lazy(() => {
 });
 
 export const WHITE = new Color(1, 1, 1);
-export const HIGHLIGHT = new Color(1.9, 1.95, 2.05);
+/** Focused fronts brighten slightly with a cool tint (not a white flash). */
+export const HIGHLIGHT = new Color(1.22, 1.3, 1.45);
 
 export function BenchParts({ children, limit = 400 }: { children: ReactNode; limit?: number }) {
   return (
     <FrontInstances limit={limit} geometry={unitBox()} material={benchFront} castShadow receiveShadow frustumCulled={false}>
       <HandleInstances limit={limit} geometry={handleGeometry()} material={metalChrome} frustumCulled={false}>
         <BoxInstances limit={Math.round(limit / 2)} geometry={drawerBoxGeometry()} material={plasticLightGray} frustumCulled={false}>
-          <LabelProviders limit={64}>{children}</LabelProviders>
+          <PanelInstances limit={limit} geometry={unitBox()} material={panelMaterial} castShadow receiveShadow frustumCulled={false}>
+            <LinerInstances limit={Math.round(limit / 2)} geometry={unitBox()} material={linerMaterial} receiveShadow frustumCulled={false}>
+              <HolderInstances limit={limit} geometry={unitBox()} material={metalBrushed} frustumCulled={false}>
+                <LabelProviders limit={64}>{children}</LabelProviders>
+              </HolderInstances>
+            </LinerInstances>
+          </PanelInstances>
         </BoxInstances>
       </HandleInstances>
     </FrontInstances>

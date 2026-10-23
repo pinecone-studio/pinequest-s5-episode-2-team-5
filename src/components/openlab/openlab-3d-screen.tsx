@@ -15,7 +15,7 @@ import { useOpenLabCatalog } from '@/hooks/use-openlab-catalog';
  * writes it to `public/openlab/`, which Expo web serves as static files; this screen shows
  * it full screen in an iframe.
  */
-const OPENLAB_URL = '/openlab/index.html?v=experiment-catalog-1';
+const OPENLAB_URL = '/openlab/index.html?v=lab-polish-1';
 /** The built page's <title>; an SPA fallback page would not contain it. */
 const OPENLAB_MARKER = '<title>OpenLab 3D</title>';
 
@@ -47,6 +47,17 @@ function OpenLabWeb() {
     return () => {
       cancelled = true;
     };
+  }, []);
+
+  // The lab report's "Лабаас гарах" button asks to leave: go back to the hub.
+  useEffect(() => {
+    const receive = (event: MessageEvent<unknown>) => {
+      if (event.origin !== window.location.origin || event.source !== frame.current?.contentWindow) return;
+      const data = event.data;
+      if (data && typeof data === 'object' && 'type' in data && data.type === 'openlab:exit') goBack();
+    };
+    window.addEventListener('message', receive);
+    return () => window.removeEventListener('message', receive);
   }, []);
 
   if (status === 'checking') {
