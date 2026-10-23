@@ -1,3 +1,4 @@
+import { recordTransfer } from '../lab/measurements';
 /**
  * R: use the held item on whatever is in focus. The held item and the target decide the
  * action — pour (hold R; the stream speeds up after a moment so small amounts are easy),
@@ -13,7 +14,7 @@ import { CATALOG, STOCK_KINDS, isContainer, type EquipmentKind } from '../equipm
 import { CATIONS, FLAME_COLORS, SOLIDS, type Cation } from '../chemistry/species';
 import { REAGENTS } from '../chemistry/reagents';
 import { emptyMixture, heatCapacity, isEmptyMixture, liquidMl, merge, reagentMixture, solidMassG, solidVolumeMl, takeLiquid, takeSolid, type Mixture } from '../chemistry/mixture';
-import { mixObservations } from '../chemistry/reaction-view';
+import { mixObservations, physicalMixing } from '../chemistry/reaction-view';
 import { publishReaction } from '../lab/reaction-view';
 import { equilibrateHeat } from '../chemistry/mix';
 import { phOf } from '../chemistry/equilibrium';
@@ -264,10 +265,13 @@ export function transfer(src: Vessel, dst: Vessel, amount: number, viaFunnel?: s
     spillMixture(parts.rest, x + 0.05, y, z, dst.id);
     take = keep;
   }
+  if (liquid) recordTransfer(src.id, dst.id, src.variant?.reagent ? REAGENTS[src.variant.reagent].name : CATALOG[src.kind].name, take);
   prime(dst.id, dm);
   const mixed = equilibrateHeat(dm, into, CATALOG[dst.kind].heatJK ?? 100);
   chem.setMixtures({ [src.id]: rest, [dst.id]: mixed.m });
-  for (const reaction of mixObservations(dm, into, mixed.m, mixed.neutralized, mixed.formed)) publishReaction(dst.id, reaction, 1800);
+  const observations = mixObservations(dm, into, mixed.m, mixed.neutralized, mixed.formed);
+  for (const reaction of observations) publishReaction(dst.id, reaction, 5000);
+  if (take > 0 && !observations.some((r) => !r.info)) publishReaction(dst.id, physicalMixing(mixed.m), 5000);
   if (mixed.neutralized > 2e-5) note(dst.id, 'neutralization', 5000);
   observe(dst.id, mixed.m);
   useEvents(src);

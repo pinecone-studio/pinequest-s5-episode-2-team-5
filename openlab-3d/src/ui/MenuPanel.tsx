@@ -9,7 +9,7 @@ import { sounds } from '../utils/sounds';
 import { SettingsPanel } from './SettingsPanel';
 import { ControlsList } from './ControlsHelp';
 import { openNaClExperiment } from '../experiments/nacl/bench';
-import { selectBenchExperiment, useWorkbench } from '../experiments/workbench/session';
+import { repeatBenchExperiment, selectBenchExperiment, useWorkbench } from '../experiments/workbench/session';
 
 type Tab = 'experiments' | 'settings' | 'controls';
 
@@ -112,7 +112,7 @@ function ExperimentsTab() {
                   >
                     {sessions[x.id] ? '▶ Үргэлжлүүлэх' : '▶ Эхлүүлэх'}
                   </button>
-                  {(sessions[x.id] || complete) && <button className="min-h-9 w-full rounded-lg border border-slate-300 bg-white py-2 text-sm font-semibold" onClick={() => { selectBenchExperiment(x.id, true); resumeWalk(); }}>↻ Дахин хийх</button>}
+                  {(sessions[x.id] || complete) && <button className="min-h-9 w-full rounded-lg border border-slate-300 bg-white py-2 text-sm font-semibold" onClick={() => { repeatBenchExperiment(x.id); resumeWalk(); }}>↻ Дахин хийх</button>}
                 </div>
               )}
             </li>

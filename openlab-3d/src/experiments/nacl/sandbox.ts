@@ -1,3 +1,4 @@
+import { recordTransfer } from '../../lab/measurements';
 import { create } from 'zustand';
 import { useChemStore, mixtureOf } from '../../store/useChemStore';
 import { readBenchMixture, seedBenchChemistry, updateBenchMixture } from './chemistry';
@@ -15,7 +16,7 @@ import { useExperimentStore } from '../../store/useExperimentStore';
 import { heldApi } from '../../interaction/heldApi';
 import { NAMES, CHEM, type PartKey } from './data';
 import { emptyVessel, transfer } from '../../interaction/actions';
-import { carbonateReaction, evaporationReaction, mixObservations } from '../../chemistry/reaction-view';
+import { carbonateReaction, evaporationReaction, mixObservations, physicalMixing } from '../../chemistry/reaction-view';
 import { publishReaction } from '../../lab/reaction-view';
 import { equilibrateHeat } from '../../chemistry/mix';
 import { DEFAULT_ENV, step as chemistryStep } from '../../chemistry/kinetics';
@@ -287,7 +288,10 @@ export function simulateLab(rawDt: number, distance: (a: string, b: string) => n
         const textbook = !!(before.s.Na2CO3 || kept.taken.s.Na2CO3);
         const mixed = textbook ? { m: mergeMixtures(before, kept.taken), neutralized: 0, formed: [] } : equilibrateHeat(before, kept.taken, 100);
         useChemStore.getState().setMixtures({ [act.source]: portions.rest, [act.target]: mixed.m });
-        for (const r of mixObservations(before, kept.taken, mixed.m, mixed.neutralized, mixed.formed)) publishReaction(act.target, r, 1800);
+        recordTransfer(act.source, act.target, source.label, amount);
+        const observations = mixObservations(before, kept.taken, mixed.m, mixed.neutralized, mixed.formed);
+        for (const r of observations) publishReaction(act.target, r, 5000);
+        if (amount > 0 && !observations.some((r) => !r.info)) publishReaction(act.target, physicalMixing(mixed.m), 5000);
         if (overflow > 0) {
           const at = labSpace.position(act.target); spillMixture(kept.rest, at.x, at.y, at.z, act.target);
         }

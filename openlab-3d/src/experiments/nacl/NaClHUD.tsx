@@ -1,3 +1,5 @@
+import { KI_DOSE_ML } from '../../lab/quantity-guidance';
+import { MeasurementGuide } from '../workbench/MeasurementGuide';
 import { MoleculeViewerButton } from '../../ui/MoleculeViewer';
 /** One room, one set of equipment. Guidance never locks an object or a step. */
 import { useEffect, useRef } from 'react';
@@ -104,7 +106,7 @@ function SubstanceCard() {
       <p className="mb-2 text-[11px] text-slate-600">{tool?.label} → {item.label}</p>
       <button className="touch-none rounded-lg bg-slate-200 px-3 py-2 text-xs font-bold" onPointerDown={(e) => { e.currentTarget.setPointerCapture(e.pointerId); action(); }} onPointerUp={endHeldUse} onPointerCancel={endHeldUse} onBlur={endHeldUse}
         onKeyDown={(e) => { if ((e.key === ' ' || e.key === 'Enter') && !e.repeat) { e.preventDefault(); action(); } }} onKeyUp={endHeldUse}>Дарж барьж {fittingPaper ? 'цаасыг суулгах' : canPour ? 'цутгах' : 'ашиглах'}</button>
-      {canPour && <div className="mt-2 flex gap-2"><button className="rounded-lg bg-sky-100 px-3 py-2 text-xs font-bold" onClick={() => dose(1)}>1 см³ цутгах</button><button className="rounded-lg bg-sky-100 px-3 py-2 text-xs font-bold" onClick={() => dose(5)}>5 см³ цутгах</button></div>}
+      {canPour && <div className="mt-2 flex flex-wrap gap-2"><button className="rounded-lg bg-sky-100 px-3 py-2 text-xs font-bold" onClick={() => dose(.1)}>0.1 см³ цутгах</button><button className="rounded-lg bg-sky-100 px-3 py-2 text-xs font-bold" onClick={() => dose(1)}>1 см³ цутгах</button><button className="rounded-lg bg-sky-100 px-3 py-2 text-xs font-bold" onClick={() => dose(5)}>5 см³ цутгах</button></div>}
     </div>}
     <div className="mt-3 flex flex-wrap gap-2">
       {((interactables.get(id)?.onGrab && interactables.get(id)?.onGrab !== interactables.get(id)?.onInteract) || key === 'lamp' || key === 'scope') && <button className="rounded-lg bg-slate-100 px-3 py-2 text-xs font-bold" onClick={() => { const entry = interactables.get(id); if (key) labUse.start(id); else entry?.onInteract?.(); }}>Ашиглах</button>}
@@ -175,7 +177,8 @@ export function NaClHUD() {
   const lesson = catalog.find((x) => x.id === active);
   const preparing = !!lesson && !session?.ready;
   const done = active ? progress[active] ?? [] : [];
-  const selectedStep = session?.stepOverride ?? Math.max(0, lesson?.steps.findIndex((s) => !done.includes(s.id)) ?? 0);
+  const nextStep = lesson?.steps.findIndex((s) => !done.includes(s.id)) ?? 0;
+  const selectedStep = session?.stepOverride ?? (nextStep < 0 ? lesson?.steps.length ?? 0 : nextStep);
   const guide = experimentGuide(session?.stepOverride ?? undefined);
   const q = promptKey('drop', settings.bindings, settings.lookMode);
   const receiver = benchUseTarget();
@@ -196,7 +199,10 @@ export function NaClHUD() {
       <div className="truncate text-xs font-bold">{lesson?.title ?? 'Туршилт сонгоогүй байна'}{preparing ? ' · Бэлтгэл' : ''}</div>
       {session?.teacher && <span className="mt-1 inline-block rounded-full bg-indigo-50 px-2 py-1 text-[11px] font-bold text-indigo-700">👩‍🏫 Багшийн горим</span>}
       {preparing ? <PreparationChecklist /> : lesson && <>
-        <p className="mt-1 text-xs">{(active === 'nacl' ? guide.current.hint : lesson.steps[selectedStep]?.hint ?? 'Туршилт дууслаа.').split('. ')[0]}</p>
+        <p className="mt-1 text-xs font-semibold">{active === 'nacl' ? guide.current.hint : lesson.steps[selectedStep]?.text ?? 'Туршилт дууслаа.'}</p>
+        {active === 'elephant' && selectedStep < lesson.steps.length && <p className="mt-1 rounded bg-sky-50 p-2 text-sm font-bold text-sky-950">{selectedStep === 0 ? 'H₂O₂: 20–30 мл → цилиндр' : selectedStep === 1 ? 'Саван: бага хэмжээ · нэмсэн мл-ээ тэмдэглэ' : `KI (0.5 М): ≈${KI_DOSE_ML?.toFixed(1) ?? '—'} мл → цилиндр`}</p>}
+        {active !== 'nacl' && lesson.steps[selectedStep] && <details key={lesson.steps[selectedStep].id} className="mt-1 text-[11px]"><summary className="cursor-pointer text-sky-800">Тусламж хэрэгтэй юу?</summary><p className="mt-1">{lesson.steps[selectedStep].hint}</p></details>}
+        {active && <MeasurementGuide experiment={active} target={receiver ?? view.selected} step={lesson.steps[selectedStep]?.id}/>}
       </>}
       {lesson && <details className="mt-1 text-[11px]"><summary className="cursor-pointer text-slate-500">Алхмууд</summary><div className="mt-1 flex flex-wrap gap-1">{lesson.steps.map((step, i) => <button key={step.id} className="rounded bg-slate-100 px-2 py-1" onClick={() => jumpToStep(i)}>{(active === 'nacl' && guide.steps[i]?.done) || done.includes(step.id) ? '✓ ' : ''}{i + 1}. {step.text}</button>)}</div></details>}
       {lesson && <p className="mt-1 text-[11px] text-slate-600" role="status">{active === 'nacl' && !preparing ? guide.warning : state.warning}</p>}

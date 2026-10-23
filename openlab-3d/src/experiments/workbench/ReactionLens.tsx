@@ -1,12 +1,13 @@
+import { isWorkbenchObject, isBenchPaused } from './session';
+import { vesselObservation } from '../../lab/container-observation';
 import { useEffect, useRef, useState } from 'react';
 import { AmbientLight, CanvasTexture, Sprite, SpriteMaterial, Color, DirectionalLight, DynamicDrawUsage, InstancedMesh, MeshPhongMaterial, Object3D, PerspectiveCamera, Scene, SphereGeometry, WebGLRenderer } from 'three';
-import { heldObjectId, useSandbox } from '../nacl/sandbox';
+import { describe, heldObjectId, useSandbox } from '../nacl/sandbox';
 import { useBenchView } from '../nacl/view';
 import { useSettingsStore } from '../../store/useSettingsStore';
 import { useGameStore } from '../../store/useGameStore';
-import { useReactionView, type VesselReaction } from '../../lab/reaction-view';
+import { automaticReaction, useReactionView, type VesselReaction } from '../../lab/reaction-view';
 import { reactionProjection } from './WorkbenchRuntime';
-import { isWorkbenchObject } from './session';
 import { sounds } from '../../utils/sounds';
 import { MoleculeViewerButton } from '../../ui/MoleculeViewer';
 import { MolecularModel, type Species } from './molecules';
@@ -26,30 +27,42 @@ const ATOMS: Record<Species, [number, number, number, string, number][]> = {
 };
 
 /** Select actual observed chemistry; looking/holding has priority over bench selection. */
-function currentReaction(): VesselReaction | null {
-  const game = useGameStore.getState(), view = useBenchView.getState(), sandbox = useSandbox.getState();
+function currentReaction(requested: string | null, dismissed: number | null): VesselReaction | null {
+  const game = useGameStore.getState();
   if (!['walk', 'bench', 'inspect'].includes(game.mode)) return null;
   const all = useReactionView.getState().vessels, now = performance.now();
-  const ids = game.mode === 'inspect' ? [game.inspectTarget?.sourceId]
-    : game.mode === 'walk' ? [heldObjectId(), game.focus?.id]
-    : [view.selected, sandbox.hovered, heldObjectId(), ...Object.keys(all).filter(isWorkbenchObject)];
-  return ids.map((id) => id ? all[id] : null).find((r) => r && r.until > now) ?? null;
+  const nearby = game.mode === 'bench' || game.mode === 'walk' && useSandbox.getState().near;
+  const automatic = nearby ? automaticReaction(all, now, dismissed, (id) => isWorkbenchObject(id) && !isBenchPaused(id)) : null;
+  if (automatic) return automatic;
+  if (!nearby && game.mode !== 'inspect') return null;
+  const selected = (game.mode === 'inspect' ? game.inspectTarget?.sourceId : heldObjectId() ?? useBenchView.getState().selected) ?? requested;
+  if (selected && (describe(selected).capacity > 0 || ['jar', 'reagentJar', 'spat', 'spatula'].includes(describe(selected).role))) {
+    const reaction = all[selected];
+    if (reaction && !reaction.info && reaction.until > now) return reaction;
+    const contents = vesselObservation(selected);
+    // Stable identity until this container's species change; do not rebuild every poll.
+    const key = `${selected}:${contents.reactants.map((s) => s.id).join(',')}`;
+    let hash = 0;
+    for (let i = 0; i < key.length; i++) hash = (Math.imul(hash, 31) + key.charCodeAt(i)) | 0;
+    return { ...contents, vesselId: selected, episode: -1 - (hash >>> 0), until: now + 500 };
+  }
+  return null;
 }
 export function ReactionLens() {
   const mode = useGameStore((s) => s.mode);
+  const lastContainer = useRef<string | null>(null);
   const [shown, setShown] = useState<VesselReaction | null>(null);
-  const [pinned, setPinned] = useState(false);
-  const closed = useRef<number | null>(null);
-  const pinnedRef = useRef(pinned); pinnedRef.current = pinned;
   const viewport = useRef<HTMLDivElement>(null), anchor = useRef<HTMLDivElement>(null), connector = useRef<SVGLineElement>(null);
   const quality = useSettingsStore((s) => s.quality), reduced = useSettingsStore((s) => s.reducedMotion);
   useEffect(() => {
     const poll = () => {
-      const next = currentReaction();
+      const next = currentReaction(lastContainer.current, null);
+      if (next) lastContainer.current = next.vesselId;
       setShown((previous) => {
-        if (next && next.episode !== closed.current) return next.episode === previous?.episode && Math.abs(next.temp - previous.temp) < .5 && next.equation === previous.equation && next.sentence === previous.sentence ? previous : next;
-        if (pinnedRef.current && previous && useReactionView.getState().vessels[previous.vesselId]?.episode === previous.episode && ['walk', 'bench', 'inspect'].includes(useGameStore.getState().mode)) return previous;
-        return previous && previous.until + (reduced ? 0 : 850) > performance.now() ? previous : null;
+        if (next) return next.episode === previous?.episode && Math.abs(next.temp - previous.temp) < .5 && next.equation === previous.equation && next.sentence === previous.sentence ? previous : next;
+        if (previous && !previous.info && previous.until + 2500 > performance.now()
+            && (useGameStore.getState().mode === 'bench' || useSandbox.getState().near)) return previous;
+        return null;
       });
     };
     poll(); const timer = window.setInterval(poll, 100); return () => clearInterval(timer);
@@ -119,7 +132,7 @@ export function ReactionLens() {
         const y = innerWidth < 640 ? Math.max(150, Math.min(260, innerHeight * .31)) : Math.max(75, Math.min(innerHeight - 405, projected.y - 150));
         anchor.current.style.transform = `translate(${x}px,${y}px)`;
         anchor.current.style.visibility = projected.visible ? 'visible' : 'hidden';
-        anchor.current.style.opacity = active || pinnedRef.current ? '1' : '0';
+        anchor.current.style.opacity = '1';
         connector.current?.setAttribute('x1', String(projected.x)); connector.current?.setAttribute('y1', String(projected.y));
         connector.current?.setAttribute('x2', String(x + width / 2)); connector.current?.setAttribute('y2', String(y + 90));
       }
@@ -130,12 +143,12 @@ export function ReactionLens() {
     // One particle population per reaction episode; instantaneous rates are read in RAF.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [episode, quality, reduced]);
-  if (!shown || !['walk', 'bench', 'inspect'].includes(mode)) return null;
+  if (!['walk', 'bench', 'inspect'].includes(mode)) return null;
+  if (!shown) return null;
   const legend = [...new Map([...shown.reactants, ...shown.products, ...(shown.spectators ?? [])].map((s) => [s.id, s])).values()];
   return <><svg className="pointer-events-none fixed inset-0 z-[51] h-full w-full" aria-hidden><line ref={connector} stroke="#a5dffc" strokeWidth="1.5" /></svg>
     <div ref={anchor} style={{ zIndex: mode === 'inspect' ? 52 : 32 }} className="pointer-events-none fixed left-0 top-0 z-[52] w-[min(270px,calc(100vw-24px))] text-lab-ink transition-opacity duration-700" aria-label="Урвалын молекулын линз" data-vessel={shown.vesselId}>
-      <div className="pointer-events-none mx-auto w-40 overflow-hidden rounded-full border-2 border-sky-200 bg-slate-900 shadow-hud sm:w-56"><div ref={viewport} className="aspect-square w-full" aria-label="Молекулууд мөргөлдөж урвалд орж байна" /></div>
-      <div className="pointer-events-auto flex justify-center gap-2 py-1 text-[10px]"><button className="rounded-full bg-white px-3 py-1 shadow-hud" aria-pressed={pinned} onClick={() => setPinned(!pinned)}>{pinned ? 'Тогтоосон' : 'Тогтоох'}</button><button className="rounded-full bg-white px-3 py-1 shadow-hud" aria-label="Молекулын линзийг хаах" onClick={() => { closed.current = episode ?? null; setPinned(false); setShown(null); }}>✕</button></div>
+      <div className="pointer-events-none mx-auto w-40 overflow-hidden rounded-full border-2 border-sky-200 bg-slate-900 shadow-hud sm:w-56"><div ref={viewport} className="aspect-square w-full" aria-label="Сав доторх бөөмсийн хөдөлгөөн" /></div>
       <div className="pointer-events-auto text-center"><MoleculeViewerButton reaction={shown}/></div>
       <div className="pointer-events-none rounded-lg bg-white/95 p-2 text-center text-xs shadow-hud" aria-label="Урвалын тэгшитгэл">
         <b>{shown.equation}</b>{shown.catalyst && <p className="mt-1 text-[10px] text-indigo-800">I⁻ — катализатор, K⁺ — ажиглагч ион<br/>H₂O₂ + I⁻ → H₂O + IO⁻<br/>H₂O₂ + IO⁻ → H₂O + O₂↑ + I⁻</p>}<p className="mt-1 text-[11px]">{shown.sentence}</p>

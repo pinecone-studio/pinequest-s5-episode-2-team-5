@@ -1,3 +1,4 @@
+import { clearMeasurements } from '../../lab/measurements';
 import { co2Until, coverUntil, stirUntil, heldHeat } from '../../interaction/actions';
 import { clearExperimentFeedback } from '../../lab/announcer';
 import { endHeldUse } from '../../interaction/useHeld';
@@ -10,7 +11,7 @@ import { create } from 'zustand';
 import { Box3, Quaternion, Vector3 } from 'three';
 import { CATALOG, SPAWNABLE_KINDS, type EquipmentKind } from '../../equipment/equipmentCatalog';
 import { REAGENTS, REAGENT_LIST, type ReagentId } from '../../chemistry/reagents';
-import { useLabStore } from '../../store/useLabStore';
+import { experimentDone, useLabStore } from '../../store/useLabStore';
 import { storedIn, useInventoryStore } from '../../store/useInventoryStore';
 import { useChemStore } from '../../store/useChemStore';
 import { useGameStore } from '../../store/useGameStore';
@@ -53,7 +54,7 @@ const RECIPES: Record<string, BenchSupply[]> = {
 };
 export const suppliesFor = (id: string | null) => id ? RECIPES[id] ?? [] : [];
 export const supplySubstance = (supply: BenchSupply) => supply.part === 'bottle' ? SUBSTANCES.hcl : supply.part === 'jar' ? SUBSTANCES.na2co3 : supply.part === 'lamp' ? SUBSTANCES.ethanol : null;
-export interface BenchSession { found: string[]; placed: string[]; owned: string[]; teacher: boolean; objects: Record<string, string>; ready: boolean; stepOverride: number | null }
+export interface BenchSession { found: string[]; placed: string[]; owned: string[]; teacher: boolean; objects: Record<string, string>; ready: boolean; previouslyComplete?: boolean; stepOverride: number | null }
 export interface SupplyItem { id: string; kind?: EquipmentKind; reagent?: ReagentId; part?: PartKey }
 export const PART_KINDS: Partial<Record<PartKey, EquipmentKind>> = { bottle: 'reagentBottle', cyl: 'graduatedCylinder', beaker: 'beaker', spat: 'spatula', rod: 'glassRod', funnel: 'funnel', flask: 'erlenmeyer', dish: 'evaporatingDish', tripod: 'tripod', waste: 'beaker', watch: 'watchGlass' };
 export const ALL_SUPPLIES: BenchSupply[] = [
@@ -75,7 +76,7 @@ export function currentSession() { const id = useLabStore.getState().active; ret
 export function beginPreparation() {
   const id = useLabStore.getState().active;
   if (!id || useWorkbench.getState().sessions[id]) return;
-  useWorkbench.setState((s) => ({ sessions: { ...s.sessions, [id]: { found: [], placed: [], owned: [], teacher: false, objects: {}, ready: suppliesFor(id).length === 0, stepOverride: null } } }));
+  useWorkbench.setState((s) => ({ sessions: { ...s.sessions, [id]: { found: [], placed: [], owned: [], teacher: false, objects: {}, ready: suppliesFor(id).length === 0, previouslyComplete: experimentDone(useLabStore.getState().progress, id), stepOverride: null } } }));
 }
 export function matchesSupply(supply: BenchSupply, item: SupplyItem): boolean {
   if (supply.part) {
@@ -221,10 +222,11 @@ export function startWorkbenchTracking(): () => void {
   return () => { a(); b(); };
 }
 /** Explicit teacher bypass; the ordinary path requires an actual pickup and placement. */
-export function demonstratePreparation() {
+export function demonstratePreparation() { prepareSupplies(true); }
+function prepareSupplies(teacher: boolean) {
   beginPreparation();
   const active = useLabStore.getState().active, session = currentSession();
-  if (active && session) useWorkbench.setState((s) => ({ sessions: { ...s.sessions, [active]: { ...session, teacher: true } } }));
+  if (active && session) useWorkbench.setState((s) => ({ sessions: { ...s.sessions, [active]: { ...session, teacher } } }));
   const held=heldObjectId();
   if(held) {
     const slot=Math.max(0,suppliesFor(active).findIndex((s)=>matchesSupply(s,itemDescription(held))));
@@ -275,6 +277,7 @@ export function clearExperimentSession(id: string, worktopOnly = false) {
     }));
     useExperimentStore.setState((s)=>({toggles:Object.fromEntries(Object.entries(s.toggles).filter(([key])=>!ids.has(key))),values:Object.fromEntries(Object.entries(s.values).filter(([key])=>!ids.has(key)))}));
     clearReactionViews([...ids]);
+    clearMeasurements([...ids]);
     useWorkbench.setState((s) => ({
       sessions: Object.fromEntries(Object.entries(s.sessions).filter(([key]) => key !== id)),
       loose: Object.fromEntries(Object.entries(s.loose).filter(([, object]) => !ids.has(object))),
@@ -282,7 +285,7 @@ export function clearExperimentSession(id: string, worktopOnly = false) {
     }));
   } finally { cleaning = false; }
 }
-export function resetWorkbench() { resetPresentation(); focusTicket++; picked.clear(); origins.clear(); clearReactionViews(); useWorkbench.setState({ sessions: {}, drawer: false, loose: {}, availableParts: [] }); }
+export function resetWorkbench() { clearMeasurements(); resetPresentation(); focusTicket++; picked.clear(); origins.clear(); clearReactionViews(); useWorkbench.setState({ sessions: {}, drawer: false, loose: {}, availableParts: [] }); }
 export function selectBenchExperiment(id: string, fresh = false) {
   focusTicket++;
   const previous = useLabStore.getState().active;
@@ -303,6 +306,14 @@ export function selectBenchExperiment(id: string, fresh = false) {
   useWorkbench.setState({ drawer: false });
   updateStationVisibility();
   if (useGameStore.getState().mode === 'bench') benchView.table();
+}
+/** Repeat the practical with clean, replenished supplies already on the bench. */
+export function repeatBenchExperiment(id: string) {
+  selectBenchExperiment(id, true);
+  prepareSupplies(false);
+  useSandbox.setState({ inspected: null, hovered: null });
+  useBenchView.setState({ selected: null });
+  warn('Туршилтыг дахин эхлүүллээ. Багаж, бодис ширээн дээр бэлэн байна.');
 }
 export function isInactiveBenchObject(id: string): boolean {
   const key = partKey(id);

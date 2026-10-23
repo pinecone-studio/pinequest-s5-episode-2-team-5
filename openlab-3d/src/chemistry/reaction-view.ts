@@ -149,3 +149,14 @@ export function stepObservations(before: Mixture, result: StepResult, dt: number
   if (!out.length) { const info = incompletePeroxide(m); if (info) out.push(info); }
   return out.filter((r) => (r.info || r.rate > 0) && Number.isFinite(r.rate) && liquidMl(m) >= 0);
 }
+
+/** Physical mixing has moving particles but no invented chemical products or rate. */
+export function physicalMixing(m: Mixture): ReactionObservation {
+  const species = Object.entries(m.aq).filter(([,n]) => n > 1e-10).map(([id]) => ion(id as AqId));
+  if (m.water > 0) species.unshift(W());
+  if (m.ethanol > 0) species.push(atom('ethanol', 'Этанол', 'C₂H₅OH', '#ffffff'));
+  for (const [id,n] of Object.entries(m.s)) if (n > 1e-10) species.push(solid(id as SolidId));
+  return { preset: 'generic', key: `mixing:${species.map((s)=>s.id).join(',')}`, reactants: species, products: [],
+    rate: 0, temp: m.temp, info: true, effect: 'water', equation: 'Юүлэх · Холих',
+    sentence: 'Юүлсэн бодисын бөөмс сав дотор холилдож байна. Шинэ бодис үүсэхийг энэ дүрслэл илэрхийлэхгүй.' };
+}

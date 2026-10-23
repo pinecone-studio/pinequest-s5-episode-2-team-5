@@ -5,7 +5,7 @@ import { experimentById } from '../lab/experiments';
 import { useChemStore } from '../store/useChemStore';
 import { useReactionView } from '../lab/reaction-view';
 import { atom, solid, evaporationReaction, type ReactionObservation } from '../chemistry/reaction-view';
-import { currentSession, isWorkbenchObject, itemDescription, selectBenchExperiment } from '../experiments/workbench/session';
+import { currentSession, isWorkbenchObject, itemDescription, repeatBenchExperiment } from '../experiments/workbench/session';
 import { useGameStore } from '../store/useGameStore';
 import { useSettingsStore } from '../store/useSettingsStore';
 import { endHeldUse } from '../interaction/useHeld';
@@ -58,9 +58,11 @@ export function ExperimentSuccess() {
     useEffect(() => {
         const timer = window.setInterval(() => {
             const active = useLabStore.getState().active, presentation = usePresentation.getState();
-            if (!active || presentation.modal || presentation.celebrated.includes(active) || !currentSession()?.ready)
+            if (!active || presentation.modal || presentation.celebrated.includes(active) || !currentSession()?.ready) {
+                pending.current = null;
                 return;
-            const expected = resultFor(active), done = experimentDone(useLabStore.getState().progress, active);
+            }
+            const expected = resultFor(active), done = !currentSession()?.previouslyComplete && experimentDone(useLabStore.getState().progress, active);
             if (!expected && !done) {
                 pending.current = null;
                 return;
@@ -90,7 +92,7 @@ export function ExperimentSuccess() {
         return null;
     const lesson = experimentById(id), products = result.products;
     const product = products.map((s) => s.formula.replace(/↑$/, '')).join(' + ') || 'Туршилтын үр дүн';
-    const restart = () => { selectBenchExperiment(id, true); };
+    const restart = () => { pending.current = null; repeatBenchExperiment(id); };
     const choose = () => { closePresentation(); if (useGameStore.getState().mode === 'bench')
         exitBench(); useGameStore.getState().openPanel('menu'); };
     return <div role="dialog" aria-modal="true" aria-label="Туршилт амжилттай" className="fixed inset-0 z-[76] flex items-center justify-center overflow-hidden bg-slate-950/55 p-3">

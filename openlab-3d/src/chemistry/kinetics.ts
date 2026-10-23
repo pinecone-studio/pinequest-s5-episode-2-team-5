@@ -377,7 +377,7 @@ export function step(input: Mixture, dtRaw: number, env: StepEnv): StepResult {
     m.foam += (gas.O2 + gas.CO2) * dt * 24000 * 1.1 * soap;
   }
   // Keep an active eruption substantial, then drain the remaining foam promptly.
-  m.foam *= Math.exp(-dt / (fizz > 1e-8 ? 8 : 2.2));
+  m.foam *= Math.exp(-dt / (fizz > 1e-8 ? 4 : 1.4));
 
   let out = clean(m);
   if (hadLiquid && liquidMl(out) < 0.02) {

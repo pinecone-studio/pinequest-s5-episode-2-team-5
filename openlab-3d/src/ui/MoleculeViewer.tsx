@@ -1,33 +1,15 @@
+import { vesselObservation } from '../lab/container-observation';
 import { Suspense, useMemo, useRef, useState } from 'react';
 import { Canvas, useFrame } from '@react-three/fiber';
 import { Billboard, OrbitControls, Text } from '@react-three/drei';
 import { Quaternion, Vector3 } from 'three';
 import type { OrbitControls as Controls } from 'three-stdlib';
 import { ELEMENTS, moleculeGeometry, type ModelBond, type MoleculeGeometry } from '../chemistry/molecules3d';
-import { atom, ion, solid, type MoleculeSpec, type ReactionObservation } from '../chemistry/reaction-view';
-import type { AqId, SolidId } from '../chemistry/species';
-import { useReactionView } from '../lab/reaction-view';
+import { type MoleculeSpec, type ReactionObservation } from '../chemistry/reaction-view';
 import { closePresentation, usePresentation } from '../lab/presentation';
-import { mixtureOf } from '../store/useChemStore';
-import { useInventoryStore } from '../store/useInventoryStore';
-import { interactables } from '../interaction/registry';
 import { releaseLock } from '../controls/usePointerLock';
 import { useSettingsStore } from '../store/useSettingsStore';
 import { FONTS } from '../utils/fonts';
-export function vesselObservation(id: string): ReactionObservation {
-    const reaction = useReactionView.getState().vessels[id];
-    if (reaction)
-        return reaction;
-    const inv = useInventoryStore.getState(), item = inv.held?.id === id ? inv.held : inv.worldItems.find((w) => w.id === id);
-    const target = interactables.get(id)?.useTarget;
-    const m = mixtureOf(id, item?.variant ?? (target?.type === 'item' ? target.variant : undefined));
-    const species = [...Object.entries(m.aq).filter(([, n]) => n > 1e-10).map(([key]) => ion(key as AqId)), ...Object.entries(m.s).filter(([, n]) => n > 1e-10).map(([key]) => solid(key as SolidId))];
-    if (m.water > 0)
-        species.unshift(atom('H2O', 'Ус', 'H₂O', '#ef3038'));
-    if (m.ethanol > 0)
-        species.push(atom('ethanol', 'Этанол', 'C₂H₅OH', '#ffffff'));
-    return { preset: 'generic', key: `contents:${id}`, reactants: species, products: [], rate: 0, info: true, temp: m.temp, equation: 'Сав доторх бодисууд', sentence: 'Одоогийн агуулгын бүтцийг сонгон харна уу.', effect: 'water' };
-}
 export function openMoleculeViewer(reaction: ReactionObservation) {
     releaseLock();
     usePresentation.setState({ modal: 'molecules', reaction });
@@ -36,7 +18,7 @@ export function MoleculeViewerButton({ id, reaction }: {
     id?: string;
     reaction?: ReactionObservation;
 }) {
-    return <button className="pointer-events-auto my-2 min-h-9 rounded-lg border border-sky-300 bg-white px-3 py-2 text-xs font-semibold text-sky-800" onClick={() => openMoleculeViewer(reaction ?? vesselObservation(id!))}>Молекулыг 3D-ээр харах</button>;
+    return <button className="pointer-events-auto my-2 min-h-9 rounded-lg border border-sky-300 bg-white px-3 py-2 text-xs font-semibold text-sky-800" onClick={() => openMoleculeViewer(reaction ?? vesselObservation(id!))}>{reaction ? 'Молекулыг 3D-ээр харах' : 'Савны молекулын бүтцийг харах'}</button>;
 }
 function Bond({ bond, geometry }: {
     bond: ModelBond;

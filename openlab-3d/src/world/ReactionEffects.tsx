@@ -15,24 +15,25 @@ import { liquidMl } from '../chemistry/mixture';
 import { reactionIntensity, foamOverflowHeight, bubblePose, foamPose, collapsedFoam } from '../lab/reaction-animation';
 import { PROFILES, heightForVolume, radiusAt } from '../equipment/profiles';
 import { surfaceYAt } from '../interaction/surfaces';
+import { vesselFx } from '../lab/vesselFx';
 import { sounds } from '../utils/sounds';
 const residueUntil = new Map<string, number>();
 
 function VesselEffect({ id }: {
     id: string;
 }) {
-    const root = useRef<Group>(null), foam = useRef<InstancedMesh>(null), gas = useRef<InstancedMesh>(null), steam = useRef<InstancedMesh>(null), cloud = useRef<InstancedMesh>(null);
+    const root = useRef<Group>(null), foam = useRef<InstancedMesh>(null), gas = useRef<InstancedMesh>(null), steam = useRef<InstancedMesh>(null), cloud = useRef<InstancedMesh>(null), smoke = useRef<InstancedMesh>(null);
     const low = useSettingsStore((s) => s.quality === 'low' || s.reducedMotion);
     const n = low ? 24 : 72, dummy = useMemo(() => new Object3D(), []), tint = useMemo(() => new Color(), []);
     const residue = useRef<Mesh>(null);
     const residueState = useRef({ volume: 0, age: 0, at: new Object3D().position, landed: false });
     const audio = useRef({ at: 0, erupted: false });
-    const motion = useRef({ time: 0, foam: 0, spillAge: 0 });
+    const motion = useRef({ time: 0, foam: 0, peakFoam: 0, spillAge: 0 });
     const white = useMemo(() => new Color('white'), []);
     const reaction = useReactionView((s) => s.vessels[id]);
     const productGas = reaction?.products.find((p) => p.phase === 'gas');
     useFrame((_, rawDt) => {
-        if (!root.current || !foam.current || !gas.current || !steam.current || !cloud.current)
+        if (!root.current || !foam.current || !gas.current || !steam.current || !cloud.current || !smoke.current)
             return;
         const m = useChemStore.getState().mixtures[id], rx = useReactionView.getState().vessels[id], now = performance.now();
         const paused = isBenchPaused(id) || !['bench', 'walk', 'inspect'].includes(useGameStore.getState().mode);
@@ -54,6 +55,11 @@ function VesselEffect({ id }: {
         motion.current.time += elapsed;
         motion.current.foam += (wantedFoam - motion.current.foam) * Math.min(1, elapsed * (wantedFoam > motion.current.foam ? 7 : 6));
         const foamHeight = motion.current.foam;
+        motion.current.peakFoam = Math.max(motion.current.peakFoam, foamHeight);
+        // Follow drainage continuously: lower the body while revealing the wet film.
+        const drained = motion.current.peakFoam > .002
+            ? Math.max(0, Math.min(1, 1 - foamHeight / motion.current.peakFoam)) : 0;
+        const settling = drained * drained * (3 - 2 * drained);
         const wet = residueState.current;
         if (residue.current) {
             wet.age += elapsed;
@@ -70,7 +76,7 @@ function VesselEffect({ id }: {
             residue.current.position.copy(wet.at).y += .002;
             residue.current.scale.set(appearance.radius, appearance.thickness, appearance.radius);
             const material = residue.current.material as MeshPhysicalMaterial;
-            material.opacity = appearance.opacity;
+            material.opacity = appearance.opacity * (.2 + .8 * settling);
             material.color.set(mixtureLook(m).liquid ?? '#d8eeef').lerp(white, .3);
         }
         const effectTime = motion.current.time;
@@ -85,8 +91,10 @@ function VesselEffect({ id }: {
         for (let i = 0; i < foamCount; i++) {
             const pose = foamPose(i, n, foamHeight * Math.PI * radius * radius * 1e6, radius, height, motion.current.spillAge);
             if (pose) {
-                dummy.position.set(pose.x, pose.y, pose.z);
-                dummy.scale.set(pose.sx, pose.sy, pose.sz);
+                const flatten = 1 - settling * .96;
+                const spread = 1 + settling * .22;
+                dummy.position.set(pose.x * spread, pose.y * flatten, pose.z * spread);
+                dummy.scale.set(pose.sx * spread, pose.sy * flatten, pose.sz * spread);
             } else dummy.scale.setScalar(0);
             dummy.updateMatrix();
             foam.current.setMatrixAt(i, dummy.matrix);
@@ -96,7 +104,9 @@ function VesselEffect({ id }: {
         tint.set(look.liquid ?? '#e9f8ff');
         const foamMat = foam.current.material as MeshStandardMaterial;
         foamMat.color.lerp(tint.lerp(white, .8), Math.min(1, rawDt * 3));
-        foamMat.opacity = Math.min(1, foamHeight / .02);
+        foamMat.opacity = Math.min(1, foamHeight / .02) * (1 - settling * .8);
+        foamMat.roughness = .95 - settling * .65;
+        if (foamHeight < .0001 && wantedFoam < .0001) motion.current.peakFoam = 0;
         const gasIntensity = productGas && actualRate > 0 ? intensity : 0;
         const gasCount = gasIntensity > .005 && liquidMl(m) > .05 ? Math.max(2, Math.round(n * gasIntensity)) : 0;
         gas.current.count = gasCount;
@@ -108,17 +118,30 @@ function VesselEffect({ id }: {
             gas.current.setMatrixAt(i, dummy.matrix);
         }
         gas.current.instanceMatrix.needsUpdate = true;
-        const steamIntensity = Math.min(1, Math.max(0, (m.temp - 60) / 40));
+        const fx = vesselFx.get(id);
+        const steamIntensity = liquidMl(m) > .05 ? fx?.steam ?? 0 : 0;
         const steamCount = steamIntensity > .03 ? Math.max(2, Math.round(n / 3 * steamIntensity)) : 0;
         steam.current.count = steamCount;
         for (let i = 0; i < steamCount; i++) {
             const u = (effectTime * .35 + i / Math.max(1, steamCount)) % 1;
             dummy.position.set(Math.sin(i * 4 + u * 3) * radius * (1 + u * 2), height + foamHeight + u * .4, Math.cos(i * 2) * radius);
-            dummy.scale.set(.015 + u * .045, .02 + u * .08, .015 + u * .045);
+            const fade = Math.sin(Math.PI * u);
+            dummy.scale.set((.008 + u * .025) * fade, (.015 + u * .045) * fade, (.008 + u * .025) * fade);
             dummy.updateMatrix();
             steam.current.setMatrixAt(i, dummy.matrix);
         }
         steam.current.instanceMatrix.needsUpdate = true;
+        const smokeIntensity = fx?.smoke ?? 0;
+        const smokeCount = smokeIntensity > .01 ? Math.max(2, Math.round(n / 3 * smokeIntensity)) : 0;
+        smoke.current.count = smokeCount;
+        for (let i = 0; i < smokeCount; i++) {
+            const u = (effectTime * .45 + i / smokeCount) % 1;
+            const fade = Math.sin(Math.PI * u);
+            dummy.position.set(Math.sin(i * 2.4 + u * 4) * radius * (1 + u), height + u * .45, Math.cos(i * 2.4 + u * 3) * radius * (1 + u));
+            dummy.scale.setScalar((.008 + u * .04) * fade);
+            dummy.updateMatrix(); smoke.current.setMatrixAt(i, dummy.matrix);
+        }
+        smoke.current.instanceMatrix.needsUpdate = true;
         const cloudCount = look.sedimentMl > .001 && liquidMl(m) > .05 ? Math.round(n * .6) : 0;
         cloud.current.count = cloudCount;
         (cloud.current.material as MeshStandardMaterial).color.lerp(tint.set(look.solidColor ?? '#ffffff'), Math.min(1, rawDt * 2));
@@ -158,6 +181,7 @@ function VesselEffect({ id }: {
     <instancedMesh name="reaction-foam" ref={foam} args={[undefined, undefined, n]} frustumCulled={false} raycast={() => undefined}><sphereGeometry args={[1, low ? 12 : 20, 12]}/><meshStandardMaterial color="#fffefa" roughness={.95} transparent opacity={1}/></instancedMesh>
     <instancedMesh name="reaction-gas" ref={gas} args={[undefined, undefined, n]} frustumCulled={false} raycast={() => undefined}><sphereGeometry args={[1, 6, 4]}/><meshStandardMaterial color="#edfaff" transparent opacity={.25} depthWrite={false}/></instancedMesh>
     <instancedMesh ref={steam} args={[undefined, undefined, n]} frustumCulled={false} raycast={() => undefined}><sphereGeometry args={[1, 6, 4]}/><meshStandardMaterial color="white" transparent opacity={.13} depthWrite={false}/></instancedMesh>
+    <instancedMesh name="reaction-smoke" ref={smoke} args={[undefined, undefined, n]} frustumCulled={false} raycast={() => undefined}><sphereGeometry args={[1, 8, 6]}/><meshStandardMaterial color="#625b58" transparent opacity={.16} depthWrite={false}/></instancedMesh>
     <instancedMesh name="reaction-cloud" ref={cloud} args={[undefined, undefined, n]} frustumCulled={false} raycast={() => undefined}><sphereGeometry args={[1, 6, 4]}/><meshStandardMaterial color="white" roughness={.95} transparent opacity={.72} depthWrite={false}/></instancedMesh>
     {productGas && !reaction?.info && <Html position={[0, (itemDescription(id).kind ? CATALOG[itemDescription(id).kind!].size[1] : .15) + .04, 0]} center style={{ pointerEvents: 'none' }}><span data-gas={productGas.id} className="whitespace-nowrap rounded-full bg-white/95 px-2 py-1 text-sm font-bold text-sky-900 shadow">{productGas.formula.replace(/↑$/, '')}↑</span></Html>}
   </group></>;
@@ -168,7 +192,7 @@ export function ReactionEffects() {
         const timer = window.setInterval(() => {
             const now = performance.now(), all = useReactionView.getState().vessels;
             for (const [id, until] of residueUntil) if (until < now || !useChemStore.getState().mixtures[id]) residueUntil.delete(id);
-            const next = [...new Set([...Object.keys(all), ...residueUntil.keys()])].filter((id) => ((residueUntil.get(id) ?? 0) > now || all[id]?.until > now || (useChemStore.getState().mixtures[id]?.foam ?? 0) > 2 || all[id]?.effect === 'precipitate' && (useChemStore.getState().mixtures[id]?.cloud ?? 0) > .03) && (residueUntil.has(id) || isWorkbenchObject(id) || heldObjectId() === id || useGameStore.getState().focus?.id === id)).slice(0, 4);
+            const next = [...new Set([...Object.keys(all), ...vesselFx.keys(), ...residueUntil.keys()])].filter((id) => ((residueUntil.get(id) ?? 0) > now || all[id]?.until > now || (vesselFx.get(id)?.steam ?? 0) > .01 || (vesselFx.get(id)?.smoke ?? 0) > .01 || (useChemStore.getState().mixtures[id]?.foam ?? 0) > 2 || all[id]?.effect === 'precipitate' && (useChemStore.getState().mixtures[id]?.cloud ?? 0) > .03) && (residueUntil.has(id) || isWorkbenchObject(id) || heldObjectId() === id || useGameStore.getState().focus?.id === id)).slice(0, 4);
             setIds((old) => old.join('|') === next.join('|') ? old : next);
         }, 200);
         return () => clearInterval(timer);

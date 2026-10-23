@@ -101,7 +101,7 @@ import { join } from 'node:path';
 import { pathToFileURL } from 'node:url';
 const storeTmp=await mkdtemp(join(tmpdir(),'openlab-preparation-test-'));
 test.after(()=>rm(storeTmp,{recursive:true,force:true}));
-await build({stdin:{contents:`export {snapToSupport} from './src/interaction/supportPlacement.ts'; export {supportSpots} from './src/interaction/bodies.ts'; export {benchUseTarget} from './src/interaction/benchUseTarget.ts'; export {tablePointer} from './src/interaction/heldApi.ts'; export {useBenchView} from './src/experiments/nacl/view.ts'; export {useSandbox,labUse,labSpace,simulateLab} from './src/experiments/nacl/sandbox.ts'; export {usePortableStore} from './src/interaction/portable.ts'; export {interactItem} from './src/interaction/interactItem.ts'; export {interactables} from './src/interaction/registry.ts'; export { useLabStore } from './src/store/useLabStore.ts'; export * from './src/experiments/workbench/session.ts'; export {useInventoryStore,storedIn} from './src/store/useInventoryStore.ts'; export {useChemStore} from './src/store/useChemStore.ts'; export {useGameStore} from './src/store/useGameStore.ts'; export * from './src/lab/reaction-view.ts'; export {registerHolder,seedHolder} from './src/interaction/holders.ts';`,resolveDir:process.cwd()},bundle:true,outfile:join(storeTmp,'stores.mjs'),format:'esm',platform:'node'});
+await build({stdin:{contents:`export * from './src/lab/quantity-guidance.ts'; export * from './src/lab/measurements.ts'; export {transfer} from './src/interaction/actions.ts'; export {vesselObservation} from './src/lab/container-observation.ts'; export {snapToSupport} from './src/interaction/supportPlacement.ts'; export {supportSpots} from './src/interaction/bodies.ts'; export {benchUseTarget} from './src/interaction/benchUseTarget.ts'; export {tablePointer} from './src/interaction/heldApi.ts'; export {useBenchView} from './src/experiments/nacl/view.ts'; export {useSandbox,labUse,labSpace,simulateLab} from './src/experiments/nacl/sandbox.ts'; export {usePortableStore} from './src/interaction/portable.ts'; export {interactItem} from './src/interaction/interactItem.ts'; export {interactables} from './src/interaction/registry.ts'; export { useLabStore } from './src/store/useLabStore.ts'; export * from './src/experiments/workbench/session.ts'; export {useInventoryStore,storedIn} from './src/store/useInventoryStore.ts'; export {useChemStore} from './src/store/useChemStore.ts'; export {useGameStore} from './src/store/useGameStore.ts'; export * from './src/lab/reaction-view.ts'; export {registerHolder,seedHolder} from './src/interaction/holders.ts';`,resolveDir:process.cwd()},bundle:true,outfile:join(storeTmp,'stores.mjs'),format:'esm',platform:'node'});
 globalThis.localStorage={getItem:()=>null,setItem:()=>{},removeItem:()=>{}};
 const stores=await import(pathToFileURL(join(storeTmp,'stores.mjs')).href);
 test('guide starts after preparation; earlier real observations are still recorded',()=>{
@@ -386,7 +386,116 @@ test('collapsed foam leaves a slowly spreading wet film which lingers before dry
 
 test('foam drains quickly after gas production stops without changing the liquid amount',()=>{
   let m=chem.reagentMixture('water',40);m.foam=100;m.aq.soap=.001;
-  for(let i=0;i<60;i++)m=chem.step(m,.1,chem.DEFAULT_ENV).m;
-  assert.ok(m.foam<7,'most foam collapses within six seconds');
+  for(let i=0;i<40;i++)m=chem.step(m,.1,chem.DEFAULT_ENV).m;
+  assert.ok(m.foam<7,'most foam collapses within four seconds');
   assert.ok(Math.abs(m.water-40)<1e-6,'drain animation does not invent or remove liquid');
+});
+
+test('repeat prepares clean supplies without repeating collection or disturbing unrelated items',()=>{
+  globalThis.requestAnimationFrame=()=>0;
+  stores.resetWorkbench();stores.useInventoryStore.getState().reset();
+  stores.useLabStore.setState({active:'elephant',progress:{elephant:['h2o2','soap','catalyst']}});
+  stores.beginPreparation();
+  const unrelated=stores.useInventoryStore.getState().spawn('beaker',[4,.9,-10]);
+  stores.repeatBenchExperiment('elephant');
+  const first=stores.currentSession();
+  assert.equal(first.ready,true);assert.equal(first.teacher,false);
+  assert.equal(first.previouslyComplete,false);
+  assert.equal(first.placed.length,stores.suppliesFor('elephant').length);
+  assert.deepEqual(stores.useLabStore.getState().progress.elephant,[]);
+  const oldIds=Object.values(first.objects);
+  stores.useChemStore.getState().setMixtures({[first.objects.graduatedCylinder]:chem.reagentMixture('h2o2',20)});
+  stores.repeatBenchExperiment('elephant');
+  assert.equal(stores.currentSession().ready,true);
+  assert.ok(oldIds.every(id=>!stores.useInventoryStore.getState().worldItems.some(w=>w.id===id)));
+  assert.ok(!stores.useChemStore.getState().mixtures[first.objects.graduatedCylinder]);
+  assert.ok(stores.useInventoryStore.getState().worldItems.some(w=>w.id===unrelated));
+});
+
+
+test('individual container models show current liquid and solid contents instead of stale reaction products',()=>{
+  stores.useInventoryStore.getState().reset();stores.useChemStore.getState().reset();
+  const id=stores.useInventoryStore.getState().spawn('beaker',[8.25,.915,-14.5]);
+  const m=chem.reagentMixture('water',20);m.aq.H2O2=.001;m.s.NaCl=.002;
+  stores.useChemStore.getState().setMixtures({[id]:m});
+  stores.publishReaction(id,chem.incompletePeroxide(chem.reagentMixture('h2o2',20)));
+  const contents=stores.vesselObservation(id);
+  assert.equal(contents.info,true);assert.equal(contents.rate,0);assert.deepEqual(contents.products,[]);
+  assert.ok(contents.reactants.some(s=>s.id==='H2O'));
+  assert.ok(contents.reactants.some(s=>s.id==='H2O2'));
+  assert.ok(contents.reactants.some(s=>s.phase==='solid'));
+  stores.useChemStore.getState().setMixtures({[id]:chem.emptyMixture()});
+  assert.deepEqual(stores.vesselObservation(id).reactants,[]);
+  assert.match(stores.vesselObservation(id).sentence,/хоосон/);
+});
+
+test('live contents lens does not invent water in empty or dry containers and keeps solids settled',()=>{
+  const empty={preset:'generic',key:'empty',reactants:[],products:[],info:true,rate:0,temp:22,equation:'',sentence:'',effect:'water'};
+  assert.equal(new MolecularModel(empty,40).particles.length,0);
+  const dry=new MolecularModel({...empty,reactants:[spec('solid-NaCl',1,'solid')]},40);
+  assert.ok(dry.particles.length>0);
+  assert.ok(dry.particles.every(p=>p.species==='solid-NaCl'&&p.locked));
+  dry.advance(.04,0,22);
+  assert.equal(dry.products,0);
+});
+
+test('automatic lens shows ongoing nearby chemistry but excludes contents, ended and dismissed reactions',()=>{
+  const rx={key:'reaction:test',vesselId:'glass',episode:9,until:200,rate:.01,info:false};
+  const pick=(r,dismissed=null,eligible=()=>true)=>stores.automaticReaction({glass:r},100,dismissed,eligible);
+  assert.equal(pick(rx),rx);
+  const mixing={...rx,key:'mixing:H2O',info:true,rate:0};
+  assert.equal(pick(mixing),mixing);
+  assert.equal(pick(mixing,9),null);
+  assert.equal(pick({...rx,info:true}),null);
+  assert.equal(pick({...rx,rate:0}),null);
+  assert.equal(pick({...rx,until:99}),null);
+  assert.equal(pick(rx,9),null);
+  assert.equal(pick(rx,null,()=>false),null);
+});
+
+
+test('pouring water publishes physical mixing without fabricated products',()=>{
+  stores.useInventoryStore.getState().reset();stores.useChemStore.getState().reset();
+  const inv=stores.useInventoryStore.getState();
+  const source=inv.spawn('beaker',[8,.915,-14.5]),target=inv.spawn('beaker',[8.3,.915,-14.5]);
+  stores.useChemStore.getState().setMixtures({[source]:chem.reagentMixture('water',30)});
+  stores.transfer({id:source,kind:'beaker'},{id:target,kind:'beaker'},10);
+  const rx=stores.useReactionView.getState().vessels[target];
+  assert.ok(rx.key.startsWith('mixing:'));assert.equal(rx.info,true);assert.equal(rx.rate,0);
+  assert.deepEqual(rx.products,[]);assert.ok(rx.reactants.some(s=>s.id==='H2O'));
+});
+
+
+test('measurement notebook counts actual received volume, handles partial pours and clears scoped attempts',()=>{
+  stores.clearMeasurements();stores.useInventoryStore.getState().reset();stores.useChemStore.getState().reset();
+  const inv=stores.useInventoryStore.getState();
+  const source=inv.spawn('beaker',[8,.915,-14.5]),target=inv.spawn('beaker',[8.3,.915,-14.5]);
+  stores.useChemStore.getState().setMixtures({[source]:chem.reagentMixture('water',7)});
+  stores.transfer({id:source,kind:'beaker'},{id:target,kind:'beaker'},5);
+  stores.transfer({id:source,kind:'beaker'},{id:target,kind:'beaker'},5);
+  assert.ok(Math.abs(stores.useMeasurements.getState().transfers[0].ml-7)<1e-6);
+  stores.recordTransfer('other','other-target','Ус',2);
+  stores.recordTransfer(source,target,'Ус',NaN);
+  stores.recordTransfer(source,target,'Ус',-1);
+  assert.equal(stores.useMeasurements.getState().transfers.length,2);
+  stores.clearMeasurements([target]);
+  assert.equal(stores.useMeasurements.getState().transfers.length,1);
+  assert.equal(stores.useMeasurements.getState().transfers[0].target,'other-target');
+  stores.resetWorkbench();assert.deepEqual(stores.useMeasurements.getState().transfers,[]);
+});
+
+
+test('textbook catalyst mass is converted using the actual KI stock concentration',()=>{
+  assert.ok(Math.abs(stores.KI_DOSE_ML-1.2048)<.001);
+  assert.ok(Math.abs(stores.kiEquivalentMl(.1,1)*2-stores.KI_DOSE_ML)<1e-9);
+  assert.equal(stores.kiEquivalentMl(.1,0),null);
+  assert.equal(stores.kiEquivalentMl(NaN,.5),null);
+  assert.equal(stores.ELEPHANT_AMOUNTS[0].min,20);
+  assert.equal(stores.ELEPHANT_AMOUNTS[0].max,30);
+  assert.equal(stores.ELEPHANT_AMOUNTS[1].min,null,'the book does not give a detergent volume');
+});
+test('quantity feedback supports exploration without enforcing a recipe gate',()=>{
+  assert.match(stores.amountFeedback(5,20,30),/нэмж/);
+  assert.match(stores.amountFeedback(25,20,30),/хүрлээ/);
+  assert.match(stores.amountFeedback(35,20,30),/харьцуулж/);
 });
