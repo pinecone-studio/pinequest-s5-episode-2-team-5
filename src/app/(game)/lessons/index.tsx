@@ -1,81 +1,53 @@
 import { router } from 'expo-router';
-import { useState } from 'react';
 import { ScrollView, StyleSheet, View } from 'react-native';
-import Animated, { FadeIn } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-
-import { ClassBanner } from '@/components/lessons/class-banner';
-import { ClassTabs } from '@/components/lessons/class-tabs';
-import { LessonPath } from '@/components/lessons/lesson-path';
-import { LessonSheet } from '@/components/lessons/lesson-sheet';
+import { AppText } from '@/components/ui/app-text';
+import { GameButton } from '@/components/ui/game-button';
 import { LabBackground } from '@/components/ui/lab-background';
 import { ScreenHeader } from '@/components/ui/screen-header';
-import { XpChip } from '@/components/ui/xp-chip';
-import { useSession } from '@/context/session';
-import { getClass } from '@/data/classes';
-import { classProgress, isClassUnlocked, lessonStatuses, previousClass } from '@/lib/progress';
-import type { ClassId, Lesson, User } from '@/types';
+import { Colors, Radius } from '@/constants/theme';
 
 export default function LessonsScreen() {
-  const { user } = useSession();
-  return user ? <LessonsHall user={user} /> : null;
-}
-
-function LessonsHall({ user }: { user: User }) {
   const insets = useSafeAreaInsets();
-  const [selected, setSelected] = useState<ClassId>(user.classId);
-  const [openLesson, setOpenLesson] = useState<Lesson | null>(null);
-
-  // Finishing a class unlocks the next one: show it when we come back from the lesson.
-  const [seenClassId, setSeenClassId] = useState(user.classId);
-  if (seenClassId !== user.classId) {
-    setSeenClassId(user.classId);
-    setSelected(user.classId);
-  }
-
-  const chemClass = getClass(selected);
-  const statuses = lessonStatuses(user, chemClass);
-  const locked = !isClassUnlocked(user, selected);
-  const { done } = classProgress(user, chemClass);
-  const openStatus = openLesson ? statuses[chemClass.lessons.indexOf(openLesson)] : 'locked';
-
   return (
-    <LabBackground bubbles={5}>
-      <ScreenHeader title="Lessons Hall" subtitle="Pick a lesson to start" right={<XpChip xp={user.xp} />} />
-      <ClassTabs user={user} selected={selected} onSelect={setSelected} />
-      <ScrollView
-        contentContainerStyle={[styles.content, { paddingBottom: insets.bottom + 40 }]}
-        showsVerticalScrollIndicator={false}>
-        <Animated.View key={selected} entering={FadeIn.duration(250)} style={styles.classBody}>
-          <ClassBanner
-            chemClass={chemClass}
-            done={done}
-            locked={locked}
-            unlockAfter={previousClass(selected)?.name}
-          />
-          <View>
-            <LessonPath chemClass={chemClass} statuses={statuses} user={user} onOpen={setOpenLesson} />
+    <LabBackground bubbles={3}>
+      <ScreenHeader title="Хичээлийн танхим" subtitle="Суралцах хэлбэрээ сонгоорой" />
+      <ScrollView contentContainerStyle={[styles.content, { paddingBottom: insets.bottom + 32 }]}>
+        <View style={[styles.card, styles.primary]}>
+          <AppText variant="label" color={Colors.lime}>Хими 8 • Давтлагын төв</AppText>
+          <AppText variant="title">Сэдвээр давтаж, мэдлэгээ шалгаарай</AppText>
+          <AppText>Бүлэг, сэдвээр ангилсан тэмдэглэл, флэшкарт, тест, онооны схемтэй асуултууд.</AppText>
+          <View style={styles.badges}>
+            {['11 сэдэв', '40 тэмдэглэл', '106 карт', '79 тест'].map((text) => (
+              <View key={text} style={styles.badge}><AppText variant="caption">{text}</AppText></View>
+            ))}
           </View>
-        </Animated.View>
+          <GameButton title="Давтлагын төв нээх" icon="book-open-variant" onPress={() => router.push('/hub/g8-chem')} />
+        </View>
+        <View style={styles.card}>
+          <AppText variant="label" color={Colors.cyan}>Элементүүдийг нүдээр тогтооё</AppText>
+          <AppText variant="heading">Үелэх хүснэгтийн ертөнц</AppText>
+          <AppText>118 элемент, бүлэг ба үе, электроны цагираг, зурагтай санах холбоос. Эхний 20-оос эхэлж өөрийгөө шалгаарай.</AppText>
+          <GameButton title="Үелэх хүснэгт судлах" variant="secondary" size="md" icon="periodic-table" onPress={() => router.push('/periodic')} />
+        </View>
+        <View style={styles.card}>
+          <AppText variant="heading">Туршилтаар суралцах</AppText>
+          <AppText>Катализаторын нөлөө: таамаглах, ажиглах, тайлбарлах 5 алхамт хичээл.</AppText>
+          <GameButton title="Туршилтын хичээл нээх" variant="secondary" size="md" icon="flask-outline" onPress={() => router.push('/lessons/catalyst')} />
+        </View>
+        <View style={styles.card}>
+          <AppText variant="heading">Суурь хичээлүүд</AppText>
+          <AppText>Анхан, дунд, ахисан түвшний өмнөх хичээлийн зам. Од, XP, түвшний ахицаа үргэлжлүүлээрэй.</AppText>
+          <GameButton title="Суурь хичээлүүд нээх" variant="secondary" size="md" icon="stairs" onPress={() => router.push('/lessons/basics')} />
+        </View>
       </ScrollView>
-
-      <LessonSheet
-        lesson={openLesson}
-        status={openStatus}
-        result={openLesson ? user.completed[openLesson.id] : undefined}
-        lockReason={locked ? `Finish ${previousClass(selected)?.name ?? 'the previous'} class first` : 'Finish the lesson before it'}
-        onClose={() => setOpenLesson(null)}
-        onStart={() => {
-          if (!openLesson) return;
-          setOpenLesson(null);
-          router.push({ pathname: '/lessons/[lessonId]', params: { lessonId: openLesson.id } });
-        }}
-      />
     </LabBackground>
   );
 }
-
 const styles = StyleSheet.create({
-  content: { paddingHorizontal: 16, paddingTop: 16, width: '100%', maxWidth: 560, alignSelf: 'center' },
-  classBody: { gap: 18 },
+  content: { width: '100%', maxWidth: 680, alignSelf: 'center', padding: 16, gap: 18 },
+  card: { padding: 20, gap: 16, borderWidth: 1, borderColor: Colors.border, borderRadius: Radius.lg, backgroundColor: Colors.panel },
+  primary: { borderColor: Colors.lime },
+  badges: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
+  badge: { borderRadius: Radius.pill, paddingHorizontal: 10, paddingVertical: 6, backgroundColor: Colors.input },
 });

@@ -46,3 +46,6 @@ example
 
 # Local duplicate checkout; not a project submodule.
 /pinequest-s5-episode-2-team-5/
+
+# Private textbook sources.
+/docs/hub-g8/source/

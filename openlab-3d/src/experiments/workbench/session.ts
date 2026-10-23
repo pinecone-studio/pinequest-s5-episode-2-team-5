@@ -146,14 +146,14 @@ export function collectSupply(supply: BenchSupply, pickup = false): boolean {
   const activeId = useLabStore.getState().active;
   if (activeId) useWorkbench.setState((s) => {const session=s.sessions[activeId];return session ? {sessions:{...s.sessions,[activeId]:{...session,owned:[...new Set([...(session.owned??[]),id!])]}}} : s;});
   // Inventory spawning commits before the R3F Interactable layout effect registers.
-  // Keep the selected identity visible and frame only once its actual mesh exists.
+  // Keep selection visible without changing the student’s camera position.
   const selected = id, ticket = ++focusTicket, deadline = performance.now() + 3000;
   if (pickup && !heldObjectId() && useInventoryStore.getState().worldItems.some((w) => w.id === selected)) useInventoryStore.getState().pickUp(selected);
   const frame = () => {
     if (ticket !== focusTicket) return;
     if (pickup && !heldObjectId()) interactables.get(selected)?.onGrab?.();
     if (useGameStore.getState().mode !== 'bench' || heldObjectId() === selected) return;
-    if (interactables.has(selected) || partKey(selected)) benchView.focus(selected);
+    if (interactables.has(selected) || partKey(selected)) useBenchView.setState({ selected });
     else if (performance.now() < deadline) requestAnimationFrame(frame);
   };
   useSandbox.setState({ inspected: selected });

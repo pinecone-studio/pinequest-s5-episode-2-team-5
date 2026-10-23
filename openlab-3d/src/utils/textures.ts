@@ -261,8 +261,8 @@ export function signTexture(lines: string[], color: string, aspect: number): Tex
 
 const labelCache = new Map<string, Texture>();
 /** Small white bottle label with a colored stripe and a formula. */
-export function labelTexture(text: string, stripe = '#dc2626', subtitle = 'OPENLAB УРВАЛЖ'): Texture {
-  const key = `${text}-${stripe}-${subtitle}`;
+export function labelTexture(text: string, stripe = '#dc2626', subtitle = 'OPENLAB УРВАЛЖ', capacityMl?: number): Texture {
+  const key = `${text}-${stripe}-${subtitle}-${capacityMl ?? ""}`;
   const cached = labelCache.get(key);
   if (cached) return cached;
   const [c, ctx] = makeCanvas(256, 128);
@@ -277,6 +277,12 @@ export function labelTexture(text: string, stripe = '#dc2626', subtitle = 'OPENL
   ctx.font = '600 20px Inter, sans-serif';
   ctx.fillStyle = '#4b5563';
   ctx.fillText(subtitle, 128, 118, 236);
+  if (capacityMl !== undefined) {
+    ctx.fillStyle = '#ffffff';
+    ctx.font = '700 20px Inter, sans-serif';
+    ctx.textAlign = 'right';
+    ctx.fillText(`${capacityMl} mL`, 244, 21);
+  }
   const t = toTexture(c);
   labelCache.set(key, t);
   return t;

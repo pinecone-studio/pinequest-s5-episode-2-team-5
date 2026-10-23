@@ -3,12 +3,11 @@
  * rim and a pour spout lip, thin dark graduation rings every 50 mL, and an inner liquid
  * contents renderer (liquid, sediment, bubbles).
  */
-import { useMemo } from 'react';
 import { CylinderGeometry, LatheGeometry, Vector2 } from 'three';
 import { useGlass } from '../materials/glass';
-import { plastic } from '../materials/plastic';
 import { lazy } from '../utils/lazy';
 import { ModelOr, type ModelProps } from './ModelOr';
+import { GraduationScale } from './GraduationScale';
 import { VesselContents } from './VesselContents';
 import { PROFILES } from './profiles';
 import type { MixtureLook } from '../chemistry/color';
@@ -39,10 +38,6 @@ const spoutGeometry = lazy(() => {
   return g;
 });
 
-/** Printed graduation mark: a thin arc on the front of the wall. */
-const ringGeometry = lazy(() => new CylinderGeometry(R + 0.0003, R + 0.0003, 0.0005, 16, 1, true, -0.4, 0.8));
-const markMaterial = plastic('#5b6470', 0.6);
-
 export interface VesselModelProps extends ModelProps {
   look?: MixtureLook;
   itemId?: string;
@@ -50,14 +45,11 @@ export interface VesselModelProps extends ModelProps {
 
 export function Beaker({ modelUrl, look, itemId, ...props }: VesselModelProps) {
   const glass = useGlass('#eef8fb');
-  const marks = useMemo(() => [0.25, 0.45, 0.65, 0.85].map((f) => 0.006 + f * (H - 0.01)), []);
   return (
     <ModelOr modelUrl={modelUrl} {...props}>
       <mesh geometry={beakerGeometry()} material={glass} castShadow renderOrder={1} />
       <mesh geometry={spoutGeometry()} material={glass} position={[R + 0.001, H - 0.002, 0]} renderOrder={1} />
-      {marks.map((y) => (
-        <mesh key={y} geometry={ringGeometry()} material={markMaterial} position={[0, y, 0]} userData={{ noOutline: true }} />
-      ))}
+      <GraduationScale kind="beaker" />
       {look && <VesselContents profile={PROFILES.beaker} look={look} itemId={itemId} />}
     </ModelOr>
   );

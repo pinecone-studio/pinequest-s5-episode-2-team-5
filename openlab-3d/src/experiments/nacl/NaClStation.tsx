@@ -2,7 +2,7 @@
 import { useEffect, useLayoutEffect, useMemo, useRef, type ElementRef } from 'react';
 import { useFrame, useThree } from '@react-three/fiber';
 import { OrbitControls } from '@react-three/drei';
-import { Box3, Box3Helper, MOUSE, TOUCH, Raycaster, Sphere, Vector3, type PerspectiveCamera } from 'three';
+import { Box3, MOUSE, TOUCH, Raycaster, Sphere, Vector3, type PerspectiveCamera } from 'three';
 import { SignText } from '../../world/furniture/Decor';
 import { playerState, useGameStore } from '../../store/useGameStore';
 import { useInventoryStore } from '../../store/useInventoryStore';
@@ -47,14 +47,6 @@ export function NaClStation() {
   const lastReaction = useRef('');
   const inspectReturn = useRef<{ position: Vector3; target: Vector3 } | null>(null);
   const inspecting = useBenchView((s) => s.inspecting);
-  const highlight = useMemo(() => {
-    const helper = new Box3Helper(new Box3(), 0xffffff);
-    helper.raycast = () => undefined;
-    if (!Array.isArray(helper.material)) { helper.material.transparent = true; helper.material.depthTest = false; }
-    return helper;
-  }, []);
-  useEffect(() => () => highlight.dispose(), [highlight]);
-
   const take = (key: PartKey) => {
     if (heldObjectId()) { warn('Эхлээд барьж буй зүйлээ Q дарж тавь. Дараа нь хүссэн багажийг ав.'); return; }
     if (!engine.partVisible(key)) return;
@@ -80,7 +72,7 @@ export function NaClStation() {
     const entries: InteractableEntry[] = engine.parts.map(({ key, hit, label }) => {
       const id = partId(key);
       hit.userData.interactableId = id;
-      const entry: InteractableEntry = { id, object: hit, label, verb: 'сонгох', enabled: true, bounds: null, onInteract: () => { if (useGameStore.getState().mode === 'walk') enterBench(id); else benchView.focus(id); }, onGrab: () => take(key) };
+      const entry: InteractableEntry = { id, object: hit, label, verb: 'сонгох', enabled: true, bounds: null, onInteract: () => { if (useGameStore.getState().mode === 'walk') enterBench(id); else { useBenchView.setState({ selected: id }); useSandbox.setState({ inspected: id }); } }, onGrab: () => take(key) };
       interactables.set(id, entry);
       return entry;
     });
@@ -111,7 +103,7 @@ export function NaClStation() {
     };
     const table = (fit = false) => {
       const target = engine.benchTarget();
-      const distance = fit ? Math.max(1.35, 0.85 / Math.max(0.25, camera.aspect)) : Math.max(0.8, 0.42 / Math.max(0.4, camera.aspect));
+      const distance = fit ? Math.max(1.35, 0.85 / Math.max(0.25, camera.aspect)) : Math.max(1.2, 0.65 / Math.max(0.4, camera.aspect));
       move(target.clone().add(new Vector3(0, 0.42, 1).normalize().multiplyScalar(distance)), target);
       useBenchView.setState({ level: 'table', selected: null });
       useSandbox.setState({ inspected: null });
@@ -177,8 +169,7 @@ export function NaClStation() {
     };
     // Explicit target prevents OrbitControls from starting around the room origin.
     ctl.target.copy(engine.benchTarget());
-    if (useBenchView.getState().level === 'detail' && useBenchView.getState().selected) focus(useBenchView.getState().selected!);
-    else table();
+    table();
     return () => {
       endHeldUse(); motion.current = null; inspectReturn.current = null; tablePointer.active = false;
       engine.attach(camera, null);
@@ -250,7 +241,6 @@ export function NaClStation() {
         if (id) {
           useSandbox.setState({ inspected: id, hovered: id });
           useBenchView.setState({ selected: id });
-          if (!heldObjectId()) benchView.focus(id);
         } else if (heldObjectId()) {
           const placed = usePortableStore.getState().held ? portableApi.place() : heldApi.place();
           if (!placed) warn('Энэ цэгт тавих гадаргуу алга. Хулганаа ширээний хоосон хэсэг рүү зөөгөөд ногоон хүрээг хараад дар.');
@@ -289,14 +279,6 @@ export function NaClStation() {
     if (useSandbox.getState().near !== near) useSandbox.setState({ near });
     updateStationVisibility();
     engine.root.updateWorldMatrix(true, true);
-    const selectedObject = useBenchView.getState().selected;
-    const selectedKey = selectedObject ? partKey(selectedObject) : null;
-    const object = selectedKey ? engine.partObject(selectedKey) : selectedObject ? interactables.get(selectedObject)?.object : null;
-    highlight.visible = inBench && !!object && isVisibleInScene(object) && !inspecting;
-    if (highlight.visible && object) {
-      highlight.box.setFromObject(object).expandByScalar(.003);
-      if (!Array.isArray(highlight.material)) highlight.material.opacity = useSettingsStore.getState().reducedMotion ? .8 : .65 + .25 * Math.sin(performance.now() / 180);
-    }
     engine.parts.forEach(({ key }) => {
       const entry = interactables.get(partId(key));
       if (entry) entry.enabled = engine.partVisible(key) && usePortableStore.getState().held?.id !== entry.id;
@@ -353,14 +335,13 @@ export function NaClStation() {
   return (
     <group>
       <group position={STATION_POSITION}><primitive object={engine.root} /></group>
-      <primitive object={highlight} />
       <Interactable id="open-workbench" label="Ажлын ширээ" verb="суух" onInteract={() => enterBench()} highlight="none" position={[8.25, BENCH_HEIGHT, -14.5]}>
         <mesh><boxGeometry args={[1.6, .025, .8]} /><meshBasicMaterial transparent opacity={0} colorWrite={false} depthWrite={false} /></mesh>
       </Interactable>
       <SignText text={active ? `Ажлын ширээ\n${experimentById(active)?.title ?? 'Туршилт олдсонгүй'}` : 'Ажлын ширээ\nТуршилт сонгоогүй байна'} color="#1e4db5" width={0.9} height={0.22} position={[8.3, 1.5, -14.885]} />
       {inBench && <OrbitControls ref={controls} target={initialTarget} enablePan={!inspecting} enableDamping dampingFactor={0.12} minDistance={0.018} maxDistance={3.5} minPolarAngle={0.12} maxPolarAngle={1.48}
         zoomSpeed={0.7} panSpeed={0.7} rotateSpeed={0.5} screenSpacePanning={false} zoomToCursor
-        mouseButtons={{ LEFT: inspecting ? MOUSE.ROTATE : MOUSE.PAN, MIDDLE: MOUSE.DOLLY, RIGHT: MOUSE.ROTATE }} touches={{ ONE: inspecting ? TOUCH.ROTATE : TOUCH.PAN, TWO: TOUCH.DOLLY_PAN }} /> }
+        mouseButtons={{ LEFT: MOUSE.ROTATE, MIDDLE: MOUSE.DOLLY, RIGHT: MOUSE.PAN }} touches={{ ONE: TOUCH.ROTATE, TWO: TOUCH.DOLLY_PAN }} /> }
     </group>
   );
 }

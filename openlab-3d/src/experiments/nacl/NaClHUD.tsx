@@ -32,7 +32,6 @@ function readItem(id: string) {
   useSandbox.setState({ inspected: id });
   useBenchView.setState({ selected: id, level: 'detail' });
   if (useGameStore.getState().mode === 'walk') enterBench(id);
-  else benchView.focus(id);
 }
 
 function WorldLabels() {
@@ -76,7 +75,7 @@ function SubstanceCard() {
   const close = () => {
     if (inspecting) { benchView.back(); return; }
     useSandbox.setState({ inspected: null }); useBenchView.setState({ selected: null });
-    if (mode === 'walk') requestLock(); else benchView.table();
+    if (mode === 'walk') requestLock();
   };
   const tool = heldId ? describe(heldId) : null;
   const canPour = !!tool && tool.capacity > 0 && item.capacity > 0 && heldId !== id;
@@ -91,22 +90,22 @@ function SubstanceCard() {
   const purpose = key ? USES[key] : (CATALOG[item.role as EquipmentKind]?.description ?? '');
   return <section className="fixed inset-x-4 bottom-28 z-40 max-h-[24vh] overflow-auto rounded-2xl bg-white/95 p-3 text-sm text-lab-ink shadow-hud sm:inset-x-auto sm:right-4 sm:top-32 sm:bottom-auto sm:max-h-[53vh] sm:w-[270px] sm:p-4" aria-label="Багаж ба хэмжилт">
     <div className="flex justify-between gap-2"><h2 className="font-bold">{item.label}</h2><button aria-label="Хэмжилтийг хаах" onClick={close}>✕</button></div>
-    {item.capacity > 0 && <div className="my-2 rounded-xl bg-sky-50 px-3 py-2"><span className="block text-[10px] font-bold uppercase tracking-wide text-slate-500">Одоогийн эзэлхүүн</span><output className="font-mono text-2xl font-bold tabular-nums sm:text-3xl text-sky-900" aria-label="Одоогийн эзэлхүүн">{m.ml.toFixed(1)} <small className="text-sm">см³</small></output>{key === 'cyl' && <div className="text-xs text-sky-800">Зорилго: 50.0 см³ · 1 см³ хуваарь<br />Менискийн доод ирмэгийг урдаас унш.</div>}</div>}
-    {inspecting && <p className="mb-1 text-[11px] text-slate-500">Чирж эргүүл · Дугуй / хоёр хуруугаар ойртуул</p>}
-    <p className="text-xs font-semibold text-teal-700">{contentsLabel(m)} · {m.temp.toFixed(0)} °C</p>
-    {liveContents && !key && <p className="mt-1 text-[11px] text-slate-600">{[...liveContents.dissolved, ...liveContents.solids].map((s) => `${s.name} (${s.formula}) ${s.value}`).join(" · ")}</p>}
-    {isTouchDevice() && <div className="mt-3 flex flex-wrap gap-2">
-      {((interactables.get(id)?.onGrab && interactables.get(id)?.onGrab !== interactables.get(id)?.onInteract) || key === 'lamp' || key === 'scope') && <button className="rounded-lg bg-slate-100 px-3 py-2 text-xs font-bold" onClick={() => { const entry = interactables.get(id); if (entry?.onGrab) entry.onInteract?.(); else labUse.start(id); }}>Ашиглах</button>}
+    <div className="mt-3 flex flex-wrap gap-2">
+      {((interactables.get(id)?.onGrab && interactables.get(id)?.onGrab !== interactables.get(id)?.onInteract) || key === 'lamp' || key === 'scope') && <button className="rounded-lg bg-slate-100 px-3 py-2 text-xs font-bold" onClick={() => { const entry = interactables.get(id); if (key) labUse.start(id); else entry?.onInteract?.(); }}>Ашиглах</button>}
       <button className="rounded-lg bg-sky-100 px-3 py-2 text-xs font-semibold text-sky-900" onClick={() => mode === 'walk' ? readItem(id) : inspecting ? benchView.back() : benchView.inspect(id)}>{inspecting ? 'Esc · Ширээнд буцах' : 'F · Барьж шинжлэх'}</button>
       {!heldId && !inspecting && <button className="rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs" onClick={() => { const entry = interactables.get(id); (entry?.onGrab ?? entry?.onInteract)?.(); }}>Авах / зөөх</button>}
       {heldId === id && <button className="rounded-lg bg-emerald-100 px-3 py-2 text-xs font-semibold" onClick={() => { tablePointer.angle += Math.PI / 4; }}>Эргүүлэх 45°</button>}
-    </div>}
-    {isTouchDevice() && heldId && heldId !== id && <div className="mt-3 border-t border-slate-200 pt-3">
+    </div>
+    {heldId && heldId !== id && <div className="mt-3 border-t border-slate-200 pt-3">
       <p className="mb-2 text-[11px] text-slate-600">{tool?.label} → {item.label}</p>
       <button className="touch-none rounded-lg bg-slate-200 px-3 py-2 text-xs font-bold" onPointerDown={(e) => { e.currentTarget.setPointerCapture(e.pointerId); action(); }} onPointerUp={endHeldUse} onPointerCancel={endHeldUse} onBlur={endHeldUse}
         onKeyDown={(e) => { if ((e.key === ' ' || e.key === 'Enter') && !e.repeat) { e.preventDefault(); action(); } }} onKeyUp={endHeldUse}>Дарж барьж {canPour ? 'цутгах' : 'ашиглах'}</button>
       {canPour && <div className="mt-2 flex gap-2"><button className="rounded-lg bg-sky-100 px-3 py-2 text-xs font-bold" onClick={() => dose(1)}>1 см³ цутгах</button><button className="rounded-lg bg-sky-100 px-3 py-2 text-xs font-bold" onClick={() => dose(5)}>5 см³ цутгах</button></div>}
     </div>}
+    {item.capacity > 0 && <div className="my-2 rounded-xl bg-sky-50 px-3 py-2"><span className="block text-[10px] font-bold uppercase tracking-wide text-slate-500">Одоогийн эзэлхүүн</span><output className="font-mono text-2xl font-bold tabular-nums sm:text-3xl text-sky-900" aria-label="Одоогийн эзэлхүүн">{m.ml.toFixed(1)} <small className="text-sm">см³</small></output>{key === 'cyl' && <div className="text-xs text-sky-800">Зорилго: 50.0 см³ · 1 см³ хуваарь<br />Менискийн доод ирмэгийг урдаас унш.</div>}</div>}
+    {inspecting && <p className="mb-1 text-[11px] text-slate-500">Чирж эргүүл · Дугуй / хоёр хуруугаар ойртуул</p>}
+    <p className="text-xs font-semibold text-teal-700">{contentsLabel(m)} · {m.temp.toFixed(0)} °C</p>
+    {liveContents && !key && <p className="mt-1 text-[11px] text-slate-600">{[...liveContents.dissolved, ...liveContents.solids].map((s) => `${s.name} (${s.formula}) ${s.value}`).join(" · ")}</p>}
     {item.capacity > 0 && <MoleculeViewerButton id={id}/>}
     {inspecting && <p className="mt-2 text-xs text-slate-600">{purpose}</p>}
     <details className="mt-3 text-xs"><summary className="cursor-pointer font-semibold text-slate-600">Бодис, зориулалт, аюул</summary>
@@ -186,7 +185,7 @@ export function NaClHUD() {
     </aside>}
     {closeup && !workbench.drawer && isTouchDevice() && <CameraControls />}
     {closeup && !workbench.drawer && <div className="pointer-events-none fixed inset-x-4 bottom-4 z-20 hidden rounded-xl sm:block bg-white/95 px-3 py-2 text-center text-[11px] text-lab-ink shadow sm:inset-x-auto sm:left-1/2 sm:max-w-xl sm:-translate-x-1/2">
-      {view.inspecting ? 'Чирж эргүүлэх · Дугуй / хоёр хуруу: ойр, хол · Esc: ширээнд буцах' : held ? <><b>{held}</b> · Хулганаа ширээний хоосон хэсэг рүү зөө. Ногоон хүрээ гарсан газарт дарж тавь ({q}).{isTouchDevice() && <><button className="pointer-events-auto ml-2 rounded bg-slate-100 px-2 py-1" onClick={() => { tablePointer.angle += Math.PI / 4; }}>Эргүүлэх 45°</button><button className="pointer-events-auto ml-1 rounded bg-slate-100 px-2 py-1" onClick={dropHeld}>Тавих</button></>}</> : <>{promptKey('interact', settings.bindings, settings.lookMode)}: авах · {promptKey('inspect', settings.bindings, settings.lookMode)}: шинжлэх · Багаж дээр дарах: хэмжээс · Зүүн чирэх: ширээгээр шилжих · Баруун чирэх: эргүүлэх · Дугуй / хоёр хуруу: ойр, хол</>}
+      {view.inspecting ? 'Чирж эргүүлэх · Дугуй / хоёр хуруу: ойр, хол · Esc: ширээнд буцах' : held ? <><b>{held}</b> · Хулганаа ширээний хоосон хэсэг рүү зөө. Ногоон хүрээ гарсан газарт дарж тавь ({q}).{isTouchDevice() && <><button className="pointer-events-auto ml-2 rounded bg-slate-100 px-2 py-1" onClick={() => { tablePointer.angle += Math.PI / 4; }}>Эргүүлэх 45°</button><button className="pointer-events-auto ml-1 rounded bg-slate-100 px-2 py-1" onClick={dropHeld}>Тавих</button></>}</> : <>{promptKey('interact', settings.bindings, settings.lookMode)}: авах · {promptKey('inspect', settings.bindings, settings.lookMode)}: шинжлэх · Багаж дээр дарах: хэмжээс · Чирэх: харах өнцөг · Баруун чирэх: ширээгээр шилжих · Дугуй / хоёр хуруу: ойр, хол</>}
     </div>}
     {(closeup || !!portable) && !workbench.drawer && <SubstanceCard />}{active === 'nacl' && <Microscope />}
   </>;
