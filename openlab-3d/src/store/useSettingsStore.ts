@@ -49,7 +49,7 @@ export const useSettingsStore = create<SettingsState>()(
       lookMode: 'mouse',
       invertY: false,
       reducedMotion: false,
-      reactionAutoZoom: true,
+      reactionAutoZoom: false,
       jumpEnabled: true,
       showFps: false,
       bindings: DEFAULT_BINDINGS,

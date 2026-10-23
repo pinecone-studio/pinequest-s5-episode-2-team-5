@@ -114,6 +114,9 @@ export function HeldItem() {
     portableApi.place = () => {
       const target = solve(); const h = usePortableStore.getState().held;
       if (!target || !h) return false;
+      if (target.surfaceId === 'filter-paper-in-funnel') {
+        endHeldUse(); labUse.start('nacl-funnel'); return !usePortableStore.getState().held;
+      }
       endHeldUse();
       h.move(target.point.clone().add(new Vector3(0, target.support ? 0 : .004, 0)), useGameStore.getState().mode === 'bench' ? tablePointer.angle : playerState.yaw, 0);
       usePortableStore.setState({ held: null });

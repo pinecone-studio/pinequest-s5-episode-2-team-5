@@ -48,10 +48,11 @@ export function NaClStation() {
   const previousMode = useRef('');
   const motion = useRef<{ from: Vector3; to: Vector3; fromTarget: Vector3; toTarget: Vector3; elapsed: number; duration: number } | null>(null);
   const viewClock = useRef(0);
-  const lastReaction = useRef('');
   const inspectReturn = useRef<{ position: Vector3; target: Vector3 } | null>(null);
   const inspecting = useBenchView((s) => s.inspecting);
   const take = (key: PartKey) => {
+    // Taking from the stack supplies one sheet, not the entire stack.
+    if (key === 'stack') key = 'paper';
     if (heldObjectId()) { warn('Эхлээд барьж буй зүйлээ Q дарж тавь. Дараа нь хүссэн багажийг ав.'); return; }
     if (!engine.partVisible(key)) return;
     const id = partId(key);
@@ -338,12 +339,6 @@ export function NaClStation() {
       useSandbox.setState({ completed: [...state.completed, 'microscope'] });
       warn('NaCl: куб хэлбэртэй талст ажиглагдлаа. Цааш чөлөөтэй ажиллаж болно.');
     }
-    const reactionKey = state.reaction ? `${state.reaction.id}:${state.reaction.kind}` : '';
-    if (reactionKey && reactionKey !== lastReaction.current && !useBenchView.getState().inspecting && !useWorkbench.getState().drawer) {
-      const settings = useSettingsStore.getState();
-      if (settings.reactionAutoZoom && !settings.reducedMotion && settings.quality !== 'low') benchView.reaction(state.reaction!.id);
-    }
-    lastReaction.current = reactionKey;
     const guide = experimentGuide();
     const progress = useLabStore.getState().progress.nacl ?? [];
     guide.steps.forEach((step, i) => {

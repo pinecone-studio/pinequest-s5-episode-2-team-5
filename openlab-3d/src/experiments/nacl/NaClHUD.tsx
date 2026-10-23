@@ -82,7 +82,8 @@ function SubstanceCard() {
     if (mode === 'walk') requestLock();
   };
   const tool = heldId ? describe(heldId) : null;
-  const canPour = !!tool && tool.capacity > 0 && item.capacity > 0 && heldId !== id;
+  const fittingPaper = !!tool && ['paper', 'stack'].includes(tool.role) && key === 'funnel';
+  const canPour = !!tool && !['paper', 'stack'].includes(tool.role) && tool.capacity > 0 && item.capacity > 0 && heldId !== id;
   const action = () => { if (heldId !== id) beginHeldUse(id); };
   const dose = (ml: number) => {
     if (key || portable) { labUse.dose(id, ml); return; }
@@ -93,16 +94,16 @@ function SubstanceCard() {
   const liveContents = core ? composition(core) : null;
   const purpose = key ? USES[key] : (CATALOG[item.role as EquipmentKind]?.description ?? '');
   return <section className="fixed inset-x-4 bottom-28 z-40 max-h-[24vh] overflow-auto rounded-2xl bg-white/95 p-3 text-sm text-lab-ink shadow-hud sm:inset-x-auto sm:right-4 sm:top-32 sm:bottom-auto sm:max-h-[53vh] sm:w-[270px] sm:p-4" aria-label="Багаж ба хэмжилт">
-    {canPour && <div className="mb-2 rounded-lg border border-sky-300 bg-sky-50 px-3 py-2 text-sky-900" role="status">
-      <b className="block text-xs">↓ Цутгах сав сонгогдлоо</b>
+    {(canPour || fittingPaper) && <div className="mb-2 rounded-lg border border-sky-300 bg-sky-50 px-3 py-2 text-sky-900" role="status">
+      <b className="block text-xs">{fittingPaper ? 'Шүүлтүүрийн цаас суулгах' : '↓ Цутгах сав сонгогдлоо'}</b>
       <p className="mt-1 hidden text-[11px] sm:block">{tool?.label} → {item.label}</p>
-      <p className="mt-1 hidden text-[11px] sm:block">R дарж барьж цутгана · Дарж сонгоход савыг тавихгүй.</p>
+      <p className="mt-1 hidden text-[11px] sm:block">{fittingPaper ? 'Юүлүүр рүү чиглүүлээд Q эсвэл R дарж цаасыг суулгана.' : 'R дарж барьж цутгана · Дарж сонгоход савыг тавихгүй.'}</p>
     </div>}
     <div className="flex justify-between gap-2"><h2 className="font-bold">{item.label}</h2><button aria-label="Хэмжилтийг хаах" onClick={close}>✕</button></div>
     {heldId && heldId !== id && <div className="mt-3 border-t border-slate-200 pt-3">
       <p className="mb-2 text-[11px] text-slate-600">{tool?.label} → {item.label}</p>
       <button className="touch-none rounded-lg bg-slate-200 px-3 py-2 text-xs font-bold" onPointerDown={(e) => { e.currentTarget.setPointerCapture(e.pointerId); action(); }} onPointerUp={endHeldUse} onPointerCancel={endHeldUse} onBlur={endHeldUse}
-        onKeyDown={(e) => { if ((e.key === ' ' || e.key === 'Enter') && !e.repeat) { e.preventDefault(); action(); } }} onKeyUp={endHeldUse}>Дарж барьж {canPour ? 'цутгах' : 'ашиглах'}</button>
+        onKeyDown={(e) => { if ((e.key === ' ' || e.key === 'Enter') && !e.repeat) { e.preventDefault(); action(); } }} onKeyUp={endHeldUse}>Дарж барьж {fittingPaper ? 'цаасыг суулгах' : canPour ? 'цутгах' : 'ашиглах'}</button>
       {canPour && <div className="mt-2 flex gap-2"><button className="rounded-lg bg-sky-100 px-3 py-2 text-xs font-bold" onClick={() => dose(1)}>1 см³ цутгах</button><button className="rounded-lg bg-sky-100 px-3 py-2 text-xs font-bold" onClick={() => dose(5)}>5 см³ цутгах</button></div>}
     </div>}
     <div className="mt-3 flex flex-wrap gap-2">

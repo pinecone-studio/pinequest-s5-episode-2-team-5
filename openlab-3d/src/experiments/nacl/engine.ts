@@ -2248,6 +2248,10 @@ export function createNaClEngine() {
     root,
     supportSpots(kind: string) {
       root.updateWorldMatrix(true, true);
+      if (['paper', 'stack'].includes(kind) && pickable(PKEY.funnel)) {
+        const at = funnel.localToWorld(V3(0, .72, 0));
+        return [{ id: 'filter-paper-in-funnel', point: at, aim: at.clone(), radius: .055 }];
+      }
       if (kind === 'funnel' && visibleChain(retortStand)) {
         return [{ id: 'funnel-holder', point: retortStand.localToWorld(V3(FX, .78, BZ)), aim: retortStand.localToWorld(V3(FX, 1.58, BZ)), radius: .055 }];
       }

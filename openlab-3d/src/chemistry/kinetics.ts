@@ -376,7 +376,8 @@ export function step(input: Mixture, dtRaw: number, env: StepEnv): StepResult {
     const soap = get(m, 'soap') > 1e-6 ? 1 : 0.06;
     m.foam += (gas.O2 + gas.CO2) * dt * 24000 * 1.1 * soap;
   }
-  m.foam *= Math.exp(-dt / 12);
+  // Keep an active eruption substantial, then drain the remaining foam promptly.
+  m.foam *= Math.exp(-dt / (fizz > 1e-8 ? 8 : 2.2));
 
   let out = clean(m);
   if (hadLiquid && liquidMl(out) < 0.02) {

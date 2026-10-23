@@ -145,7 +145,7 @@ export const labUse = {
     actionClock = 0;
     useSandbox.setState({ operating: true });
     const equipmentUse = interactables.get(source ?? target ?? '')?.onUse;
-    if (equipmentUse) { equipmentUse(); action = null; return; }
+    if (equipmentUse) { equipmentUse(); action = null; useSandbox.setState({ operating: false }); return; }
     const role = describe(source ?? target ?? '').role;
     if (role === 'lamp' || role === 'bunsenBurner') {
       useSandbox.setState((s) => ({ lit: !s.lit }));
@@ -155,7 +155,8 @@ export const labUse = {
       useSandbox.setState({ scope: true, inspected: partId('scope') });
       action = null;
     } else if (source && ['stack', 'paper'].includes(role) && target === partId('funnel')) {
-      useSandbox.setState({ paperIn: true });
+      usePortableStore.setState({ held: null });
+      useSandbox.setState({ paperIn: true, heldId: null, inspected: partId('funnel'), hovered: partId('funnel') });
       warn('Шүүлтүүрийн цаас юүлүүрт орлоо. Шингэнийг ирмэгээс доош байлга.');
       mark('filter-paper');
       action = null;
@@ -296,14 +297,25 @@ export function simulateLab(rawDt: number, distance: (a: string, b: string) => n
     if (m.temp !== original.temp || m.ml !== original.ml || m.acid !== original.acid || m.salt !== original.salt) write(id, m);
   }
   const state = useSandbox.getState();
-  const funnel = { ...mixture(partId('funnel')) };
-  if (state.receiver && funnel.ml > 0 && distance(state.receiver, partId('funnel')) < 0.22) {
-    const receiving = { ...mixture(state.receiver) };
-    const amount = Math.min(funnel.ml, 3 * dt, Math.max(0, describe(state.receiver).capacity - receiving.ml));
+  const funnelId = partId('funnel');
+  const funnelPosition = labSpace.position(funnelId);
+  const canReceive = (id: string) => {
+    if (id === heldObjectId() || !interactables.get(id)?.enabled) return false;
+    if (!['flask', 'erlenmeyer', 'beaker', 'cyl', 'graduatedCylinder', 'volumetricFlask'].includes(describe(id).role)) return false;
+    const at = labSpace.position(id);
+    return at.y < funnelPosition.y - .02 && Math.hypot(at.x - funnelPosition.x, at.z - funnelPosition.z) < .065 && distance(id, funnelId) < .22;
+  };
+  const candidates = [...new Set([...Object.keys(state.contents), ...useInventoryStore.getState().worldItems.map((item) => item.id)])];
+  const receiver = state.receiver && canReceive(state.receiver) ? state.receiver : candidates.filter(canReceive).sort((a, b) => distance(a, funnelId) - distance(b, funnelId))[0] ?? null;
+  if (receiver !== state.receiver) useSandbox.setState({ receiver });
+  const funnel = { ...mixture(funnelId) };
+  if (receiver && funnel.ml > 0) {
+    const receiving = { ...mixture(receiver) };
+    const amount = Math.min(funnel.ml, 3 * dt, Math.max(0, describe(receiver).capacity - receiving.ml));
     const portions = takeLiquid(mixtureOf(partId('funnel')), amount);
     const retained = state.paperIn ? { ...portions.taken, s: {} } : portions.taken;
     const rest = state.paperIn ? { ...portions.rest, s: { ...mixtureOf(partId('funnel')).s } } : portions.rest;
-    useChemStore.getState().setMixtures({ [partId('funnel')]: rest, [state.receiver]: mergeMixtures(mixtureOf(state.receiver, itemVariant(state.receiver)), retained) });
+    useChemStore.getState().setMixtures({ [partId('funnel')]: rest, [receiver]: mergeMixtures(mixtureOf(receiver, itemVariant(receiver)), retained) });
     if (amount > 0) mark('filter');
   }
   syncBenchContents();

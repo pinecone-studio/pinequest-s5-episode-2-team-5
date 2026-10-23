@@ -101,7 +101,7 @@ import { join } from 'node:path';
 import { pathToFileURL } from 'node:url';
 const storeTmp=await mkdtemp(join(tmpdir(),'openlab-preparation-test-'));
 test.after(()=>rm(storeTmp,{recursive:true,force:true}));
-await build({stdin:{contents:`export {snapToSupport} from './src/interaction/supportPlacement.ts'; export {supportSpots} from './src/interaction/bodies.ts'; export {benchUseTarget} from './src/interaction/benchUseTarget.ts'; export {tablePointer} from './src/interaction/heldApi.ts'; export {useBenchView} from './src/experiments/nacl/view.ts'; export {useSandbox} from './src/experiments/nacl/sandbox.ts'; export {interactItem} from './src/interaction/interactItem.ts'; export {interactables} from './src/interaction/registry.ts'; export { useLabStore } from './src/store/useLabStore.ts'; export * from './src/experiments/workbench/session.ts'; export {useInventoryStore,storedIn} from './src/store/useInventoryStore.ts'; export {useChemStore} from './src/store/useChemStore.ts'; export {useGameStore} from './src/store/useGameStore.ts'; export * from './src/lab/reaction-view.ts'; export {registerHolder,seedHolder} from './src/interaction/holders.ts';`,resolveDir:process.cwd()},bundle:true,outfile:join(storeTmp,'stores.mjs'),format:'esm',platform:'node'});
+await build({stdin:{contents:`export {snapToSupport} from './src/interaction/supportPlacement.ts'; export {supportSpots} from './src/interaction/bodies.ts'; export {benchUseTarget} from './src/interaction/benchUseTarget.ts'; export {tablePointer} from './src/interaction/heldApi.ts'; export {useBenchView} from './src/experiments/nacl/view.ts'; export {useSandbox,labUse,labSpace,simulateLab} from './src/experiments/nacl/sandbox.ts'; export {usePortableStore} from './src/interaction/portable.ts'; export {interactItem} from './src/interaction/interactItem.ts'; export {interactables} from './src/interaction/registry.ts'; export { useLabStore } from './src/store/useLabStore.ts'; export * from './src/experiments/workbench/session.ts'; export {useInventoryStore,storedIn} from './src/store/useInventoryStore.ts'; export {useChemStore} from './src/store/useChemStore.ts'; export {useGameStore} from './src/store/useGameStore.ts'; export * from './src/lab/reaction-view.ts'; export {registerHolder,seedHolder} from './src/interaction/holders.ts';`,resolveDir:process.cwd()},bundle:true,outfile:join(storeTmp,'stores.mjs'),format:'esm',platform:'node'});
 globalThis.localStorage={getItem:()=>null,setItem:()=>{},removeItem:()=>{}};
 const stores=await import(pathToFileURL(join(storeTmp,'stores.mjs')).href);
 test('guide starts after preparation; earlier real observations are still recorded',()=>{
@@ -255,4 +255,138 @@ test('raised placement follows a moved tripod and rejects an incompatible held i
   assert.equal(spot.point.z,3);
   assert.deepEqual(stores.supportSpots([item],'tripod'),[]);
   assert.deepEqual(stores.supportSpots([item],'reagentBottle'),[]);
+});
+
+test('fitting filter paper frees the hand and records a completed attachment', () => {
+  stores.useSandbox.setState({scope:false,paperIn:false,heldId:'nacl-paper',operating:false});
+  stores.usePortableStore.setState({held:{id:'nacl-paper',label:'paper',footprint:.025,move:()=>{}}});
+  stores.labUse.start('nacl-funnel');
+  assert.equal(stores.useSandbox.getState().paperIn,true);
+  assert.equal(stores.useSandbox.getState().heldId,null);
+  assert.equal(stores.usePortableStore.getState().held,null);
+  assert.equal(stores.useSandbox.getState().operating,false);
+  assert.equal(stores.labUse.source,null);
+});
+test('lined funnel finds its collecting flask, retains solids and stops when the flask moves away', () => {
+  const oldPosition=stores.labSpace.position;
+  let moved=false;
+  stores.labSpace.position=(id)=>id==='nacl-funnel'?new Vector3(0,1.1,0):id==='nacl-flask'?new Vector3(moved?2:0,.95,0):new Vector3(10,0,10);
+  const distance=(a,b)=>stores.labSpace.position(a).distanceTo(stores.labSpace.position(b));
+  stores.interactables.set('nacl-flask',{enabled:true});
+  const liquid=chem.reagentMixture('water',6);
+  liquid.s=chem.reagentMixture('s_caco3',.4).s;
+  stores.useChemStore.getState().setMixtures({'nacl-funnel':liquid,'nacl-flask':chem.emptyMixture()});
+  stores.useSandbox.setState({paperIn:true,receiver:null,lit:false});
+  try {
+    stores.simulateLab(.1,distance); stores.simulateLab(.1,distance); stores.simulateLab(.1,distance);
+    assert.equal(stores.useSandbox.getState().receiver,'nacl-flask');
+    const collected=stores.useChemStore.getState().mixtures['nacl-flask'];
+    assert.ok(collected.water>0);
+    assert.ok(Object.values(stores.useChemStore.getState().mixtures['nacl-funnel'].s).some(n=>n>0));
+    assert.ok(Object.values(collected.s).every(n=>n<1e-9));
+    const before=collected.water;
+    moved=true; stores.simulateLab(.1,distance); stores.simulateLab(.1,distance);
+    assert.equal(stores.useSandbox.getState().receiver,null);
+    assert.equal(stores.useChemStore.getState().mixtures['nacl-flask'].water,before);
+  } finally {stores.labSpace.position=oldPosition;stores.interactables.delete('nacl-flask');stores.labUse.end();}
+});
+
+import { reactionIntensity, bubblePose, foamOverflowHeight, foamPose, collapsedFoam } from '../src/lab/reaction-animation.ts';
+test('dramatic reaction visuals stay bounded and cannot invent intensity or foam', () => {
+  for (const rate of [0,-1,NaN,Infinity]) assert.equal(reactionIntensity(rate),0);
+  assert.ok(reactionIntensity(.001)>reactionIntensity(.00001));
+  assert.equal(reactionIntensity(1),1);
+  assert.equal(foamOverflowHeight(20,40,.02,true),0);
+  assert.equal(foamOverflowHeight(100,20,.02,false),0);
+  assert.equal(foamOverflowHeight(100,20,NaN,true),0);
+  assert.ok(foamOverflowHeight(1000,0,.01,true)<=.75);
+  for (const reduced of [false,true]) for (let i=0;i<100;i++) {
+    const p=bubblePose(i,i*.37,.03,.004,.08,.9,reduced);
+    assert.ok(p.y>=.004&&p.y<=.08);
+    assert.ok(Math.hypot(p.x,p.z)<.03);
+    assert.ok(p.size>0&&p.size<=.03*.16);
+  }
+});
+
+test('foam descends before pooling, stays attached to the rim and remains spatially bounded', () => {
+  const n=24, radius=.014, height=.25;
+  assert.equal(foamPose(23,n,0,radius,height,1),null);
+  assert.equal(foamPose(23,n,100,radius,height,.05),null,'foam cannot pool before reaching the supporting surface');
+  assert.ok(foamPose(23,n,100,radius,height,1),'a pool appears after descent');
+  for (const age of [.01,.1,.3,1,10]) for(let i=0;i<n;i++) {
+    const p=foamPose(i,n,100,radius,height,age);
+    if(!p)continue;
+    assert.ok(Object.values(p).every(Number.isFinite));
+    assert.ok(p.y>=0&&p.y<=height+.14);
+    assert.ok(Math.hypot(p.x,p.z)<.2);
+    assert.ok(p.sx>0&&p.sy>0&&p.sz>0);
+  }
+});
+
+test('foam retains a substantial body while gravity still controls its descent',()=>{
+  const top=foamPose(0,24,100,.014,.25,.05);
+  assert.ok(top.sx>.014&&top.sz>.014,'foam has a full opaque crown');
+  const pool=foamPose(23,24,100,.014,.25,1);
+  assert.ok(pool.sy>=.004,'settled foam keeps a thick mound');
+  assert.equal(foamPose(23,24,100,.014,.25,.05),null,'bulk does not bypass gravity');
+});
+
+test('narrow-neck overflow forms overlapping bulky lobes instead of thin separate lines',()=>{
+  const n=24,r=.014,h=.25;
+  const a=foamPose(8,n,100,r,h,1),b=foamPose(9,n,100,r,h,1);
+  assert.ok(a.sx>r*1.8&&a.sz>r*1.8);
+  assert.ok(Math.hypot(a.x-b.x,a.z-b.z)<a.sx+b.sx,'adjacent folds join into a continuous body');
+  const pool=foamPose(23,n,100,r,h,1);
+  assert.ok(pool.sy>.01,'overflow piles up rather than becoming a flat film');
+});
+
+test('foam overflows evenly around the cylinder and pools centrally at both quality levels',()=>{
+  for(const count of [24,72]) {
+    const sides=count<48?4:8,start=Math.ceil(count*.3),sections=Math.ceil(count*.4/sides)*sides;
+    for(let row=0;row<sections/sides;row++) {
+      const ring=Array.from({length:sides},(_,i)=>foamPose(start+row*sides+i,count,100,.014,.25,.15));
+      assert.ok(Math.abs(ring.reduce((sum,p)=>sum+p.x,0))<1e-10);
+      assert.ok(Math.abs(ring.reduce((sum,p)=>sum+p.z,0))<1e-10);
+      for(const p of ring){assert.equal(p.sx,ring[0].sx);assert.equal(p.sz,ring[0].sz);assert.equal(p.y,ring[0].y);}
+    }
+    const pools=Array.from({length:count-start-sections},(_,i)=>foamPose(start+sections+i,count,100,.014,.25,1));
+    assert.ok(Math.abs(pools.reduce((sum,p)=>sum+p.x,0))<1e-10);
+    assert.ok(Math.abs(pools.reduce((sum,p)=>sum+p.z,0))<1e-10);
+  }
+});
+
+test('foam begins flush at the rim and gradually widens toward a joined base mound',()=>{
+  for(const n of [24,72])for(const ml of [100,300]) {
+    const crown=foamPose(0,n,ml,.014,.25,1);
+    const sides=n<48?4:8,start=Math.ceil(n*.3),count=Math.ceil(n*.4/sides)*sides;
+    let previous=crown.sx;
+    for(let row=0;row<count/sides;row++) {
+      const p=foamPose(start+row*sides,n,ml,.014,.25,1);
+      const outer=Math.hypot(p.x,p.z)+p.sx;
+      if(row===0)assert.ok(Math.abs(outer-crown.sx)<1e-10,'no abrupt widening at the rim');
+      assert.ok(outer>=previous-1e-10&&outer<=crown.sx*1.5+1e-10);
+      previous=outer;
+    }
+    const pool=foamPose(n-1,n,ml,.014,.25,1);
+    assert.ok(Math.hypot(pool.x,pool.z)+pool.sx>=previous,'base mound joins the widened spill');
+    const early=foamPose(start+count-sides,n,ml,.014,.25,.05);
+    assert.ok(Math.hypot(early.x,early.z)+early.sx<crown.sx*1.01,'width follows actual descent');
+  }
+});
+
+test('collapsed foam leaves a slowly spreading wet film which lingers before drying',()=>{
+  const fresh=collapsedFoam(6,0),settled=collapsedFoam(6,20),late=collapsedFoam(6,70);
+  assert.ok(fresh.opacity>0&&settled.opacity>0);
+  assert.ok(settled.radius>=fresh.radius);
+  assert.ok(late.opacity<settled.opacity&&late.thickness<settled.thickness);
+  assert.ok(settled.thickness<.003);
+  assert.equal(collapsedFoam(6,90).opacity,0);
+  assert.equal(collapsedFoam(0,0).opacity,0);
+});
+
+test('foam drains quickly after gas production stops without changing the liquid amount',()=>{
+  let m=chem.reagentMixture('water',40);m.foam=100;m.aq.soap=.001;
+  for(let i=0;i<60;i++)m=chem.step(m,.1,chem.DEFAULT_ENV).m;
+  assert.ok(m.foam<7,'most foam collapses within six seconds');
+  assert.ok(Math.abs(m.water-40)<1e-6,'drain animation does not invent or remove liquid');
 });

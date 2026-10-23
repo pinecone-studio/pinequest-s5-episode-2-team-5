@@ -10,6 +10,8 @@ import type { MixtureLook } from '../chemistry/color';
 import { useTransmission } from '../materials/glass';
 import { lazy } from '../utils/lazy';
 import { bandGeometry, heightForVolume, radiusAt, rimHeight, type VesselProfile } from './profiles';
+import { bubblePose } from '../lab/reaction-animation';
+import { useSettingsStore } from '../store/useSettingsStore';
 import { vesselFx } from '../lab/vesselFx';
 
 const bubbleGeometry = lazy(() => new SphereGeometry(1, 6, 4));
@@ -79,32 +81,33 @@ function useSolidMaterial(color: string, metal: boolean): MeshStandardMaterial {
 /** Bubbles rising through the liquid while gas is released or the liquid boils. */
 function Bubbles({ itemId, profile, bottom, top }: { itemId: string; profile: VesselProfile; bottom: number; top: number }) {
   const ref = useRef<InstancedMesh>(null);
-  const seeds = useMemo(() => Array.from({ length: 22 }, () => ({ a: Math.random() * Math.PI * 2, r: Math.sqrt(Math.random()), t: Math.random(), s: 0.6 + Math.random() * 0.8 })), []);
+  const elapsed = useRef(0);
+  const particleCount = 32;
   const dummy = useMemo(() => new Object3D(), []);
   useFrame((_, dt) => {
     const mesh = ref.current;
     if (!mesh) return;
     const fx = vesselFx.get(itemId);
     const intensity = fx ? Math.min(1, fx.bubbles) : 0;
-    const count = Math.round(intensity * seeds.length);
+    const reduced = useSettingsStore.getState().reducedMotion;
+    const count = Math.round(intensity * (reduced ? 12 : particleCount));
+    elapsed.current += Math.min(.05, dt);
     mesh.count = count;
     mesh.visible = count > 0 && top - bottom > 0.002;
     if (!mesh.visible) return;
-    const h = top - bottom;
     for (let i = 0; i < count; i++) {
-      const s = seeds[i];
-      s.t = (s.t + dt * (0.6 + intensity * 1.6) * s.s / Math.max(0.3, h * 12)) % 1;
-      const y = bottom + s.t * h;
-      const rr = radiusAt(profile, y) * 0.8 * s.r;
-      const size = (0.0012 + intensity * 0.0016) * s.s * (0.6 + s.t * 0.6);
-      dummy.position.set(Math.cos(s.a) * rr, y, Math.sin(s.a) * rr);
-      dummy.scale.setScalar(size);
+      const bubble = bubblePose(i, elapsed.current, radiusAt(profile, bottom) * .8, bottom, top, intensity, reduced);
+      const allowed = radiusAt(profile, bubble.y) * .8;
+      const spread = Math.hypot(bubble.x, bubble.z);
+      const inset = spread > allowed ? allowed / spread : 1;
+      dummy.position.set(bubble.x * inset, bubble.y, bubble.z * inset);
+      dummy.scale.setScalar(Math.min(bubble.size, (top - bottom) * .2));
       dummy.updateMatrix();
       mesh.setMatrixAt(i, dummy.matrix);
     }
     mesh.instanceMatrix.needsUpdate = true;
   });
-  return <instancedMesh ref={ref} args={[bubbleGeometry(), bubbleMaterial(), seeds.length]} frustumCulled={false} userData={{ noOutline: true, noBatch: true }} raycast={() => undefined} />;
+  return <instancedMesh ref={ref} args={[bubbleGeometry(), bubbleMaterial(), particleCount]} frustumCulled={false} userData={{ noOutline: true, noBatch: true }} raycast={() => undefined} />;
 }
 
 /** Steam puffs above the rim of a hot vessel. */
@@ -182,7 +185,7 @@ export function VesselContents({ profile, look, itemId }: VesselContentsProps) {
         <group userData={{ noOutline: true, noBatch: true }}>
           <mesh geometry={bandGeometry(profile, foamFrom, Math.min(rim, foamFrom + foamH), 0.99)} material={foamMaterial()} />
           {foamFrom + foamH > rim && (
-            <mesh material={foamMaterial()} position={[0, rim, 0]} scale={[radiusAt(profile, rim) * 1.15, Math.min(0.09, foamFrom + foamH - rim) * 1.2, radiusAt(profile, rim) * 1.15]}>
+            <mesh material={foamMaterial()} position={[0, rim, 0]} scale={[radiusAt(profile, rim) * 1.15, Math.min(radiusAt(profile, rim) * 1.15, foamFrom + foamH - rim), radiusAt(profile, rim) * 1.15]}>
               <sphereGeometry args={[1, 18, 10, 0, Math.PI * 2, 0, Math.PI / 2]} />
             </mesh>
           )}
