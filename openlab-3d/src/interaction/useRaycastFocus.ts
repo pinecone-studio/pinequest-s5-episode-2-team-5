@@ -13,6 +13,9 @@ import { interactables, isVisibleInScene, localBounds, resolveInteractable, type
 import { playerBodyRef } from '../controls/Player';
 
 const CENTER = new Vector2(0, 0);
+/** Items whose bounding sphere is smaller than this get aim assist. */
+const ASSIST_RADIUS = 0.1;
+const toCenter = new Vector3();
 
 export function useRaycastFocus(): void {
   const camera = useThree((s) => s.camera);
@@ -63,6 +66,15 @@ export function useRaycastFocus(): void {
           bestDist = h.distance;
         }
         break;
+      }
+      // Aim assist: a small hollow item (a funnel's mouth, a tube, a beaker seen from above)
+      // still counts when the ray passes through the core of its bounds between the glass walls.
+      if (hits.length === 0 && sphere.radius < ASSIST_RADIUS && entry.useTarget?.type === 'item') {
+        const along = toCenter.subVectors(sphere.center, camPos).dot(raycaster.ray.direction);
+        if (along > 0 && along < bestDist && raycaster.ray.distanceSqToPoint(sphere.center) < (sphere.radius * 0.6) ** 2) {
+          best = entry;
+          bestDist = along;
+        }
       }
     }
 

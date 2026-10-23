@@ -1,16 +1,17 @@
 /**
  * Lab bench: 0.9 m tall with a 40 mm dark-gray (#3a3d42) worktop, a recessed 0.1 m
  * plinth, and 0.6 m front modules that alternate between drawer stacks (3 drawers that
- * slide 0.35 m) and cabinets (doors swing 100° onto a shelved compartment). Every drawer
- * and cabinet is a labelled storage holder whose items appear when it is opened.
- * Islands have fronts on both sides. Must be used inside <BenchParts>.
+ * slide 0.35 m out of a hollow stack) and cabinets (doors swing 90° outward onto an
+ * LED-lit, shelved compartment). Fronts are overlay panels with a raised center and a
+ * metal card holder; every drawer and cabinet is a labelled storage holder whose items
+ * appear when it is opened. Islands have fronts on both sides. Must be used inside <BenchParts>.
  */
 import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
-import { useFrame } from '@react-three/fiber';
 import { CuboidCollider } from '@react-three/rapier';
-import type { Group } from 'three';
+import { MeshStandardMaterial, type Group, type Material } from 'three';
 import { BENCH_HEIGHT } from '../../utils/constants';
-import { benchBody, benchTop, plasticBlack, plasticLightGray } from '../../materials/plastic';
+import { benchBody, benchTop, plasticBlack } from '../../materials/plastic';
+import { metalBrushed } from '../../materials/metal';
 import { useGameStore } from '../../store/useGameStore';
 import { useInventoryStore } from '../../store/useInventoryStore';
 import { Interactable } from '../../interaction/Interactable';
@@ -19,7 +20,8 @@ import { benchPlan, registerHolder, STORAGE_INFO, type StorageCategory } from '.
 import { HolderContents, holderLabel } from '../../interaction/StoredItems';
 import { storeInto } from '../../interaction/storage';
 import { sounds } from '../../utils/sounds';
-import { BoxInstance, FrontInstance, HandleInstance, HIGHLIGHT, LabelPlate, WHITE } from './BenchParts';
+import { BoxInstance, FrontInstance, HandleInstance, HIGHLIGHT, HolderInstance, LabelPlate, LinerInstance, PanelInstance, TRAY_WALL, unitBox, WHITE } from './BenchParts';
+import { DOOR_SWING, DRAWER_SWING, useSwing } from './swing';
 
 export type ModuleKind = 'drawers' | 'door' | 'open' | 'sink';
 
@@ -44,6 +46,20 @@ const TOP_T = 0.04;
 const PLINTH = 0.1;
 const GAP = 0.006;
 const PANEL = 0.016;
+const SHELF_T = 0.018;
+/** Front slab thickness; the raised center panel stands RAISE proud of it, INSET from its edges. */
+const FRONT_T = 0.018;
+const RAISE = 0.003;
+const INSET = 0.026;
+/** The carcass stops just behind the overlay fronts, so their faces never coincide. */
+const REVEAL = FRONT_T + 0.001;
+
+/** Cabinet compartment: light melamine, a darker back for depth, an LED strip under the top. */
+const interior = new MeshStandardMaterial({ color: '#d9dde2', roughness: 0.7 });
+const interiorBack = new MeshStandardMaterial({ color: '#b3b9c1', roughness: 0.75 });
+const ledStrip = new MeshStandardMaterial({ color: '#ffffff', emissive: '#fff3d6', emissiveIntensity: 1.6, roughness: 0.5 });
+/** Inside of a drawer stack, seen when a drawer is pulled out. */
+const cavity = new MeshStandardMaterial({ color: '#2a2d32', roughness: 0.9 });
 
 function useFocused(id: string): boolean {
   return useGameStore((s) => s.focus?.id === id);
@@ -60,24 +76,44 @@ function useHolderInteraction(id: string, open: boolean, base: string, category:
   };
 }
 
-/** One sliding drawer (front + handle + tray + label + contents). Local origin = front face center. */
+/** Overlay front: an 18 mm slab with a raised center panel. Outer face at z = 0. */
+function FrontSlab({ width, height, focused = false }: { width: number; height: number; focused?: boolean }) {
+  const tint = focused ? HIGHLIGHT : WHITE;
+  return (
+    <>
+      <FrontInstance position={[0, 0, -FRONT_T / 2]} scale={[width, height, FRONT_T]} color={tint} />
+      <PanelInstance position={[0, 0, RAISE / 2]} scale={[width - INSET * 2, height - INSET * 2, RAISE]} color={tint} />
+    </>
+  );
+}
+
+/** Category card in a brushed-metal holder on the raised panel. */
+function CardHolder({ category, y, w, h }: { category: StorageCategory; y: number; w: number; h: number }) {
+  return (
+    <>
+      <HolderInstance position={[0, y, RAISE + 0.001]} scale={[w + 0.012, h + 0.01, 0.002]} />
+      <LabelPlate category={category} position={[0, y, RAISE + 0.0028]} scale={[w, h, 1]} />
+    </>
+  );
+}
+
+/** One sliding drawer (front + handle + label + tray + contents). Local origin = front face center. */
 function Drawer({ id, width, height, depth, category }: { id: string; width: number; height: number; depth: number; category: StorageCategory }) {
   registerHolder(id, category);
   const group = useRef<Group>(null);
   const [open, setOpen] = useState(false);
-  const [showContents, setShowContents] = useState(false);
-  const amount = useRef(0);
   const focused = useFocused(id);
   const { label, onStore } = useHolderInteraction(id, open, 'Шургуулга', category);
-  useFrame((_, dt) => {
-    const target = open ? 1 : 0;
-    if (amount.current === target || !group.current) return;
-    amount.current += Math.sign(target - amount.current) * Math.min(Math.abs(target - amount.current), dt * 3.2);
-    const k = amount.current * amount.current * (3 - 2 * amount.current);
-    group.current.position.z = k * Math.min(0.35, depth * 0.6);
-    if (amount.current === 0 && showContents) setShowContents(false);
+  const trayD = Math.min(0.42, depth - 0.08);
+  const slide = Math.min(0.35, trayD * 0.85);
+  const showContents = useSwing(open, DRAWER_SWING, (k) => {
+    if (group.current) group.current.position.z = k * slide;
   });
-  const trayH = height - 0.05;
+  const trayW = width - 0.06;
+  const trayH = height - 0.056;
+  const trayY = -0.006;
+  const trayZ = -REVEAL - 0.003 - trayD / 2;
+  const floorY = trayY - trayH / 2 + trayH * TRAY_WALL;
   return (
     <group ref={group}>
       <Interactable
@@ -87,42 +123,38 @@ function Drawer({ id, width, height, depth, category }: { id: string; width: num
         highlight="none"
         onInteract={() => {
           setOpen((o) => !o);
-          if (!open) setShowContents(true);
-          sounds.play('click', 0.6);
+          sounds.play(open ? 'slideClose' : 'slideOpen', 0.7);
         }}
         onStore={onStore}
         storeVerb="шургуулганд хийх"
       >
-        <FrontInstance position={[0, 0, -0.009]} scale={[width - GAP * 2, height - GAP * 2, 0.018]} color={focused ? HIGHLIGHT : WHITE} />
-        <HandleInstance position={[0, height * 0.18, 0]} />
-        <LabelPlate category={category} position={[0, -height * 0.16, 0.0005]} scale={[0.17, 0.0425, 1]} />
-        <BoxInstance position={[0, -0.01, -depth * 0.32 - 0.02]} scale={[width - 0.06, trayH, depth * 0.62]} />
+        <FrontSlab width={width - GAP * 2} height={height - GAP * 2} focused={focused} />
+        <HandleInstance position={[0, height * 0.17, RAISE]} />
+        <CardHolder category={category} y={-height * 0.17} w={0.2} h={0.05} />
+        <BoxInstance position={[0, trayY, trayZ]} scale={[trayW, trayH, trayD]} />
+        <LinerInstance position={[0, floorY + 0.0015, trayZ]} scale={[trayW * (1 - TRAY_WALL * 2) - 0.004, 0.003, trayD * (1 - TRAY_WALL * 2) - 0.004]} />
       </Interactable>
       {showContents && (
-        <group position={[0, -0.01 - trayH / 2 + 0.008, 0]}>
-          <HolderContents holderId={id} layout={{ type: 'drawer', width: width - 0.06 }} />
+        <group position={[0, floorY + 0.003, 0]}>
+          <HolderContents holderId={id} layout={{ type: 'drawer', width: trayW }} />
         </group>
       )}
     </group>
   );
 }
 
-/** A hinged cabinet door over a shelved compartment. Local origin = front face center. */
-function CabinetDoor({ id, width, height, depth, hinge, category }: { id: string; width: number; height: number; depth: number; hinge: -1 | 1; category: StorageCategory }) {
+/**
+ * A cabinet door hinged on one side (hinge −1 = left, 1 = right) that swings out over a
+ * shelved compartment. Local origin = front face center; `shelfTop` is relative to it.
+ */
+function CabinetDoor({ id, width, height, depth, hinge, shelfTop, category }: { id: string; width: number; height: number; depth: number; hinge: -1 | 1; shelfTop: number; category: StorageCategory }) {
   registerHolder(id, category);
   const pivot = useRef<Group>(null);
   const [open, setOpen] = useState(false);
-  const [showContents, setShowContents] = useState(false);
-  const amount = useRef(0);
   const focused = useFocused(id);
   const { label, onStore } = useHolderInteraction(id, open, 'Шүүгээ', category);
-  useFrame((_, dt) => {
-    const target = open ? 1 : 0;
-    if (amount.current === target || !pivot.current) return;
-    amount.current += Math.sign(target - amount.current) * Math.min(Math.abs(target - amount.current), dt * 2.6);
-    const k = amount.current * amount.current * (3 - 2 * amount.current);
-    pivot.current.rotation.y = -hinge * k * ((100 * Math.PI) / 180);
-    if (amount.current === 0 && showContents) setShowContents(false);
+  const showContents = useSwing(open, DOOR_SWING, (k) => {
+    if (pivot.current) pivot.current.rotation.y = hinge * k * (Math.PI / 2);
   });
   const hx = (hinge * width) / 2;
   const interiorBottom = -height / 2 + PANEL + 0.002;
@@ -135,25 +167,26 @@ function CabinetDoor({ id, width, height, depth, hinge, category }: { id: string
         highlight="none"
         onInteract={() => {
           setOpen((o) => !o);
-          if (!open) setShowContents(true);
-          sounds.play('click', 0.5);
+          sounds.play(open ? 'hingeClose' : 'hingeOpen', 0.7);
         }}
         onStore={onStore}
         storeVerb="шүүгээнд хийх"
       >
         <group position={[hx, 0, 0]}>
           <group ref={pivot}>
-            <FrontInstance position={[-hx, 0, -0.009]} scale={[width - GAP * 2, height - GAP * 2, 0.018]} color={focused ? HIGHLIGHT : WHITE} />
-            <group position={[-hx - hinge * (width / 2 - 0.05), height * 0.3, 0]} rotation={[0, 0, Math.PI / 2]}>
-              <HandleInstance />
+            <group position={[-hx, 0, 0]}>
+              <FrontSlab width={width - GAP * 2} height={height - GAP * 2} focused={focused} />
+              <group position={[-hinge * (width / 2 - 0.055), height * 0.3, RAISE]} rotation={[0, 0, Math.PI / 2]}>
+                <HandleInstance />
+              </group>
+              <CardHolder category={category} y={height * 0.36} w={0.26} h={0.065} />
             </group>
-            <LabelPlate category={category} position={[-hx, height * 0.36, 0.0005]} scale={[0.22, 0.055, 1]} />
           </group>
         </group>
       </Interactable>
       {showContents && (
         <group position={[0, interiorBottom, 0]}>
-          <HolderContents holderId={id} layout={{ type: 'cabinet', width, depth, shelfY: height / 2 - 0.006 }} />
+          <HolderContents holderId={id} layout={{ type: 'cabinet', width: width - PANEL * 2, depth, shelfY: shelfTop + 0.002 - interiorBottom }} />
         </group>
       )}
     </group>
@@ -167,8 +200,8 @@ function Fronts({
   modules,
   width,
   frontHeight,
-  depth,
   compartmentDepth,
+  shelfY,
   firstStack,
   firstDoor,
 }: {
@@ -177,13 +210,15 @@ function Fronts({
   modules: ModuleKind[];
   width: number;
   frontHeight: number;
-  depth: number;
   compartmentDepth: number;
+  /** Height of the cabinet shelf's center above the floor. */
+  shelfY: number;
   firstStack: number;
   firstDoor: number;
 }) {
   const moduleW = width / modules.length;
   const plan = benchPlan(benchId);
+  const doorY = PLINTH + frontHeight / 2;
   let stack = firstStack;
   let door = firstDoor;
   return (
@@ -199,7 +234,7 @@ function Fronts({
             <group key={key} position={[x, 0, 0]}>
               {Array.from({ length: n }, (_, j) => (
                 <group key={j} position={[0, PLINTH + h * (n - j - 0.5), 0]}>
-                  <Drawer id={`${key}-d${j}`} width={moduleW} height={h} depth={depth} category={plan.drawer(s, j)} />
+                  <Drawer id={`${key}-d${j}`} width={moduleW} height={h} depth={compartmentDepth} category={plan.drawer(s, j)} />
                 </group>
               ))}
             </group>
@@ -207,16 +242,18 @@ function Fronts({
         }
         if (m === 'door') {
           const d = door++;
+          // Hinge away from a neighbouring door, so two open doors never swing into each other.
+          const hinge = i === modules.length - 1 || modules[i + 1] !== 'door' ? 1 : -1;
           return (
-            <group key={key} position={[x, PLINTH + frontHeight / 2, 0]}>
-              <CabinetDoor id={`${key}-door`} width={moduleW} height={frontHeight} depth={compartmentDepth} hinge={i % 2 === 0 ? -1 : 1} category={plan.door(d)} />
+            <group key={key} position={[x, doorY, 0]}>
+              <CabinetDoor id={`${key}-door`} width={moduleW} height={frontHeight} depth={compartmentDepth} hinge={hinge} shelfTop={shelfY + SHELF_T / 2 - doorY} category={plan.door(d)} />
             </group>
           );
         }
         if (m === 'sink') {
           return (
-            <group key={key} position={[x, PLINTH + frontHeight / 2, 0]}>
-              <FrontInstance position={[0, 0, -0.009]} scale={[moduleW - GAP * 2, frontHeight - GAP * 2, 0.018]} />
+            <group key={key} position={[x, doorY, 0]}>
+              <FrontSlab width={moduleW - GAP * 2} height={frontHeight - GAP * 2} />
             </group>
           );
         }
@@ -231,45 +268,59 @@ export function defaultModules(width: number): ModuleKind[] {
   return Array.from({ length: n }, (_, i) => (i % 2 === 0 ? 'drawers' : 'door'));
 }
 
-/** Carcass: solid behind drawers and sinks, an open shelved compartment behind each door. */
-function Carcass({ modules, width, height, bodyD, island }: { modules: ModuleKind[]; width: number; height: number; bodyD: number; island: boolean }) {
+/** One carcass panel: the shared unit box, scaled (merged by StaticBatch). */
+function Part({ material, at, size, cast = false }: { material: Material; at: [number, number, number]; size: [number, number, number]; cast?: boolean }) {
+  return <mesh geometry={unitBox()} material={material} position={at} scale={size} castShadow={cast} receiveShadow />;
+}
+
+/**
+ * Carcass behind the fronts: a hollow drawer stack with rails between the drawers, a
+ * shelved compartment behind each door (spill lip on the shelf, LED strip under the
+ * top), and a solid block behind sinks. Everything stops REVEAL behind the fronts.
+ */
+function Carcass({ modules, width, height, bodyD, island, frontHeight, shelfY }: { modules: ModuleKind[]; width: number; height: number; bodyD: number; island: boolean; frontHeight: number; shelfY: number }) {
   const moduleW = width / modules.length;
+  const innerW = moduleW - PANEL * 2;
   const carcassH = height - TOP_T - PLINTH;
   const midY = PLINTH + carcassH / 2;
+  const z1 = bodyD / 2 - REVEAL;
+  const z0 = island ? -z1 : -bodyD / 2;
+  const d = z1 - z0;
+  const zc = (z0 + z1) / 2;
+  const backZ = island ? 0 : z0 + PANEL / 2;
+  const shelfFront = z1 - 0.02;
+  const shelfBack = island ? -shelfFront : z0 + PANEL;
+  // Front-facing details are mirrored onto the back face of an island.
+  const faces = island ? [0, Math.PI] : [0];
   return (
     <group>
       {modules.map((m, i) => {
         const x = -width / 2 + moduleW * (i + 0.5);
-        if (m !== 'door') {
-          return (
-            <mesh key={i} material={benchBody} position={[x, midY, 0]} castShadow receiveShadow>
-              <boxGeometry args={[moduleW - 0.002, carcassH, bodyD]} />
-            </mesh>
-          );
+        if (m !== 'door' && m !== 'drawers') {
+          return <Part key={i} material={benchBody} at={[x, midY, zc]} size={[moduleW - 0.002, carcassH, d]} cast />;
         }
-        const shelfY = midY;
+        const inner = m === 'door' ? interior : cavity;
         return (
           <group key={i} position={[x, 0, 0]}>
-            {/* Sides, bottom, top. */}
             {[-1, 1].map((sx) => (
-              <mesh key={sx} material={benchBody} position={[(sx * (moduleW - PANEL)) / 2, midY, 0]} castShadow receiveShadow>
-                <boxGeometry args={[PANEL, carcassH, bodyD]} />
-              </mesh>
+              <Part key={sx} material={benchBody} at={[(sx * (moduleW - PANEL)) / 2, midY, zc]} size={[PANEL, carcassH, d]} cast />
             ))}
-            <mesh material={plasticLightGray} position={[0, PLINTH + PANEL / 2, 0]} receiveShadow>
-              <boxGeometry args={[moduleW - PANEL * 2, PANEL, bodyD]} />
-            </mesh>
-            <mesh material={benchBody} position={[0, height - TOP_T - PANEL / 2, 0]}>
-              <boxGeometry args={[moduleW - PANEL * 2, PANEL, bodyD]} />
-            </mesh>
-            {/* Back panel (or the divider between the two sides of an island). */}
-            <mesh material={plasticLightGray} position={[0, midY, island ? 0 : -bodyD / 2 + PANEL / 2]} receiveShadow>
-              <boxGeometry args={[moduleW - PANEL * 2, carcassH, PANEL]} />
-            </mesh>
-            {/* Shelf (both sides of an island). */}
-            <mesh material={plasticLightGray} position={[0, shelfY, island ? 0 : 0.01]} receiveShadow>
-              <boxGeometry args={[moduleW - PANEL * 2, 0.014, island ? bodyD - 0.04 : bodyD - 0.05]} />
-            </mesh>
+            <Part material={inner} at={[0, PLINTH + PANEL / 2, zc]} size={[innerW, PANEL, d]} />
+            <Part material={benchBody} at={[0, height - TOP_T - PANEL / 2, zc]} size={[innerW, PANEL, d]} />
+            <Part material={m === 'door' ? interiorBack : cavity} at={[0, midY, backZ]} size={[innerW, carcassH - PANEL * 2, PANEL]} />
+            {m === 'door' && <Part material={interior} at={[0, shelfY, (shelfFront + shelfBack) / 2]} size={[innerW, SHELF_T, shelfFront - shelfBack]} />}
+            {faces.map((ry) => (
+              <group key={ry} rotation={[0, ry, 0]}>
+                {m === 'door' ? (
+                  <>
+                    <Part material={metalBrushed} at={[0, shelfY + 0.003, shelfFront + 0.002]} size={[innerW, SHELF_T + 0.006, 0.004]} />
+                    <Part material={ledStrip} at={[0, height - TOP_T - PANEL - 0.004, z1 - 0.03]} size={[innerW - 0.04, 0.008, 0.012]} />
+                  </>
+                ) : (
+                  [1, 2].map((k) => <Part key={k} material={benchBody} at={[0, PLINTH + (frontHeight / 3) * k, z1 - 0.03]} size={[innerW, 0.018, 0.06]} />)
+                )}
+              </group>
+            ))}
           </group>
         );
       })}
@@ -292,6 +343,7 @@ export function LabBench({
 }: LabBenchProps) {
   const mods = useMemo(() => modules ?? defaultModules(width), [modules, width]);
   const frontHeight = height - TOP_T - PLINTH - 0.01;
+  const shelfY = PLINTH + (height - TOP_T - PLINTH) / 2;
   const [x, z] = position;
 
   useEffect(() => {
@@ -329,9 +381,10 @@ export function LabBench({
     ].filter((p) => p.w > 0.01);
   }, [sinkAt, width, depth]);
 
+  const fronts = { benchId: id, modules: mods, width, frontHeight, compartmentDepth, shelfY };
   return (
     <group position={[x, 0, z]} rotation={[0, rotY, 0]}>
-      <Carcass modules={mods} width={width} height={height} bodyD={bodyD} island={island} />
+      <Carcass modules={mods} width={width} height={height} bodyD={bodyD} island={island} frontHeight={frontHeight} shelfY={shelfY} />
       <mesh material={plasticBlack} position={[0, PLINTH / 2, 0]}>
         <boxGeometry args={[width - 0.04, PLINTH, bodyD - 0.08]} />
       </mesh>
@@ -342,11 +395,11 @@ export function LabBench({
         </mesh>
       ))}
       <group position={[0, 0, bodyD / 2]}>
-        <Fronts id={`${id}-f`} benchId={id} modules={mods} width={width} frontHeight={frontHeight} depth={bodyD} compartmentDepth={compartmentDepth} firstStack={0} firstDoor={0} />
+        <Fronts id={`${id}-f`} {...fronts} firstStack={0} firstDoor={0} />
       </group>
       {island && (
         <group position={[0, 0, -bodyD / 2]} rotation={[0, Math.PI, 0]}>
-          <Fronts id={`${id}-b`} benchId={id} modules={mods} width={width} frontHeight={frontHeight} depth={bodyD} compartmentDepth={compartmentDepth} firstStack={frontStacks} firstDoor={frontDoors} />
+          <Fronts id={`${id}-b`} {...fronts} firstStack={frontStacks} firstDoor={frontDoors} />
         </group>
       )}
       <CuboidCollider args={[width / 2, height / 2, depth / 2 + 0.01]} position={[0, height / 2, 0]} />
