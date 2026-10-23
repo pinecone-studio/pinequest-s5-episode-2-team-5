@@ -3,6 +3,7 @@ import { useEffect } from 'react';
 import { useGameStore, type Panel } from '../store/useGameStore';
 import { useInventoryStore } from '../store/useInventoryStore';
 import { useSettingsStore } from '../store/useSettingsStore';
+import { interactItem } from '../interaction/interactItem';
 import { interactables } from '../interaction/registry';
 import { dragState, heldApi, throwCharge } from '../interaction/heldApi';
 import { beginHeldUse, endHeldUse } from '../interaction/useHeld';
@@ -25,10 +26,7 @@ function isTyping(target: EventTarget | null): boolean {
 export function interactWithFocus(): boolean {
   const focus = useGameStore.getState().focus;
   if (!focus) return false;
-  const entry = interactables.get(focus.id);
-  if (!entry?.enabled || !entry.onInteract) return false;
-  entry.onInteract();
-  return true;
+  return interactItem(focus.id);
 }
 
 function startDrag(source: 'key' | 'mouse'): boolean {
@@ -105,8 +103,7 @@ export function toggleTools(): void {
 /** G: pick the focused item up even when E does something else (light a burner, tare the balance). */
 function grabFocus(): void {
   const focus = useGameStore.getState().focus;
-  const entry = focus ? interactables.get(focus.id) : undefined;
-  entry?.onGrab?.();
+  if (focus) interactItem(focus.id, true);
 }
 
 /** T down: start winding up a throw; T up: let go (a longer press throws harder). */
@@ -252,7 +249,7 @@ export function useGameKeys(canvas: HTMLElement | null): void {
             if (useBenchView.getState().inspecting) benchView.back(); else benchView.inspect(inspectId);
           }
           if ((actions.includes('interact') || actions.includes('grab')) && selected && !useBenchView.getState().inspecting) {
-            const entry = interactables.get(selected); (entry?.onGrab ?? entry?.onInteract)?.();
+            interactItem(selected, actions.includes('grab'));
           }
           return;
         }

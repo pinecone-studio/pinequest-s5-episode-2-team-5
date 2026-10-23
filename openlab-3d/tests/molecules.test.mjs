@@ -101,7 +101,7 @@ import { join } from 'node:path';
 import { pathToFileURL } from 'node:url';
 const storeTmp=await mkdtemp(join(tmpdir(),'openlab-preparation-test-'));
 test.after(()=>rm(storeTmp,{recursive:true,force:true}));
-await build({stdin:{contents:`export { useLabStore } from './src/store/useLabStore.ts'; export * from './src/experiments/workbench/session.ts'; export {useInventoryStore,storedIn} from './src/store/useInventoryStore.ts'; export {useChemStore} from './src/store/useChemStore.ts'; export {useGameStore} from './src/store/useGameStore.ts'; export * from './src/lab/reaction-view.ts'; export {registerHolder,seedHolder} from './src/interaction/holders.ts';`,resolveDir:process.cwd()},bundle:true,outfile:join(storeTmp,'stores.mjs'),format:'esm',platform:'node'});
+await build({stdin:{contents:`export {snapToSupport} from './src/interaction/supportPlacement.ts'; export {supportSpots} from './src/interaction/bodies.ts'; export {benchUseTarget} from './src/interaction/benchUseTarget.ts'; export {tablePointer} from './src/interaction/heldApi.ts'; export {useBenchView} from './src/experiments/nacl/view.ts'; export {useSandbox} from './src/experiments/nacl/sandbox.ts'; export {interactItem} from './src/interaction/interactItem.ts'; export {interactables} from './src/interaction/registry.ts'; export { useLabStore } from './src/store/useLabStore.ts'; export * from './src/experiments/workbench/session.ts'; export {useInventoryStore,storedIn} from './src/store/useInventoryStore.ts'; export {useChemStore} from './src/store/useChemStore.ts'; export {useGameStore} from './src/store/useGameStore.ts'; export * from './src/lab/reaction-view.ts'; export {registerHolder,seedHolder} from './src/interaction/holders.ts';`,resolveDir:process.cwd()},bundle:true,outfile:join(storeTmp,'stores.mjs'),format:'esm',platform:'node'});
 globalThis.localStorage={getItem:()=>null,setItem:()=>{},removeItem:()=>{}};
 const stores=await import(pathToFileURL(join(storeTmp,'stores.mjs')).href);
 test('guide starts after preparation; earlier real observations are still recorded',()=>{
@@ -195,4 +195,64 @@ test('restart restores apparatus to the original seeded drawer slot',()=>{
   const stop=stores.startWorkbenchTracking();stores.useInventoryStore.getState().takeStored('round4-drawer',item.id);
   assert.ok(stores.currentSession().found.includes('erlenmeyer'));stores.useInventoryStore.getState().place([8,.915,-14.5],0);
   stores.selectBenchExperiment('titration',true);assert.deepEqual(stores.storedIn(stores.useInventoryStore.getState().storage,'round4-drawer'),seeded);stop();
+});
+
+test('standing and seated primary interaction preserve switches; grab remains a separate action', () => {
+  let uses = 0, grabs = 0;
+  const id = 'test-shared-switch';
+  stores.interactables.set(id, { enabled: true, onInteract: () => uses++, onGrab: () => grabs++ });
+  try {
+    for (const mode of ['walk', 'bench']) {
+      stores.useGameStore.setState({ mode });
+      assert.equal(stores.interactItem(id), true);
+      assert.equal(stores.interactItem(id, true), true);
+    }
+    assert.equal(uses, 2);
+    assert.equal(grabs, 2);
+    stores.interactables.get(id).enabled = false;
+    assert.equal(stores.interactItem(id), false);
+    assert.equal(stores.interactItem(id, true), false);
+    assert.equal(uses, 2);
+    assert.equal(grabs, 2);
+  } finally { stores.interactables.delete(id); }
+});
+
+test('receiver cues distinguish a vessel from placement and preserve selection over UI', () => {
+  const before = stores.useInventoryStore.getState();
+  stores.useInventoryStore.setState({held:{id:'cue-source',kind:'reagentBottle'},worldItems:[{id:'cue-target',kind:'beaker',position:[0,0,0],rotY:0}]});
+  try {
+    stores.tablePointer.active = true;
+    stores.useSandbox.setState({hovered:'cue-target'});
+    assert.equal(stores.benchUseTarget(),'cue-target');
+    stores.useSandbox.setState({hovered:null});
+    stores.useBenchView.setState({selected:'cue-target'});
+    assert.equal(stores.benchUseTarget(),null, 'empty canvas means placement');
+    stores.tablePointer.active = false;
+    assert.equal(stores.benchUseTarget(),'cue-target', 'moving onto controls retains receiver');
+    stores.useSandbox.setState({hovered:'cue-source'});
+    assert.equal(stores.benchUseTarget(),null, 'a held bottle cannot receive from itself');
+  } finally {
+    stores.useInventoryStore.setState({held:before.held,worldItems:before.worldItems});
+    stores.useSandbox.setState({hovered:null}); stores.useBenchView.setState({selected:null});
+    stores.tablePointer.active = false;
+  }
+});
+
+import { Ray, Vector3 } from 'three';
+test('support snapping tolerates aiming beside a thin ring and preserves the apparatus mounting height', () => {
+  const ray = new Ray(new Vector3(0,2,0),new Vector3(0,-1,0));
+  const spot = {id:'funnel-holder',aim:new Vector3(.04,1.1,0),point:new Vector3(.04,1.02,0),radius:.055};
+  assert.equal(stores.snapToSupport(ray,[spot],3),spot);
+  assert.equal(stores.snapToSupport(ray,[spot],.5),null);
+  assert.equal(stores.snapToSupport(ray,[{...spot,aim:new Vector3(.1,1.1,0)}],3),null);
+  assert.equal(stores.snapToSupport(ray,[{...spot,aim:new Vector3(0,3,0)}],3),null);
+});
+test('raised placement follows a moved tripod and rejects an incompatible held item', () => {
+  const item={id:'test-moved-tripod',kind:'tripod',position:[2,.9,3],rotY:Math.PI/2};
+  const spot=stores.supportSpots([item],'evaporatingDish')[0];
+  assert.ok(Math.abs(spot.point.y-1.105)<1e-8);
+  assert.equal(spot.point.x,2);
+  assert.equal(spot.point.z,3);
+  assert.deepEqual(stores.supportSpots([item],'tripod'),[]);
+  assert.deepEqual(stores.supportSpots([item],'reagentBottle'),[]);
 });

@@ -8,6 +8,8 @@ import { playerState, useGameStore } from '../../store/useGameStore';
 import { useInventoryStore } from '../../store/useInventoryStore';
 import { CATALOG } from '../../equipment/equipmentCatalog';
 import { interactables, isVisibleInScene, localBounds, resolveInteractable, type InteractableEntry } from '../../interaction/registry';
+import { benchUseTarget } from '../../interaction/benchUseTarget';
+import { interactItem } from '../../interaction/interactItem';
 import { endHeldUse } from '../../interaction/useHeld';
 import { portableApi, usePortableStore } from '../../interaction/portable';
 import { heldApi, tablePointer } from '../../interaction/heldApi';
@@ -40,6 +42,8 @@ export function NaClStation() {
   const camera = useThree((s) => s.camera) as PerspectiveCamera;
   const gl = useThree((s) => s.gl);
   const controls = useRef<Controls>(null);
+  const receiverMarker = useRef<import('three').Group>(null);
+  const receiverBox = useMemo(() => new Box3(), []);
   const initialTarget = useMemo(() => new Vector3(STATION_POSITION[0] + 0.03, STATION_POSITION[1] + 0.075, STATION_POSITION[2]), []);
   const previousMode = useRef('');
   const motion = useRef<{ from: Vector3; to: Vector3; fromTarget: Vector3; toTarget: Vector3; elapsed: number; duration: number } | null>(null);
@@ -72,7 +76,7 @@ export function NaClStation() {
     const entries: InteractableEntry[] = engine.parts.map(({ key, hit, label }) => {
       const id = partId(key);
       hit.userData.interactableId = id;
-      const entry: InteractableEntry = { id, object: hit, label, verb: 'сонгох', enabled: true, bounds: null, onInteract: () => { if (useGameStore.getState().mode === 'walk') enterBench(id); else { useBenchView.setState({ selected: id }); useSandbox.setState({ inspected: id }); } }, onGrab: () => take(key) };
+      const entry: InteractableEntry = { id, object: hit, label, verb: key === 'lamp' || key === 'scope' ? 'ашиглах' : 'авах', enabled: true, bounds: null, onInteract: () => { if (key === 'lamp' || key === 'scope') labUse.start(id); else take(key); }, onGrab: () => take(key) };
       interactables.set(id, entry);
       return entry;
     });
@@ -193,9 +197,9 @@ export function NaClStation() {
       tablePointer.active = true;
       heldApi.refreshTarget();
       const key = engine.pick(tablePointer.ndc, partKey(heldObjectId() ?? '') ?? undefined);
-      if (key) return partId(key);
       ray.setFromCamera(tablePointer.ndc, camera); ray.far = 3.5;
-      let best: string | null = null; let nearest = ray.far;
+      let best: string | null = key ? partId(key) : null;
+      let nearest = key ? ray.intersectObject(interactables.get(partId(key))!.object, false)[0]?.distance ?? ray.far : ray.far;
       for (const entry of interactables.values()) {
         if (!entry.inspectKind && entry.useTarget?.type !== 'item') continue;
         if (!entry.enabled || entry.id === heldObjectId() || entry.id.startsWith('nacl-') || !isVisibleInScene(entry.object)) continue;
@@ -238,9 +242,12 @@ export function NaClStation() {
       pointers.delete(e.pointerId);
       if (!useWorkbench.getState().drawer && !useBenchView.getState().inspecting && down?.id === e.pointerId && e.target === el && Math.hypot(e.clientX - down.x, e.clientY - down.y) < 6) {
         const id = point(e);
-        if (id) {
+        if (heldObjectId() && heldApi.target?.support) {
+          if (usePortableStore.getState().held) portableApi.place(); else heldApi.place();
+        } else if (id) {
           useSandbox.setState({ inspected: id, hovered: id });
           useBenchView.setState({ selected: id });
+          if (!heldObjectId()) interactItem(id);
         } else if (heldObjectId()) {
           const placed = usePortableStore.getState().held ? portableApi.place() : heldApi.place();
           if (!placed) warn('Энэ цэгт тавих гадаргуу алга. Хулганаа ширээний хоосон хэсэг рүү зөөгөөд ногоон хүрээг хараад дар.');
@@ -248,7 +255,7 @@ export function NaClStation() {
       }
       down = null;
     };
-    const onLeave = () => useSandbox.setState({ hovered: null });
+    const onLeave = () => { tablePointer.active = false; useSandbox.setState({ hovered: null }); };
     const onCancel = () => { down = null; pointers.clear(); endHeldUse(); };
     const noMenu = (e: Event) => e.preventDefault();
     el.addEventListener('pointerdown', onDown, true); el.addEventListener('pointermove', onMove); el.addEventListener('pointerleave', onLeave);
@@ -279,6 +286,22 @@ export function NaClStation() {
     if (useSandbox.getState().near !== near) useSandbox.setState({ near });
     updateStationVisibility();
     engine.root.updateWorldMatrix(true, true);
+    if (receiverMarker.current) {
+      const id = inBench && !inspecting && !useWorkbench.getState().drawer ? benchUseTarget() : null;
+      const key = id ? partKey(id) : null;
+      const object = id ? key ? engine.partObject(key) : interactables.get(id)?.object : null;
+      receiverMarker.current.visible = !!object && isVisibleInScene(object);
+      if (object && receiverMarker.current.visible) {
+        receiverBox.setFromObject(object);
+        const center = receiverBox.getCenter(new Vector3());
+        const radius = Math.max(.016, Math.min(.09, (receiverBox.max.x - receiverBox.min.x) * .5 + .006));
+        // The station group has world transforms: keep the small rim cue in world space via its parent.
+        receiverMarker.current.position.copy(center).setY(receiverBox.max.y + .006);
+        receiverMarker.current.parent?.worldToLocal(receiverMarker.current.position);
+        receiverMarker.current.scale.setScalar(radius);
+      }
+    }
+
     engine.parts.forEach(({ key }) => {
       const entry = interactables.get(partId(key));
       if (entry) entry.enabled = engine.partVisible(key) && usePortableStore.getState().held?.id !== entry.id;
@@ -335,6 +358,12 @@ export function NaClStation() {
   return (
     <group>
       <group position={STATION_POSITION}><primitive object={engine.root} /></group>
+      <group name="bench-use-target" ref={receiverMarker} visible={false} userData={{ noOutline: true, noBatch: true }}>
+        <mesh rotation={[-Math.PI / 2, 0, 0]} raycast={() => undefined} renderOrder={10}>
+          <ringGeometry args={[.87, 1, 48]} />
+          <meshBasicMaterial color="#0284c7" transparent opacity={.9} depthWrite={false} depthTest={false} toneMapped={false} side={2} />
+        </mesh>
+      </group>
       <Interactable id="open-workbench" label="Ажлын ширээ" verb="суух" onInteract={() => enterBench()} highlight="none" position={[8.25, BENCH_HEIGHT, -14.5]}>
         <mesh><boxGeometry args={[1.6, .025, .8]} /><meshBasicMaterial transparent opacity={0} colorWrite={false} depthWrite={false} /></mesh>
       </Interactable>

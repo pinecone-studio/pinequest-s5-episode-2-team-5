@@ -16,6 +16,11 @@ import { useInventoryStore } from '../store/useInventoryStore';
 import { mixtureOf, useChemStore } from '../store/useChemStore';
 import { useSettingsStore } from '../store/useSettingsStore';
 import { sounds } from '../utils/sounds';
+import { bench as stationBench } from '../experiments/nacl/bench';
+import { describe } from '../experiments/nacl/sandbox';
+import { snapToSupport } from './supportPlacement';
+import { supportSpots } from './bodies';
+import { benchUseTarget } from './benchUseTarget';
 import { heldApi, tablePointer } from './heldApi';
 import { supportHeightAt } from './bodies';
 import { raycastSurfaces, type Placement } from './surfaces';
@@ -28,7 +33,7 @@ import { endHeldUse } from './useHeld';
 import { playerBodyRef } from '../controls/Player';
 import { benchView, useBenchView } from '../experiments/nacl/view';
 
-const ghostOk = new MeshBasicMaterial({ color: '#bff3ff', transparent: true, opacity: 0.35, depthWrite: false });
+const ghostOk = new MeshBasicMaterial({ color: '#34d399', transparent: true, opacity: 0.35, depthWrite: false });
 const ghostFloor = new MeshBasicMaterial({ color: '#ffd27a', transparent: true, opacity: 0.35, depthWrite: false });
 const streamMaterial = new MeshPhysicalMaterial({ color: '#cfe6f5', transparent: true, opacity: 0.85, roughness: 0.05, clearcoat: 1, emissiveIntensity: 0.15 });
 const sprayMaterial = new MeshBasicMaterial({ color: '#f1f5f9', transparent: true, opacity: 0.45, depthWrite: false });
@@ -83,14 +88,17 @@ export function HeldItem() {
     cursorRay.setFromCamera(bench ? tablePointer.ndc : center, camera);
     const { origin, direction } = cursorRay.ray;
     const reach = bench ? 5 : 3;
-    let target = raycastSurfaces(origin, direction, reach, margin);
+    const kind = livePortable ? describe(livePortable.id).role : liveHeld!.kind;
+    const spots = [...(stationBench.engine?.supportSpots(kind) ?? []), ...supportSpots(useInventoryStore.getState().worldItems, kind)];
+    const support = snapToSupport(cursorRay.ray, spots, reach);
+    let target: Placement | null = support ? { point: support.point.clone(), surfaceId: support.id, support: true, previewPoint: support.aim.clone() } : raycastSurfaces(origin, direction, reach, margin);
     // No nearest-surface fallback: use the point the cursor/crosshair actually hits.
     if (!target && direction.y < -0.001) {
       const t = -origin.y / direction.y;
       if (t > 0 && t < reach) target = { point: origin.clone().addScaledVector(direction, t), surfaceId: 'floor' };
     }
     if (target) {
-      const distance = origin.distanceTo(target.point);
+      const distance = origin.distanceTo(target.previewPoint ?? target.point);
       const hit = world.castRay(new rapier.Ray(origin, direction), distance, true, undefined, undefined, undefined, playerBodyRef.current ?? undefined, (c) => !c.parent() || c.parent()!.isFixed());
       if (hit && hit.timeOfImpact < distance - 0.08) target = null;
     }
@@ -107,7 +115,7 @@ export function HeldItem() {
       const target = solve(); const h = usePortableStore.getState().held;
       if (!target || !h) return false;
       endHeldUse();
-      h.move(target.point.clone().add(new Vector3(0, .004, 0)), useGameStore.getState().mode === 'bench' ? tablePointer.angle : playerState.yaw, 0);
+      h.move(target.point.clone().add(new Vector3(0, target.support ? 0 : .004, 0)), useGameStore.getState().mode === 'bench' ? tablePointer.angle : playerState.yaw, 0);
       usePortableStore.setState({ held: null });
       sounds.play('clink');
       return true;
@@ -124,7 +132,7 @@ export function HeldItem() {
       const raised = supportHeightAt(target.point.x, target.point.z, inv.worldItems, h.kind);
       const y = Math.max(raised ?? -1, target.point.y);
       endHeldUse();
-      const ok = inv.place([target.point.x, y + 0.012, target.point.z], useGameStore.getState().mode === 'bench' ? tablePointer.angle : playerState.yaw);
+      const ok = inv.place([target.point.x, y + (target.support ? .002 : .012), target.point.z], useGameStore.getState().mode === 'bench' ? tablePointer.angle : playerState.yaw);
       if (ok) sounds.play(CATALOG[h.kind].glass ? 'clink' : 'tick', 1);
       return ok;
     };
@@ -162,17 +170,18 @@ export function HeldItem() {
       return;
     }
     const target = solve();
+    const receiver = atBench && benchUseTarget();
     const yaw = atBench ? tablePointer.angle : playerState.yaw;
     if (portable && usePortableStore.getState().held?.id === portable.id) {
-      const preview = atBench && !labUse.source && (target?.point ?? tablePointer.lastPoint);
+      const preview = atBench && !receiver && !labUse.source && (target?.point ?? tablePointer.lastPoint);
       const pouring = atBench && labUse.source === portable.id && labUse.target;
       const bottom = pouring ? labSpace.position(labUse.target!).add(new Vector3(.06, .12, 0))
         : preview ? preview.clone().add(new Vector3(0, .008, 0))
         : new Vector3(.14, -.2, -.45).applyQuaternion(camera.quaternion).add(camera.position);
       if (visible) portable.move(bottom, yaw, labUse.source === portable.id ? -.5 : 0);
       if (ghost.current) {
-        ghost.current.visible = visible && !!target && !labUse.source;
-        if (target) { ghost.current.position.copy(target.point).add(new Vector3(0, .005, 0)); ghost.current.rotation.set(0, yaw, 0); }
+        ghost.current.visible = visible && !!target && !receiver && !labUse.source;
+        if (target) { ghost.current.position.copy(target.previewPoint ?? target.point).add(new Vector3(0, .005, 0)); ghost.current.rotation.set(0, yaw, 0); }
       }
       return;
     }
@@ -201,7 +210,7 @@ export function HeldItem() {
       tmpV.applyQuaternion(smoothQ.current).add(camera.position);
       hand.current.position.copy(tmpV);
       hand.current.quaternion.copy(smoothQ.current);
-      hand.current.visible = visible && (!atBench || !!labUse.source || !target);
+      hand.current.visible = visible && (!atBench || !!receiver || !!labUse.source || !target);
     }
     // Tilt to pour.
     const targetTilt = benchPour ? 0.65 : pouring ? (CATALOG[held.kind].drops ? 1.9 : 0.55 + 0.75 * actionVisual.strength) : 0;
@@ -241,12 +250,12 @@ export function HeldItem() {
     // The same exact cursor solver is used on click and every preview frame.
     const floor = target?.surfaceId === 'floor';
     if (ghost.current) {
-      ghost.current.visible = visible && !!target && !kind && !labUse.source;
+      ghost.current.visible = visible && !!target && !receiver && !kind && !labUse.source;
       if (!target) return;
       const raised = supportHeightAt(target.point.x, target.point.z, useInventoryStore.getState().worldItems, held.kind);
       ghost.current.position.set(target.point.x, Math.max(raised ?? -1, target.point.y), target.point.z);
       ghost.current.rotation.set(0, yaw, 0);
-      ghost.current.visible = visible && !game.focus?.canStore && !kind && !labUse.source;
+      ghost.current.visible = visible && !receiver && !game.focus?.canStore && !kind && !labUse.source;
       const mat = floor ? ghostFloor : ghostOk;
       ghost.current.traverse((o) => {
         if (o instanceof Mesh) {
@@ -258,12 +267,12 @@ export function HeldItem() {
     }
   });
 
-  if (portable) return <group ref={ghost}><mesh rotation={[-Math.PI / 2, 0, 0]} material={ghostOk} raycast={() => undefined}><ringGeometry args={[footprint, footprint + .012, 32]} /></mesh></group>;
+  if (portable) return <group name="held-placement-preview" ref={ghost}><mesh rotation={[-Math.PI / 2, 0, 0]} material={ghostOk} raycast={() => undefined}><ringGeometry args={[footprint, footprint + .012, 32]} /></mesh></group>;
   if (!held) return null;
   const grip = held.grip;
   return (
     <group>
-      <group ref={hand}>
+      <group name="held-item-in-hand" ref={hand}>
         <group rotation={handRotation(held.kind)}>
           <group ref={tilt}>
             <EquipmentModel kind={held.kind} variant={held.variant} mixture={mixture} itemId={held.id} tool={tool} upright />
@@ -284,7 +293,7 @@ export function HeldItem() {
       <mesh ref={stream} material={streamMaterial} visible={false} raycast={() => undefined} userData={{ noOutline: true }}>
         <cylinderGeometry args={[0.0035, 0.0028, 1, 8, 1, true]} />
       </mesh>
-      <group ref={ghost}>
+      <group name="held-placement-preview" ref={ghost}>
         <EquipmentModel kind={held.kind} variant={held.variant} />
       </group>
     </group>

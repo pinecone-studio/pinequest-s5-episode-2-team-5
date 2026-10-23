@@ -2246,6 +2246,17 @@ export function createNaClEngine() {
   }
   return {
     root,
+    supportSpots(kind: string) {
+      root.updateWorldMatrix(true, true);
+      if (kind === 'funnel' && visibleChain(retortStand)) {
+        return [{ id: 'funnel-holder', point: retortStand.localToWorld(V3(FX, .78, BZ)), aim: retortStand.localToWorld(V3(FX, 1.58, BZ)), radius: .055 }];
+      }
+      if (['dish', 'evaporatingDish', 'beaker', 'erlenmeyer'].includes(kind) && pickable(PKEY.tripod)) {
+        const at = tripodG.localToWorld(V3(DX, .972, BZ));
+        return [{ id: 'tripod-gauze', point: at, aim: at.clone(), radius: .065 }];
+      }
+      return [];
+    },
     /** Preparation only changes visibility, never chemistry or apparatus transforms. */
     showParts(keys: PartKey[]) {
       retortStand.visible = keys.includes('funnel');
