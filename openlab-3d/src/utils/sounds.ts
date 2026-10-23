@@ -2,7 +2,7 @@
  * Tiny procedural sound engine on the Web Audio API — every sound is synthesized,
  * so there are no audio files to download.
  */
-export type SoundName = 'footstep' | 'door' | 'click' | 'tick' | 'puff' | 'clink' | 'pickup' | 'ui' | 'beep' | 'whoosh' | 'success' | 'pour' | 'fizz' | 'shatter' | 'thud' | 'bubble' | 'throw' | 'moleculeTick' | 'reactionFizz' | 'crystalCrackle' | 'eruption' | 'sizzle';
+export type SoundName = 'footstep' | 'door' | 'click' | 'tick' | 'puff' | 'clink' | 'pickup' | 'ui' | 'beep' | 'whoosh' | 'success' | 'pour' | 'fizz' | 'shatter' | 'thud' | 'bubble' | 'throw' | 'moleculeTick' | 'reactionFizz' | 'crystalCrackle' | 'eruption' | 'sizzle' | 'slideOpen' | 'slideClose' | 'hingeOpen' | 'hingeClose' | 'latch';
 
 class SoundEngine {
   private ctx: AudioContext | null = null;
@@ -146,6 +146,29 @@ class SoundEngine {
         break;
       case 'throw':
         this.noiseBurst(t, { type: 'bandpass', freq: 900, sweepTo: 300, q: 1.1, peak: 0.08 * k, attack: 0.02, decay: 0.22 });
+        break;
+      case 'slideOpen':
+        // Runner rumble rising in pitch, then a soft stop at full extension.
+        this.noiseBurst(t, { type: 'bandpass', freq: 260, sweepTo: 620, q: 1.6, peak: 0.09 * k, attack: 0.03, decay: 0.32 });
+        this.tone(t + 0.3, 120, { type: 'sine', peak: 0.05 * k, attack: 0.003, decay: 0.08, slideTo: 80 });
+        break;
+      case 'slideClose':
+        // The landing is a separate 'latch', played when the drawer actually arrives.
+        this.noiseBurst(t, { type: 'bandpass', freq: 560, sweepTo: 240, q: 1.6, peak: 0.08 * k, attack: 0.02, decay: 0.28 });
+        break;
+      case 'hingeOpen':
+        // Latch click, then a short low hinge sweep.
+        this.noiseBurst(t, { type: 'highpass', freq: 2800, peak: 0.08 * k, attack: 0.001, decay: 0.025 });
+        this.tone(t + 0.02, 180, { type: 'triangle', peak: 0.025 * k, attack: 0.04, decay: 0.3, slideTo: 260 });
+        break;
+      case 'hingeClose':
+        this.tone(t, 240, { type: 'triangle', peak: 0.02 * k, attack: 0.03, decay: 0.22, slideTo: 170 });
+        break;
+      case 'latch':
+        // Soft-close landing: a muffled thump and the catch clicking.
+        this.tone(t, 90, { type: 'sine', peak: 0.1 * k, attack: 0.002, decay: 0.11, slideTo: 55 });
+        this.noiseBurst(t, { type: 'lowpass', freq: 900, peak: 0.05 * k, attack: 0.002, decay: 0.05 });
+        this.noiseBurst(t + 0.015, { type: 'highpass', freq: 2600, peak: 0.06 * k, attack: 0.001, decay: 0.025 });
         break;
       case 'success':
         [660, 880, 1320].forEach((f, i) => this.tone(t + i * 0.09, f, { type: 'triangle', peak: 0.05 * k, attack: 0.005, decay: 0.22 }));

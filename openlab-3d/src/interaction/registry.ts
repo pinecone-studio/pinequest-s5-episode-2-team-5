@@ -4,7 +4,7 @@ import type { ItemVariant } from '../world/itemsLayout';
 
 /** What R ("use the held item on …") can act on. */
 export type UseTarget =
-  | { type: 'item'; id: string; kind: EquipmentKind; variant?: ItemVariant; holderId?: string }
+  | { type: 'item'; id: string; kind: EquipmentKind; variant?: ItemVariant; holderId?: string; via?: string }
   | { type: 'sink' }
   | { type: 'waste' }
   | { type: 'puddle'; id: string };

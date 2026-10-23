@@ -332,3 +332,32 @@ export function plateTexture(text: string, color: string): Texture {
   plateCache.set(key, t);
   return t;
 }
+
+/** GHS flammable pictogram: a black flame over a bar in a red-bordered white diamond (transparent corners). */
+export const flameDiamondTexture = lazy(() => {
+  const [c, ctx] = makeCanvas(256, 256);
+  ctx.beginPath();
+  ctx.moveTo(128, 6);
+  ctx.lineTo(250, 128);
+  ctx.lineTo(128, 250);
+  ctx.lineTo(6, 128);
+  ctx.closePath();
+  ctx.fillStyle = '#ffffff';
+  ctx.fill();
+  ctx.lineWidth = 16;
+  ctx.lineJoin = 'round';
+  ctx.strokeStyle = '#d0021b';
+  ctx.stroke();
+  ctx.fillStyle = '#111111';
+  ctx.beginPath();
+  ctx.moveTo(130, 62);
+  ctx.bezierCurveTo(156, 92, 176, 118, 170, 156);
+  ctx.bezierCurveTo(166, 182, 148, 194, 128, 194);
+  ctx.bezierCurveTo(104, 194, 86, 180, 86, 156);
+  ctx.bezierCurveTo(86, 132, 100, 122, 106, 100);
+  ctx.bezierCurveTo(114, 116, 116, 128, 122, 134);
+  ctx.bezierCurveTo(128, 110, 122, 88, 130, 62);
+  ctx.fill();
+  ctx.fillRect(80, 200, 96, 11);
+  return toTexture(c);
+});

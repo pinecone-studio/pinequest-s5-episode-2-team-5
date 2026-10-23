@@ -4,9 +4,8 @@
  * analytical balance, reagent shelving, a flammables cabinet and a safety shower.
  */
 import { useRef, useState } from 'react';
-import { useFrame } from '@react-three/fiber';
 import { CuboidCollider } from '@react-three/rapier';
-import type { Group } from 'three';
+import { MeshStandardMaterial, type Group } from 'three';
 import { BenchParts } from '../furniture/BenchParts';
 import { LabBench } from '../furniture/LabBench';
 import { Sink } from '../furniture/Sink';
@@ -26,8 +25,10 @@ import { storeInto } from '../../interaction/storage';
 import { useGameStore } from '../../store/useGameStore';
 import { useInventoryStore } from '../../store/useInventoryStore';
 import { sounds } from '../../utils/sounds';
-import { metalDark } from '../../materials/metal';
-import { chemBoardTexture } from '../../utils/textures';
+import { metalBrushed, metalDark } from '../../materials/metal';
+import { chemBoardTexture, flameDiamondTexture } from '../../utils/textures';
+import { lazy } from '../../utils/lazy';
+import { DOOR_SWING, useSwing } from '../furniture/swing';
 import { BENCH_HEIGHT } from '../../utils/constants';
 import { NaClStation } from '../../experiments/nacl/NaClStation';
 import { StaticBatch } from '../StaticBatch';
@@ -38,41 +39,68 @@ const FLAMMABLES = 'flammables-cabinet';
 registerHolder(FLAMMABLES, 'flammables');
 
 /** Yellow flammables cabinet: two doors open onto shelves holding the ethanol. */
+const W = 1.1;
+const H = 1.7;
+const D = 0.46;
+/** Plinth with a spill sump on top, and the fixed header that carries the warning sign. */
+const BASE = 0.07;
+const FASCIA = 0.26;
+const DOOR_H = H - FASCIA - BASE;
+const SHELVES = [0.6, 1.06];
+const flameMaterial = lazy(() => new MeshStandardMaterial({ map: flameDiamondTexture(), alphaTest: 0.5, roughness: 0.5 }));
+
 function FlammablesCabinet({ position, rotY }: { position: [number, number, number]; rotY: number }) {
   const [open, setOpen] = useState(false);
-  const amount = useRef(0);
   const left = useRef<Group>(null);
   const right = useRef<Group>(null);
   const held = useInventoryStore((s) => !!s.held);
   useInventoryStore((s) => s.storage[FLAMMABLES]);
   const focused = useGameStore((s) => s.focus?.id === FLAMMABLES);
-  useFrame((_, dt) => {
-    const target = open ? 1 : 0;
-    if (amount.current === target) return;
-    amount.current += Math.sign(target - amount.current) * Math.min(Math.abs(target - amount.current), dt * 2.2);
-    const k = amount.current * amount.current * (3 - 2 * amount.current) * 1.9;
-    if (left.current) left.current.rotation.y = -k;
-    if (right.current) right.current.rotation.y = k;
+  const showContents = useSwing(open, DOOR_SWING, (k) => {
+    if (left.current) left.current.rotation.y = -k * 1.75;
+    if (right.current) right.current.rotation.y = k * 1.75;
   });
-  const yellow = plastic(focused ? '#ffd84d' : '#f2c200', 0.45);
-  const W = 1.1;
-  const H = 1.7;
-  const D = 0.46;
+  const body = plastic('#f2c200', 0.45);
+  const shelf = plastic('#e6e2d6', 0.6);
+  const doorPaint = plastic(focused ? '#ffd84d' : '#f2c200', 0.45);
   return (
     <group position={position} rotation={[0, rotY, 0]}>
-      {/* Carcass: back, sides, top, bottom and a shelf. */}
-      <mesh material={plastic('#f2c200', 0.45)} position={[0, H / 2, -D / 2 + 0.01]} castShadow receiveShadow>
+      {/* Carcass: back, sides, top, fixed header, plinth with a sump lip, two shelves with lips. */}
+      <mesh material={body} position={[0, H / 2, -D / 2 + 0.01]} castShadow receiveShadow>
         <boxGeometry args={[W, H, 0.02]} />
       </mesh>
       {[-1, 1].map((sx) => (
-        <mesh key={sx} material={plastic('#f2c200', 0.45)} position={[(sx * (W - 0.02)) / 2, H / 2, 0]} castShadow>
-          <boxGeometry args={[0.02, H, D]} />
-        </mesh>
+        <group key={sx}>
+          <mesh material={body} position={[(sx * (W - 0.02)) / 2, H / 2, 0]} castShadow>
+            <boxGeometry args={[0.02, H, D]} />
+          </mesh>
+          {/* Vent with a flame arrestor on each side. */}
+          <mesh material={metalBrushed} position={[sx * (W / 2 + 0.006), H - 0.14, 0]} rotation={[0, 0, Math.PI / 2]}>
+            <cylinderGeometry args={[0.035, 0.035, 0.012, 20]} />
+          </mesh>
+        </group>
       ))}
-      {[0.01, H - 0.01, 0.85].map((y) => (
-        <mesh key={y} material={plastic('#e6e2d6', 0.6)} position={[0, y, 0]} receiveShadow>
-          <boxGeometry args={[W - 0.04, 0.02, D - 0.02]} />
-        </mesh>
+      <mesh material={body} position={[0, H - 0.01, 0]} receiveShadow>
+        <boxGeometry args={[W - 0.04, 0.02, D - 0.02]} />
+      </mesh>
+      <mesh material={body} position={[0, H - FASCIA / 2, D / 2 + 0.01]} castShadow>
+        <boxGeometry args={[W, FASCIA, 0.02]} />
+      </mesh>
+      <mesh material={body} position={[0, BASE / 2, 0.01]} receiveShadow>
+        <boxGeometry args={[W - 0.04, BASE, D - 0.02]} />
+      </mesh>
+      <mesh material={body} position={[0, BASE + 0.015, D / 2 - 0.02]}>
+        <boxGeometry args={[W - 0.04, 0.03, 0.01]} />
+      </mesh>
+      {SHELVES.map((y) => (
+        <group key={y}>
+          <mesh material={shelf} position={[0, y, -0.01]} receiveShadow>
+            <boxGeometry args={[W - 0.04, 0.02, D - 0.06]} />
+          </mesh>
+          <mesh material={body} position={[0, y + 0.008, D / 2 - 0.037]}>
+            <boxGeometry args={[W - 0.04, 0.036, 0.006]} />
+          </mesh>
+        </group>
       ))}
       <Interactable
         id={FLAMMABLES}
@@ -81,7 +109,7 @@ function FlammablesCabinet({ position, rotY }: { position: [number, number, numb
         highlight="none"
         onInteract={() => {
           setOpen((o) => !o);
-          sounds.play('door', 0.6);
+          sounds.play(open ? 'hingeClose' : 'hingeOpen', 0.9);
         }}
         onStore={open && held ? () => storeInto(FLAMMABLES) : undefined}
         storeVerb="шүүгээнд хийх"
@@ -90,20 +118,23 @@ function FlammablesCabinet({ position, rotY }: { position: [number, number, numb
           { ref: left, x: -W / 2, s: 1 },
           { ref: right, x: W / 2, s: -1 },
         ].map(({ ref, x, s: side }) => (
-          <group key={x} ref={ref} position={[x, 0, D / 2]}>
-            <mesh material={yellow} position={[(side * W) / 4, H / 2, 0.01]} castShadow>
-              <boxGeometry args={[W / 2 - 0.006, H - 0.02, 0.02]} />
+          <group key={x} ref={ref} position={[x, BASE + DOOR_H / 2, D / 2]}>
+            <mesh material={doorPaint} position={[(side * W) / 4, 0, 0.01]} castShadow>
+              <boxGeometry args={[W / 2 - 0.006, DOOR_H - 0.006, 0.02]} />
             </mesh>
-            <mesh material={metalDark} position={[side * (W / 2 - 0.06), 0.9, 0.035]}>
+            <mesh material={metalDark} position={[side * (W / 2 - 0.06), 0.08, 0.035]}>
               <boxGeometry args={[0.02, 0.18, 0.02]} />
+            </mesh>
+            <mesh material={flameMaterial()} position={[(side * W) / 4, 0.28, 0.0205]}>
+              <planeGeometry args={[0.22, 0.22]} />
             </mesh>
           </group>
         ))}
       </Interactable>
-      <SignText text={'ШАТАМХАЙ\nГАЛААС ХОЛ БАЙЛГА'} color="#c81e1e" width={0.9} height={0.2} position={[0, 1.35, D / 2 + 0.025]} />
-      {open && (
-        <group position={[0, 0.86, D / 2 - 0.02]}>
-          <HolderContents holderId={FLAMMABLES} layout={{ type: 'cabinet', width: W - 0.1, depth: D, shelfY: 0.84 }} />
+      <SignText text={'ШАТАМХАЙ\nГАЛААС ХОЛ БАЙЛГА'} color="#c81e1e" width={0.9} height={0.2} position={[0, H - FASCIA / 2, D / 2 + 0.021]} />
+      {showContents && (
+        <group position={[0, SHELVES[0] + 0.01, D / 2 - 0.02]}>
+          <HolderContents holderId={FLAMMABLES} layout={{ type: 'cabinet', width: W - 0.1, depth: D, shelfY: SHELVES[1] - SHELVES[0] }} />
         </group>
       )}
       <CuboidCollider args={[W / 2, H / 2, D / 2]} position={[0, H / 2, 0]} />

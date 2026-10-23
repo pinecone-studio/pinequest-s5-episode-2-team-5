@@ -1,12 +1,12 @@
 import { create } from 'zustand';
 import { useChemStore, mixtureOf } from '../../store/useChemStore';
 import { readBenchMixture, seedBenchChemistry, updateBenchMixture } from './chemistry';
-import { takeLiquid, takeSolid, solidMassG, merge as mergeMixtures } from '../../chemistry/mixture';
+import { takeLiquid, takeSolid, solidMassG, isEmptyMixture, reagentMixture, merge as mergeMixtures } from '../../chemistry/mixture';
 import { vesselFx } from '../../lab/vesselFx';
 import { spillMixture } from '../../lab/spill';
 import { livePose } from '../../interaction/bodies';
 import { Vector3 } from 'three';
-import { CATALOG } from '../../equipment/equipmentCatalog';
+import { CATALOG, STOCK_KINDS } from '../../equipment/equipmentCatalog';
 import { useInventoryStore } from '../../store/useInventoryStore';
 import { useGameStore } from '../../store/useGameStore';
 import { usePortableStore } from '../../interaction/portable';
@@ -14,10 +14,12 @@ import { interactables } from '../../interaction/registry';
 import { useExperimentStore } from '../../store/useExperimentStore';
 import { heldApi } from '../../interaction/heldApi';
 import { NAMES, CHEM, type PartKey } from './data';
-import { transfer } from '../../interaction/actions';
+import { emptyVessel, transfer } from '../../interaction/actions';
 import { carbonateReaction, evaporationReaction, mixObservations } from '../../chemistry/reaction-view';
 import { publishReaction } from '../../lab/reaction-view';
 import { equilibrateHeat } from '../../chemistry/mix';
+import { DEFAULT_ENV, step as chemistryStep } from '../../chemistry/kinetics';
+import { note, observe, prime } from '../../lab/observe';
 import { useLabStore } from '../../store/useLabStore';
 import type { EquipmentKind } from '../../equipment/equipmentCatalog';
 
@@ -133,7 +135,8 @@ function spill(ml: number) {
 }
 export function heldObjectId() { return usePortableStore.getState().held?.id ?? useInventoryStore.getState().held?.id ?? null; }
 
-let action: { source: string | null; target: string | null; remaining?: number } | null = null;
+/** The running R action; `draw` once it turned out to take liquid into the held vessel. */
+let action: { source: string | null; target: string | null; remaining?: number; draw?: boolean } | null = null;
 let actionClock = 0;
 export const labUse = {
   start(target: string | null) {
@@ -147,7 +150,16 @@ export const labUse = {
     const equipmentUse = interactables.get(source ?? target ?? '')?.onUse;
     if (equipmentUse) { equipmentUse(); action = null; useSandbox.setState({ operating: false }); return; }
     const role = describe(source ?? target ?? '').role;
-    if (role === 'lamp' || role === 'bunsenBurner') {
+    // A carried vessel aimed at the sink or the waste bin is emptied there (an empty one fills at the tap).
+    const drain = target ? interactables.get(target)?.useTarget?.type : undefined;
+    const vessel = source && describe(source).capacity > 0 ? source : null;
+    if (vessel && (drain === 'sink' || drain === 'waste') && !isEmptyMixture(mixtureOf(vessel, itemVariant(vessel)))) {
+      emptyVessel(vessel, itemVariant(vessel), describe(vessel).label, drain);
+      action = null;
+    } else if (vessel && drain === 'waste') {
+      warn('Сав хоосон байна.');
+      action = null;
+    } else if (role === 'lamp' || role === 'bunsenBurner') {
       useSandbox.setState((s) => ({ lit: !s.lit }));
       warn('Дөлийг сольлоо. Халуун савыг болгоомжтой барь; шингэнийг дуустал бүү халаа.');
       action = null;
@@ -205,30 +217,61 @@ export function simulateLab(rawDt: number, distance: (a: string, b: string) => n
     const nearby = distance(act.source, act.target) < 1.0;
     if (!nearby) {
       warn('Хүрэхгүй байна. Савандаа ойртож, чиглүүлээд дахин ашиглаарай.');
+    } else if (interactables.get(act.target)?.useTarget?.type === 'sink' && source.capacity > 0) {
+      // Held under the tap: an empty vessel fills with water.
+      const add = Math.min(Math.max(0, source.capacity - from.ml), 25 * dt);
+      if (add > 0.001) useChemStore.getState().setMixtures({ [act.source]: mergeMixtures(mixtureOf(act.source, itemVariant(act.source)), reagentMixture('water', add)) });
+      else { warn('Сав дүүрлээ.'); labUse.end(); }
     } else if (!partKey(act.source) && !partKey(act.target) && ['reagentJar', 'spatula'].includes(source.role) && target.capacity > 0 && solidMassG(mixtureOf(act.source, itemVariant(act.source))) > 0) {
       transfer({ id: act.source, kind: source.role as EquipmentKind, variant: itemVariant(act.source) }, { id: act.target, kind: target.role as EquipmentKind, variant: itemVariant(act.target) }, .3 * dt);
     } else if (['rod', 'glassRod'].includes(source.role) && target.capacity > 0) {
       warn('Хутгаж байна. Хий ялгарахаа болихыг ажиглаарай.');
       mark('stir');
-    } else if (['spat', 'spatula'].includes(source.role) && ['jar', 'reagentJar'].includes(target.role) && from.carbonate < 0.5) {
-      const dose = Math.min(0.5 - from.carbonate, to.carbonate);
-      const portions = takeSolid(mixtureOf(act.target, itemVariant(act.target)), dose);
+    } else if (['spat', 'spatula'].includes(source.role) && ['jar', 'reagentJar'].includes(target.role) && solidMassG(mixtureOf(act.source, itemVariant(act.source))) < 0.5) {
+      // A spatula scoops whatever solid the jar holds (up to one 0.5 g scoop).
+      const jar = mixtureOf(act.target, itemVariant(act.target));
+      const dose = Math.min(0.5 - solidMassG(mixtureOf(act.source, itemVariant(act.source))), solidMassG(jar));
+      if (dose <= 0.0005) warn('Саванд хатуу бодис алга.');
+      const portions = takeSolid(jar, dose);
       useChemStore.getState().setMixtures({ [act.target]: portions.rest, [act.source]: mergeMixtures(mixtureOf(act.source, itemVariant(act.source)), portions.taken) });
     } else if (['jar', 'reagentJar', 'spat', 'spatula'].includes(source.role) && target.capacity > 0) {
-      const dose = Math.min(from.carbonate, 0.3 * dt);
-      if (to.ml <= 0) warn('Хуурай саванд нунтаг хийж байна. Заавар: эхлээд 50 см³ хүчил хэмжээрэй.');
-      else if (to.acid <= 0.01) warn('Хүчил дууссан: илүүдэл карбонат бүтээгдэхүүнд хольц болно.');
-      const portions = takeSolid(mixtureOf(act.source, itemVariant(act.source)), dose);
-      useChemStore.getState().setMixtures({ [act.source]: portions.rest, [act.target]: mergeMixtures(mixtureOf(act.target, itemVariant(act.target)), portions.taken) });
-      useSandbox.setState((s) => ({ added: s.added + dose }));
+      const solids = mixtureOf(act.source, itemVariant(act.source));
+      const grams = solidMassG(solids);
+      const dose = Math.min(grams, 0.3 * dt);
+      const carbonateShare = grams > 0 ? from.carbonate / grams : 0;
+      if (carbonateShare > 0.5 && useLabStore.getState().active === 'nacl') {
+        if (to.ml <= 0) warn('Хуурай саванд нунтаг хийж байна. Заавар: эхлээд 50 см³ хүчил хэмжээрэй.');
+        else if (to.acid <= 0.01) warn('Хүчил дууссан: илүүдэл карбонат бүтээгдэхүүнд хольц болно.');
+      }
+      if (grams <= 0.0005) warn('Халбага / саванд хатуу бодис алга.');
+      const portions = takeSolid(solids, dose);
+      const before = mixtureOf(act.target, itemVariant(act.target));
+      prime(act.target, before);
+      const after = mergeMixtures(before, portions.taken);
+      useChemStore.getState().setMixtures({ [act.source]: portions.rest, [act.target]: after });
+      observe(act.target, after);
+      useSandbox.setState((s) => ({ added: s.added + dose * carbonateShare }));
     } else if (target.role === 'slide' && crystalMass(from) > 0.001) {
       const dose = Math.min(0.02, crystalMass(from));
       from.salt -= dose; to.salt += dose;
       write(act.source, from); write(act.target, to); mark('slide'); labUse.end();
+    } else if (act.draw || (source.capacity > 0 && target.capacity > 0 && to.ml > 0.001 && !STOCK_KINDS.includes(source.role as EquipmentKind) && isEmptyMixture(mixtureOf(act.source, itemVariant(act.source))))) {
+      // An empty pipette or vessel aimed at a filled one draws from it for as long as R is held.
+      act.draw = true;
+      const drops = source.role in CATALOG && !!CATALOG[source.role as EquipmentKind].drops;
+      const room = Math.max(0, source.capacity - from.ml);
+      const amount = Math.min(to.ml, room, (drops ? 1 : 8) * dt);
+      if (amount > 0.001) {
+        const portions = takeLiquid(mixtureOf(act.target, itemVariant(act.target)), amount);
+        useChemStore.getState().setMixtures({ [act.target]: portions.rest, [act.source]: mergeMixtures(mixtureOf(act.source, itemVariant(act.source)), portions.taken) });
+      }
+      if (room - amount < 0.01) { warn(`${source.label} дүүрлээ.`); labUse.end(); }
+      else if (to.ml - amount < 0.001) { warn(`${target.label}-д шингэн үлдсэнгүй.`); labUse.end(); }
     } else if (source.capacity > 0 && target.capacity > 0 && from.ml > 0.001) {
       if (useLabStore.getState().active === 'nacl' && !useSandbox.getState().completed.includes('measure') && target.role !== 'cyl' && target.role !== 'graduatedCylinder' && from.acid > 0) warn('Дарааллын зөвлөгөө: эхлээд цилиндрт 50 см³ хүчил хэмжээрэй. Шууд цутгах боломжтой ч хэмжилт тодорхойгүй болно.');
       const room = Math.max(0, target.capacity - to.ml);
-      const poured = Math.min(from.ml, 8 * dt, act.remaining ?? Infinity);
+      const drops = source.role in CATALOG && !!CATALOG[source.role as EquipmentKind].drops;
+      const poured = Math.min(from.ml, (drops ? 0.15 : 8) * dt, act.remaining ?? Infinity);
       const amount = Math.min(poured, room);
       const overflow = poured - amount;
       if (overflow > 0) { spill(overflow); warn('Сав хальж, шингэн асгарч байна. Та цутгасаар байна — R-ээ суллаад савандаа зай гаргаарай.'); }
@@ -269,7 +312,33 @@ export function simulateLab(rawDt: number, distance: (a: string, b: string) => n
       continue;
     }
     const m = mixture(id);
-    if (!m.other && m.ml > 0 && m.acid > 0 && m.carbonate > 0) {
+    if (m.other) {
+      const core = mixtureOf(id);
+      const at = labSpace.position(id);
+      const overBurner = useInventoryStore.getState().worldItems.some((item) => {
+        if (item.kind !== 'bunsenBurner' || !useExperimentStore.getState().toggles[item.id]) return false;
+        const b = livePose(item);
+        return Math.hypot(b.x - at.x, b.z - at.z) < 0.15 && at.y - b.y > 0 && at.y - b.y < 0.35;
+      });
+      const heated = (id === partId('dish') && useSandbox.getState().lit && distance(id, partId('lamp')) < 0.22) || overBurner;
+      const r = chemistryStep(core, dt, { ...DEFAULT_ENV, heatW: heated ? 900 : 0, glassJK: 100, lossWK: 4, flame: heated });
+      for (const n of r.notes) note(id, n);
+      if (r.gas.CO2 > 1.5e-5) note(id, 'gas:CO2');
+      if (r.gas.H2 > 8e-6) note(id, 'gas:H2');
+      if (r.gas.O2 > 1.5e-5) note(id, 'gas:O2');
+      const fizz = r.gas.CO2 + r.gas.H2 + r.gas.O2;
+      const bubbles = Math.min(1, fizz * 900 + (r.boiling ? 0.95 : 0));
+      const steam = r.gas.steam > 0 ? Math.min(1, 0.35 + r.gas.steam * 2) : 0;
+      if (bubbles > 0.01 || steam > 0.01) vesselFx.set(id, { bubbles, steam, smoke: Math.min(1, r.gas.smoke * 4) });
+      else vesselFx.delete(id);
+      if (r.changed || Math.abs(r.m.temp - core.temp) > 0.15 || Math.abs(r.m.cloud - core.cloud) > 0.03 || Math.abs(r.m.foam - core.foam) > 1) {
+        prime(id, core);
+        useChemStore.getState().setMixtures({ [id]: r.m });
+        observe(id, r.m);
+      }
+      continue;
+    }
+    if (m.ml > 0 && m.acid > 0 && m.carbonate > 0) {
       const factor = act?.source === partId('rod') && act.target === id ? 2 : 1;
       const mmol = Math.min(m.acid / 2, m.carbonate * 1000 / CHEM.molarCarbonate, dt * factor * 1.8);
       m.acid = Math.max(0, m.acid - 2 * mmol);
