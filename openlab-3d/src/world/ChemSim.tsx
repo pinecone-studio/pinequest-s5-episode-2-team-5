@@ -1,3 +1,4 @@
+import {isGrade9Rig} from '../experiments/grade9/kinds';
 /**
  * The lab's simulation loop (inside the canvas):
  *  - every frame: continuous R actions (pouring, dripping, heating, spraying);
@@ -25,9 +26,7 @@ import { startAnnouncer } from '../lab/announcer';
 import type { ItemVariant, WorldItem } from './itemsLayout';
 import { stepObservations } from '../chemistry/reaction-view';
 import { publishReaction } from '../lab/reaction-view';
-import { isBenchPaused, isWorkbenchObject, useWorkbench } from '../experiments/workbench/session';
-import { benchView, useBenchView } from '../experiments/nacl/view';
-import { useSettingsStore } from '../store/useSettingsStore';
+import { isBenchPaused } from '../experiments/workbench/session';
 import { useGameStore } from '../store/useGameStore';
 
 const TICK = 0.1;
@@ -36,7 +35,6 @@ const BURETTE_RATE = [0, 0.25, 1, 3.5];
 /** Vessels that have settled: same mixture object as last tick and nothing going on. */
 const settled = new Map<string, { m: Mixture; ticks: number }>();
 let tickCount = 0;
-const reacting = new Set<string>();
 
 function isCalm(m: Mixture): boolean {
   return Math.abs(m.temp - 22) < 0.3 && m.cloud < 0.02 && m.foam < 1 && !m.burning;
@@ -107,16 +105,11 @@ function simulate(dt: number): void {
       flame: heatW > 0,
     };
     if (heatW > 0) note(id, 'heat:start', 20000);
+    if(isGrade9Rig(kind))continue;
     const r = step(before, dt, env);
     for (const reaction of stepObservations(before, r, dt)) publishReaction(id, reaction);
     const m = r.m;
     const fizz = r.gas.CO2 + r.gas.H2 + r.gas.O2;
-    const reactionNow = fizz > 1e-8 || r.gas.steam > 1e-5 || r.notes.some((n) => n.startsWith('ppt:') || n === 'neutralization' || n === 'foam');
-    if (reactionNow && !reacting.has(id) && isWorkbenchObject(id)) {
-      const settings = useSettingsStore.getState();
-      if (useGameStore.getState().mode === 'bench' && settings.reactionAutoZoom && settings.quality !== 'low' && !settings.reducedMotion && !useBenchView.getState().inspecting && !useWorkbench.getState().drawer) benchView.reaction(id);
-    }
-    if (reactionNow) reacting.add(id); else reacting.delete(id);
     const bubbles = Math.min(1, fizz * 900 + (r.boiling ? 0.95 : m.temp > 80 ? (m.temp - 80) / 25 : 0));
     const steam = r.gas.steam > 0 ? Math.min(1, 0.35 + r.gas.steam * 2) : m.temp > 65 && liquidMl(m) > 0.1 ? Math.min(0.6, (m.temp - 65) / 50) : 0;
     const smoke = Math.min(1, r.gas.smoke * 4 + (m.burning ? 0.3 : 0));
@@ -128,7 +121,7 @@ function simulate(dt: number): void {
     if (r.gas.O2 > 1.5e-5) note(id, 'gas:O2');
     if (r.gas.NH3 > 3e-6) note(id, 'gas:NH3', 25000);
     const significant =
-      r.changed || Math.abs(m.temp - before.temp) > 0.15 || Math.abs(m.cloud - before.cloud) > 0.03 || Math.abs(m.foam - before.foam) > 1 || m.burning !== before.burning;
+      r.changed || Math.abs(m.temp - before.temp) > 0.15 || Math.abs(m.cloud - before.cloud) > 0.03 || Math.abs(m.foam - before.foam) > 1e-4 || m.burning !== before.burning;
     if (significant) {
       prime(id, before);
       patch[id] = m;
@@ -148,6 +141,7 @@ function simulate(dt: number): void {
   for (const w of inv.worldItems) {
     if (isBenchPaused(w.id)) continue;
     const def = CATALOG[w.kind];
+    if(isGrade9Rig(w.kind))continue; // Sealed compartments are managed by the apparatus engine.
     if (!def.upright && w.kind !== 'testTube') continue;
     const m = useChemStore.getState().mixtures[w.id] ?? seedMixture(w.variant);
     if (liquidMl(m) < 0.3) continue;

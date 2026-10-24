@@ -126,3 +126,18 @@ export function buretteTip(item: WorldItem): Vector3 {
   const s = Math.sin(pose.yaw);
   return new Vector3(pose.x + lx * c + lz * s, pose.y + 0.205, pose.z - lx * s + lz * c);
 }
+
+/** Raised surfaces follow moved, upright apparatus and offer a forgiving aiming area. */
+export function supportSpots(items: WorldItem[], heldKind: string) {
+  return items.flatMap((item) => {
+    const spec = SUPPORTS[item.kind];
+    if (!spec || item.kind === heldKind) return [];
+    if (item.kind === 'tripod' && !['beaker', 'erlenmeyer', 'evaporatingDish', 'dish'].includes(heldKind)) return [];
+    if (item.kind === 'burette' && !['beaker', 'erlenmeyer', 'flask'].includes(heldKind)) return [];
+    const pose = livePose(item);
+    if (pose.upY < .9) return [];
+    const c = Math.cos(pose.yaw), s = Math.sin(pose.yaw);
+    const at = new Vector3(pose.x + spec.offset[0] * c + spec.offset[1] * s, pose.y + spec.top, pose.z - spec.offset[0] * s + spec.offset[1] * c);
+    return [{id: `support-${item.id}`, point: at, aim: at.clone(), radius: Math.max(.055, spec.radius ?? .06)}];
+  });
+}

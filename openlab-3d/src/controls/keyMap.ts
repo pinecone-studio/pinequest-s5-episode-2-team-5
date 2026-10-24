@@ -141,7 +141,7 @@ export function actionsForKey(code: string, bindings: Bindings, lookMode: LookMo
 }
 
 /** Key label used in on-screen prompts for an action, given the current look mode. */
-export function promptKey(action: 'interact' | 'drop' | 'inspect', bindings: Bindings, lookMode: LookMode): string {
+export function promptKey(action: 'interact' | 'drop' | 'inspect' | 'pour', bindings: Bindings, lookMode: LookMode): string {
   const turnKeys = lookMode === 'keyboard' ? [...bindings.turnLeft, ...bindings.turnRight] : [];
   const usable = bindings[action].filter((k) => !turnKeys.includes(k));
   if (usable.length > 0) return keyLabel(usable[0]);

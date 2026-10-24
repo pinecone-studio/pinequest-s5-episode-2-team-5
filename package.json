@@ -51,7 +51,8 @@
     "lint": "expo lint",
     "typecheck": "tsc --noEmit",
     "experiments:sql": "node --experimental-strip-types scripts/generate-experiment-sql.mjs",
-    "test:experiments": "node --experimental-strip-types --test scripts/experiment-catalog.test.mjs"
+    "test:experiments": "node --experimental-strip-types --test scripts/experiment-catalog.test.mjs",
+    "test:hub": "node --experimental-strip-types --test scripts/revision-hub.test.mjs scripts/revision-study.test.mjs scripts/catalyst-journey.test.mjs scripts/periodic-learning.test.mjs scripts/grade9-content.test.mjs"
   },
   "private": true
 }

@@ -8,7 +8,7 @@ export const useBenchView = create<{
   distance: number;
   moving: boolean;
   inspecting: boolean;
-}>()(() => ({ selected: null, level: 'table', distance: 0.8, moving: false, inspecting: false }));
+}>()(() => ({ selected: null, level: 'table', distance: 1.2, moving: false, inspecting: false }));
 
 export const benchView = {
   heldObject: (): Object3D | null => null,

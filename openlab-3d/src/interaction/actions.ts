@@ -1,3 +1,6 @@
+import {useGrade9Apparatus} from '../experiments/grade9/store';
+import {transferToGrade9} from '../experiments/grade9/transfer';
+import { recordTransfer } from '../lab/measurements';
 /**
  * R: use the held item on whatever is in focus. The held item and the target decide the
  * action — pour (hold R; the stream speeds up after a moment so small amounts are easy),
@@ -13,7 +16,7 @@ import { CATALOG, STOCK_KINDS, isContainer, type EquipmentKind } from '../equipm
 import { CATIONS, FLAME_COLORS, SOLIDS, type Cation } from '../chemistry/species';
 import { REAGENTS } from '../chemistry/reagents';
 import { emptyMixture, heatCapacity, isEmptyMixture, liquidMl, merge, reagentMixture, solidMassG, solidVolumeMl, takeLiquid, takeSolid, type Mixture } from '../chemistry/mixture';
-import { mixObservations } from '../chemistry/reaction-view';
+import { mixObservations, physicalMixing } from '../chemistry/reaction-view';
 import { publishReaction } from '../lab/reaction-view';
 import { equilibrateHeat } from '../chemistry/mix';
 import { phOf } from '../chemistry/equilibrium';
@@ -176,6 +179,7 @@ function describeResolved(held: HeldItem | null, target: UseTarget | null): UseI
     return hk === 'pipette' && liquidMl(tm) > 0.05 ? info('suck', 'соруулж авах') : null;
   }
   if (STOCK_KINDS.includes(tk)) return hHas || STOCK_KINDS.includes(hk) ? null : info('draw', 'эндээс авах');
+  if (hHas && hk==='paperStrip')return info('pour','цаасыг байрлуулах');
   if (hHas) return info('pour', tk === 'burette' ? 'бюреткэнд хийх' : 'энэ сав руу асгах');
   if (tHas && tk !== 'burette') return info('draw', 'эндээс авах');
   return null;
@@ -231,8 +235,10 @@ function placeOf(v: Vessel): [number, number, number] {
  * mixing, reacting and announcing. Returns the amount moved and whether it overflowed.
  */
 export function transfer(src: Vessel, dst: Vessel, amount: number, viaFunnel?: string): { moved: number; overflow: boolean } {
+  const special=transferToGrade9(src,dst,amount);if(special)return special;
   const chem = useChemStore.getState();
-  const sm = mixtureOf(src.id, src.variant);
+  const rig=useGrade9Apparatus.getState().rigs[src.id];
+  const sm = rig?.chambers[rig.port]??mixtureOf(src.id, src.variant);
   const dm = mixtureOf(dst.id, dst.variant);
   const liquid = liquidMl(sm) > 0.005;
   const available = liquid ? liquidMl(sm) : solidMassG(sm);
@@ -264,10 +270,14 @@ export function transfer(src: Vessel, dst: Vessel, amount: number, viaFunnel?: s
     spillMixture(parts.rest, x + 0.05, y, z, dst.id);
     take = keep;
   }
+  recordTransfer(src.id, dst.id, src.variant?.reagent ? REAGENTS[src.variant.reagent].name : CATALOG[src.kind].name, take, liquid?'ml':'g');
   prime(dst.id, dm);
   const mixed = equilibrateHeat(dm, into, CATALOG[dst.kind].heatJK ?? 100);
   chem.setMixtures({ [src.id]: rest, [dst.id]: mixed.m });
-  for (const reaction of mixObservations(dm, into, mixed.m, mixed.neutralized, mixed.formed)) publishReaction(dst.id, reaction, 1800);
+  if(rig)useGrade9Apparatus.getState().change(src.id,{chambers:rig.chambers.map((m,i)=>i===rig.port?rest:m)});
+  const observations = mixObservations(dm, into, mixed.m, mixed.neutralized, mixed.formed);
+  for (const reaction of observations) publishReaction(dst.id, reaction, 5000);
+  if (take > 0 && !observations.some((r) => !r.info)) publishReaction(dst.id, physicalMixing(mixed.m), 5000);
   if (mixed.neutralized > 2e-5) note(dst.id, 'neutralization', 5000);
   observe(dst.id, mixed.m);
   useEvents(src);
@@ -278,6 +288,7 @@ export function transfer(src: Vessel, dst: Vessel, amount: number, viaFunnel?: s
 
 /** Empty a vessel down the sink or into the chemical-waste bin, with the matching lab feedback. */
 export function emptyVessel(id: string, variant: ItemVariant | undefined, name: string, into: 'sink' | 'waste'): void {
+  const rig=useGrade9Apparatus.getState().rigs[id];if(rig)useGrade9Apparatus.getState().change(id,{chambers:rig.chambers.map((m,i)=>i===rig.port?emptyMixture():m),running:false});
   const game = useGameStore.getState();
   const m = mixtureOf(id, variant);
   useChemStore.getState().setMixtures({ [id]: emptyMixture() });
@@ -312,6 +323,7 @@ function runOnce(kind: UseKind, held: HeldItem, target: UseTarget): void {
       const tm = mixtureOf(tv.id, tv.variant);
       const { taken, rest } = takeSolid(tm, 0.5);
       chem.setMixtures({ [tv.id]: rest, [held.id]: taken });
+      const rig=useGrade9Apparatus.getState().rigs[tv.id];if(rig)useGrade9Apparatus.getState().change(tv.id,{chambers:rig.chambers.map((m,i)=>i===rig.port?rest:m)});
       sounds.play('tick', 1.2);
       game.showToast(`${fmtG(solidMassG(taken))} авлаа`, 'Одоо сав руу хараад R дарж хий');
       useEvents(tv);
@@ -328,7 +340,9 @@ function runOnce(kind: UseKind, held: HeldItem, target: UseTarget): void {
       if (!tv) return;
       stirUntil.set(tv.id, performance.now() + 4000);
       const m = mixtureOf(tv.id, tv.variant);
-      chem.setMixtures({ [tv.id]: { ...m, cloud: Math.max(m.cloud, solidMassG(m) > 0.002 ? 1 : 0) } });
+      const stirred={...m,cloud:Math.max(m.cloud,solidMassG(m)>.002?1:0)};
+      const rig=useGrade9Apparatus.getState().rigs[tv.id];if(rig)useGrade9Apparatus.getState().change(tv.id,{chambers:rig.chambers.map((m,i)=>i===rig.port?stirred:m)});
+      chem.setMixtures({ [tv.id]: stirred });
       sounds.play('clink', 0.5);
       emitLab({ key: 'stir', quiet: true, itemId: tv.id });
       game.showToast('Хутгаж байна', 'Хатуу бодис хурдан уусч, уусмал жигд холилдоно');
@@ -337,7 +351,8 @@ function runOnce(kind: UseKind, held: HeldItem, target: UseTarget): void {
     case 'measureT': {
       if (!tv) return;
       const m = mixtureOf(tv.id, tv.variant);
-      const t = isEmptyMixture(m) ? 22 : m.temp;
+      const rig=useGrade9Apparatus.getState().rigs[tv.id];
+      const t = rig&&['gasSyringe','fractionatingColumn'].includes(rig.kind)?rig.temperature:isEmptyMixture(m)?22:m.temp;
       chem.setTool(held.id, { reading: t });
       sounds.play('beep', 0.6);
       const text = `${t.toFixed(1)} °C`;

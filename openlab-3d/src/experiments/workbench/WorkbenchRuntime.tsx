@@ -2,12 +2,13 @@ import { CATALOG } from '../../equipment/equipmentCatalog';
 import { useEffect, useMemo, useRef } from 'react';
 import { useFrame, useThree } from '@react-three/fiber';
 import { Box3, Box3Helper, Vector3 } from 'three';
-import { useGameStore, playerState } from '../../store/useGameStore';
+import { useGameStore } from '../../store/useGameStore';
 import { useLabStore } from '../../store/useLabStore';
 import { registeredHolders, STORAGE_INFO } from '../../interaction/holders';
 import { storedIn, useInventoryStore } from '../../store/useInventoryStore';
 import { interactables, isVisibleInScene } from '../../interaction/registry';
 import { currentSession, itemDescription, itemPosition, matchesSupply, suppliesFor } from './session';
+import { INTERACT_RANGE } from '../../utils/constants';
 import { preparationSpots } from './PreparationHints';
 
 type Projected = { x: number; y: number; visible: boolean } | null;
@@ -34,8 +35,13 @@ export function WorkbenchRuntime() {
     for (const supply of suppliesFor(useLabStore.getState().active).filter((r) => !session.found.includes(r.key))) {
       if (preparationSpots.length === 3) break;
       const entries = [...interactables.values()].filter((e) => e.enabled && isVisibleInScene(e.object) && matchesSupply(supply, itemDescription(e.id)));
-      entries.sort((a, b) => itemPosition(a.id).distanceTo(playerState.position) - itemPosition(b.id).distanceTo(playerState.position));
-      let entry = entries[0];
+      entries.sort((a, b) => itemPosition(a.id).distanceTo(camera.position) - itemPosition(b.id).distanceTo(camera.position));
+      let entry = entries.find((candidate) => {
+        const at = itemPosition(candidate.id).add(new Vector3(0, .05, 0));
+        if (at.distanceTo(camera.position) > INTERACT_RANGE) return false;
+        at.project(camera);
+        return at.z > -1 && at.z < 1 && Math.abs(at.x) < 1.1 && Math.abs(at.y) < 1.1;
+      });
       let text = supply.name;
       if (!entry) {
         const holder = registeredHolders().find((h) => interactables.has(h.id) && storedIn(inventory.storage, h.id).some((it) => matchesSupply(supply, { id: it.id, kind: it.kind, reagent: it.variant?.reagent })));
@@ -44,10 +50,12 @@ export function WorkbenchRuntime() {
       if (!entry) continue;
       const kind = itemDescription(entry.id).kind;
       const box = kind ? new Box3().setFromCenterAndSize(itemPosition(entry.id).add(new Vector3(0, CATALOG[kind].size[1] / 2, 0)), new Vector3(...CATALOG[kind].size)) : new Box3().setFromObject(entry.object);
+      // Guidance labels belong to the nearby working area, not equipment across the room.
+      if (box.distanceToPoint(camera.position) > INTERACT_RANGE) continue;
       const at = box.getCenter(new Vector3()); at.y = box.max.y + .03;
       at.project(camera);
       if (at.z < -1 || at.z > 1 || Math.abs(at.x) > 1.1 || Math.abs(at.y) > 1.1) continue;
-      const helper = helpers[preparationSpots.length]; helper.box.copy(box); helper.visible = true;
+      const helper = helpers[preparationSpots.length]; helper.box.copy(box); helper.visible = useGameStore.getState().mode === 'walk';
       preparationSpots.push({ x: (at.x + 1) * innerWidth / 2, y: (1 - at.y) * innerHeight / 2, text, visible: true });
     }
   });

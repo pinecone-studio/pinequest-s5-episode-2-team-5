@@ -97,7 +97,7 @@ export function Interactable({
     entry.onWheel = onWheel;
   });
 
-  const focused = useGameStore((s) => s.focus?.id === id);
+  const focused = useGameStore((s) => s.mode !== 'bench' && s.focus?.id === id);
 
   return (
     <group ref={ref} userData={{ interactableId: id }} {...props}>

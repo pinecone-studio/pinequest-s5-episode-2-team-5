@@ -3,6 +3,7 @@ import { LatheGeometry, Vector2 } from 'three';
 import { useGlass } from '../materials/glass';
 import { lazy } from '../utils/lazy';
 import { ModelOr } from './ModelOr';
+import { GraduationScale } from './GraduationScale';
 import { VesselContents } from './VesselContents';
 import { PROFILES } from './profiles';
 import type { VesselModelProps } from './Beaker';
@@ -27,6 +28,7 @@ export function ErlenmeyerFlask({ modelUrl, look, itemId, ...props }: VesselMode
   return (
     <ModelOr modelUrl={modelUrl} {...props}>
       <mesh geometry={flaskGeometry()} material={glass} castShadow renderOrder={1} />
+      <GraduationScale kind="erlenmeyer" />
       {look && <VesselContents profile={PROFILES.erlenmeyer} look={look} itemId={itemId} />}
     </ModelOr>
   );

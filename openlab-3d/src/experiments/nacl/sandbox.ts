@@ -1,3 +1,5 @@
+import {useGrade9Apparatus} from '../grade9/store';
+import { recordTransfer } from '../../lab/measurements';
 import { create } from 'zustand';
 import { useChemStore, mixtureOf } from '../../store/useChemStore';
 import { readBenchMixture, seedBenchChemistry, updateBenchMixture } from './chemistry';
@@ -15,7 +17,7 @@ import { useExperimentStore } from '../../store/useExperimentStore';
 import { heldApi } from '../../interaction/heldApi';
 import { NAMES, CHEM, type PartKey } from './data';
 import { emptyVessel, transfer } from '../../interaction/actions';
-import { carbonateReaction, evaporationReaction, mixObservations } from '../../chemistry/reaction-view';
+import { carbonateReaction, evaporationReaction, mixObservations, physicalMixing } from '../../chemistry/reaction-view';
 import { publishReaction } from '../../lab/reaction-view';
 import { equilibrateHeat } from '../../chemistry/mix';
 import { DEFAULT_ENV, step as chemistryStep } from '../../chemistry/kinetics';
@@ -148,7 +150,7 @@ export const labUse = {
     actionClock = 0;
     useSandbox.setState({ operating: true });
     const equipmentUse = interactables.get(source ?? target ?? '')?.onUse;
-    if (equipmentUse) { equipmentUse(); action = null; return; }
+    if (equipmentUse) { equipmentUse(); action = null; useSandbox.setState({ operating: false }); return; }
     const role = describe(source ?? target ?? '').role;
     // A carried vessel aimed at the sink or the waste bin is emptied there (an empty one fills at the tap).
     const drain = target ? interactables.get(target)?.useTarget?.type : undefined;
@@ -167,7 +169,8 @@ export const labUse = {
       useSandbox.setState({ scope: true, inspected: partId('scope') });
       action = null;
     } else if (source && ['stack', 'paper'].includes(role) && target === partId('funnel')) {
-      useSandbox.setState({ paperIn: true });
+      usePortableStore.setState({ held: null });
+      useSandbox.setState({ paperIn: true, heldId: null, inspected: partId('funnel'), hovered: partId('funnel') });
       warn('Шүүлтүүрийн цаас юүлүүрт орлоо. Шингэнийг ирмэгээс доош байлга.');
       mark('filter-paper');
       action = null;
@@ -205,6 +208,7 @@ export function simulateLab(rawDt: number, distance: (a: string, b: string) => n
     const amount = Math.min(from.ml, 8 * dt);
     const portions = takeLiquid(mixtureOf(act.source, itemVariant(act.source)), amount);
     useChemStore.getState().setMixtures({ [act.source]: portions.rest });
+    const rig=useGrade9Apparatus.getState().rigs[act.source];if(rig)useGrade9Apparatus.getState().change(act.source,{chambers:rig.chambers.map((m,i)=>i===rig.port?portions.rest:m)});
     const at = heldApi.target?.point ?? labSpace.position(act.source);
     spillMixture(portions.taken, at.x, at.y, at.z, act.source);
     spill(amount);
@@ -286,7 +290,10 @@ export function simulateLab(rawDt: number, distance: (a: string, b: string) => n
         const textbook = !!(before.s.Na2CO3 || kept.taken.s.Na2CO3);
         const mixed = textbook ? { m: mergeMixtures(before, kept.taken), neutralized: 0, formed: [] } : equilibrateHeat(before, kept.taken, 100);
         useChemStore.getState().setMixtures({ [act.source]: portions.rest, [act.target]: mixed.m });
-        for (const r of mixObservations(before, kept.taken, mixed.m, mixed.neutralized, mixed.formed)) publishReaction(act.target, r, 1800);
+        recordTransfer(act.source, act.target, source.label, amount);
+        const observations = mixObservations(before, kept.taken, mixed.m, mixed.neutralized, mixed.formed);
+        for (const r of observations) publishReaction(act.target, r, 5000);
+        if (amount > 0 && !observations.some((r) => !r.info)) publishReaction(act.target, physicalMixing(mixed.m), 5000);
         if (overflow > 0) {
           const at = labSpace.position(act.target); spillMixture(kept.rest, at.x, at.y, at.z, act.target);
         }
@@ -365,14 +372,25 @@ export function simulateLab(rawDt: number, distance: (a: string, b: string) => n
     if (m.temp !== original.temp || m.ml !== original.ml || m.acid !== original.acid || m.salt !== original.salt) write(id, m);
   }
   const state = useSandbox.getState();
-  const funnel = { ...mixture(partId('funnel')) };
-  if (state.receiver && funnel.ml > 0 && distance(state.receiver, partId('funnel')) < 0.22) {
-    const receiving = { ...mixture(state.receiver) };
-    const amount = Math.min(funnel.ml, 3 * dt, Math.max(0, describe(state.receiver).capacity - receiving.ml));
+  const funnelId = partId('funnel');
+  const funnelPosition = labSpace.position(funnelId);
+  const canReceive = (id: string) => {
+    if (id === heldObjectId() || !interactables.get(id)?.enabled) return false;
+    if (!['flask', 'erlenmeyer', 'beaker', 'cyl', 'graduatedCylinder', 'volumetricFlask'].includes(describe(id).role)) return false;
+    const at = labSpace.position(id);
+    return at.y < funnelPosition.y - .02 && Math.hypot(at.x - funnelPosition.x, at.z - funnelPosition.z) < .065 && distance(id, funnelId) < .22;
+  };
+  const candidates = [...new Set([...Object.keys(state.contents), ...useInventoryStore.getState().worldItems.map((item) => item.id)])];
+  const receiver = state.receiver && canReceive(state.receiver) ? state.receiver : candidates.filter(canReceive).sort((a, b) => distance(a, funnelId) - distance(b, funnelId))[0] ?? null;
+  if (receiver !== state.receiver) useSandbox.setState({ receiver });
+  const funnel = { ...mixture(funnelId) };
+  if (receiver && funnel.ml > 0) {
+    const receiving = { ...mixture(receiver) };
+    const amount = Math.min(funnel.ml, 3 * dt, Math.max(0, describe(receiver).capacity - receiving.ml));
     const portions = takeLiquid(mixtureOf(partId('funnel')), amount);
     const retained = state.paperIn ? { ...portions.taken, s: {} } : portions.taken;
     const rest = state.paperIn ? { ...portions.rest, s: { ...mixtureOf(partId('funnel')).s } } : portions.rest;
-    useChemStore.getState().setMixtures({ [partId('funnel')]: rest, [state.receiver]: mergeMixtures(mixtureOf(state.receiver, itemVariant(state.receiver)), retained) });
+    useChemStore.getState().setMixtures({ [partId('funnel')]: rest, [receiver]: mergeMixtures(mixtureOf(receiver, itemVariant(receiver)), retained) });
     if (amount > 0) mark('filter');
   }
   syncBenchContents();

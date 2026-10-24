@@ -30,6 +30,7 @@ export interface SettingsState {
   invertY: boolean;
   reducedMotion: boolean;
   reactionAutoZoom: boolean;
+  molecularLens: boolean;
   jumpEnabled: boolean;
   showFps: boolean;
   bindings: Bindings;
@@ -49,7 +50,8 @@ export const useSettingsStore = create<SettingsState>()(
       lookMode: 'mouse',
       invertY: false,
       reducedMotion: false,
-      reactionAutoZoom: true,
+      reactionAutoZoom: false,
+      molecularLens: false,
       jumpEnabled: true,
       showFps: false,
       bindings: DEFAULT_BINDINGS,

@@ -2,7 +2,7 @@
  * Procedurally drawn CanvasTextures (floor tiles, posters, whiteboard, labels).
  * Nothing is loaded from the network.
  */
-import { CanvasTexture, RepeatWrapping, SRGBColorSpace, type Texture } from 'three';
+import { CanvasTexture, Color, RepeatWrapping, SRGBColorSpace, type Texture } from 'three';
 import { lazy } from './lazy';
 
 function makeCanvas(w: number, h: number): [HTMLCanvasElement, CanvasRenderingContext2D] {
@@ -261,8 +261,8 @@ export function signTexture(lines: string[], color: string, aspect: number): Tex
 
 const labelCache = new Map<string, Texture>();
 /** Small white bottle label with a colored stripe and a formula. */
-export function labelTexture(text: string, stripe = '#dc2626', subtitle = 'OPENLAB УРВАЛЖ'): Texture {
-  const key = `${text}-${stripe}-${subtitle}`;
+export function labelTexture(text: string, stripe = '#dc2626', subtitle = 'OPENLAB УРВАЛЖ', capacityMl?: number): Texture {
+  const key = `${text}-${stripe}-${subtitle}-${capacityMl ?? ""}`;
   const cached = labelCache.get(key);
   if (cached) return cached;
   const [c, ctx] = makeCanvas(256, 128);
@@ -277,6 +277,14 @@ export function labelTexture(text: string, stripe = '#dc2626', subtitle = 'OPENL
   ctx.font = '600 20px Inter, sans-serif';
   ctx.fillStyle = '#4b5563';
   ctx.fillText(subtitle, 128, 118, 236);
+  if (capacityMl !== undefined) {
+    // Pale bands (colorless solutions, white powders) need dark ink; strong colors keep white.
+    const band = new Color(stripe);
+    ctx.fillStyle = 0.2126 * band.r + 0.7152 * band.g + 0.0722 * band.b > 0.6 ? '#111827' : '#ffffff';
+    ctx.font = '700 20px Inter, sans-serif';
+    ctx.textAlign = 'right';
+    ctx.fillText(`${capacityMl} mL`, 244, 21);
+  }
   const t = toTexture(c);
   labelCache.set(key, t);
   return t;

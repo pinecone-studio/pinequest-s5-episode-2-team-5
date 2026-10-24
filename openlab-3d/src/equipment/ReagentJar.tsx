@@ -5,6 +5,7 @@ import { useGlass } from '../materials/glass';
 import { plastic } from '../materials/plastic';
 import { labelTexture } from '../utils/textures';
 import { lazy } from '../utils/lazy';
+import { CATALOG } from './equipmentCatalog';
 import { ModelOr } from './ModelOr';
 import { VesselContents } from './VesselContents';
 import { PROFILES } from './profiles';
@@ -14,14 +15,14 @@ const jarGeometry = lazy(() => new LatheGeometry([new Vector2(0, 0), new Vector2
 
 export function ReagentJar({ modelUrl, look, itemId, label = '?', name, stripe = '#64748b', ...props }: VesselModelProps & { label?: string; name?: string; stripe?: string }) {
   const glass = useGlass('#f4fbfd');
-  const labelMat = useMemo(() => new MeshStandardMaterial({ map: labelTexture(label, stripe, name), roughness: 0.7 }), [label, name, stripe]);
+  const labelMat = useMemo(() => new MeshStandardMaterial({ map: labelTexture(label, stripe, name, CATALOG.reagentJar.capacityMl), roughness: 0.7 }), [label, name, stripe]);
   return (
     <ModelOr modelUrl={modelUrl} {...props}>
       <mesh geometry={jarGeometry()} material={glass} renderOrder={1} castShadow />
       <mesh material={plastic('#f3f4f6', 0.45)} position={[0, 0.0915, 0]} castShadow>
         <cylinderGeometry args={[0.031, 0.031, 0.015, 24]} />
       </mesh>
-      <mesh material={labelMat} position={[0, 0.045, 0]} rotation={[0, Math.PI, 0]}>
+      <mesh material={labelMat} renderOrder={4} userData={{ noOutline: true, noBatch: true }} position={[0, 0.045, 0]} rotation={[0, Math.PI, 0]}>
         <cylinderGeometry args={[0.0323, 0.0323, 0.038, 24, 1, true, Math.PI * 0.62, Math.PI * 0.76]} />
       </mesh>
       {look && <VesselContents profile={PROFILES.reagentJar} look={look} itemId={itemId} />}

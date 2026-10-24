@@ -4,40 +4,24 @@
  * the plate, so an Erlenmeyer flask on the plate catches the drops. The stopcock handle
  * turns with the flow setting and drops fall while it is open.
  */
-import { useLayoutEffect, useRef } from 'react';
+import { useRef } from 'react';
 import { useFrame } from '@react-three/fiber';
-import { BoxGeometry, InstancedMesh, MeshPhysicalMaterial, Object3D, type Mesh } from 'three';
+import { MeshPhysicalMaterial, type Mesh } from 'three';
 import { useGlass } from '../materials/glass';
 import { metalChrome, metalDark } from '../materials/metal';
 import { plastic } from '../materials/plastic';
-import { lazy } from '../utils/lazy';
+import { GraduationScale } from './GraduationScale';
 import { ModelOr } from './ModelOr';
 import { VesselContents } from './VesselContents';
 import { PROFILES } from './profiles';
 import type { VesselModelProps } from './Beaker';
 
 export const BURETTE_TUBE = { x: 0.02, z: 0.025, bottom: 0.24, top: 0.74 };
-const tick = lazy(() => new BoxGeometry(0.004, 0.0006, 0.0006));
-const TICKS = 26;
 const dropMaterial = new MeshPhysicalMaterial({ color: '#d8ecfa', transparent: true, opacity: 0.8, roughness: 0.05 });
 
 export function Burette({ modelUrl, look, itemId, flow = 0, dropColor, ...props }: VesselModelProps & { flow?: number; dropColor?: string }) {
   const glass = useGlass('#f2fafc');
-  const ticks = useRef<InstancedMesh>(null);
   const drop = useRef<Mesh>(null);
-  useLayoutEffect(() => {
-    const d = new Object3D();
-    for (let i = 0; i < TICKS; i++) {
-      d.position.set(0, BURETTE_TUBE.top - 0.02 - (i / (TICKS - 1)) * 0.46, 0.0069);
-      d.scale.set(i % 5 === 0 ? 2.2 : 1, 1, 1);
-      d.updateMatrix();
-      ticks.current?.setMatrixAt(i, d.matrix);
-    }
-    if (ticks.current) {
-      ticks.current.instanceMatrix.needsUpdate = true;
-      ticks.current.computeBoundingSphere();
-    }
-  }, []);
   useFrame((state) => {
     const m = drop.current;
     if (!m) return;
@@ -74,7 +58,7 @@ export function Burette({ modelUrl, look, itemId, flow = 0, dropColor, ...props 
         <mesh material={glass} position={[0, (BURETTE_TUBE.top + BURETTE_TUBE.bottom) / 2, 0]} renderOrder={1} castShadow>
           <cylinderGeometry args={[0.0068, 0.0068, BURETTE_TUBE.top - BURETTE_TUBE.bottom, 16, 1, true]} />
         </mesh>
-        <instancedMesh ref={ticks} args={[tick(), plastic('#111827', 0.6), TICKS]} userData={{ noOutline: true }} />
+        <GraduationScale kind="burette" />
         <mesh material={glass} position={[0, 0.232, 0]} renderOrder={1}>
           <cylinderGeometry args={[0.0068, 0.004, 0.016, 12]} />
         </mesh>

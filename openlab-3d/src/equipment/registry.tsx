@@ -1,3 +1,5 @@
+import {Grade9Apparatus} from '../experiments/grade9/Apparatus';
+import {isGrade9Rig} from '../experiments/grade9/kinds';
 /** Maps a catalog kind (+ variant, live contents and tool state) to its procedural 3D model. */
 import { useMemo } from 'react';
 import type { GroupProps } from '@react-three/fiber';
@@ -85,10 +87,12 @@ export function EquipmentModel({ kind, variant, mixture, itemId, lit, flameColor
   }, [kind, contents, decorative, variant]);
   const reagent = variant?.reagent ? REAGENTS[variant.reagent] : undefined;
   const fx = { look, itemId };
+  if(isGrade9Rig(kind))return <Grade9Apparatus kind={kind} itemId={itemId} {...props}/>;
   // The label band is painted in the substance's real color, so a bottle reads the same in the
   // drawer, on a shelf and on the worktop (stock color is fixed: it does not flicker while pouring).
   const stripe = variant?.reagent ? reagentColor(variant.reagent) : undefined;
   switch (kind) {
+    case 'paperStrip':return <group {...props}><mesh position={[0,.001,0]}><boxGeometry args={[.03,.0005,.2]}/><meshStandardMaterial color={variant?.reagent==='s_litmus_red'?'#dd5470':variant?.reagent==='s_litmus_blue'?'#5566d9':'#fcf4db'} roughness={.9}/></mesh></group>;
     case 'beaker':
       return <Beaker {...fx} {...props} />;
     case 'erlenmeyer':

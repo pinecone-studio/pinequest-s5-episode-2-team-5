@@ -1,13 +1,13 @@
 /**
  * 100 mL graduated cylinder: Ø 30 mm tube, 250 mm tall, hexagonal plastic foot,
- * pour lip, fine graduation lines (instanced) and a liquid column.
+ * pour lip, printed numbered graduation scale and a liquid column.
  */
-import { useLayoutEffect, useRef } from 'react';
-import { BoxGeometry, CylinderGeometry, InstancedMesh, LatheGeometry, Object3D, Vector2 } from 'three';
+import { CylinderGeometry, LatheGeometry, Vector2 } from 'three';
 import { useGlass } from '../materials/glass';
 import { plastic } from '../materials/plastic';
 import { lazy } from '../utils/lazy';
 import { ModelOr } from './ModelOr';
+import { GraduationScale } from './GraduationScale';
 import { VesselContents } from './VesselContents';
 import { PROFILES } from './profiles';
 import type { VesselModelProps } from './Beaker';
@@ -19,32 +19,13 @@ const tube = lazy(() => {
   return new LatheGeometry(pts, 28);
 });
 const foot = lazy(() => new CylinderGeometry(0.03, 0.032, 0.012, 6));
-const tick = lazy(() => new BoxGeometry(0.006, 0.0006, 0.0006));
-const N_TICKS = 20;
-const markMat = plastic('#20252b', 0.6);
-
 export function GraduatedCylinder({ modelUrl, look, itemId, ...props }: VesselModelProps) {
   const glass = useGlass('#eef8fb');
-  const ticks = useRef<InstancedMesh>(null);
-  useLayoutEffect(() => {
-    const d = new Object3D();
-    for (let i = 0; i < N_TICKS; i++) {
-      const y = 0.03 + (i / (N_TICKS - 1)) * (H - 0.06);
-      d.position.set(0, y, R + 0.0003);
-      d.scale.set(i % 5 === 0 ? 2.2 : 1, 1, 1);
-      d.updateMatrix();
-      ticks.current?.setMatrixAt(i, d.matrix);
-    }
-    if (ticks.current) {
-      ticks.current.instanceMatrix.needsUpdate = true;
-      ticks.current.computeBoundingSphere();
-    }
-  }, []);
   return (
     <ModelOr modelUrl={modelUrl} {...props}>
       <mesh geometry={foot()} material={plastic('#2563eb', 0.5)} position={[0, 0.006, 0]} castShadow />
       <mesh geometry={tube()} material={glass} renderOrder={1} castShadow />
-      <instancedMesh ref={ticks} args={[tick(), markMat, N_TICKS]} userData={{ noOutline: true }} />
+      <GraduationScale />
       {look && <VesselContents profile={PROFILES.graduatedCylinder} look={look} itemId={itemId} />}
     </ModelOr>
   );
