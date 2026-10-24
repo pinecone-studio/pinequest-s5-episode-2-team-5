@@ -27,6 +27,8 @@ export const PROFILES = {
   petriDish: { key: 'petriDish', wall: [[0.0432, 0.0025], [0.0432, 0.0135]] },
   evaporatingDish: { key: 'evaporatingDish', wall: [[0.022, 0.0045], [0.037, 0.012], [0.0432, 0.03], [0.0455, 0.039]] },
   reagentJar: { key: 'reagentJar', wall: [[0.029, 0.005], [0.03, 0.008], [0.03, 0.082]] },
+  reagentBottle: { key: 'reagentBottle', wall: [[0.0285, 0.005], [0.0305, 0.008], [0.0305, 0.095], [0.026, 0.108], [0.0145, 0.118]] },
+  dropperBottle: { key: 'dropperBottle', wall: [[0.0145, 0.003], [0.0155, 0.005], [0.0155, 0.049], [0.0115, 0.059], [0.0065, 0.063]] },
   mortar: { key: 'mortar', wall: [[0.022, 0.0065], [0.045, 0.017], [0.0535, 0.04], [0.056, 0.046]] },
   watchGlass: { key: 'watchGlass', wall: [[0.005, 0.0007], [0.022, 0.0025], [0.036, 0.0062]] },
   burette: { key: 'burette', wall: [[0.0057, 0.0], [0.0057, 0.5]] },
