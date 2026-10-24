@@ -307,29 +307,36 @@ export const chemBoardTexture = lazy(() => {
 });
 
 const plateCache = new Map<string, Texture>();
-/** Drawer / cabinet label plate: white card with a colored band and bold text. */
+/** Drawer / cabinet label plate: high-contrast category color with readable bold text. */
 export function plateTexture(text: string, color: string): Texture {
   const key = `${text}-${color}`;
   const cached = plateCache.get(key);
   if (cached) return cached;
   const [c, ctx] = makeCanvas(512, 128);
-  ctx.fillStyle = '#fbfbf8';
-  ctx.fillRect(0, 0, 512, 128);
   ctx.fillStyle = color;
-  ctx.fillRect(0, 0, 34, 128);
-  ctx.fillRect(0, 118, 512, 10);
-  ctx.fillStyle = '#111827';
+  ctx.fillRect(0, 0, 512, 128);
+  const base = new Color(color);
+  const luminance = 0.2126 * base.r + 0.7152 * base.g + 0.0722 * base.b;
+  const ink = luminance > 0.179 ? '#111827' : '#ffffff';
+  ctx.fillStyle = ink;
   ctx.textBaseline = 'middle';
   ctx.textAlign = 'center';
+  ctx.shadowColor = ink === '#ffffff' ? 'rgba(0,0,0,.28)' : 'rgba(255,255,255,.22)';
+  ctx.shadowBlur = 2;
   let size = 58;
   ctx.font = `700 ${size}px Inter, sans-serif`;
   const w = ctx.measureText(text).width;
   if (w > 440) size *= 440 / w;
   ctx.font = `700 ${size}px Inter, sans-serif`;
   ctx.fillText(text, 273, 62);
-  ctx.strokeStyle = '#d1d5db';
-  ctx.lineWidth = 4;
-  ctx.strokeRect(2, 2, 508, 124);
+  ctx.shadowBlur = 0;
+  ctx.fillStyle = ink;
+  ctx.globalAlpha = 0.9;
+  ctx.fillRect(0, 116, 512, 12);
+  ctx.globalAlpha = 1;
+  ctx.strokeStyle = 'rgba(15,23,42,.8)';
+  ctx.lineWidth = 6;
+  ctx.strokeRect(3, 3, 506, 122);
   const t = toTexture(c);
   plateCache.set(key, t);
   return t;

@@ -215,7 +215,8 @@ export function ToolTab() {
     const { kind, name, variant } = entry;
     if (benchContext) {
       const supply = entry.supply ?? { key: entry.key, kind, name, use: entry.sub, reagent: variant?.reagent };
-      collectSupply(supply, true); return;
+      if (collectSupply(supply, true)) sounds.play('clink', 0.45);
+      return;
     }
     if (!kind) return;
     const res = spawnNearPlayer(kind, variant);

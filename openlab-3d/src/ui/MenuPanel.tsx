@@ -62,8 +62,17 @@ function ExperimentsTab() {
   const finished = experiments.filter((x) => experimentDone(progress, x.id)).length;
   return (
     <div className="space-y-3">
-      <div className="rounded-2xl bg-emerald-50 p-3 text-sm text-emerald-900">
-        <b>Туршилтын заавар</b> · {finished}/{experiments.length} дууссан. Туршилтаа сонгоод «Эхлүүлэх» дарвал алхмууд нь дэлгэцийн зүүн дээд буланд харагдаж, хийх бүрт автоматаар тэмдэглэгдэнэ.
+      <div className="rounded-2xl border-2 border-indigo-200 bg-indigo-50 p-3 text-sm text-indigo-950">
+        <div className="flex items-center justify-between gap-2">
+          <b className="text-base">Туршилтаа эхлүүлэх</b>
+          <span className="rounded-full bg-white px-2 py-1 text-xs font-bold text-indigo-800">{finished}/{experiments.length} дууссан</span>
+        </div>
+        <div className="mt-2 grid grid-cols-3 gap-1.5 text-center text-[10px] font-bold">
+          <span className="rounded-lg bg-white p-2"><b className="block text-base text-indigo-700">1</b>Туршилт сонго</span>
+          <span className="rounded-lg bg-white p-2"><b className="block text-base text-indigo-700">2</b>Хэрэгслээ бэлд</span>
+          <span className="rounded-lg bg-white p-2"><b className="block text-base text-indigo-700">3</b>Алхмаа хий</span>
+        </div>
+        <p className="mt-2 text-xs leading-snug">Эхлүүлсний дараа зүүн дээд талын “Бэлтгэлээ хийе” карт дараагийн хэрэгсэл, хаана байгааг нь заана.</p>
       </div>
       <input className="min-h-10 w-full rounded-lg border border-slate-200 p-2 text-sm" aria-label="Туршилт хайх" placeholder="Туршилт хайх…" value={search} onChange={(e)=>setSearch(e.target.value)}/>
       <div className="flex flex-wrap gap-2">{[['all','Бүгд'],['bench','Ширээний туршилт'],['model','Виртуал багаж']].map(([id,label])=><button key={id} className={`min-h-10 rounded-full border px-3 text-xs ${kind===id?'border-sky-500 bg-sky-50':'border-slate-200'}`} aria-pressed={kind===id} onClick={()=>setKind(id)}>{label}</button>)}</div>
@@ -74,12 +83,13 @@ function ExperimentsTab() {
           const complete = experimentDone(progress, x.id);
           const expanded = open === x.id;
           return (
-            <li key={x.id} className={`rounded-2xl border bg-white ${active === x.id ? 'border-lab-yellow' : 'border-slate-200'}`}>
-              <button type="button" className="focus-ring flex w-full items-center gap-3 p-3 text-left" onClick={() => setOpen(expanded ? null : x.id)} aria-expanded={expanded}>
-                <span className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-sm font-bold ${complete ? 'bg-green-500 text-white' : 'bg-slate-100 text-slate-500'}`}>{complete ? '✓' : `${done.length}/${x.steps.length}`}</span>
+            <li key={x.id} className={`overflow-hidden rounded-2xl border-2 bg-white shadow-sm transition ${active === x.id ? 'border-indigo-500 shadow-indigo-100' : 'border-slate-200'}`}>
+              <button type="button" className="focus-ring flex w-full items-center gap-3 p-3 text-left" onClick={() => { setOpen(expanded ? null : x.id); sounds.play('ui', .55); }} aria-expanded={expanded}>
+                <span className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl text-sm font-extrabold ${complete ? 'bg-emerald-600 text-white' : active === x.id ? 'bg-indigo-700 text-white' : 'bg-slate-100 text-slate-700'}`}>{complete ? '✓' : `${done.length}/${x.steps.length}`}</span>
                 <span className="flex-1">
                   <span className="block font-semibold leading-tight">{x.title}</span>
-                  <span className="block text-xs text-slate-500">{investigationById(x.id)?.grade??8}-р анги · {x.level} · {investigationById(x.id)?.mode==='model'?'Виртуал багаж · ':''}{x.steps.length} алхам{active === x.id ? ' · идэвхтэй' : ''}</span>
+                  <span className="block text-xs text-slate-600">{investigationById(x.id)?.grade??8}-р анги · {x.level} · {investigationById(x.id)?.mode==='model'?'Виртуал багаж · ':''}{x.steps.length} алхам</span>
+                  {active === x.id && <span className="mt-1 inline-flex rounded-full bg-indigo-100 px-2 py-0.5 text-[10px] font-bold text-indigo-900">Одоо сонгосон</span>}
                 </span>
                 <span className="text-xs text-slate-400">{expanded ? '▲' : '▼'}</span>
               </button>
@@ -109,16 +119,16 @@ function ExperimentsTab() {
                   {complete && <div className="rounded-xl bg-sky-50 p-2 text-xs text-sky-900">🔬 {x.explain}</div>}
                   <button
                     type="button"
-                    className="btn-yellow w-full py-2 text-sm"
+                    className="btn-yellow w-full py-3 text-sm font-extrabold"
                     onClick={() => {
                       selectBenchExperiment(x.id, !sessions[x.id]);
                       sounds.play('success', 0.5);
                       resumeWalk();
                       const next = x.steps.find((s) => !done.includes(s.id));
-                      if (next) useGameStore.getState().say(`«${x.title}» сонголоо. Ажлын ширээнд суугаад бэлтгэлээ хийгээрэй.`, 'wave');
+                      if (next) useGameStore.getState().say(`«${x.title}» эхэллээ. Зүүн дээд талын “Бэлтгэлээ хийе” картыг дагаарай. Тэнд дараагийн хэрэгсэл болон байршил нь гарна.`, 'wave');
                     }}
                   >
-                    {sessions[x.id] ? '▶ Үргэлжлүүлэх' : '▶ Эхлүүлэх'}
+                    {sessions[x.id] ? '▶ Туршилтаа үргэлжлүүлэх' : '▶ Энэ туршилтыг эхлүүлэх'}
                   </button>
                   {(sessions[x.id] || complete) && <button className="min-h-9 w-full rounded-lg border border-slate-300 bg-white py-2 text-sm font-semibold" onClick={() => { repeatBenchExperiment(x.id); resumeWalk(); }}>↻ Дахин хийх</button>}
                 </div>
