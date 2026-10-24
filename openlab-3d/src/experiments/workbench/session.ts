@@ -14,6 +14,7 @@ import { create } from 'zustand';
 import { Box3, Quaternion, Vector3 } from 'three';
 import { CATALOG, SPAWNABLE_KINDS, type EquipmentKind } from '../../equipment/equipmentCatalog';
 import { REAGENTS, REAGENT_LIST, type ReagentId } from '../../chemistry/reagents';
+import { reagentColor } from '../../chemistry/real-color';
 import { experimentDone, useLabStore } from '../../store/useLabStore';
 import { storedIn, useInventoryStore } from '../../store/useInventoryStore';
 import { useChemStore } from '../../store/useChemStore';
@@ -352,7 +353,7 @@ export function supplyAmount(supply: BenchSupply): { current: string; used: stri
   const r = REAGENTS[supply.reagent], id = supplyObject(supply), m = id ? useChemStore.getState().mixtures[id] : undefined;
   const amount = r.solid ? m ? solidMassG(m) : r.stock : m ? m.water + m.ethanol : r.stock;
   const unit = r.solid ? 'г' : 'см³';
-  return { current: `${amount.toFixed(1)} ${unit}`, used: `${Math.max(0, r.stock - amount).toFixed(1)} ${unit}`, color: r.stripe, formula: r.label, hazard: r.note };
+  return { current: `${amount.toFixed(1)} ${unit}`, used: `${Math.max(0, r.stock - amount).toFixed(1)} ${unit}`, color: reagentColor(r.id), formula: r.label, hazard: r.note };
 }
 export const focusSupply = supplyObject;
 export const benchOrigin = () => new Vector3(8.254, BENCH_HEIGHT, -14.585);

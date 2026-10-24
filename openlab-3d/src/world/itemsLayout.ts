@@ -17,9 +17,6 @@ export interface ItemVariant {
   amount?: number;
   /** Initial contents of glassware: reagents and amounts (mL or g). */
   fill?: { reagent: ReagentId; amount: number }[];
-  /** Fixed look for thumbnails of empty glassware. */
-  liquid?: string;
-  fillLevel?: number;
   label?: string;
   /** Test-tube rack: contents of its tubes (undefined = empty tube). */
   tubes?: (ItemVariant | undefined)[];

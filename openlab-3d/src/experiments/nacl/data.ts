@@ -2,6 +2,11 @@
  * Content for the NaCl bench experiment (textbook Туршилт 1, fig. 1.2.8, steps а–з):
  * step titles, what is inside each vessel, apparatus names and uses. All in Mongolian.
  */
+import { CLEAR_LIQUID } from '../../chemistry/real-color';
+import { SOLIDS } from '../../chemistry/species';
+
+/** Colorless solution with a little suspended solid, as the bench draws it. */
+const MILKY_LIQUID = '#e9eef1';
 
 export interface StepDef {
   k: string;
@@ -43,16 +48,16 @@ export interface Substance {
 }
 
 export const SUBSTANCES: Record<SubstanceId, Substance> = {
-  hcl: { short: 'HCl уусмал', name: 'Давсны хүчил (устөрөгчийн хлоридын уусмал)', formula: 'HCl (у)', look: 'Өнгөгүй, тунгалаг шингэн', info: '1.0 моль/дм³, шингэрүүлсэн', hazard: 'Цочроогч: арьс, нүдийг цочроодог', role: 'Карбонаттай урвалд орж натрийн хлорид үүсгэнэ.', color: '#4f8ff0' },
-  mixAcid: { short: 'HCl + NaCl (урвал явагдаж байна)', name: 'Урвалын холимог', formula: 'HCl (у) + NaCl (у)', look: 'Хий ялгаран бужигнана', info: 'Хүчил хараахан дуусаагүй', hazard: 'Хүчил байгаа тул цочроогч', role: 'Хий ялгарахаа болих хүртэл карбонат нэмнэ.', color: '#7a6ff0' },
-  mix: { short: 'NaCl уусмал + Na₂CO₃ илүүдэл', name: 'Урвалын холимог', formula: 'NaCl (у) + Na₂CO₃', look: 'Бага зэрэг булингартай, ёроолд цагаан үлдэгдэл', info: 'Хүчил бүрэн урвалд орсон', hazard: 'Бага', role: 'Уусаагүй хэсгийг шүүж ялгана.', color: '#8aa0b0' },
-  nacl: { short: 'NaCl уусмал', name: 'Натрийн хлоридын уусмал (шүүгдэс)', formula: 'NaCl (у)', look: 'Тунгалаг, өнгөгүй', info: '≈2.9 г давс уусмал хэлбэрээр', hazard: 'Аюулгүй', role: 'Ууршуулж талст гарган авна.', color: '#22a3a8' },
-  naclConc: { short: 'Ханасан NaCl + талст', name: 'Ханасан натрийн хлоридын уусмал', formula: 'NaCl (у) + NaCl (т)', look: 'Ирмэг ба ёроолд цагаан куб талст', info: 'Ус хангалтгүй болсон тул давс талстжиж байна', hazard: 'Халуун байж болно: түлэгдэх аюултай', role: 'Хөрөхөд илүү олон талст ургана.', color: '#22a3a8' },
-  liquor: { short: 'Эх уусмал', name: 'Эх уусмал (талст ялгасны дараах уусмал)', formula: 'NaCl (у)', look: 'Тунгалаг', info: '≈0.95 г давс уусмал хэлбэрээр үлддэг', hazard: 'Аюулгүй', role: 'Гарц 100%-иас бага байх шалтгаан.', color: '#22a3a8' },
-  crystals: { short: 'NaCl талст', name: 'Натрийн хлоридын талст', formula: 'NaCl (т)', look: 'Цагаан, тунгалаг куб талст', info: 'Хайлах цэг 801 °C · 25 °C-д 100 г усанд ≈36 г уусна', hazard: 'Аюулгүй (лабораторид амсахгүй)', role: 'Туршилтын бүтээгдэхүүн.', color: '#22a3a8' },
-  na2co3: { short: 'Na₂CO₃ нунтаг', name: 'Натрийн карбонат (угаалгын сод)', formula: 'Na₂CO₃ (т)', look: 'Цагаан нунтаг', info: 'M = 106 г/моль · нэг халбага ≈ 0.5 г', hazard: 'Нүд цочроогч', role: 'Хүчлийг саармагжуулж, CO₂ ялгаруулна.', color: '#8c8c8c' },
-  residue: { short: 'Уусаагүй үлдэгдэл', name: 'Уусаагүй үлдэгдэл', formula: 'Na₂CO₃ (т)', look: 'Цаасан дээрх цагаан ширхэг', info: 'Илүүдэл карбонатын уусаагүй хэсэг', hazard: 'Бага', role: 'Шүүлтүүрээр ялгагдана.', color: '#8c8c8c' },
-  ethanol: { short: 'Спирт (түлш)', name: 'Этилийн спирт (этанол)', formula: 'C₂H₅OH (ш)', look: 'Өнгөгүй шингэн', info: 'Дэнгийн түлш', hazard: 'Шатамхай! Асаалттай дэнг орхиж болохгүй', role: 'Ууршуулах дулааныг өгнө.', color: '#e08a2a' },
+  hcl: { short: 'HCl уусмал', name: 'Давсны хүчил (устөрөгчийн хлоридын уусмал)', formula: 'HCl (у)', look: 'Өнгөгүй, тунгалаг шингэн', info: '1.0 моль/дм³, шингэрүүлсэн', hazard: 'Цочроогч: арьс, нүдийг цочроодог', role: 'Карбонаттай урвалд орж натрийн хлорид үүсгэнэ.', color: CLEAR_LIQUID },
+  mixAcid: { short: 'HCl + NaCl (урвал явагдаж байна)', name: 'Урвалын холимог', formula: 'HCl (у) + NaCl (у)', look: 'Хий ялгаран бужигнана', info: 'Хүчил хараахан дуусаагүй', hazard: 'Хүчил байгаа тул цочроогч', role: 'Хий ялгарахаа болих хүртэл карбонат нэмнэ.', color: CLEAR_LIQUID },
+  mix: { short: 'NaCl уусмал + Na₂CO₃ илүүдэл', name: 'Урвалын холимог', formula: 'NaCl (у) + Na₂CO₃', look: 'Бага зэрэг булингартай, ёроолд цагаан үлдэгдэл', info: 'Хүчил бүрэн урвалд орсон', hazard: 'Бага', role: 'Уусаагүй хэсгийг шүүж ялгана.', color: MILKY_LIQUID },
+  nacl: { short: 'NaCl уусмал', name: 'Натрийн хлоридын уусмал (шүүгдэс)', formula: 'NaCl (у)', look: 'Тунгалаг, өнгөгүй', info: '≈2.9 г давс уусмал хэлбэрээр', hazard: 'Аюулгүй', role: 'Ууршуулж талст гарган авна.', color: CLEAR_LIQUID },
+  naclConc: { short: 'Ханасан NaCl + талст', name: 'Ханасан натрийн хлоридын уусмал', formula: 'NaCl (у) + NaCl (т)', look: 'Ирмэг ба ёроолд цагаан куб талст', info: 'Ус хангалтгүй болсон тул давс талстжиж байна', hazard: 'Халуун байж болно: түлэгдэх аюултай', role: 'Хөрөхөд илүү олон талст ургана.', color: CLEAR_LIQUID },
+  liquor: { short: 'Эх уусмал', name: 'Эх уусмал (талст ялгасны дараах уусмал)', formula: 'NaCl (у)', look: 'Тунгалаг', info: '≈0.95 г давс уусмал хэлбэрээр үлддэг', hazard: 'Аюулгүй', role: 'Гарц 100%-иас бага байх шалтгаан.', color: CLEAR_LIQUID },
+  crystals: { short: 'NaCl талст', name: 'Натрийн хлоридын талст', formula: 'NaCl (т)', look: 'Цагаан, тунгалаг куб талст', info: 'Хайлах цэг 801 °C · 25 °C-д 100 г усанд ≈36 г уусна', hazard: 'Аюулгүй (лабораторид амсахгүй)', role: 'Туршилтын бүтээгдэхүүн.', color: SOLIDS.NaCl.color },
+  na2co3: { short: 'Na₂CO₃ нунтаг', name: 'Натрийн карбонат (угаалгын сод)', formula: 'Na₂CO₃ (т)', look: 'Цагаан нунтаг', info: 'M = 106 г/моль · нэг халбага ≈ 0.5 г', hazard: 'Нүд цочроогч', role: 'Хүчлийг саармагжуулж, CO₂ ялгаруулна.', color: SOLIDS.Na2CO3.color },
+  residue: { short: 'Уусаагүй үлдэгдэл', name: 'Уусаагүй үлдэгдэл', formula: 'Na₂CO₃ (т)', look: 'Цаасан дээрх цагаан ширхэг', info: 'Илүүдэл карбонатын уусаагүй хэсэг', hazard: 'Бага', role: 'Шүүлтүүрээр ялгагдана.', color: SOLIDS.Na2CO3.color },
+  ethanol: { short: 'Спирт (түлш)', name: 'Этилийн спирт (этанол)', formula: 'C₂H₅OH (ш)', look: 'Өнгөгүй шингэн', info: 'Дэнгийн түлш', hazard: 'Шатамхай! Асаалттай дэнг орхиж болохгүй', role: 'Ууршуулах дулааныг өгнө.', color: CLEAR_LIQUID },
 };
 
 export type PartKey =
