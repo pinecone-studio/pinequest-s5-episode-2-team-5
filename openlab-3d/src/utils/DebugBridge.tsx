@@ -1,3 +1,4 @@
+import {useGrade9Apparatus} from '../experiments/grade9/store';
 /**
  * Development-only test hook (window.__lab): deterministic frame stepping and store access,
  * so automated checks work even when the browser throttles requestAnimationFrame.
@@ -43,6 +44,7 @@ export function DebugBridge() {
   useEffect(() => {
     let t = 0;
     window.__lab = {
+      grade9:useGrade9Apparatus,
       game: useGameStore,
       experiment: useExperimentStore,
       inventory: useInventoryStore,

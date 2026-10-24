@@ -24,6 +24,7 @@ interface Sys {
   /** Net charge of the strong ions, mol (cations positive). */
   B: number;
   ac: number;
+  cit: number;
   nh3: number;
   co3: number;
   fe3: number;
@@ -46,6 +47,7 @@ function sysOf(m: Mixture): Sys {
     V: liquidMl(m) / 1000,
     B: strongCharge(m),
     ac: amount(m, 'Ac'),
+    cit: amount(m,'Cit'),
     nh3: amount(m, 'NH3'),
     co3: amount(m, 'CO3'),
     fe3: amount(m, 'Fe3'),
@@ -62,7 +64,10 @@ function residualNoB(h: number, s: Sys, nh3Free: number): number {
   const hco3 = (s.co3 * KA1 * h) / d;
   const co3 = (s.co3 * KA1 * KA2) / d;
   const feh = (s.fe3 * KA_FE3) / (KA_FE3 + h);
-  return h * V + nh4 - (KW / h) * V - ac - hco3 - 2 * co3 - feh;
+  // Citric acid, three dissociation steps at 25°C (Merck C0759 product data).
+  const k1=10**-3.13,k2=10**-4.76,k3=10**-6.40;
+  const citCharge=s.cit*(k1*h*h+2*k1*k2*h+3*k1*k2*k3)/(h*h*h+k1*h*h+k1*k2*h+k1*k2*k3);
+  return h * V + nh4 - citCharge - (KW / h) * V - ac - hco3 - 2 * co3 - feh;
 }
 
 function solveLogH(s: Sys, nh3Free: number): number {

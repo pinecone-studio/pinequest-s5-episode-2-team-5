@@ -3,8 +3,9 @@
  * note, plus the physical data used by the simulation — collider, mass, capacity, how
  * fast it pours, whether it is glass (breaks) and whether it spills when tipped.
  */
-export type EquipmentKind =
-  | 'beaker'
+import { RIG_NAMES, type RigKind } from '../experiments/grade9/kinds';
+export type EquipmentKind = RigKind | 'paperStrip' |
+   'beaker'
   | 'erlenmeyer'
   | 'testTube'
   | 'testTubeRack'
@@ -87,7 +88,12 @@ const TRIPOD_LEGS = [0, 1, 2].map((i) => {
   return { shape: 'cuboid' as const, size: [0.012, 0.19, 0.012] as [number, number, number], offset: [Math.cos(a) * 0.072, 0.095, Math.sin(a) * 0.072] as [number, number, number], mass: 0.1 };
 });
 
+const GRADE9_CATALOG=Object.fromEntries(Object.entries(RIG_NAMES).map(([kind,name])=>[kind,{
+ kind,name,category:'Багаж',description:'IX ангийн туршилтын зориулалтын угсралт. Бодисоо авч цутгана. Сонгоод багажийн удирдлага, хэмжилтийг нээнэ.',safety:'Хамгаалах шил хэрэглэ. Хийн угсралтыг бөглөж даралт бүү үүсгэ.',size:[.22,.28,.16],collider:box(.22,.28,.16),pickable:true,spawnable:true,massKg:.65,capacityMl:500,pourRate:15,heatJK:100,upright:true,
+}])) as Record<RigKind,CatalogEntry>;
 export const CATALOG: Record<EquipmentKind, CatalogEntry> = {
+ ...GRADE9_CATALOG,
+ paperStrip:{kind:'paperStrip',name:'Шүүлтүүрийн цаас / хроматографийн зурвас',category:'Багаж',description:'Шүүлтүүрийн целлюлоз цаас. Хроматографийн камерын цаасны үүрэнд байрлуулна.',safety:'Хуурай цэвэр цаас хэрэглэ.',size:[.03,.001,.2],collider:box(.03,.002,.2),pickable:true,spawnable:false,massKg:.001,capacityMl:1,pourRate:.2},
   beaker: {
     kind: 'beaker',
     name: 'Химийн аяга (250 мл)',

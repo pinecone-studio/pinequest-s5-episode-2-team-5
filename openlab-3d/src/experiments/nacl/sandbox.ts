@@ -1,3 +1,4 @@
+import {useGrade9Apparatus} from '../grade9/store';
 import { recordTransfer } from '../../lab/measurements';
 import { create } from 'zustand';
 import { useChemStore, mixtureOf } from '../../store/useChemStore';
@@ -207,6 +208,7 @@ export function simulateLab(rawDt: number, distance: (a: string, b: string) => n
     const amount = Math.min(from.ml, 8 * dt);
     const portions = takeLiquid(mixtureOf(act.source, itemVariant(act.source)), amount);
     useChemStore.getState().setMixtures({ [act.source]: portions.rest });
+    const rig=useGrade9Apparatus.getState().rigs[act.source];if(rig)useGrade9Apparatus.getState().change(act.source,{chambers:rig.chambers.map((m,i)=>i===rig.port?portions.rest:m)});
     const at = heldApi.target?.point ?? labSpace.position(act.source);
     spillMixture(portions.taken, at.x, at.y, at.z, act.source);
     spill(amount);

@@ -7,6 +7,7 @@ import { Colors } from '@/constants/theme';
 import { emptyRevision, restoreRevision, type RevisionProgress } from '@/lib/revision-progress';
 
 interface RevisionContext {
+  packId: 'g8-chem' | 'g9-chem';
   progress: RevisionProgress;
   update: (change: (current: RevisionProgress) => RevisionProgress) => void;
   saved: boolean;
@@ -16,8 +17,8 @@ interface RevisionContext {
 const Context = createContext<RevisionContext | null>(null);
 const queues = new Map<string, Promise<void>>();
 
-export function RevisionProvider({ userId, children }: { userId: string; children: ReactNode }) {
-  const key = `chemquest.revision.g8.v1.${userId}`;
+export function RevisionProvider({ userId, children, packId = 'g8-chem' }: { userId: string; children: ReactNode; packId?: 'g8-chem' | 'g9-chem' }) {
+  const key = `chemquest.revision.${packId === 'g9-chem' ? 'g9' : 'g8'}.v1.${userId}`;
   const current = useRef(emptyRevision());
   const [progress, setProgress] = useState(emptyRevision);
   const [ready, setReady] = useState(false);
@@ -58,7 +59,7 @@ export function RevisionProvider({ userId, children }: { userId: string; childre
     current.current = next; setProgress(next); persist(next);
   };
   if (!ready) return <View style={{ padding: 24, gap: 16 }}>{loadError ? <><AppText>Явцыг ачаалж чадсангүй.</AppText><GameButton title="Дахин оролдох" onPress={() => setAttempt(attempt + 1)}/></> : <ActivityIndicator color={Colors.lime}/>}</View>;
-  return <Context value={{ progress, update, saved, error, retry: () => persist(current.current) }}>{children}</Context>;
+  return <Context value={{ packId, progress, update, saved, error, retry: () => persist(current.current) }}>{children}</Context>;
 }
 export function useRevision() {
   const value = use(Context);

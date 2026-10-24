@@ -1,3 +1,4 @@
+import {useGrade9Apparatus} from '../grade9/store';
 import { isWorkbenchObject, isBenchPaused } from './session';
 import { vesselObservation } from '../../lab/container-observation';
 import { useEffect, useRef, useState } from 'react';
@@ -40,6 +41,7 @@ function currentReaction(requested: string | null, dismissed: number | null): Ve
     const reaction = all[selected];
     if (reaction && !reaction.info && reaction.until > now) return reaction;
     const contents = vesselObservation(selected);
+    if(useGrade9Apparatus.getState().rigs[selected]&&!contents.reactants.length)return null;
     // Stable identity until this container's species change; do not rebuild every poll.
     const key = `${selected}:${contents.reactants.map((s) => s.id).join(',')}`;
     let hash = 0;

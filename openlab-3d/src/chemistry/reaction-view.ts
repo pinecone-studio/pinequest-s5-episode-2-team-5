@@ -52,7 +52,7 @@ export function evaporationReaction(rate: number, temp: number, crystal?: SolidI
 export function incompletePeroxide(m: Mixture, rate = 0): ReactionObservation | null {
   const peroxide = (m.aq.H2O2 ?? 0) > 1e-9;
   const soap = (m.aq.soap ?? 0) > 1e-9;
-  if (peroxide && !(m.aq.I || m.aq.Fe3 || m.s.MnO2)) {
+  if (peroxide && !(m.aq.I || m.aq.Fe3 || m.s.MnO2 || m.s.Fe2O3 || m.s.PbO2 || m.s.CuO)) {
     const r = observation('peroxide', [{ ...ion('H2O2'), count: 2 }], [{ ...W(), count: 2 }, atom('O2', 'Хүчилтөрөгч', 'O₂', '#ff3030', 1, 'gas')], rate, m.temp, 'gas', `${soap ? 'Саван бол катализатор биш. ' : ''}H₂O₂ маш удаан задардаг тул өөрчлөлт бараг харагдахгүй. Катализатор (KI) нэмээрэй.`);
     r.info = true; return r;
   }
@@ -105,12 +105,14 @@ export function stepObservations(before: Mixture, result: StepResult, dt: number
     const metal = ACTIVITY.find((a) => (before.s[a.solid] ?? 0) > (m.s[a.solid] ?? 0));
     if (metal) { const coefficient = metal.charge % 2 ? 2 : 1; const s = { ...solid(metal.solid), id: `metal-${metal.solid}`, count: coefficient, phase: undefined }; out.push(observation('metal', [s, { ...H(), count: metal.charge * coefficient }], [ion(metal.ion, coefficient), atom('H2', 'Устөрөгчийн хий', 'H₂', '#ffffff', metal.charge * coefficient / 2, 'gas')], result.gas.H2, m.temp, 'gas')); }
   }
+  for(const [oxidant,halide,product,anion] of [['Cl2','Br','Br2','Cl'],['Cl2','I','I2','Cl'],['Br2','I','I2','Br']] as [AqId,AqId,AqId,AqId][]){const delta=(m.aq[product]??0)-(before.aq[product]??0);if(delta>1e-12&&(before.aq[oxidant]??0)>(m.aq[oxidant]??0)&&before.aq[halide])out.push(observation('generic',[ion(oxidant),ion(halide,2)],[ion(anion,2),ion(product)],delta/dt,m.temp,'color'));}
+  if(result.notes.includes('decompose:CuCO3'))out.push(observation('generic',[solid('CuCO3')],[solid('CuO'),atom('CO2','Нүүрсхүчлийн хий','CO₂','#cad1d8',1,'gas')],result.gas.CO2,m.temp,'gas'));
   const redox = (before.aq.MnO4 ?? 0) > (m.aq.MnO4 ?? 0) + 1e-12;
   if (result.gas.O2 > 1e-10 && !redox && (before.aq.H2O2 ?? 0) > (m.aq.H2O2 ?? 0)) {
     const r = observation('peroxide', [{ ...ion('H2O2'), count: 2 }], [{ ...W(), count: 2 }, atom('O2', 'Хүчилтөрөгч', 'O₂', '#f25460', 1, 'gas')], result.gas.O2, m.temp, m.foam > .1 ? 'foam' : 'gas', 'Устөрөгчийн хэт исэл катализаторын нөлөөгөөр ус, хүчилтөрөгч болж задарч байна; саван хийг хөөс болгон барина.');
     r.equation = `2H₂O₂ → 2H₂O + O₂↑${(before.aq.I ?? 0) > 0 ? '  (KI — катализатор)' : ''}`;
         if (before.aq.I) { r.spectators = [ion('K'), ion('I')]; r.key += ':KI'; r.catalyst = 'iodide'; }
-    const catalyst = before.aq.I || before.aq.Fe3 || before.s.MnO2;
+    const catalyst = before.aq.I || before.aq.Fe3 || before.s.MnO2 || before.s.Fe2O3 || before.s.PbO2 || before.s.CuO;
     r.sentence = `Устөрөгчийн хэт исэл ${catalyst ? 'катализаторын нөлөөгөөр' : 'аажмаар'} ус, хүчилтөрөгч болж задарч байна (хий ялгарна).${before.aq.soap ? ' Саван хийг хөөс болгон барина.' : ''}`;
     const info = incompletePeroxide(before, r.rate);
     out.push(info ?? r);
@@ -135,7 +137,7 @@ export function stepObservations(before: Mixture, result: StepResult, dt: number
     const reactant = { ...solid(id), phase: undefined };
     const products = Object.entries(def.dissolve.products).map(([id, n]) => ion(id as AqId, n));
     if (id === 'NaOH') products.push(OH());
-    if (id === 'NH4NO3') products[0] = atom('NH4', 'Аммонийн ион', 'NH₄⁺', '#b8d7ee');
+    if (id === 'NH4NO3' || id === 'NH4Cl') products[0] = atom('NH4', 'Аммонийн ион', 'NH₄⁺', '#b8d7ee');
     if (id === 'NaHCO3') products[1] = atom('HCO3', 'Гидрокарбонат ион', 'HCO₃⁻', '#c4c9d2');
     if (def.dissolve.water) products.push({ ...W(), count: def.dissolve.water });
     out.push(observation('generic', [reactant], products, change / dt, m.temp, 'color', `${def.name} усанд уусч байна; уусмалын найрлага, температур өөрчлөгдөнө.`));

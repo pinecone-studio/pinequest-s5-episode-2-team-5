@@ -101,7 +101,7 @@ import { join } from 'node:path';
 import { pathToFileURL } from 'node:url';
 const storeTmp=await mkdtemp(join(tmpdir(),'openlab-preparation-test-'));
 test.after(()=>rm(storeTmp,{recursive:true,force:true}));
-await build({stdin:{contents:`export * from '../src/lib/textbook-investigations.ts'; export {INVESTIGATIONS as inquiryDefinitions} from '../src/lib/textbook-investigations.ts'; export {TEXTBOOK_EXPERIMENTS} from './src/experiments/workbench/textbook.ts'; export {getExperiments,applyRemoteExperiments} from './src/lab/experiments.ts'; export {useInquiry,clearInquiry} from './src/experiments/workbench/inquiry-store.ts'; export * from './src/lab/quantity-guidance.ts'; export * from './src/lab/measurements.ts'; export {transfer} from './src/interaction/actions.ts'; export {vesselObservation} from './src/lab/container-observation.ts'; export {snapToSupport} from './src/interaction/supportPlacement.ts'; export {supportSpots} from './src/interaction/bodies.ts'; export {benchUseTarget} from './src/interaction/benchUseTarget.ts'; export {tablePointer} from './src/interaction/heldApi.ts'; export {useBenchView} from './src/experiments/nacl/view.ts'; export {useSandbox,labUse,labSpace,simulateLab} from './src/experiments/nacl/sandbox.ts'; export {usePortableStore} from './src/interaction/portable.ts'; export {interactItem} from './src/interaction/interactItem.ts'; export {interactables} from './src/interaction/registry.ts'; export { useLabStore } from './src/store/useLabStore.ts'; export * from './src/experiments/workbench/session.ts'; export {useInventoryStore,storedIn} from './src/store/useInventoryStore.ts'; export {useChemStore} from './src/store/useChemStore.ts'; export {useGameStore} from './src/store/useGameStore.ts'; export * from './src/lab/reaction-view.ts'; export {registerHolder,seedHolder} from './src/interaction/holders.ts';`,resolveDir:process.cwd()},bundle:true,outfile:join(storeTmp,'stores.mjs'),format:'esm',platform:'node'});
+await build({stdin:{contents:`export * from './src/experiments/grade9/process.ts'; export {useGrade9Apparatus} from './src/experiments/grade9/store.ts'; export * from '../src/lib/textbook-investigations.ts'; export {INVESTIGATIONS as inquiryDefinitions} from '../src/lib/textbook-investigations.ts'; export {TEXTBOOK_EXPERIMENTS} from './src/experiments/workbench/textbook.ts'; export {getExperiments,applyRemoteExperiments} from './src/lab/experiments.ts'; export {useInquiry,clearInquiry} from './src/experiments/workbench/inquiry-store.ts'; export * from './src/lab/quantity-guidance.ts'; export * from './src/lab/measurements.ts'; export {transfer} from './src/interaction/actions.ts'; export {vesselObservation} from './src/lab/container-observation.ts'; export {snapToSupport} from './src/interaction/supportPlacement.ts'; export {supportSpots} from './src/interaction/bodies.ts'; export {benchUseTarget} from './src/interaction/benchUseTarget.ts'; export {tablePointer} from './src/interaction/heldApi.ts'; export {useBenchView} from './src/experiments/nacl/view.ts'; export {useSandbox,labUse,labSpace,simulateLab} from './src/experiments/nacl/sandbox.ts'; export {usePortableStore} from './src/interaction/portable.ts'; export {interactItem} from './src/interaction/interactItem.ts'; export {interactables} from './src/interaction/registry.ts'; export { useLabStore } from './src/store/useLabStore.ts'; export * from './src/experiments/workbench/session.ts'; export {useInventoryStore,storedIn} from './src/store/useInventoryStore.ts'; export {useChemStore} from './src/store/useChemStore.ts'; export {useGameStore} from './src/store/useGameStore.ts'; export * from './src/lab/reaction-view.ts'; export {registerHolder,seedHolder} from './src/interaction/holders.ts';`,resolveDir:process.cwd()},bundle:true,outfile:join(storeTmp,'stores.mjs'),format:'esm',platform:'node'});
 globalThis.localStorage={getItem:()=>null,setItem:()=>{},removeItem:()=>{}};
 const stores=await import(pathToFileURL(join(storeTmp,'stores.mjs')).href);
 test('guide starts after preparation; earlier real observations are still recorded',()=>{
@@ -577,4 +577,127 @@ test('remote catalogs retain local textbook investigations even before database 
   assert.equal(stores.applyRemoteExperiments([]),true);
   assert.ok(stores.inquiryDefinitions.every(x=>stores.getExperiments().some(e=>e.id===x.id)));
   for(const id of ['nacl','metals','elephant'])assert.ok(stores.getExperiments().some(x=>x.id===id),'linked baseline guide remains available');
+});
+
+test('Grade 9 stocks support endothermic dissolution, KOH neutralisation and copper hydroxide precipitation',()=>{
+ let m=chem.equilibrateHeat(chem.reagentMixture('water',30),chem.reagentMixture('s_nh4cl',1),10).m;
+ const start=m.temp;
+ for(let i=0;i<120;i++)m=chem.step(m,.1,chem.DEFAULT_ENV).m;
+ assert.ok(m.temp<start,'NH4Cl dissolves endothermically');assert.ok(m.aq.Cl>0);
+ const neutral=chem.equilibrateHeat(chem.reagentMixture('hcl',10),chem.reagentMixture('koh',10),10);
+ assert.ok(neutral.neutralized>0);assert.ok(neutral.m.temp>20);
+ const precip=chem.equilibrateHeat(chem.reagentMixture('cuso4',5),chem.reagentMixture('naoh',15),10);
+ assert.ok(precip.m.s.CuOH2>0);
+ const acid=chem.equilibrateHeat(chem.reagentMixture('s_mgoh2',.1),chem.reagentMixture('hcl',10),10).m;
+ assert.ok(acid.aq.Mg>0,'magnesium hydroxide reacts with acid');
+});
+
+const loadPort=(r,port,reagent,amount)=>stores.loadRig({...r,port},chem.reagentMixture(reagent,amount));
+const advance=(r,seconds)=>{for(let i=0;i<seconds*10;i++)r=stores.tickRig(r,.1);return r;};
+test('every Grade 9 activity has dedicated physical supplies, with no notebook-only model entry',()=>{
+ const all=stores.inquiryDefinitions.filter(d=>d.grade===9);assert.equal(all.length,32);
+ for(const d of all){assert.equal(d.mode,'bench');assert.ok(d.supplies.length,d.id);assert.equal(d.controls.length,0);assert.ok(stores.suppliesFor(d.id).every(s=>s.kind&&s.name));}
+});
+test('gas syringe needs air, expands using Kelvin, and copper uptake is oxygen- and copper-limited',()=>{
+ let r=stores.createRig('g9-gas-expansion','gasSyringe');assert.equal(stores.startRig(r).running,false);
+ r=stores.startRig({...r,initialAir:10,gas:10,heating:true});r=advance(r,40);assert.ok(r.gas>10);assert.ok(Math.abs(r.gas-10*(r.temperature+273.15)/295.15)<1e-9);
+ let oxygen=loadPort(stores.createRig('g9-air-oxygen','gasSyringe'),0,'s_cu',1);
+ oxygen=advance(stores.startRig({...oxygen,initialAir:100,heating:true}),100);assert.ok(oxygen.extent>20.9&&oxygen.extent<=21);assert.ok(oxygen.chambers[0].s.CuO>0);
+ let tiny=loadPort(stores.createRig('g9-air-oxygen','gasSyringe'),0,'s_cu',.001);tiny=advance(stores.startRig({...tiny,initialAir:100,heating:true}),100);assert.ok(tiny.extent<.2,'tiny copper cannot remove all oxygen');
+});
+test('gas train has no free reaction, captures measured gas and conserves closed-system mass',()=>{
+ let r=stores.createRig('g9-mass-conservation','gasTrain');assert.equal(stores.startRig(r).running,false);
+ r=loadPort(r,0,'s_na2co3',1);r=loadPort(r,1,'hcl',1);r=advance(stores.startRig(r),60);
+ assert.ok(r.gas>0);assert.ok(r.gas<=24.01,'1 ml 2 M HCl limits carbonate gas to 24 ml');
+ assert.equal(stores.rigReadings(r).find(x=>x.label==='Системийн масс өөрчлөлт').value,0);
+ assert.ok(stores.rigReadings({...r,closed:false}).find(x=>x.label==='Системийн масс өөрчлөлт').value<0);
+ const stop=advance(r,60);assert.ok(stop.gas-r.gas<.1,'limiting acid cannot create unlimited gas');
+});
+test('NH3/HCl gas diffusion requires separate correct reagents and forms the ring nearer HCl',()=>{
+ let r=stores.createRig('g9-gas-diffusion','diffusionTube');r=loadPort(r,0,'nh3',2);r=loadPort(r,1,'nacl',2);assert.equal(stores.startRig(r).running,false);
+ r={...r,chambers:r.chambers.map((m,i)=>i===1?chem.emptyMixture():m)};r=loadPort(r,1,'hcl',2);r=advance(stores.startRig(r),30);assert.ok(r.extent>0);
+ const distance=stores.rigReadings(r).find(x=>x.label==='Цагираг HCl талаас').value;assert.ok(distance<15&&distance>10);
+});
+test('chromatography needs paper, ink and unsubmerged baseline; bands separate as solvent rises',()=>{
+ let r=stores.createRig('g9-chromatography','chromatographyTank');r=loadPort(r,0,'water',30);r=loadPort(r,1,'inkA',.1);assert.equal(stores.startRig(r).running,false);
+ r=loadPort(r,2,'s_paper',.1);r=advance(stores.startRig(r),20);assert.equal(r.bands.length,3);assert.ok(r.bands.every(x=>x>0&&x<r.extent));
+ const excess=loadPort(r,0,'water',50);assert.equal(stores.startRig(excess).running,false);
+});
+test('convection orientation, graphite conductivity and diffusion grinding change observable results',()=>{
+ let r=loadPort(stores.createRig('g9-liquid-motion','convectionCell'),0,'hot_water',40);r=loadPort(r,1,'cold_water',40);
+ const below=advance(stores.startRig(r),20),above=advance(stores.startRig({...r,hotAbove:true}),20);assert.ok(below.extent>above.extent);
+ let graphite=loadPort(stores.createRig('g9-element-types','conductivityTester'),0,'s_graphite',.5);graphite=advance(stores.startRig(graphite),1);assert.equal(graphite.extent,1);
+ let sulfur=loadPort(stores.createRig('g9-element-types','conductivityTester'),0,'s_s',.5);sulfur=advance(stores.startRig(sulfur),1);assert.equal(sulfur.extent,0);
+ let d=loadPort(stores.createRig('g9-diffusion-surface','diffusionCell'),0,'water',50);d=loadPort(d,1,'s_cuso4',5);const fine=structuredClone(d);fine.chambers[1].fine=true;assert.ok(advance(stores.startRig(fine),30).extent>advance(stores.startRig(d),30).extent);
+});
+test('citric/bicarbonate reaction retains citrate and obeys stoichiometry without pretending to be acetate',()=>{
+ let r=loadPort(stores.createRig('g9-citric-endotherm','gasTrain'),0,'water',50);r=loadPort(r,0,'s_citric',1);r=loadPort(r,1,'s_nahco3',.1);r=advance(stores.startRig(r),30);
+ assert.ok(r.gas>20&&r.gas<=.1/84.01*24000+.01);assert.ok(r.chambers[0].aq.Cit>0);assert.equal(r.chambers[0].aq.Ac,undefined);assert.ok(r.temperature<22);
+});
+test('corrosion comparison responds to water, copper, zinc and intact versus scratched coatings',()=>{
+ let r=stores.createRig('g9-corrosion','corrosionRack');for(let i=0;i<5;i++){r=loadPort(r,i,'s_fe',1);if(i<4)r=loadPort(r,i,'water',5);}
+ r=loadPort(r,1,'s_cu',.1);r=loadPort(r,2,'s_zn',.1);r=loadPort(r,3,'paint',.5);
+ const result=advance(stores.startRig(r),10);assert.ok(result.rust[1]>result.rust[0]);assert.ok(result.rust[2]<result.rust[0]);assert.ok(result.rust[3]<result.rust[0]);assert.equal(result.rust[4],0);
+ assert.ok(advance(stores.startRig({...r,scratched:true}),10).rust[3]>result.rust[3]);assert.ok(result.chambers[0].s.FeOH3>0);
+});
+test('halogen displacement and cobalt hydration occur in actual vessel chemistry',()=>{
+ let m=chem.equilibrateHeat(chem.reagentMixture('chlorine',2),chem.reagentMixture('kbr',2),20).m;for(let i=0;i<100;i++)m=chem.step(m,.1,chem.DEFAULT_ENV).m;assert.ok(m.aq.Br2>0);assert.ok(m.aq.Cl>0);
+ let no=chem.equilibrateHeat(chem.reagentMixture('bromine',2),chem.reagentMixture('nacl',2),20).m;no=chem.step(no,1,chem.DEFAULT_ENV).m;assert.ok(!no.aq.Cl2);
+ let cobalt=chem.equilibrateHeat(chem.reagentMixture('s_cocl2anh',.1),chem.reagentMixture('water',.1),20).m;for(let i=0;i<40;i++)cobalt=chem.step(cobalt,.1,chem.DEFAULT_ENV).m;assert.ok(cobalt.s.CoCl2_6>0||cobalt.aq.Co>0);
+});
+test('pouring into dedicated apparatus depletes the source, respects the selected chamber, and resets in isolation',()=>{
+ stores.useInventoryStore.getState().reset();stores.useChemStore.getState().reset();stores.useGrade9Apparatus.getState().reset();
+ stores.useLabStore.setState({active:'g9-gas-diffusion'});const inv=stores.useInventoryStore.getState();const src=inv.spawn('reagentBottle',[8,.915,-14.5],{reagent:'hcl'}),dst=inv.spawn('diffusionTube',[8.2,.915,-14.5]);
+ stores.useGrade9Apparatus.getState().ensure(dst,'g9-gas-diffusion','diffusionTube');stores.useGrade9Apparatus.getState().change(dst,{port:1});
+ stores.useChemStore.getState().setMixtures({[src]:chem.reagentMixture('hcl',10)});const moved=stores.transfer({id:src,kind:'reagentBottle',variant:{reagent:'hcl'}},{id:dst,kind:'diffusionTube'},2);
+ assert.equal(moved.moved,2);assert.equal(chem.liquidMl(stores.useChemStore.getState().mixtures[src]),8);assert.equal(stores.useGrade9Apparatus.getState().rigs[dst].chambers[1].water,2);assert.equal(stores.useGrade9Apparatus.getState().rigs[dst].chambers[0].water,0);
+ stores.useGrade9Apparatus.getState().ensure('unrelated','g9-air-oxygen','gasSyringe');stores.useGrade9Apparatus.getState().clear(dst);assert.ok(stores.useGrade9Apparatus.getState().rigs.unrelated);assert.ok(!stores.useGrade9Apparatus.getState().rigs[dst]);
+});
+
+test('Grade 9 supplies ignore a removed item that is awaiting React registry cleanup',()=>{
+ stores.useInventoryStore.getState().reset();stores.useChemStore.getState().reset();stores.resetWorkbench();
+ stores.selectBenchExperiment('g9-diffusion-temperature',true);stores.demonstratePreparation();
+ const prior=stores.currentSession().objects.diffusionCell;
+ const object={visible:true,parent:null};
+ stores.interactables.set(prior,{id:prior,object,enabled:true,inspectKind:'diffusionCell',useTarget:{type:'item',id:prior,kind:'diffusionCell'}});
+ stores.selectBenchExperiment('g9-diffusion-surface',true);stores.demonstratePreparation();
+ const next=stores.currentSession().objects.diffusionCell;
+ assert.notEqual(next,prior);assert.ok(stores.useInventoryStore.getState().worldItems.some(x=>x.id===next));assert.ok(stores.currentSession().ready);stores.interactables.delete(prior);
+});
+test('ice absorbs latent heat, and the calorimeter cannot heat water without fuel',()=>{
+ let m=chem.reagentMixture('s_ice',1);m.temp=0;
+ m=chem.step(m,.1,{...chem.DEFAULT_ENV,heatW:100,lossWK:0,glassJK:20}).m;
+ assert.ok(m.s.ice>0&&m.water>0);assert.ok(Math.abs(m.temp)<1e-6);
+ let no=loadPort(stores.createRig('g9-fuel-energy','calorimeter'),0,'water',100);assert.equal(stores.startRig({...no,heating:true}).running,false);
+ let fuel=loadPort(no,1,'ethanol',1);fuel=advance(stores.startRig({...fuel,heating:true}),10);assert.ok(fuel.temperature>22);assert.ok(fuel.chambers[1].ethanol<1);assert.ok(fuel.extent>0);
+});
+test('lemon sample uses triprotic citrate chemistry rather than an acetate substitute',()=>{
+ const lemon=chem.reagentMixture('lemon',10);assert.ok(lemon.aq.Cit>0);assert.equal(lemon.aq.Ac,undefined);
+ let r=loadPort(stores.createRig('g9-citric-endotherm','gasTrain'),0,'water',50);r=loadPort(r,0,'s_citric',.1);r=loadPort(r,1,'s_nahco3',.5);r=advance(stores.startRig(r),30);
+ assert.ok(r.chambers[0].aq.Cit>0);assert.ok((r.chambers[0].aq.Na??0)>0);
+});
+
+test('withdrawing liquid from a Grade 9 compartment cannot duplicate its contents',()=>{
+ const rig='drainable-rig',beaker='receiving-beaker';stores.useGrade9Apparatus.getState().ensure(rig,'g9-liquid-diffusion','diffusionCell');stores.useGrade9Apparatus.getState().load(rig,chem.reagentMixture('water',10));stores.useChemStore.getState().setMixtures({[rig]:chem.reagentMixture('water',10),[beaker]:chem.emptyMixture()});
+ const src={id:rig,kind:'diffusionCell'},dst={id:beaker,kind:'beaker'};
+ assert.equal(stores.transfer(src,dst,7).moved,7);assert.equal(stores.transfer(src,dst,7).moved,3);assert.equal(stores.transfer(src,dst,7).moved,0);
+ assert.equal(stores.useGrade9Apparatus.getState().rigs[rig].chambers[0].water,0);assert.equal(chem.liquidMl(stores.useChemStore.getState().mixtures[beaker]),10);
+});
+
+test('the transfer ledger separates solid grams from liquid millilitres',()=>{
+ stores.clearMeasurements();stores.recordTransfer('mixed-source','receiver','Дээж',5,'ml');stores.recordTransfer('mixed-source','receiver','Дээж',.5,'g');
+ const records=stores.useMeasurements.getState().transfers;assert.equal(records.length,2);assert.equal(records.find(x=>x.unit==='g').ml,.5);assert.equal(records.find(x=>x.unit==='ml').ml,5);
+});
+
+test('lemon apparatus explains missing inputs and mixes later staged additions',()=>{
+ let r=stores.createRig('g9-citric-endotherm','gasTrain');
+ assert.match(stores.startRig(r).message,/ус нэм/);
+ r=loadPort(r,0,'water',10);assert.match(stores.startRig(r).message,/хүчил нэм/);
+ r=loadPort(r,0,'s_citric',1);assert.match(stores.startRig(r).message,/сод/);
+ r=loadPort(r,1,'s_nahco3',.1);r=stores.startRig(r);
+ assert.equal(r.running,true);assert.equal(chem.solidMassG(r.chambers[1]),0);
+ r=advance(r,5);const before=r.gas;assert.ok(before>0);assert.ok(r.temperature<22);
+ r=loadPort(r,1,'s_nahco3',.1);r=stores.startRig(r);
+ assert.equal(chem.solidMassG(r.chambers[1]),0);
+ r=advance(r,5);assert.ok(r.gas>before);
 });

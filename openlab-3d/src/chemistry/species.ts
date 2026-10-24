@@ -8,14 +8,14 @@
  * mixture's color follows Beer–Lambert: T = color^(c / cRef), multiplied over species.
  */
 
-export type Cation = 'Na' | 'K' | 'Li' | 'Ca' | 'Ba' | 'Mg' | 'Zn' | 'Cu' | 'Fe2' | 'Fe3' | 'Ag' | 'Pb' | 'Mn';
-export type Anion = 'Cl' | 'I' | 'NO3' | 'SO4' | 'SCN' | 'MnO4';
-export type WeakId = 'Ac' | 'NH3' | 'CO3';
-export type MoleculeId = 'H2O2' | 'I2' | 'starch' | 'sucrose' | 'soap' | 'phph' | 'btb' | 'mo' | 'ui' | 'dyeR' | 'dyeY' | 'dyeG' | 'dyeB';
+export type Cation = 'Al' | 'Co' | 'Na' | 'K' | 'Li' | 'Ca' | 'Ba' | 'Mg' | 'Zn' | 'Cu' | 'Fe2' | 'Fe3' | 'Ag' | 'Pb' | 'Mn';
+export type Anion = 'Br' | 'Cr2O7' | 'Cl' | 'I' | 'NO3' | 'SO4' | 'SCN' | 'MnO4';
+export type WeakId = 'Cit' | 'Ac' | 'NH3' | 'CO3';
+export type MoleculeId = 'Cl2' | 'Br2' | 'H2O2' | 'I2' | 'starch' | 'sucrose' | 'soap' | 'phph' | 'btb' | 'mo' | 'ui' | 'dyeR' | 'dyeY' | 'dyeG' | 'dyeB';
 export type AqId = Cation | Anion | WeakId | MoleculeId;
 
-export type SolidId =
-  | 'KCl'
+export type SolidId = 'ice' | 'Al' | 'P' | 'S' | 'Si' | 'graphite' | 'iodine' | 'Fe2O3' | 'PbO2' | 'ZnO' | 'gelatin' | 'paper' | 'sand' | 'citric' | 'litmus_red' | 'litmus_blue' | 'CoCl2' | 'CoCl2_6' | 'plastic' |
+   'KCl'
   | 'ZnSO4'
   | 'NaCl'
   | 'CuSO4_5'
@@ -51,6 +51,7 @@ export type SolidId =
   | 'AgOH'
   | 'MnOH2'
   | 'CuO'
+  | 'NH4Cl'
   | 'CuCO3'
   | 'BaCO3'
   | 'salt';
@@ -65,10 +66,17 @@ export interface AqDef {
   cRef?: number;
 }
 
-export const CATIONS: Cation[] = ['Na', 'K', 'Li', 'Ca', 'Ba', 'Mg', 'Zn', 'Cu', 'Fe2', 'Fe3', 'Ag', 'Pb', 'Mn'];
-export const ANIONS: Anion[] = ['Cl', 'I', 'NO3', 'SO4', 'SCN', 'MnO4'];
+export const CATIONS: Cation[] = ['Al','Co','Na', 'K', 'Li', 'Ca', 'Ba', 'Mg', 'Zn', 'Cu', 'Fe2', 'Fe3', 'Ag', 'Pb', 'Mn'];
+export const ANIONS: Anion[] = ['Br','Cr2O7','Cl', 'I', 'NO3', 'SO4', 'SCN', 'MnO4'];
 
 export const AQ: Record<AqId, AqDef> = {
+ Al:{name:'Хөнгөнцагааны ион',formula:'Al³⁺',charge:3,molarMass:26.98},
+ Cit:{name:'Цитрийн хүчил / цитратын нийт',formula:'C₆H₈O₇ / Cit',charge:0,molarMass:189.1},
+ Co:{name:'Кобальт (II)',formula:'Co²⁺',charge:2,molarMass:58.93,color:'#e69ec0',cRef:.1},
+ Br:{name:'Бромид',formula:'Br⁻',charge:-1,molarMass:79.9},
+ Cr2O7:{name:'Дихромат',formula:'Cr₂O₇²⁻',charge:-2,molarMass:215.99,color:'#f89d28',cRef:.02},
+ Cl2:{name:'Хлор',formula:'Cl₂',charge:0,molarMass:70.9,color:'#d5e38d',cRef:.02},
+ Br2:{name:'Бром',formula:'Br₂',charge:0,molarMass:159.8,color:'#b66a26',cRef:.02},
   Na: { name: 'Натрийн ион', formula: 'Na⁺', charge: 1, molarMass: 23 },
   K: { name: 'Калийн ион', formula: 'K⁺', charge: 1, molarMass: 39.1 },
   Li: { name: 'Литийн ион', formula: 'Li⁺', charge: 1, molarMass: 6.94 },
@@ -122,6 +130,25 @@ export interface SolidDef {
 }
 
 export const SOLIDS: Record<SolidId, SolidDef> = {
+ ice:{name:'Мөс',formula:'H₂O(s)',color:'#e0f5ff',molarMass:18.015},
+ Al:{name:'Хөнгөнцагаан',formula:'Al',color:'#bfcbd2',molarMass:26.98},
+ P:{name:'Улаан фосфор',formula:'P',color:'#9c4134',molarMass:30.97},
+ S:{name:'Хүхэр',formula:'S',color:'#e9cd35',molarMass:32.06},
+ Si:{name:'Цахиур',formula:'Si',color:'#6d7085',molarMass:28.09},
+ graphite:{name:'Графит',formula:'C',color:'#222b35',molarMass:12.01},
+ iodine:{name:'Иодын талст',formula:'I₂',color:'#483852',molarMass:253.8},
+ Fe2O3:{name:'Төмрийн (III) исэл',formula:'Fe₂O₃',color:'#a34028',molarMass:159.69},
+ PbO2:{name:'Хар тугалганы (IV) исэл',formula:'PbO₂',color:'#493f36',molarMass:239.2},
+ ZnO:{name:'Цайрын исэл',formula:'ZnO',color:'#f3f5eb',molarMass:81.38},
+ gelatin:{name:'Желатин',formula:'Желатин',color:'#eed8ac',molarMass:1000},
+ paper:{name:'Шүүлтүүрийн цаас',formula:'Целлюлоз',color:'#f7f1db',molarMass:162.14},
+ sand:{name:'Элс',formula:'SiO₂',color:'#d1b98c',molarMass:60.08},
+ citric:{name:'Нимбэгийн хүчил',formula:'C₆H₈O₇',color:'#f8fafb',molarMass:192.12,dissolve:{products:{Cit:1},solubility:3,dH:0}},
+ litmus_red:{name:'Улаан лакмус',formula:'Лакмус',color:'#dd5470',molarMass:1000},
+ litmus_blue:{name:'Хөх лакмус',formula:'Лакмус',color:'#5566d9',molarMass:1000},
+ CoCl2:{name:'Усгүй кобальтын хлорид',formula:'CoCl₂',color:'#526ac6',molarMass:129.84},
+ CoCl2_6:{name:'Кобальтын хлорид гексагидрат',formula:'CoCl₂·6H₂O',color:'#e69ec0',molarMass:237.93,dissolve:{products:{Co:1,Cl:2},solubility:4,dH:0,water:6}},
+ plastic:{name:'Хуванцар бүрхүүл',formula:'Бүрхүүл',color:'#f1f5f9',molarMass:1000},
   KCl: { name: 'Калийн хлорид', formula: 'KCl', color: '#f3f5f7', molarMass: 74.55, dissolve: { products: {K:1,Cl:1}, solubility:4.5, dH:17.2 } },
   ZnSO4: { name: 'Цайрын сульфат', formula: 'ZnSO₄', color: '#f0f4f5', molarMass: 161.44, dissolve: { products: {Zn:1,SO4:1}, solubility:3.5, dH:0 } },
   NaCl: { name: 'Натрийн хлорид', formula: 'NaCl', color: '#f3f5f7', molarMass: 58.44, dissolve: { products: { Na: 1, Cl: 1 }, solubility: 6.1, dH: 3.9 } },
@@ -158,6 +185,7 @@ export const SOLIDS: Record<SolidId, SolidDef> = {
   AgOH: { name: 'Мөнгөний исэл', formula: 'Ag₂O', color: '#5b3d26', molarMass: 115.9 },
   MnOH2: { name: 'Манганы (II) гидроксид', formula: 'Mn(OH)₂', color: '#cdb79c', molarMass: 88.95 },
   CuO: { name: 'Зэсийн (II) исэл', formula: 'CuO', color: '#1d1b1a', molarMass: 79.55 },
+  NH4Cl: {name:'Аммонийн хлорид',formula:'NH₄Cl',color:'#f4f5f5',molarMass:53.49,dissolve:{products:{NH3:1,Cl:1},dH:14.8,solubility:6.9}},
   CuCO3: { name: 'Зэсийн (II) карбонат', formula: 'CuCO₃', color: '#4cb39e', molarMass: 123.6 },
   BaCO3: { name: 'Барийн карбонат', formula: 'BaCO₃', color: '#f5f5f3', molarMass: 197.3 },
   salt: { name: 'Давсны үлдэгдэл', formula: 'Давс', color: '#f1f1ec', molarMass: 60 },
@@ -191,6 +219,7 @@ export const SALTS: { cation: Cation; a: number; anion: Anion | 'CO3'; b: number
 
 /** Activity series (most reactive first); a metal displaces the ions of any metal after it. */
 export const ACTIVITY: { solid: SolidId; ion: Cation; charge: number; acidRate: number; dH: number }[] = [
+  {solid:'Al',ion:'Al',charge:3,acidRate:.03,dH:-531},
   { solid: 'Mg', ion: 'Mg', charge: 2, acidRate: 1.4, dH: -467 },
   { solid: 'Zn', ion: 'Zn', charge: 2, acidRate: 0.14, dH: -153 },
   { solid: 'Fe', ion: 'Fe2', charge: 2, acidRate: 0.035, dH: -87 },

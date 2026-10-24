@@ -1,3 +1,5 @@
+import {liquidMl,solidMassG} from '../../chemistry/mixture';
+import {Grade9Controls} from '../grade9/Controls';
 import { KI_DOSE_ML } from '../../lab/quantity-guidance';
 import { MeasurementGuide } from '../workbench/MeasurementGuide';
 import { MoleculeViewerButton } from '../../ui/MoleculeViewer';
@@ -26,7 +28,7 @@ import { useSettingsStore } from '../../store/useSettingsStore';
 import { useLabStore } from '../../store/useLabStore';
 import { useExperimentCatalog } from '../../lab/experiments';
 import { composition } from '../../chemistry/describe';
-import { useChemStore } from '../../store/useChemStore';
+import { useChemStore,mixtureOf } from '../../store/useChemStore';
 import { currentSession, jumpToStep, useWorkbench } from '../workbench/session';
 import { isTouchDevice } from '../../utils/device';
 import { PreparationChecklist } from '../workbench/PreparationHints';
@@ -84,6 +86,8 @@ function SubstanceCard() {
     if (mode === 'walk') requestLock();
   };
   const tool = heldId ? describe(heldId) : null;
+  const heldContents=heldId?mixtureOf(heldId,normal?.variant):undefined;
+  const doseUnit=heldContents&&liquidMl(heldContents)<=.005&&solidMassG(heldContents)>0?'г':'см³';
   const fittingPaper = !!tool && ['paper', 'stack'].includes(tool.role) && key === 'funnel';
   const canPour = !!tool && !['paper', 'stack'].includes(tool.role) && tool.capacity > 0 && item.capacity > 0 && heldId !== id;
   const action = () => { if (heldId !== id) beginHeldUse(id); };
@@ -106,7 +110,7 @@ function SubstanceCard() {
       <p className="mb-2 text-[11px] text-slate-600">{tool?.label} → {item.label}</p>
       <button className="touch-none rounded-lg bg-slate-200 px-3 py-2 text-xs font-bold" onPointerDown={(e) => { e.currentTarget.setPointerCapture(e.pointerId); action(); }} onPointerUp={endHeldUse} onPointerCancel={endHeldUse} onBlur={endHeldUse}
         onKeyDown={(e) => { if ((e.key === ' ' || e.key === 'Enter') && !e.repeat) { e.preventDefault(); action(); } }} onKeyUp={endHeldUse}>Дарж барьж {fittingPaper ? 'цаасыг суулгах' : canPour ? 'цутгах' : 'ашиглах'}</button>
-      {canPour && <div className="mt-2 flex flex-wrap gap-2"><button className="rounded-lg bg-sky-100 px-3 py-2 text-xs font-bold" onClick={() => dose(.1)}>0.1 см³ цутгах</button><button className="rounded-lg bg-sky-100 px-3 py-2 text-xs font-bold" onClick={() => dose(1)}>1 см³ цутгах</button><button className="rounded-lg bg-sky-100 px-3 py-2 text-xs font-bold" onClick={() => dose(5)}>5 см³ цутгах</button></div>}
+      {canPour && <div className="mt-2 flex flex-wrap gap-2"><button className="rounded-lg bg-sky-100 px-3 py-2 text-xs font-bold" onClick={() => dose(.1)}>0.1 {doseUnit} {doseUnit==='г'?'хийх':'цутгах'}</button><button className="rounded-lg bg-sky-100 px-3 py-2 text-xs font-bold" onClick={() => dose(1)}>1 {doseUnit} {doseUnit==='г'?'хийх':'цутгах'}</button><button className="rounded-lg bg-sky-100 px-3 py-2 text-xs font-bold" onClick={() => dose(5)}>5 {doseUnit} {doseUnit==='г'?'хийх':'цутгах'}</button></div>}
     </div>}
     <div className="mt-3 flex flex-wrap gap-2">
       {((interactables.get(id)?.onGrab && interactables.get(id)?.onGrab !== interactables.get(id)?.onInteract) || key === 'lamp' || key === 'scope') && <button className="rounded-lg bg-slate-100 px-3 py-2 text-xs font-bold" onClick={() => { const entry = interactables.get(id); if (key) labUse.start(id); else entry?.onInteract?.(); }}>Ашиглах</button>}
@@ -114,6 +118,7 @@ function SubstanceCard() {
       {!heldId && !inspecting && <button className="rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs" onClick={() => { interactItem(id, true); }}>Авах / зөөх</button>}
       {heldId === id && <button className="rounded-lg bg-emerald-100 px-3 py-2 text-xs font-semibold" onClick={() => { tablePointer.angle += Math.PI / 4; }}>Эргүүлэх 45°</button>}
     </div>
+    <Grade9Controls id={id}/>
     {item.capacity > 0 && <div className="my-2 rounded-xl bg-sky-50 px-3 py-2"><span className="block text-[10px] font-bold uppercase tracking-wide text-slate-500">Одоогийн эзэлхүүн</span><output className="font-mono text-2xl font-bold tabular-nums sm:text-3xl text-sky-900" aria-label="Одоогийн эзэлхүүн">{m.ml.toFixed(1)} <small className="text-sm">см³</small></output>{key === 'cyl' && <div className="text-xs text-sky-800">Зорилго: 50.0 см³ · 1 см³ хуваарь<br />Менискийн доод ирмэгийг урдаас унш.</div>}</div>}
     {inspecting && <p className="mb-1 text-[11px] text-slate-500">Чирж эргүүл · Дугуй / хоёр хуруугаар ойртуул</p>}
     <p className="text-xs font-semibold text-teal-700">{contentsLabel(m)} · {m.temp.toFixed(0)} °C</p>

@@ -39,7 +39,7 @@ export interface StepResult {
 export const DEFAULT_ENV: StepEnv = { heatW: 0, glassJK: 100, lossWK: 6, stir: 0, covered: false, co2: false, flame: false };
 
 /** Soluble solids, in the order they crystallize out when a solution dries. */
-const CRYSTALLIZE: SolidId[] = ['KCl', 'ZnSO4', 'CuSO4_5', 'KMnO4', 'NaCl', 'Na2CO3', 'NaHCO3', 'NH4NO3', 'sucrose', 'NaOH'];
+const CRYSTALLIZE: SolidId[] = ['NH4Cl', 'KCl', 'ZnSO4', 'CuSO4_5', 'KMnO4', 'NaCl', 'Na2CO3', 'NaHCO3', 'NH4NO3', 'sucrose', 'NaOH'];
 
 const LATENT_WATER = 1130; // J/g (halved latent heat so evaporation demos are quick)
 const LATENT_ETHANOL = 1500;
@@ -102,6 +102,13 @@ export function step(input: Mixture, dtRaw: number, env: StepEnv): StepResult {
   const T = m.temp;
   const warm = 1 + Math.max(0, T - 22) / 25;
 
+  // Grade 9: halogen displacement conserves halogen atoms and ionic charge.
+  for (const [oxidant,halide,product,anion] of [['Cl2','Br','Br2','Cl'],['Cl2','I','I2','Cl'],['Br2','I','I2','Br']] as [AqId,AqId,AqId,AqId][]) {
+    const dn=Math.min(get(m,oxidant),get(m,halide)/2)*(1-Math.exp(-2*dt));
+    if(dn>1e-12){add(m,oxidant,-dn);add(m,halide,-2*dn);add(m,product,dn);add(m,anion,2*dn);changed=true;notes.push('halogen:displacement');}
+  }
+  const cobalt=m.s.CoCl2??0;
+  if(cobalt>0 && m.water>0){const dn=Math.min(cobalt*(1-Math.exp(-2*dt)),m.water/108.09);addS(m,'CoCl2',-dn);addS(m,'CoCl2_6',dn);m.water-=dn*108.09;changed=true;notes.push('hydrate:CoCl2');}
   // 1. Anhydrous copper sulfate takes up water first (white → blue), then everything dissolves.
   const anh = m.s.CuSO4 ?? 0;
   if (anh > 1e-10 && m.water > 0.001) {
@@ -185,7 +192,7 @@ export function step(input: Mixture, dtRaw: number, env: StepEnv): StepResult {
           addS(m, metal.solid, -dn);
           add(m, metal.ion, dn);
           acidLeft -= dn * metal.charge;
-          gas.H2 += dn / Math.max(dt, 1e-3);
+          gas.H2 += dn * metal.charge / 2 / Math.max(dt, 1e-3);
           heat += -metal.dH * 1000 * dn;
           changed = true;
         }
@@ -243,7 +250,8 @@ export function step(input: Mixture, dtRaw: number, env: StepEnv): StepResult {
     if (peroxide > 1e-9) {
       const iodide = get(m, 'I') / V;
       const mno2 = Math.min(1, (m.s.MnO2 ?? 0) * 300);
-      const k = (0.0008 + 2.4 * iodide + 0.5 * mno2 + 0.6 * (get(m, 'Fe3') / V)) * Math.pow(2, (T - 22) / 10);
+      const oxideCatalyst=Math.min(.35,(m.s.Fe2O3??0)*12+(m.s.PbO2??0)*40+(m.s.CuO??0)*8);
+      const k = (0.0008 + oxideCatalyst + 2.4 * iodide + 0.5 * mno2 + 0.6 * (get(m, 'Fe3') / V)) * Math.pow(2, (T - 22) / 10);
       const dn = peroxide * (1 - Math.exp(-k * dt));
       if (dn > 1e-10) {
         add(m, 'H2O2', -dn);
@@ -273,6 +281,7 @@ export function step(input: Mixture, dtRaw: number, env: StepEnv): StepResult {
   }
   const dry = liquidMl(m) < 0.02;
   if (dry) {
+    if((m.s.CuCO3??0)>1e-10 && T>200){const dn=(m.s.CuCO3??0)*(1-Math.exp(-.08*dt));addS(m,'CuCO3',-dn);addS(m,'CuO',dn);gas.CO2+=dn/Math.max(dt,.001);changed=true;notes.push('decompose:CuCO3');}
     if ((m.s.CuSO4_5 ?? 0) > 1e-10 && T > 105) {
       const dn = (m.s.CuSO4_5 ?? 0) * (1 - Math.exp(-0.1 * Math.min(3, (T - 105) / 30) * dt));
       addS(m, 'CuSO4_5', -dn);
@@ -338,7 +347,16 @@ export function step(input: Mixture, dtRaw: number, env: StepEnv): StepResult {
   const dissolveRate = dissolveHeat / capacity / Math.max(dt, 1e-3);
   if (dissolveRate < -0.3) notes.push('dissolve:cold');
   else if (dissolveRate > 0.3) notes.push('dissolve:hot');
-  const power = env.heatW + heat / Math.max(dt, 1e-3) - env.lossWK * (m.temp - ROOM_T);
+  let power = env.heatW + heat / Math.max(dt, 1e-3) - env.lossWK * (m.temp - ROOM_T);
+  // Ice absorbs latent heat instead of warming through the melting interval.
+  const ice=m.s.ice??0;
+  if(ice>0&&m.temp+power*dt/capacity>=0){
+    const energy=Math.max(0,m.temp*capacity+power*dt);
+    const dn=Math.min(ice,energy/(334*18.015));
+    m.s.ice=ice-dn;m.water+=dn*18.015;
+    m.temp=(m.s.ice??0)>1e-10?0:Math.max(0,energy-dn*334*18.015)/(heatCapacity(m)+env.glassJK);
+    power=0;changed=true;
+  }
   let boiling = false;
   if (liquidMl(m) > 0.005) {
     const bp = boilingPoint(m);

@@ -17,7 +17,7 @@ import { useOpenLabCatalog } from '@/hooks/use-openlab-catalog';
  * writes it to `public/openlab/`, which Expo web serves as static files; this screen shows
  * it full screen in an iframe.
  */
-const OPENLAB_URL = '/openlab/index.html?v=textbook-investigations-1';
+const OPENLAB_URL = '/openlab/index.html?v=textbook-apparatus-3';
 /** The built page's <title>; an SPA fallback page would not contain it. */
 const OPENLAB_MARKER = '<title>OpenLab 3D</title>';
 

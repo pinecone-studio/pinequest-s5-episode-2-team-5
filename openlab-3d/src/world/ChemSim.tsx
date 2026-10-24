@@ -1,3 +1,4 @@
+import {isGrade9Rig} from '../experiments/grade9/kinds';
 /**
  * The lab's simulation loop (inside the canvas):
  *  - every frame: continuous R actions (pouring, dripping, heating, spraying);
@@ -104,6 +105,7 @@ function simulate(dt: number): void {
       flame: heatW > 0,
     };
     if (heatW > 0) note(id, 'heat:start', 20000);
+    if(isGrade9Rig(kind))continue;
     const r = step(before, dt, env);
     for (const reaction of stepObservations(before, r, dt)) publishReaction(id, reaction);
     const m = r.m;
@@ -139,6 +141,7 @@ function simulate(dt: number): void {
   for (const w of inv.worldItems) {
     if (isBenchPaused(w.id)) continue;
     const def = CATALOG[w.kind];
+    if(isGrade9Rig(w.kind))continue; // Sealed compartments are managed by the apparatus engine.
     if (!def.upright && w.kind !== 'testTube') continue;
     const m = useChemStore.getState().mixtures[w.id] ?? seedMixture(w.variant);
     if (liquidMl(m) < 0.3) continue;
