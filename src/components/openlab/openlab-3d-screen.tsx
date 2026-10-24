@@ -17,7 +17,7 @@ import { useOpenLabCatalog } from '@/hooks/use-openlab-catalog';
  * writes it to `public/openlab/`, which Expo web serves as static files; this screen shows
  * it full screen in an iframe.
  */
-const OPENLAB_URL = '/openlab/index.html?v=textbook-apparatus-3';
+const OPENLAB_URL = '/openlab/index.html?v=pip-gemini-2';
 /** The built page's <title>; an SPA fallback page would not contain it. */
 const OPENLAB_MARKER = '<title>OpenLab 3D</title>';
 
@@ -86,7 +86,7 @@ function OpenLabWeb() {
         src={labUrl}
         title="OpenLab 3D virtual laboratory"
         allow="fullscreen; autoplay"
-        onLoad={() => { frame.current?.focus(); sendCatalog(); }}
+        onLoad={() => { frame.current?.focus(); sendCatalog(frame.current?.contentWindow ?? null); }}
         style={{ border: 0, width: '100%', height: '100%', display: 'block', backgroundColor: '#eef0f2' }}
       />
       {/* Top center: OpenLab keeps its own menu (top left) and Notes/End (top right). */}

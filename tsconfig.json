@@ -21,6 +21,7 @@
     "node_modules",
     "openlab-3d",
     "public",
+    "supabase/functions",
     "pinequest-s5-episode-2-team-5"
   ]
 }
