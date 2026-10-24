@@ -79,10 +79,15 @@ export function EquipmentModel({ kind, variant, mixture, itemId, lit, flameColor
     if (decorative && variant?.liquid) {
       return { liquid: variant.liquid, liquidMl: (variant.fillLevel ?? 0.5) * (CATALOG[kind].capacityMl ?? 0), turbidity: 0, sedimentMl: 0, solidColor: null, solidMetal: false, foamMl: 0, burning: false };
     }
-    return mixtureLook(contents);
+    const base = mixtureLook(contents);
+    // Thumbnails of stock bottles show the reagent's real color, not the simulated undiluted stock.
+    const real = decorative && variant?.reagent ? REAGENTS[variant.reagent].color : undefined;
+    return real && base.liquid ? { ...base, liquid: real } : base;
   }, [kind, contents, decorative, variant]);
   const reagent = variant?.reagent ? REAGENTS[variant.reagent] : undefined;
   const fx = { look, itemId };
+  // Thumbnails paint the label stripe in the substance's real color instead of its catalog accent.
+  const stripe = (decorative ? (look?.liquid ?? look?.solidColor) : undefined) ?? reagent?.stripe;
   switch (kind) {
     case 'beaker':
       return <Beaker {...fx} {...props} />;
@@ -95,11 +100,11 @@ export function EquipmentModel({ kind, variant, mixture, itemId, lit, flameColor
     case 'graduatedCylinder':
       return <GraduatedCylinder {...fx} {...props} />;
     case 'reagentBottle':
-      return <ReagentBottle label={reagent?.label ?? variant?.label} name={reagent?.name} stripe={reagent?.stripe} {...props} />;
+      return <ReagentBottle look={look} decorative={decorative} label={reagent?.label ?? variant?.label} name={reagent?.name} stripe={stripe} {...props} />;
     case 'dropperBottle':
-      return <DropperBottle label={reagent?.label ?? variant?.label} name={reagent?.name} stripe={reagent?.stripe} {...props} />;
+      return <DropperBottle look={look} decorative={decorative} label={reagent?.label ?? variant?.label} name={reagent?.name} stripe={stripe} {...props} />;
     case 'reagentJar':
-      return <ReagentJar {...fx} label={reagent?.label ?? variant?.label} name={reagent?.name} stripe={reagent?.stripe} {...props} />;
+      return <ReagentJar {...fx} label={reagent?.label ?? variant?.label} name={reagent?.name} stripe={stripe} {...props} />;
     case 'bunsenBurner':
       return <BunsenBurner lit={lit} flameColor={flameColor} {...props} />;
     case 'tripod':
