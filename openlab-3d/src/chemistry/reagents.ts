@@ -80,6 +80,11 @@ export interface Reagent {
   hazards: Hazard[];
   note: string;
   stripe: string;
+  /**
+   * Real color of the stock liquid in its bottle. Set only where the simulation's color of the
+   * undiluted stock is wrong (indicators, dyes, iodine and permanganate come out black or off-hue).
+   */
+  color?: string;
 }
 
 export const CATEGORY_LABELS: Record<ReagentCategory, string> = {
@@ -107,7 +112,7 @@ const L = (
   label: string,
   category: ReagentCategory,
   solutes: Partial<Record<AqId, number>>,
-  opts: { container?: ReagentContainer; stock?: number; ethanol?: number; hazards?: Hazard[]; note: string; stripe: string },
+  opts: { container?: ReagentContainer; stock?: number; ethanol?: number; hazards?: Hazard[]; note: string; stripe: string; color?: string },
 ): Reagent => ({
   id,
   name,
@@ -119,6 +124,7 @@ const L = (
   hazards: opts.hazards ?? [],
   note: opts.note,
   stripe: opts.stripe,
+  color: opts.color,
 });
 
 const S = (id: ReagentId, name: string, label: string, solid: SolidId, opts: { hazards?: Hazard[]; note: string; stripe: string; stock?: number }): Reagent => ({
@@ -160,23 +166,23 @@ const LIST: Reagent[] = [
   L('agno3', 'Мөнгөний нитрат (0.1 М)', 'AgNO₃', 'special', { Ag: 0.1, NO3: 0.1 }, { container: 'dropperBottle', hazards: ['corrosive', 'env'], note: 'Хлорид ионыг илрүүлнэ (цагаан AgCl). Арьсыг харлуулна — бээлий өмс.', stripe: '#94a3b8' }),
   L('pbno3', 'Хар тугалганы (II) нитрат (0.1 М)', 'Pb(NO₃)₂', 'special', { Pb: 0.1, NO3: 0.2 }, { container: 'dropperBottle', hazards: ['toxic', 'env'], note: 'Иодидтой тод шар PbI₂ тунадас өгнө. Маш хортой — хаягдлын саванд хий.', stripe: '#475569' }),
   L('kscn', 'Калийн тиоцианат (0.1 М)', 'KSCN', 'special', { K: 0.1, SCN: 0.1 }, { container: 'dropperBottle', hazards: ['irritant'], note: 'Fe³⁺ ионыг илрүүлнэ: цусан улаан өнгө.', stripe: '#be123c' }),
-  L('kmno4', 'Калийн перманганат (0.02 М)', 'KMnO₄', 'special', { K: 0.02, MnO4: 0.02 }, { hazards: ['oxidizer', 'env'], note: 'Хүчтэй исэлдүүлэгч, нил ягаан. Хүчиллэг орчинд өнгөө алдана.', stripe: '#7e22ce' }),
+  L('kmno4', 'Калийн перманганат (0.02 М)', 'KMnO₄', 'special', { K: 0.02, MnO4: 0.02 }, { hazards: ['oxidizer', 'env'], note: 'Хүчтэй исэлдүүлэгч, нил ягаан. Хүчиллэг орчинд өнгөө алдана.', stripe: '#7e22ce', color: '#6d1a9c' }),
   L('h2o2', 'Устөрөгчийн хэт исэл (3%)', 'H₂O₂', 'special', { H2O2: 0.88 }, { hazards: ['oxidizer', 'irritant'], note: 'Катализаторын (KI, MnO₂) нөлөөгөөр хүчилтөрөгч ялгаруулж задарна.', stripe: '#0891b2' }),
   // Indicators.
-  L('phph', 'Фенолфталеин', 'ФФ', 'indicator', { phph: 0.03 }, { container: 'dropperBottle', ethanol: 0.5, hazards: ['flammable'], note: 'Хүчил, саармаг орчинд өнгөгүй; pH > 8.2 үед ягаан.', stripe: '#db2777' }),
-  L('btb', 'Бромтимол цэнхэр', 'БТЦ', 'indicator', { btb: 0.004 }, { container: 'dropperBottle', note: 'Хүчилд шар, саармагт ногоон, шүлтэд цэнхэр.', stripe: '#0d9488' }),
-  L('mo', 'Метилоранж', 'МО', 'indicator', { mo: 0.003 }, { container: 'dropperBottle', note: 'pH < 3.1 үед улаан, pH > 4.4 үед шар.', stripe: '#ea580c' }),
-  L('ui', 'Универсаль индикатор', 'УИ', 'indicator', { ui: 0.01 }, { container: 'dropperBottle', ethanol: 0.3, hazards: ['flammable'], note: 'pH-ийг өнгөөр харуулна: улаан (1) → шар → ногоон (7) → цэнхэр → нил ягаан (14).', stripe: '#16a34a' }),
+  L('phph', 'Фенолфталеин', 'ФФ', 'indicator', { phph: 0.03 }, { container: 'dropperBottle', ethanol: 0.5, hazards: ['flammable'], note: 'Хүчил, саармаг орчинд өнгөгүй; pH > 8.2 үед ягаан.', stripe: '#db2777', color: '#e2f0fa' }),
+  L('btb', 'Бромтимол цэнхэр', 'БТЦ', 'indicator', { btb: 0.004 }, { container: 'dropperBottle', note: 'Хүчилд шар, саармагт ногоон, шүлтэд цэнхэр.', stripe: '#0d9488', color: '#3fa66a' }),
+  L('mo', 'Метилоранж', 'МО', 'indicator', { mo: 0.003 }, { container: 'dropperBottle', note: 'pH < 3.1 үед улаан, pH > 4.4 үед шар.', stripe: '#ea580c', color: '#f29a1a' }),
+  L('ui', 'Универсаль индикатор', 'УИ', 'indicator', { ui: 0.01 }, { container: 'dropperBottle', ethanol: 0.3, hazards: ['flammable'], note: 'pH-ийг өнгөөр харуулна: улаан (1) → шар → ногоон (7) → цэнхэр → нил ягаан (14).', stripe: '#16a34a', color: '#4fb83a' }),
   L('starch', 'Цардуулын уусмал (1%)', 'Цардуул', 'indicator', { starch: 0.06 }, { note: 'Иодтой хар хөх өнгө өгнө.', stripe: '#a3a3a3' }),
-  L('iodine', 'Иодын уусмал (Люголь)', 'I₂ + KI', 'indicator', { I2: 0.05, K: 0.1, I: 0.1 }, { container: 'dropperBottle', hazards: ['irritant'], note: 'Цардуулыг илрүүлнэ. Хүрэн өнгөтэй.', stripe: '#92400e' }),
+  L('iodine', 'Иодын уусмал (Люголь)', 'I₂ + KI', 'indicator', { I2: 0.05, K: 0.1, I: 0.1 }, { container: 'dropperBottle', hazards: ['irritant'], note: 'Цардуулыг илрүүлнэ. Хүрэн өнгөтэй.', stripe: '#92400e', color: '#8a4a1c' }),
   // Water, ethanol, soap, dyes.
   L('water', 'Нэрмэл ус', 'H₂O', 'other', {}, { note: 'Ионгүй цэвэр ус. Уусмал шингэлэх, сав зайлахад хэрэглэнэ.', stripe: '#38bdf8' }),
   L('ethanol', 'Этанол (96%)', 'C₂H₅OH', 'other', {}, { ethanol: 0.96, hazards: ['flammable'], note: 'Маш шатамхай! Ил галаас хол байлга. Шатвал цагийн шилээр тагла эсвэл CO₂ гал унтраагуур хэрэглэ.', stripe: '#f59e0b' }),
   L('soap', 'Угаалгын шингэн', 'Саван', 'other', { soap: 0.2 }, { note: 'Хий ялгарах үед хөөс үүсгэнэ ("зааны шүдний оо").', stripe: '#22c55e' }),
-  L('dyeRed', 'Хүнсний будаг (улаан)', 'Улаан', 'other', { dyeR: 0.01 }, { container: 'dropperBottle', note: 'Өнгө холих туршилтад.', stripe: '#dc2626' }),
-  L('dyeYellow', 'Хүнсний будаг (шар)', 'Шар', 'other', { dyeY: 0.01 }, { container: 'dropperBottle', note: 'Өнгө холих туршилтад.', stripe: '#eab308' }),
-  L('dyeGreen', 'Хүнсний будаг (ногоон)', 'Ногоон', 'other', { dyeG: 0.01 }, { container: 'dropperBottle', note: 'Өнгө холих туршилтад.', stripe: '#16a34a' }),
-  L('dyeBlue', 'Хүнсний будаг (цэнхэр)', 'Цэнхэр', 'other', { dyeB: 0.01 }, { container: 'dropperBottle', note: 'Өнгө холих туршилтад.', stripe: '#2563eb' }),
+  L('dyeRed', 'Хүнсний будаг (улаан)', 'Улаан', 'other', { dyeR: 0.01 }, { container: 'dropperBottle', note: 'Өнгө холих туршилтад.', stripe: '#dc2626', color: '#d4161e' }),
+  L('dyeYellow', 'Хүнсний будаг (шар)', 'Шар', 'other', { dyeY: 0.01 }, { container: 'dropperBottle', note: 'Өнгө холих туршилтад.', stripe: '#eab308', color: '#f5c800' }),
+  L('dyeGreen', 'Хүнсний будаг (ногоон)', 'Ногоон', 'other', { dyeG: 0.01 }, { container: 'dropperBottle', note: 'Өнгө холих туршилтад.', stripe: '#16a34a', color: '#1fa84f' }),
+  L('dyeBlue', 'Хүнсний будаг (цэнхэр)', 'Цэнхэр', 'other', { dyeB: 0.01 }, { container: 'dropperBottle', note: 'Өнгө холих туршилтад.', stripe: '#2563eb', color: '#1f55d6' }),
   // Solids.
   S('s_nacl', 'Натрийн хлорид (талст)', 'NaCl', 'NaCl', { note: 'Хоолны давс. Усанд сайн уусна.', stripe: '#16a34a' }),
  {...S('s_ice','Мөс','H₂O(s)','ice',{note:'IX ангийн туршилтын зориулалтын бодис.',stripe:'#e0f5ff',hazards:[]}),temperature:-10},
