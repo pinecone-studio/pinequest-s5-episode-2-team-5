@@ -185,6 +185,7 @@ export function recordBenchPlacement(item: SupplyItem, at: { x: number; y: numbe
   useSandbox.setState((s) => ({ participants: [...new Set([...s.participants, item.id])] }));
   warn(ready && !session.ready ? 'Бэлтгэл дууслаа. Эхний алхмаа эхлүүлээрэй.' : `${supply.name} · ✓ ширээнд`);
   if (ready && !session.ready) { sounds.play('success', .6); useGameStore.getState().say('Хэрэгтэй бүх зүйл ширээн дээр бэлэн боллоо. Эхний алхмаа эхлүүлээрэй.', 'happy'); }
+  else sounds.play('clink', .55);
 }
 function notePickup(item: SupplyItem) {
   if (cleaning) return;
