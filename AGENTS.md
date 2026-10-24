@@ -1,5 +1,30 @@
 This is an Expo/React Native mobile application. Prioritize mobile-first patterns, performance, and cross-platform compatibility.
 
+## Grade 8 revision hub
+
+- Install: `npm ci`. Checks: `npm run typecheck`, `npm run lint`,
+  `npm run test:experiments && npm run test:hub`.
+- E2E and local Supabase are not configured yet; choose E2E tooling in Phase 7.
+- Implement phases sequentially. Phase 1 adds content and validation only, no UI.
+- Reference: `docs/hub-g8/README.md` and `docs/hub-g8/chemquest-g8-hub.html`.
+  Port behavior to React Native; do not embed the HTML in a WebView.
+- Source content: `docs/hub-g8/grade8-chemistry.content.json`; app copy:
+  `src/data/revision-hub/g8-chem/content.json`, types in `src/data/revision-hub/types.ts`.
+  Preserve field names and Mongolian content. Content never contains HTML.
+- Reuse existing design tokens and UI components. Use `react-native-svg` for figures.
+  One shared rich-text renderer handles bold, italic, subscripts, superscripts and nuclides.
+- No entitlement gate until the school licensing model exists.
+- Hub progress belongs in the `hub` schema with own-row RLS. Add new numbered migrations;
+  never edit applied migrations. Writes must be idempotent and merge-safe: max scores,
+  union sets, latest ratings, never blind overwrite.
+- Off-limits: `openlab-3d/`, `public/openlab/`, `src/components/openlab/`,
+  `src/app/(game)/openlab.tsx`, `src/hooks/use-openlab-catalog.ts`,
+  `src/services/experiments.ts`, existing experiment SQL and migrations.
+  Do not import the lab's Zustand stores. Link practicals only by their lab identifier;
+  confirm the route format before implementing deep links.
+- `docs/hub-g8/source/` is private: never commit or quote textbook PDFs.
+- Run all checks and report their output before declaring a phase complete.
+
 ## Expo has changed — do not trust your training data
 
 Expo ships breaking changes every SDK release. APIs you remember are likely renamed, moved, or removed. Before writing any code that touches an Expo, EAS, or React Native API:

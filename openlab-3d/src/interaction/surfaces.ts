@@ -30,6 +30,8 @@ export function rectFromBox(x: number, z: number, w: number, d: number, rotY: nu
 export interface Placement {
   point: Vector3;
   surfaceId: string;
+  support?: boolean;
+  previewPoint?: Vector3;
 }
 
 const tmp = new Vector3();

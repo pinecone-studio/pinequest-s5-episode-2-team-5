@@ -66,7 +66,7 @@ export function contentMassG(m: Mixture): number {
 
 /** J/K of the contents (glass is added by the caller). */
 export function heatCapacity(m: Mixture): number {
-  return 4.18 * m.water + 1.93 * m.ethanol + 0.8 * solidMassG(m);
+  return 4.18 * m.water + 1.93 * m.ethanol + 0.8 * solidMassG(m) + 1.3*(m.s.ice??0)*18.015;
 }
 
 export function isEmptyMixture(m: Mixture | undefined): boolean {
@@ -80,7 +80,7 @@ export function hasSolids(m: Mixture): boolean {
 /** A fresh portion of a stock reagent: `amount` mL for liquids, g for solids. */
 export function reagentMixture(id: ReagentId, amount: number): Mixture {
   const r = REAGENTS[id];
-  const m = emptyMixture();
+  const m = emptyMixture(r.temperature);
   m.from = [id];
   if (r.solid) {
     m.s[r.solid] = amount / SOLIDS[r.solid].molarMass;
@@ -90,6 +90,7 @@ export function reagentMixture(id: ReagentId, amount: number): Mixture {
   m.ethanol = amount * (sol.ethanol ?? 0);
   m.water = amount - m.ethanol;
   for (const [k, c] of Object.entries(sol.solutes) as [AqId, number][]) m.aq[k] = (c * amount) / 1000;
+  if(id==='tomato')m.s.paper=amount*.02/162.14;
   return m;
 }
 

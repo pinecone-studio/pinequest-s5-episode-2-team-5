@@ -226,7 +226,8 @@ export function createNaClEngine() {
     }
     const geo = new LatheGeometry(pts, 32, -phiLen / 2, phiLen);
     const tex = canvasTex(W, H, (g) => draw(g, (y) => (1 - (y - yA) / (yB - yA)) * H));
-    const m = new Mesh(geo, new MeshBasicMaterial({ map: tex, transparent: true, depthWrite: false, side: DoubleSide, toneMapped: false }));
+    const m = new Mesh(geo, new MeshBasicMaterial({ map: tex, transparent: true, alphaTest: 0.05, depthWrite: false, toneMapped: false }));
+    m.userData.noOutline = true;
     m.renderOrder = 4;
     parent.add(m);
   }
@@ -451,7 +452,9 @@ export function createNaClEngine() {
   flaskBody.add(rimRing(0.116, 0.872, 0.008));
   const flaskLiq = new Liquid((y) => flaskR(y) * 0.95, 0.84, 260, 0.012, 8, COL.salt);
   flaskBody.add(flaskLiq.mesh);
-  gradStrip(flaskBody, flaskR, 0.03, 0.58, 0.95, 512, 1024, (g, Y) => {
+  // Match the outer glass wall rather than the inner liquid profile.
+  const flaskOuterR = (y: number) => y <= 0.03 ? 0.36 : 0.36 - 0.25 * (y - 0.03) / 0.59;
+  gradStrip(flaskBody, flaskOuterR, 0.03, 0.58, 0.95, 512, 1024, (g, Y) => {
     for (const v of [50, 100, 150, 200]) {
       const y = 0.012 + flaskLiq.heightFor(v);
       if (y > 0.57) continue;
@@ -2243,6 +2246,21 @@ export function createNaClEngine() {
   }
   return {
     root,
+    supportSpots(kind: string) {
+      root.updateWorldMatrix(true, true);
+      if (['paper', 'stack'].includes(kind) && pickable(PKEY.funnel)) {
+        const at = funnel.localToWorld(V3(0, .72, 0));
+        return [{ id: 'filter-paper-in-funnel', point: at, aim: at.clone(), radius: .055 }];
+      }
+      if (kind === 'funnel' && visibleChain(retortStand)) {
+        return [{ id: 'funnel-holder', point: retortStand.localToWorld(V3(FX, .78, BZ)), aim: retortStand.localToWorld(V3(FX, 1.58, BZ)), radius: .055 }];
+      }
+      if (['dish', 'evaporatingDish', 'beaker', 'erlenmeyer'].includes(kind) && pickable(PKEY.tripod)) {
+        const at = tripodG.localToWorld(V3(DX, .972, BZ));
+        return [{ id: 'tripod-gauze', point: at, aim: at.clone(), radius: .065 }];
+      }
+      return [];
+    },
     /** Preparation only changes visibility, never chemistry or apparatus transforms. */
     showParts(keys: PartKey[]) {
       retortStand.visible = keys.includes('funnel');

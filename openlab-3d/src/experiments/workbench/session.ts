@@ -1,3 +1,7 @@
+import {useGrade9Apparatus} from '../grade9/store';
+import { clearInquiry } from './inquiry-store';
+import { INVESTIGATIONS } from '../../../../src/lib/textbook-investigations';
+import { clearMeasurements } from '../../lab/measurements';
 import { co2Until, coverUntil, stirUntil, heldHeat } from '../../interaction/actions';
 import { clearExperimentFeedback } from '../../lab/announcer';
 import { endHeldUse } from '../../interaction/useHeld';
@@ -10,7 +14,7 @@ import { create } from 'zustand';
 import { Box3, Quaternion, Vector3 } from 'three';
 import { CATALOG, SPAWNABLE_KINDS, type EquipmentKind } from '../../equipment/equipmentCatalog';
 import { REAGENTS, REAGENT_LIST, type ReagentId } from '../../chemistry/reagents';
-import { useLabStore } from '../../store/useLabStore';
+import { experimentDone, useLabStore } from '../../store/useLabStore';
 import { storedIn, useInventoryStore } from '../../store/useInventoryStore';
 import { useChemStore } from '../../store/useChemStore';
 import { useGameStore } from '../../store/useGameStore';
@@ -26,7 +30,7 @@ import { interactables, isVisibleInScene } from '../../interaction/registry';
 import { restoreScenePortable, usePortableStore } from '../../interaction/portable';
 import { clearReactionViews } from '../../lab/reaction-view';
 import { sounds } from '../../utils/sounds';
-import { isWorkbenchPosition } from './placement';
+import { isWorkbenchPosition,grade9SupplyPosition } from './placement';
 
 export interface BenchSupply { key: string; name: string; use: string; kind?: EquipmentKind; reagent?: ReagentId; part?: PartKey }
 const apparatus = (kind: EquipmentKind): BenchSupply => ({ key: kind, kind, name: CATALOG[kind].name, use: CATALOG[kind].description });
@@ -35,6 +39,7 @@ const list = (kinds: EquipmentKind[], reagents: ReagentId[] = []) => [...kinds.m
 export const NACL_SUPPLIES = LABEL_KEYS.map((part): BenchSupply => ({ key: `nacl-${part}`, part, name: NAMES[part], use: USES[part] }));
 /** Executable apparatus lists complement the existing human-readable JSON materials. */
 const RECIPES: Record<string, BenchSupply[]> = {
+  ...Object.fromEntries(INVESTIGATIONS.map((x) => [x.id, x.supplies.map((s) => s.startsWith('reagent:') ? reagent(s.slice(8) as ReagentId) : apparatus(s as EquipmentKind))])),
   nacl: NACL_SUPPLIES,
   safety: list(['goggles', 'gloves', 'fireExtinguisher']),
   boil: list(['beaker', 'bunsenBurner', 'tripod', 'thermometer'], ['water']),
@@ -53,7 +58,7 @@ const RECIPES: Record<string, BenchSupply[]> = {
 };
 export const suppliesFor = (id: string | null) => id ? RECIPES[id] ?? [] : [];
 export const supplySubstance = (supply: BenchSupply) => supply.part === 'bottle' ? SUBSTANCES.hcl : supply.part === 'jar' ? SUBSTANCES.na2co3 : supply.part === 'lamp' ? SUBSTANCES.ethanol : null;
-export interface BenchSession { found: string[]; placed: string[]; owned: string[]; teacher: boolean; objects: Record<string, string>; ready: boolean; stepOverride: number | null }
+export interface BenchSession { found: string[]; placed: string[]; owned: string[]; teacher: boolean; objects: Record<string, string>; ready: boolean; previouslyComplete?: boolean; stepOverride: number | null }
 export interface SupplyItem { id: string; kind?: EquipmentKind; reagent?: ReagentId; part?: PartKey }
 export const PART_KINDS: Partial<Record<PartKey, EquipmentKind>> = { bottle: 'reagentBottle', cyl: 'graduatedCylinder', beaker: 'beaker', spat: 'spatula', rod: 'glassRod', funnel: 'funnel', flask: 'erlenmeyer', dish: 'evaporatingDish', tripod: 'tripod', waste: 'beaker', watch: 'watchGlass' };
 export const ALL_SUPPLIES: BenchSupply[] = [
@@ -75,7 +80,7 @@ export function currentSession() { const id = useLabStore.getState().active; ret
 export function beginPreparation() {
   const id = useLabStore.getState().active;
   if (!id || useWorkbench.getState().sessions[id]) return;
-  useWorkbench.setState((s) => ({ sessions: { ...s.sessions, [id]: { found: [], placed: [], owned: [], teacher: false, objects: {}, ready: suppliesFor(id).length === 0, stepOverride: null } } }));
+  useWorkbench.setState((s) => ({ sessions: { ...s.sessions, [id]: { found: [], placed: [], owned: [], teacher: false, objects: {}, ready: suppliesFor(id).length === 0, previouslyComplete: experimentDone(useLabStore.getState().progress, id), stepOverride: null } } }));
 }
 export function matchesSupply(supply: BenchSupply, item: SupplyItem): boolean {
   if (supply.part) {
@@ -112,6 +117,8 @@ export function onWorkbench(at: { x: number; y: number; z: number }): boolean {
   return isWorkbenchPosition(at, BENCH_HEIGHT);
 }
 function exists(id: string): boolean {
+  const inv=useInventoryStore.getState();
+  if(id.startsWith('spawn-'))return inv.held?.id===id||inv.worldItems.some(w=>w.id===id)||Object.values(inv.storage).some(items=>items.some(item=>item.id===id));
   return !!partKey(id) || useInventoryStore.getState().held?.id === id || useInventoryStore.getState().worldItems.some((w) => w.id === id) || interactables.has(id);
 }
 export function supplyObject(supply: BenchSupply): string | null {
@@ -120,7 +127,7 @@ export function supplyObject(supply: BenchSupply): string | null {
   if (known && exists(known)) return known;
   const world = useInventoryStore.getState().worldItems.find((w) => matchesSupply(supply, itemDescription(w.id)) && onWorkbench(itemPosition(w.id)));
   if (world) return world.id;
-  for (const entry of interactables.values()) if (entry.enabled && matchesSupply(supply, itemDescription(entry.id)) && onWorkbench(itemPosition(entry.id)) && isVisibleInScene(entry.object)) return entry.id;
+  for (const entry of interactables.values()) if (exists(entry.id) && entry.enabled && matchesSupply(supply, itemDescription(entry.id)) && onWorkbench(itemPosition(entry.id)) && isVisibleInScene(entry.object)) return entry.id;
   return null;
 }
 /** A card can always add stock. Merely spawning it does NOT complete preparation. */
@@ -136,8 +143,9 @@ export function collectSupply(supply: BenchSupply, pickup = false): boolean {
       updateStationVisibility();
     } else if (supply.kind) {
       const occupied = [...new Set(Object.values(useWorkbench.getState().loose))].length;
-      const slot = occupied % 24;
-      id = useInventoryStore.getState().spawn(supply.kind, [7.56 + slot % 8 * .19, BENCH_HEIGHT + .015, -14.78 + Math.floor(slot / 8) * .22], 0, supply.reagent ? stock(supply.reagent) : undefined);
+      const grade9=INVESTIGATIONS.find(x=>x.id===useLabStore.getState().active)?.grade===9;
+      const slot = grade9?Math.max(0,required.findIndex(s=>s.key===supply.key)):occupied % 24;
+      id = useInventoryStore.getState().spawn(supply.kind, grade9?grade9SupplyPosition(slot):[7.56 + slot % 8 * .19, BENCH_HEIGHT + .015, -14.78 + Math.floor(slot / 8) * .22], 0, supply.reagent ? stock(supply.reagent) : undefined);
     }
     if (!id) { warn('Ширээнд зай хүрэхгүй байна. Нэг хэрэгслээ хураагаад дахин сонго.'); return false; }
     useWorkbench.setState((s) => ({ loose: { ...s.loose, [supply.key]: id! } }));
@@ -146,14 +154,14 @@ export function collectSupply(supply: BenchSupply, pickup = false): boolean {
   const activeId = useLabStore.getState().active;
   if (activeId) useWorkbench.setState((s) => {const session=s.sessions[activeId];return session ? {sessions:{...s.sessions,[activeId]:{...session,owned:[...new Set([...(session.owned??[]),id!])]}}} : s;});
   // Inventory spawning commits before the R3F Interactable layout effect registers.
-  // Keep the selected identity visible and frame only once its actual mesh exists.
+  // Keep selection visible without changing the student’s camera position.
   const selected = id, ticket = ++focusTicket, deadline = performance.now() + 3000;
   if (pickup && !heldObjectId() && useInventoryStore.getState().worldItems.some((w) => w.id === selected)) useInventoryStore.getState().pickUp(selected);
   const frame = () => {
     if (ticket !== focusTicket) return;
     if (pickup && !heldObjectId()) interactables.get(selected)?.onGrab?.();
     if (useGameStore.getState().mode !== 'bench' || heldObjectId() === selected) return;
-    if (interactables.has(selected) || partKey(selected)) benchView.focus(selected);
+    if (interactables.has(selected) || partKey(selected)) useBenchView.setState({ selected });
     else if (performance.now() < deadline) requestAnimationFrame(frame);
   };
   useSandbox.setState({ inspected: selected });
@@ -221,14 +229,15 @@ export function startWorkbenchTracking(): () => void {
   return () => { a(); b(); };
 }
 /** Explicit teacher bypass; the ordinary path requires an actual pickup and placement. */
-export function demonstratePreparation() {
+export function demonstratePreparation() { prepareSupplies(true); }
+function prepareSupplies(teacher: boolean) {
   beginPreparation();
   const active = useLabStore.getState().active, session = currentSession();
-  if (active && session) useWorkbench.setState((s) => ({ sessions: { ...s.sessions, [active]: { ...session, teacher: true } } }));
+  if (active && session) useWorkbench.setState((s) => ({ sessions: { ...s.sessions, [active]: { ...session, teacher } } }));
   const held=heldObjectId();
   if(held) {
     const slot=Math.max(0,suppliesFor(active).findIndex((s)=>matchesSupply(s,itemDescription(held))));
-    const at=new Vector3(7.55+slot%8*.2,BENCH_HEIGHT+.015,-14.78+Math.floor(slot/8)*.22);
+    const at=INVESTIGATIONS.find(x=>x.id===active)?.grade===9?new Vector3(...grade9SupplyPosition(slot)):new Vector3(7.55+slot%8*.2,BENCH_HEIGHT+.015,-14.78+Math.floor(slot/8)*.22);
     if(useInventoryStore.getState().held)useInventoryStore.getState().place([at.x,at.y,at.z],0);
     else {usePortableStore.getState().held?.move(at,0,0);usePortableStore.setState({held:null});useSandbox.setState({heldId:null});}
   }
@@ -237,6 +246,11 @@ export function demonstratePreparation() {
     if (!collectSupply(supply)) break;
     const id = supplyObject(supply);
     if (id) recordBenchPlacement(itemDescription(id), itemPosition(id), true);
+  }
+  if(INVESTIGATIONS.find(x=>x.id===active)?.grade===9&&currentSession()?.ready){
+    const primary=currentSession()?.objects[suppliesFor(active)[0]?.key];
+    const ticket=++focusTicket; // Pending stock-focus callbacks must not replace the primary instrument.
+    if(primary)requestAnimationFrame(()=>{if(ticket===focusTicket){useSandbox.setState({inspected:primary});useBenchView.setState({selected:primary});}});
   }
 }
 export function jumpToStep(index: number) {
@@ -265,7 +279,7 @@ export function clearExperimentSession(id: string, worktopOnly = false) {
         const body = bodies.get(object);
         if (body && origin?.world) { const p = origin.world.position; body.setTranslation({ x:p[0], y:p[1], z:p[2] }, true); const rotation=origin.world.quaternion; body.setRotation(rotation?{x:rotation[0],y:rotation[1],z:rotation[2],w:rotation[3]}:new Quaternion().setFromAxisAngle(new Vector3(0,1,0),origin.world.rotY),true); body.setLinvel({ x:0,y:0,z:0 }, true); body.setAngvel({ x:0,y:0,z:0 }, true); }
       }
-      useChemStore.getState().removeMixture(object); co2Until.delete(object); coverUntil.delete(object); stirUntil.delete(object); if(heldHeat.id===object)heldHeat.id=null; forget(object); vesselFx.delete(object); picked.delete(object); origins.delete(object);
+      useGrade9Apparatus.getState().clear(object); useChemStore.getState().removeMixture(object); co2Until.delete(object); coverUntil.delete(object); stirUntil.delete(object); if(heldHeat.id===object)heldHeat.id=null; forget(object); vesselFx.delete(object); picked.delete(object); origins.delete(object);
     }
     if (id === 'nacl' || [...ids].some((object)=>!!partKey(object))) { const near=useSandbox.getState().near; bench.engine?.prepareFreePlay(); resetSandbox(); useSandbox.setState({near}); }
     useChemStore.setState((s) => ({
@@ -275,6 +289,7 @@ export function clearExperimentSession(id: string, worktopOnly = false) {
     }));
     useExperimentStore.setState((s)=>({toggles:Object.fromEntries(Object.entries(s.toggles).filter(([key])=>!ids.has(key))),values:Object.fromEntries(Object.entries(s.values).filter(([key])=>!ids.has(key)))}));
     clearReactionViews([...ids]);
+    clearMeasurements([...ids]);
     useWorkbench.setState((s) => ({
       sessions: Object.fromEntries(Object.entries(s.sessions).filter(([key]) => key !== id)),
       loose: Object.fromEntries(Object.entries(s.loose).filter(([, object]) => !ids.has(object))),
@@ -282,7 +297,7 @@ export function clearExperimentSession(id: string, worktopOnly = false) {
     }));
   } finally { cleaning = false; }
 }
-export function resetWorkbench() { resetPresentation(); focusTicket++; picked.clear(); origins.clear(); clearReactionViews(); useWorkbench.setState({ sessions: {}, drawer: false, loose: {}, availableParts: [] }); }
+export function resetWorkbench() { useGrade9Apparatus.getState().reset(); clearMeasurements(); resetPresentation(); focusTicket++; picked.clear(); origins.clear(); clearReactionViews(); useWorkbench.setState({ sessions: {}, drawer: false, loose: {}, availableParts: [] }); }
 export function selectBenchExperiment(id: string, fresh = false) {
   focusTicket++;
   const previous = useLabStore.getState().active;
@@ -290,6 +305,7 @@ export function selectBenchExperiment(id: string, fresh = false) {
     clearExperimentSession(previous);
   }
   if (fresh) {
+    clearInquiry(id);
     resetPresentation(id);
     clearExperimentSession(id);
     useLabStore.setState((s) => ({ progress: { ...s.progress, [id]: [] } }));
@@ -303,6 +319,14 @@ export function selectBenchExperiment(id: string, fresh = false) {
   useWorkbench.setState({ drawer: false });
   updateStationVisibility();
   if (useGameStore.getState().mode === 'bench') benchView.table();
+}
+/** Repeat the practical with clean, replenished supplies already on the bench. */
+export function repeatBenchExperiment(id: string) {
+  selectBenchExperiment(id, true);
+  prepareSupplies(false);
+  useSandbox.setState({ inspected: null, hovered: null });
+  useBenchView.setState({ selected: null });
+  warn('Туршилтыг дахин эхлүүллээ. Багаж, бодис ширээн дээр бэлэн байна.');
 }
 export function isInactiveBenchObject(id: string): boolean {
   const key = partKey(id);

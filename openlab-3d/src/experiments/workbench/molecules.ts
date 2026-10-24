@@ -36,7 +36,16 @@ export class MolecularModel {
           else { p.x = anchor.x + (j % 2 ? -.25 : .25); p.y = anchor.y; p.z = anchor.z; p.vx = j % 2 ? .7 : -.7; p.vy = p.vz = 0; }
         }
         for (const s of mode.spectators ?? []) for (let k = 0; k < s.count; k++) this.add(s.id);
-        if (mode.preset !== 'evap') this.add('H2O');
+        if (mode.preset !== 'evap' && !mode.info) this.add('H2O');
+      }
+      if (mode.info) {
+        const solids = new Set(mode.reactants.filter((s) => s.phase === 'solid').map((s) => s.id));
+        let index = 0;
+        for (const p of this.particles) if (solids.has(p.species)) {
+          p.locked = true; p.vx = p.vy = p.vz = 0;
+          p.x = (index % 6 - 2.5) * .22; p.y = -.5 + Math.floor(index / 18) * .18;
+          p.z = (Math.floor(index / 6) % 3 - 1) * .22; index++;
+        }
       }
       return;
     }

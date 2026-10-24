@@ -9,6 +9,7 @@ import { decorGlass } from '../materials/glass';
 import { plasticBlack } from '../materials/plastic';
 import { labelTexture } from '../utils/textures';
 import { lazy } from '../utils/lazy';
+import { CATALOG } from './equipmentCatalog';
 import { ModelOr, type ModelProps } from './ModelOr';
 import { VesselContents } from './VesselContents';
 import { PROFILES } from './profiles';
@@ -21,7 +22,7 @@ const bottleGeometry = lazy(() => {
 });
 
 export function ReagentBottle({ modelUrl, look, decorative, label = '?', name, stripe = '#f59e0b', ...props }: ModelProps & { look?: MixtureLook; decorative?: boolean; label?: string; name?: string; stripe?: string }) {
-  const labelMat = useMemo(() => new MeshStandardMaterial({ map: labelTexture(label, stripe, name), roughness: 0.7 }), [label, name, stripe]);
+  const labelMat = useMemo(() => new MeshStandardMaterial({ map: labelTexture(label, stripe, name, CATALOG.reagentBottle.capacityMl), roughness: 0.7 }), [label, name, stripe]);
   const showLiquid = !!decorative && !!look?.liquid;
   return (
     <ModelOr modelUrl={modelUrl} {...props}>
@@ -30,7 +31,7 @@ export function ReagentBottle({ modelUrl, look, decorative, label = '?', name, s
       <mesh material={plasticBlack} position={[0, 0.137, 0]} castShadow>
         <cylinderGeometry args={[0.016, 0.016, 0.022, 20]} />
       </mesh>
-      <mesh material={labelMat} position={[0, 0.055, 0]} rotation={[0, Math.PI, 0]}>
+      <mesh material={labelMat} renderOrder={4} userData={{ noOutline: true, noBatch: true }} position={[0, 0.055, 0]} rotation={[0, Math.PI, 0]}>
         <cylinderGeometry args={[0.0328, 0.0328, 0.05, 24, 1, true, Math.PI * 0.6, Math.PI * 0.8]} />
       </mesh>
     </ModelOr>
