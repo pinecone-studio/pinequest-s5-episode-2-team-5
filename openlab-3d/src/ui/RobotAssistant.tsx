@@ -4,7 +4,7 @@
  * arms. Rendered in its own small transparent canvas with idle bob, blinking and a wave.
  * Clicking it opens a speech bubble with a contextual hint; it reacts to bench skills.
  */
-import { useEffect, useMemo, useRef } from 'react';
+import { useEffect, useMemo, useRef, useState, type FormEvent } from 'react';
 import { Canvas, useFrame } from '@react-three/fiber';
 import { Environment, Lightformer } from '@react-three/drei';
 import { AnimatePresence, motion } from 'framer-motion';
@@ -14,7 +14,7 @@ import { SKILLS, useExperimentStore, type SkillId } from '../store/useExperiment
 import { useInventoryStore } from '../store/useInventoryStore';
 import { CATALOG } from '../equipment/equipmentCatalog';
 import { useLabStore } from '../store/useLabStore';
-import { experimentById, getExperiments } from '../lab/experiments';
+import { experimentById, getExperiments, getTextbookLessons } from '../lab/experiments';
 import { sounds } from '../utils/sounds';
 
 const shell = new MeshPhysicalMaterial({ color: '#f7f8fa', roughness: 0.32, clearcoat: 0.8, clearcoatRoughness: 0.2 });
@@ -171,6 +171,11 @@ function useRobotDirector(): void {
 }
 
 export function RobotAssistant({ hidden }: { hidden: boolean }) {
+  const [chatOpen, setChatOpen] = useState(false);
+  const [draft, setDraft] = useState('');
+  const [waiting, setWaiting] = useState(false);
+  const [messages, setMessages] = useState<{ role: 'user' | 'model'; text: string }[]>([]);
+  const pending = useRef(new Map<string, (answer: string | null) => void>());
   useRobotDirector();
   const robot = useGameStore((s) => s.robot);
   const setOpen = useGameStore((s) => s.setRobotOpen);
@@ -179,6 +184,51 @@ export function RobotAssistant({ hidden }: { hidden: boolean }) {
     const id = window.setTimeout(() => setOpen(false), 11000);
     return () => window.clearTimeout(id);
   }, [robot.open, robot.id, setOpen]);
+  useEffect(() => {
+    const receive = (event: MessageEvent<unknown>) => {
+      if (event.origin !== window.location.origin || event.source !== window.parent || !event.data || typeof event.data !== 'object') return;
+      const data = event.data as { type?: unknown; version?: unknown; id?: unknown; answer?: unknown };
+      if (data.type !== 'chemquest:pip-answer' || data.version !== 1 || typeof data.id !== 'string') return;
+      const resolve = pending.current.get(data.id);
+      if (!resolve) return;
+      pending.current.delete(data.id);
+      resolve(typeof data.answer === 'string' ? data.answer : null);
+    };
+    window.addEventListener('message', receive);
+    return () => window.removeEventListener('message', receive);
+  }, []);
+  const askPip = async (event: FormEvent) => {
+    event.preventDefault();
+    const question = draft.trim();
+    if (!question || waiting) return;
+    setDraft('');
+    setMessages((items) => [...items, { role: 'user', text: question }]);
+    setWaiting(true);
+    const id = crypto.randomUUID();
+    const lab = useLabStore.getState();
+    const context = JSON.stringify({
+      app: 'ChemQuest: chemistry lessons, quiz explanations, and Open Lab virtual chemistry laboratory.',
+      lessons: getTextbookLessons(),
+      experiments: getExperiments(),
+      currentExperiment: lab.active ? experimentById(lab.active) : null,
+      completedSteps: lab.progress,
+      controls: 'E interact/pick up; F inspect; Q drop/place; R use held item; T throw; Tab tools; N notes; V worktop view; wear safety goggles and gloves; use fume hood for fumes.',
+    });
+    const response = new Promise<string | null>((resolve) => {
+      pending.current.set(id, resolve);
+      window.parent.postMessage({
+        type: 'openlab:ask-pip', version: 1, id, question,
+        history: messages.slice(-8), context,
+      }, window.location.origin);
+    });
+    const answer = await Promise.race([
+      response,
+      new Promise<null>((resolve) => window.setTimeout(() => resolve(null), 45000)),
+    ]);
+    pending.current.delete(id);
+    setMessages((items) => [...items, { role: 'model', text: answer ?? 'Pip-тэй холбогдож чадсангүй. Нэвтэрсэн эсэх болон Gemini тохиргоогоо шалгаарай.' }]);
+    setWaiting(false);
+  };
   const glPixel = useMemo(() => Math.min(2, window.devicePixelRatio || 1), []);
   const onClick = () => {
     if (robot.open) {
@@ -225,6 +275,28 @@ export function RobotAssistant({ hidden }: { hidden: boolean }) {
           </motion.div>
         )}
       </AnimatePresence>
+      {robot.open && !chatOpen && (
+        <button type="button" onClick={() => { setChatOpen(true); setOpen(false); }} className="focus-ring pointer-events-auto absolute bottom-2 left-[128px] rounded-full bg-cyan-600 px-3 py-2 text-xs font-bold text-white shadow-hud sm:left-[148px]">
+          Pip-ээс асуух
+        </button>
+      )}
+      {chatOpen && (
+        <section aria-label="Pip AI chat" className="pointer-events-auto fixed bottom-4 left-3 z-50 flex h-[min(70vh,520px)] w-[min(390px,calc(100vw-24px))] flex-col overflow-hidden rounded-2xl border border-cyan-200 bg-white text-lab-ink shadow-2xl">
+          <header className="flex items-center justify-between bg-cyan-700 px-4 py-3 text-white">
+            <div><div className="text-sm font-bold">Pip · AI туслах</div><div className="text-[11px] opacity-80">Хичээл ба лабораторийн тухай асуугаарай</div></div>
+            <button type="button" aria-label="Чатыг хаах" onClick={() => setChatOpen(false)} className="focus-ring rounded px-2 text-lg">✕</button>
+          </header>
+          <div className="flex-1 space-y-2 overflow-y-auto p-3" aria-live="polite">
+            {messages.length === 0 && <p className="rounded-xl bg-cyan-50 p-3 text-sm">Сайн уу! ChemQuest-ийн хичээл, туршилт, аюулгүй ажиллагааны талаар асуугаарай.</p>}
+            {messages.map((message, i) => <div key={i} className={`max-w-[90%] whitespace-pre-wrap rounded-xl p-3 text-sm ${message.role === 'user' ? 'ml-auto bg-indigo-100' : 'bg-slate-100'}`}>{message.text}</div>)}
+            {waiting && <div className="text-xs text-slate-500">Pip бодож байна…</div>}
+          </div>
+          <form onSubmit={askPip} className="flex gap-2 border-t border-slate-200 p-3">
+            <input value={draft} onChange={(e) => setDraft(e.target.value)} maxLength={1200} placeholder="Асуултаа бичээрэй…" className="min-w-0 flex-1 rounded-xl border border-slate-300 px-3 py-2 text-sm outline-none focus:border-cyan-600" />
+            <button disabled={waiting || !draft.trim()} className="rounded-xl bg-cyan-700 px-4 text-sm font-bold text-white disabled:opacity-50">Илгээх</button>
+          </form>
+        </section>
+      )}
     </div>
   );
 }

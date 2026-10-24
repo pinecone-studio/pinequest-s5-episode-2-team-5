@@ -8,6 +8,8 @@ export { matchesCompletion } from './experiment-schema';
 export type { CompletionRule, Experiment, ExperimentStep } from './experiment-schema';
 
 export const BUNDLED_EXPERIMENTS = [...bundled.map(parseExperiment), ...TEXTBOOK_EXPERIMENTS.map(parseExperiment), NACL_LESSON];
+let textbookLessons: unknown[] = [];
+export function getTextbookLessons(): unknown[] { return textbookLessons; }
 export const useExperimentCatalog = create<{
   experiments: Experiment[];
   source: 'bundled' | 'supabase';
@@ -39,6 +41,7 @@ export function connectExperimentCatalog(): () => void {
     const data = event.data;
     if (!data || typeof data !== 'object' || !('type' in data) || data.type !== 'chemquest:experiment-catalog' || !('version' in data) || data.version !== 1 || !('rows' in data)) return;
     applyRemoteExperiments(data.rows);
+    textbookLessons = 'lessons' in data && Array.isArray(data.lessons) ? data.lessons : [];
   };
   window.addEventListener('message', receive);
   window.parent.postMessage({ type: 'openlab:catalog-ready', version: 1 }, origin);

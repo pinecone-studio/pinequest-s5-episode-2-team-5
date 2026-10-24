@@ -3,23 +3,25 @@ import type { InvestigationAttempt } from '@/lib/textbook-investigations';
 import { useCallback, useEffect, useRef, type RefObject } from 'react';
 
 import { fetchPublishedExperiments } from '@/services/experiments';
+import { supabase } from '@/lib/supabase';
+import { CLASSES } from '@/data/classes';
 
 /** Pass public catalog JSON into the same-origin lab, without exposing auth sessions. */
 export function useOpenLabCatalog(frame: RefObject<HTMLIFrameElement | null>, requested?: string | null, userId?: string) {
   const inquiry = useRef<{id:string;attempt:InvestigationAttempt}|null>(null);
-  const catalog = useRef<unknown[] | null>(null);
-  const sendCatalog = useCallback(() => {
-    if (catalog.current !== null) frame.current?.contentWindow?.postMessage({
-      type: 'chemquest:experiment-catalog', version: 1, rows: catalog.current,
+  const catalog = useRef<unknown[]>([]);
+  const sendCatalog = useCallback((target: Window | null) => {
+    target?.postMessage({
+      type: 'chemquest:experiment-catalog', version: 1, rows: catalog.current, lessons: CLASSES,
     }, window.location.origin);
-    if (inquiry.current) frame.current?.contentWindow?.postMessage({type:'chemquest:investigation-load',version:1,...inquiry.current},window.location.origin);
-  }, [frame]);
+    if (inquiry.current) target?.postMessage({type:'chemquest:investigation-load',version:1,...inquiry.current},window.location.origin);
+  }, []);
 
   useEffect(()=>{
     let active=true;inquiry.current=null;
-    if(requested&&userId)void loadInvestigation(userId,requested).then((attempt)=>{if(active){inquiry.current={id:requested,attempt};sendCatalog();}},()=>undefined);
+    if(requested&&userId)void loadInvestigation(userId,requested).then((attempt)=>{if(active){inquiry.current={id:requested,attempt};sendCatalog(frame.current?.contentWindow ?? null);}},()=>undefined);
     return()=>{active=false;};
-  },[requested,userId,sendCatalog]);
+  },[requested,userId,sendCatalog,frame]);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -27,12 +29,25 @@ export function useOpenLabCatalog(frame: RefObject<HTMLIFrameElement | null>, re
     const receive = (event: MessageEvent<unknown>) => {
       if (event.origin !== window.location.origin || event.source !== frame.current?.contentWindow) return;
       const data = event.data;
-      if (data && typeof data === 'object' && 'type' in data && data.type === 'openlab:catalog-ready' && 'version' in data && data.version === 1) sendCatalog();
+      if (!data || typeof data !== 'object' || !('type' in data)) return;
+      const message = data as { type?: unknown; version?: unknown; id?: unknown; question?: unknown; history?: unknown; context?: unknown };
+      if (message.type === 'openlab:catalog-ready' && message.version === 1) { sendCatalog(frame.current?.contentWindow ?? null); return; }
+      if (message.type !== 'openlab:ask-pip' || message.version !== 1 || typeof message.id !== 'string' || typeof message.question !== 'string' || !Array.isArray(message.history) || typeof message.context !== 'string') return;
+      const id = message.id;
+      void supabase.functions.invoke('openlab-tutor', {
+        body: { question: message.question, history: message.history, context: message.context },
+      }).then(({ data: result, error }) => {
+        frame.current?.contentWindow?.postMessage({
+          type: 'chemquest:pip-answer', version: 1, id,
+          answer: !error && result && typeof result.answer === 'string' ? result.answer : null,
+          error: error ? 'Pip түр хариулж чадсангүй. Дахин оролдоно уу.' : null,
+        }, window.location.origin);
+      }).catch(() => frame.current?.contentWindow?.postMessage({ type: 'chemquest:pip-answer', version: 1, id, answer: null }, window.location.origin));
     };
     window.addEventListener('message', receive);
     void fetchPublishedExperiments(controller.signal)
       .then((rows) => {
-        if (!controller.signal.aborted) { catalog.current = rows; sendCatalog(); }
+        if (!controller.signal.aborted) { catalog.current = rows; sendCatalog(frame.current?.contentWindow ?? null); }
       })
       .catch(() => {
         // Table not created yet, timeout, or offline: the lab keeps its bundled catalog.
