@@ -1,10 +1,11 @@
 /** Maps a catalog kind (+ variant, live contents and tool state) to its procedural 3D model. */
 import { useMemo } from 'react';
 import type { GroupProps } from '@react-three/fiber';
-import { CATALOG, isContainer, type EquipmentKind } from './equipmentCatalog';
+import { isContainer, type EquipmentKind } from './equipmentCatalog';
 import type { ItemVariant } from '../world/itemsLayout';
 import { mixtureLook, type MixtureLook } from '../chemistry/color';
 import { REAGENTS } from '../chemistry/reagents';
+import { pureReagentColor, reagentColor } from '../chemistry/real-color';
 import { FLAME_COLORS, type Cation } from '../chemistry/species';
 import type { Mixture } from '../chemistry/mixture';
 import { seedMixture, type ToolState } from '../store/useChemStore';
@@ -54,7 +55,7 @@ export interface EquipmentModelProps extends GroupProps {
   /** Test tube standing (rack / hand) instead of lying. */
   upright?: boolean;
   tool?: ToolState;
-  /** Thumbnail mode: racks show tubes, glassware shows its decorative fill. */
+  /** Thumbnail mode: racks show tubes, bottles use the cheap alpha glass. */
   decorative?: boolean;
 }
 
@@ -76,18 +77,17 @@ export function EquipmentModel({ kind, variant, mixture, itemId, lit, flameColor
   const contents = mixture ?? seedMixture(variant);
   const look: MixtureLook | undefined = useMemo(() => {
     if (!isContainer(kind)) return undefined;
-    if (decorative && variant?.liquid) {
-      return { liquid: variant.liquid, liquidMl: (variant.fillLevel ?? 0.5) * (CATALOG[kind].capacityMl ?? 0), turbidity: 0, sedimentMl: 0, solidColor: null, solidMetal: false, foamMl: 0, burning: false };
-    }
     const base = mixtureLook(contents);
-    // Thumbnails of stock bottles show the reagent's real color, not the simulated undiluted stock.
-    const real = decorative && variant?.reagent ? REAGENTS[variant.reagent].color : undefined;
+    // A vessel holding one undiluted reagent shows its real color, not the simulated stock
+    // (indicators, dyes and iodine come out black or off-hue under Beer–Lambert at stock strength).
+    const real = pureReagentColor(contents);
     return real && base.liquid ? { ...base, liquid: real } : base;
   }, [kind, contents, decorative, variant]);
   const reagent = variant?.reagent ? REAGENTS[variant.reagent] : undefined;
   const fx = { look, itemId };
-  // Thumbnails paint the label stripe in the substance's real color instead of its catalog accent.
-  const stripe = (decorative ? (look?.liquid ?? look?.solidColor) : undefined) ?? reagent?.stripe;
+  // The label band is painted in the substance's real color, so a bottle reads the same in the
+  // drawer, on a shelf and on the worktop (stock color is fixed: it does not flicker while pouring).
+  const stripe = variant?.reagent ? reagentColor(variant.reagent) : undefined;
   switch (kind) {
     case 'beaker':
       return <Beaker {...fx} {...props} />;

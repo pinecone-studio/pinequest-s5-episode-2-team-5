@@ -1,11 +1,11 @@
 /**
- * 30 mL amber dropper bottle (Ø 34 × 100 mm) with a black dropper cap, rubber bulb and label.
- * Thumbnails (`decorative`) use clear glass so the solution inside shows its real color.
+ * 30 mL clear dropper bottle (Ø 34 × 100 mm) with a black dropper cap, rubber bulb and label.
+ * The glass is clear so the solution inside shows its true color wherever the bottle stands.
  */
 import { useMemo } from 'react';
-import { LatheGeometry, MeshPhysicalMaterial, MeshStandardMaterial, Vector2 } from 'three';
+import { LatheGeometry, MeshStandardMaterial, Vector2 } from 'three';
 import type { MixtureLook } from '../chemistry/color';
-import { decorGlass } from '../materials/glass';
+import { decorGlass, useGlass } from '../materials/glass';
 import { plastic, plasticBlack } from '../materials/plastic';
 import { labelTexture } from '../utils/textures';
 import { lazy } from '../utils/lazy';
@@ -13,16 +13,15 @@ import { ModelOr, type ModelProps } from './ModelOr';
 import { VesselContents } from './VesselContents';
 import { PROFILES } from './profiles';
 
-const amber = new MeshPhysicalMaterial({ color: '#7a3e0c', roughness: 0.12, clearcoat: 1, clearcoatRoughness: 0.05, transparent: true, opacity: 0.92 });
 const bodyGeometry = lazy(() => new LatheGeometry([new Vector2(0, 0), new Vector2(0.016, 0), new Vector2(0.017, 0.004), new Vector2(0.017, 0.05), new Vector2(0.013, 0.06), new Vector2(0.008, 0.064), new Vector2(0.008, 0.068), new Vector2(0, 0.068)], 24));
 
 export function DropperBottle({ modelUrl, look, decorative, label = '?', name, stripe = '#f59e0b', ...props }: ModelProps & { look?: MixtureLook; decorative?: boolean; label?: string; name?: string; stripe?: string }) {
   const labelMat = useMemo(() => new MeshStandardMaterial({ map: labelTexture(label, stripe, name), roughness: 0.7 }), [label, name, stripe]);
-  const showLiquid = !!decorative && !!look?.liquid;
+  const glass = useGlass('#f4fbfd');
   return (
     <ModelOr modelUrl={modelUrl} {...props}>
-      <mesh geometry={bodyGeometry()} material={showLiquid ? decorGlass('#f4fbfd') : amber} renderOrder={showLiquid ? 1 : 0} castShadow />
-      {showLiquid && look && <VesselContents profile={PROFILES.dropperBottle} look={look} />}
+      <mesh geometry={bodyGeometry()} material={decorative ? decorGlass('#f4fbfd') : glass} renderOrder={1} castShadow />
+      {look?.liquid && <VesselContents profile={PROFILES.dropperBottle} look={look} />}
       <mesh material={plasticBlack} position={[0, 0.074, 0]} castShadow>
         <cylinderGeometry args={[0.0095, 0.0095, 0.014, 16]} />
       </mesh>

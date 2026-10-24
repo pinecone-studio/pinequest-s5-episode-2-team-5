@@ -41,12 +41,6 @@ interface DrawerEntry {
   hazards?: string;
 }
 
-const THUMB_VARIANTS: Partial<Record<EquipmentKind, ItemVariant>> = {
-  beaker: { liquid: '#2f7ff0', fillLevel: 0.5 },
-  erlenmeyer: { liquid: '#8b4fd8', fillLevel: 0.4 },
-  graduatedCylinder: { liquid: '#7fd3ff', fillLevel: 0.6 },
-};
-
 const EQUIPMENT_WHERE: Partial<Record<EquipmentKind, string>> = {
   beaker: '«Шилэн сав» шургуулга',
   erlenmeyer: '«Шилэн сав» шургуулга',
@@ -94,7 +88,6 @@ const EQUIPMENT_ENTRIES: DrawerEntry[] = SPAWNABLE_KINDS.map((kind) => ({
   sub: CATALOG[kind].category,
   where: EQUIPMENT_WHERE[kind] ?? '',
   group: CATALOG[kind].category,
-  variant: THUMB_VARIANTS[kind],
 }));
 
 const REAGENT_ENTRIES: DrawerEntry[] = REAGENT_LIST.map((r) => ({
@@ -171,7 +164,7 @@ export function ToolTab() {
     const station: DrawerEntry[] = benchContext ? NACL_SUPPLIES.map((s)=>({key:`stock:${s.key}`,supply:s,kind:s.part?PART_KINDS[s.part]:undefined,name:s.name,sub:s.use,where:'NaCl ажлын ширээний комплект',group:'NaCl ширээ'})) : [];
     const list = shelf === 'equipment' ? [...EQUIPMENT_ENTRIES,...station] : REAGENT_ENTRIES;
     const normal = (group === 'all' ? list : list.filter((e) => e.group === group));
-    const pinned: DrawerEntry[] = benchContext ? required.map((s) => ({ key: `required:${s.key}`, supply: s, kind: s.kind ?? (s.part ? PART_KINDS[s.part] : undefined), name: s.name, sub: s.use, where: supplyLocation(s), group: 'required', variant: s.reagent ? stock(s.reagent) : s.kind ? THUMB_VARIANTS[s.kind] : undefined })) : [];
+    const pinned: DrawerEntry[] = benchContext ? required.map((s) => ({ key: `required:${s.key}`, supply: s, kind: s.kind ?? (s.part ? PART_KINDS[s.part] : undefined), name: s.name, sub: s.use, where: supplyLocation(s), group: 'required', variant: s.reagent ? stock(s.reagent) : undefined })) : [];
     return [...pinned, ...normal].filter((e) => `${e.name} ${e.sub} ${e.key} ${e.variant?.reagent ? REAGENTS[e.variant.reagent].label : ""}`.toLocaleLowerCase().includes(search.toLocaleLowerCase()));
   }, [shelf, group, benchContext, required, search]);
   const refMap = useRef(new Map<string, RefObject<HTMLDivElement>>());
