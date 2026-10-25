@@ -25,6 +25,7 @@ import { connectExperimentCatalog } from './lab/experiments';
 import { startWorkbenchTracking } from './experiments/workbench/session';
 import { WorkbenchRuntime } from './experiments/workbench/WorkbenchRuntime';
 import { HUD } from './ui/HUD';
+import { isTouchDevice } from './utils/device';
 
 /** Marks the physics engine as loaded (rendered inside <Physics>, so after WASM init). */
 function EngineReady() {
@@ -44,14 +45,35 @@ export default function App() {
   const map = useMemo(() => buildMovementMap(bindings, lookMode), [bindings, lookMode]);
   const [canvasEl, setCanvasEl] = useState<HTMLCanvasElement | null>(null);
   const [dpr, setDpr] = useState(1);
+  const [portraitTouch, setPortraitTouch] = useState(() => isTouchDevice() && window.matchMedia('(orientation: portrait)').matches);
   const mode = useGameStore((s) => s.mode);
   const panel = useGameStore((s) => s.panel);
   usePointerLockSync();
   useGameKeys(canvasEl);
+  useEffect(() => {
+    const media = window.matchMedia('(orientation: portrait)');
+    const update = () => setPortraitTouch(isTouchDevice() && media.matches);
+    update();
+    media.addEventListener('change', update);
+    window.addEventListener('resize', update);
+    return () => {
+      media.removeEventListener('change', update);
+      window.removeEventListener('resize', update);
+    };
+  }, []);
   const onDpr = useCallback((v: number) => setDpr(v), []);
   // The tools drawer still shows the live world behind it, so keep rendering there.
   const frozen = FROZEN.includes(mode) && !(mode === 'ui' && panel === 'tools');
   const preset = QUALITY_PRESETS[quality];
+
+  if (portraitTouch) {
+    return <main className="fixed inset-0 z-[100] flex flex-col items-center justify-center gap-5 bg-[#111827] px-8 text-center text-white" lang="mn">
+      <div aria-hidden="true" className="text-7xl">📱</div>
+      <h1 className="font-display text-2xl font-bold">Утсаа хөндлөнгөөр эргүүлээрэй</h1>
+      <p className="max-w-sm text-sm leading-relaxed text-white/75">Open Lab-ийн 3D лаборатори хөндлөн дэлгэцэд тохируулагдсан. Эргүүлмэгц туршилтаа үргэлжлүүлнэ.</p>
+      <div aria-hidden="true" className="text-3xl">↻</div>
+    </main>;
+  }
 
   return (
     <KeyboardControls map={map}>

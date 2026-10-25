@@ -185,8 +185,9 @@ export function RobotAssistant({ hidden }: { hidden: boolean }) {
     return () => window.clearTimeout(id);
   }, [robot.open, robot.id, setOpen]);
   useEffect(() => {
+    const standalone = window.parent === window;
     const receive = (event: MessageEvent<unknown>) => {
-      if (event.origin !== window.location.origin || event.source !== window.parent || !event.data || typeof event.data !== 'object') return;
+      if (event.origin !== window.location.origin || event.source !== (standalone ? window : window.parent) || !event.data || typeof event.data !== 'object') return;
       const data = event.data as { type?: unknown; version?: unknown; id?: unknown; answer?: unknown };
       if (data.type !== 'chemquest:pip-answer' || data.version !== 1 || typeof data.id !== 'string') return;
       const resolve = pending.current.get(data.id);
@@ -216,10 +217,13 @@ export function RobotAssistant({ hidden }: { hidden: boolean }) {
     });
     const response = new Promise<string | null>((resolve) => {
       pending.current.set(id, resolve);
-      window.parent.postMessage({
+      const message = {
         type: 'openlab:ask-pip', version: 1, id, question,
         history: messages.slice(-8), context,
-      }, window.location.origin);
+      };
+      if (window.parent === window) {
+        (window as Window & { ReactNativeWebView?: { postMessage: (value: string) => void } }).ReactNativeWebView?.postMessage(JSON.stringify(message));
+      } else window.parent.postMessage(message, window.location.origin);
     });
     const answer = await Promise.race([
       response,
@@ -240,7 +244,7 @@ export function RobotAssistant({ hidden }: { hidden: boolean }) {
   };
   return (
     <div className={`fixed bottom-2 left-2 z-30 flex items-end ${hidden ? 'hidden' : ''}`}>
-      <button type="button" aria-label="Лабораторийн туслах роботоос зөвлөгөө авах" onClick={onClick} className="focus-ring pointer-events-auto h-[150px] w-[130px] rounded-3xl sm:h-[170px] sm:w-[150px]">
+      <button type="button" aria-label="Лабораторийн туслах роботоос зөвлөгөө авах" onClick={onClick} className="focus-ring pointer-events-auto h-[82px] w-[72px] rounded-3xl sm:h-[150px] sm:w-[130px]">
         <Canvas frameloop={hidden ? 'never' : 'always'} dpr={glPixel} gl={{ alpha: true, antialias: true }} camera={{ position: [0, 0.05, 3.6], fov: 30 }} style={{ pointerEvents: 'none' }}>
           <ambientLight intensity={0.6} />
           <directionalLight position={[2, 3, 3]} intensity={1.8} />
@@ -261,7 +265,7 @@ export function RobotAssistant({ hidden }: { hidden: boolean }) {
             key={robot.id}
             role="status"
             aria-live="polite"
-            className="pointer-events-auto relative mb-[86px] ml-[-8px] max-w-[min(300px,calc(100vw-160px))] rounded-2xl rounded-bl-md bg-white px-4 py-3 text-sm leading-snug text-lab-ink shadow-hud"
+            className="pointer-events-auto fixed bottom-[94px] left-2 max-h-[35dvh] max-w-[min(280px,calc(100vw-24px))] overflow-y-auto rounded-2xl rounded-bl-md bg-white px-4 py-3 text-sm leading-snug text-lab-ink shadow-hud sm:relative sm:bottom-auto sm:left-auto sm:mb-[86px] sm:ml-[-8px] sm:max-h-none sm:max-w-[min(300px,calc(100vw-160px))]"
             initial={{ opacity: 0, scale: 0.8, x: -10 }}
             animate={{ opacity: 1, scale: 1, x: 0 }}
             exit={{ opacity: 0, scale: 0.9 }}
@@ -276,12 +280,15 @@ export function RobotAssistant({ hidden }: { hidden: boolean }) {
         )}
       </AnimatePresence>
       {robot.open && !chatOpen && (
-        <button type="button" onClick={() => { setChatOpen(true); setOpen(false); }} className="focus-ring pointer-events-auto absolute bottom-2 left-[128px] rounded-full bg-cyan-600 px-3 py-2 text-xs font-bold text-white shadow-hud sm:left-[148px]">
+        <button type="button" onClick={() => { setChatOpen(true); setOpen(false); }} className="focus-ring pointer-events-auto absolute bottom-2 left-[76px] rounded-full bg-cyan-600 px-3 py-2 text-[11px] font-bold text-white shadow-hud sm:left-[148px] sm:text-xs">
           Pip-ээс асуух
         </button>
       )}
+      {!chatOpen && !hidden && !robot.open && (
+        <button type="button" onClick={() => setChatOpen(true)} className="focus-ring pointer-events-auto fixed bottom-3 left-[88px] z-40 rounded-full border border-cyan-200 bg-white px-3 py-2 text-[11px] font-bold text-cyan-800 shadow-hud sm:bottom-4 sm:left-[166px] sm:text-xs">💬 Pip чат</button>
+      )}
       {chatOpen && (
-        <section aria-label="Pip AI chat" className="pointer-events-auto fixed bottom-4 left-3 z-50 flex h-[min(70vh,520px)] w-[min(390px,calc(100vw-24px))] flex-col overflow-hidden rounded-2xl border border-cyan-200 bg-white text-lab-ink shadow-2xl">
+        <section aria-label="Pip AI chat" className="pointer-events-auto fixed bottom-3 left-3 z-50 flex h-[min(58dvh,420px)] max-h-[calc(100dvh-24px)] w-[min(330px,calc(100vw-24px))] flex-col overflow-hidden rounded-2xl border border-cyan-200 bg-white text-lab-ink shadow-2xl sm:bottom-4 sm:left-3 sm:h-[min(62vh,520px)] sm:w-[min(390px,calc(100vw-24px))]">
           <header className="flex items-center justify-between bg-cyan-700 px-4 py-3 text-white">
             <div><div className="text-sm font-bold">Pip · AI туслах</div><div className="text-[11px] opacity-80">Хичээл ба лабораторийн тухай асуугаарай</div></div>
             <button type="button" aria-label="Чатыг хаах" onClick={() => setChatOpen(false)} className="focus-ring rounded px-2 text-lg">✕</button>
