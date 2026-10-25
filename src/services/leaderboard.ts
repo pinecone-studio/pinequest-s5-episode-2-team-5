@@ -1,4 +1,3 @@
-import { MOCK_PLAYERS } from '@/data/players';
 import type { ClassId, PublicPlayer } from '@/types';
 
 import { listPlayers } from './auth';
@@ -7,9 +6,9 @@ export interface RankedPlayer extends PublicPlayer {
   rank: number;
 }
 
-/** Global ranking, highest XP first. The demo players are mixed in so the board is never empty. */
+/** Global ranking contains only profiles belonging to registered accounts. */
 export async function fetchLeaderboard(): Promise<PublicPlayer[]> {
-  const players = [...MOCK_PLAYERS, ...(await listPlayers())];
+  const players = await listPlayers();
   return players.sort((a, b) => b.xp - a.xp || a.nickname.localeCompare(b.nickname));
 }
 
