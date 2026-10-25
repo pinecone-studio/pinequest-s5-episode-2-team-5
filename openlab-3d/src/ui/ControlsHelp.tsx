@@ -3,11 +3,23 @@ import { useGameStore } from '../store/useGameStore';
 import { useSettingsStore } from '../store/useSettingsStore';
 import { keyLabel, promptKey } from '../controls/keyMap';
 import { requestLock } from '../controls/pointerLock';
+import { isTouchDevice } from '../utils/device';
 
 export function ControlsList({ compact = false }: { compact?: boolean }) {
   const b = useSettingsStore((s) => s.bindings);
   const lookMode = useSettingsStore((s) => s.lookMode);
-  const rows: [string, string][] = [
+  const touch = isTouchDevice();
+  const rows: [string, string][] = touch ? [
+    ['Зүүн талын joystick', 'Алхах'],
+    ['Баруун талд чирэх', 'Эргэн харах'],
+    ['Гэрэлтсэн зүйл дээр товших', 'Харилцах / авах'],
+    ['Барьсан зүйлтэй бай руу товших', 'Ашиглах / савлах'],
+    ['Барьсан зүйлтэй хоосон газар товших', 'Тавих'],
+    ['Хоосон газар удаан дарах', 'Шидэх'],
+    ['F', 'Ойроос харах'],
+    ['⇧', 'Гүйх горим'],
+    ['Тохиргоо → Удирдлага', 'Гарын товчлолыг үзэх, өөрчлөх'],
+  ] : [
     [`${keyLabel(b.forward[0])} ${keyLabel(b.left[0])} ${keyLabel(b.backward[0])} ${keyLabel(b.right[0])} / ↑ ← ↓ →`, 'Алхах'],
     [lookMode === 'mouse' ? 'Хулгана' : `← → / ${keyLabel(b.turnLeft[0])} ${keyLabel(b.turnRight[0])}`, 'Эргэн харах'],
     [promptKey('interact', b, lookMode), 'Ашиглах / авах'],
@@ -57,7 +69,7 @@ export function ControlsHelp() {
             <h2 id="help-title" className="font-display text-xl font-bold">
               Удирдлага
             </h2>
-            <p className="mb-4 mt-1 text-sm text-slate-500">Багаж руу ойртоход цагаанаар гэрэлтэнэ. Дараа нь дэлгэцийн доор харагдах товчлуурыг ашиглаарай.</p>
+            <p className="mb-4 mt-1 text-sm text-slate-500">{isTouchDevice() ? 'Онилох үед гэрэлтсэн зүйлийг товш. Баруун талд чирэх нь харах хөдөлгөөн хэвээр.' : 'Багаж руу ойртоход цагаанаар гэрэлтэнэ. Дараа нь дэлгэцийн доор харагдах товчлуурыг ашиглаарай.'}</p>
             <ControlsList />
             <div className="mt-5 flex justify-end">
               <button className="btn-yellow" onClick={resumeWalk} autoFocus>

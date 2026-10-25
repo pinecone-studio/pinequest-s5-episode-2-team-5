@@ -15,6 +15,8 @@ import { spawnNearPlayer } from '../interaction/spawn';
 import { currentSession, useWorkbench } from '../experiments/workbench/session';
 import { PreparationChecklist } from '../experiments/workbench/PreparationHints';
 import { sounds } from '../utils/sounds';
+import { isTouchDevice } from '../utils/device';
+import { mobileizeControlHint } from '../controls/mobileInteraction';
 
 export function ActionGauge() {
   const { label, detail, visible } = useActionHud();
@@ -77,7 +79,7 @@ export function SafetyBadges() {
             key={what}
             type="button"
             onClick={() => worn[what] && take(what)}
-            title={worn[what] ? 'Дарж тайлах' : 'Ширээн дээрх эсвэл «Хамгаалалт» шургуулганаас аваад E дарж зүү'}
+            title={worn[what] ? 'Дарж тайлах' : isTouchDevice() ? 'Ширээн дээрх эсвэл «Хамгаалалт» шургуулганаас аваад товшиж зүү' : 'Ширээн дээрх эсвэл «Хамгаалалт» шургуулганаас аваад E дарж зүү'}
             className={`focus-ring flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-semibold shadow-hud backdrop-blur ${worn[what] ? 'bg-emerald-500/90 text-white' : 'bg-black/45 text-white/80'}`}
           >
             <span>{what === 'goggles' ? '🥽' : '🧤'}</span>
@@ -137,7 +139,7 @@ export function ExperimentCard() {
                 className="focus-ring mt-2 w-full rounded-lg bg-white px-2 py-1 text-left text-[11px] text-slate-700 hover:bg-slate-100"
                 onClick={() => useGameStore.getState().say(next.hint, 'think')}
               >
-                💡 Зөвлөгөө: {next.hint}
+                💡 Зөвлөгөө: {isTouchDevice() ? mobileizeControlHint(next.hint) : next.hint}
               </button>
             )}
           </>

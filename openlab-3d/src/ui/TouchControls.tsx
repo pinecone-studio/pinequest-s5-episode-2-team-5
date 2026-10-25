@@ -1,6 +1,6 @@
 /**
  * Touch fallback: a virtual joystick on the left half, drag-to-look on the right half,
- * and round action buttons (interact, inspect, place, use/pour (hold), throw, sprint).
+ * contextual object taps, plus inspect and sprint controls.
  */
 import { useEffect, useRef, useState } from 'react';
 import { useGameStore } from '../store/useGameStore';
@@ -8,7 +8,11 @@ import { touchInput } from '../interaction/heldApi';
 import { lookBy } from '../controls/usePointerLock';
 import { dropHeld, inspectFocusOrHeld, interactWithFocus, releaseThrow, startThrow } from '../controls/useGameKeys';
 import { beginHeldUse, endHeldUse } from '../interaction/useHeld';
-import { heldObjectId } from '../experiments/nacl/sandbox';
+import { useInventoryStore } from '../store/useInventoryStore';
+import { usePortableStore } from '../interaction/portable';
+import { interactables } from '../interaction/registry';
+import { isMobileTap, mobileTapAction, MOBILE_THROW_HOLD_MS } from '../controls/mobileInteraction';
+import { interactItem } from '../interaction/interactItem';
 
 const R = 56;
 
@@ -18,7 +22,7 @@ export function TouchControls() {
   const [sprint, setSprint] = useState(false);
   const stickId = useRef<number | null>(null);
   const stickOrigin = useRef<{ x: number; y: number } | null>(null);
-  const lookId = useRef<{ id: number; x: number; y: number } | null>(null);
+  const lookId = useRef<{ id: number; x: number; y: number; startX: number; startY: number; throwTimer: number | null; throwing: boolean } | null>(null);
   const root = useRef<HTMLDivElement>(null);
   const knob = useRef<HTMLDivElement>(null);
 
@@ -43,8 +47,17 @@ export function TouchControls() {
           stickId.current = t.identifier;
           stickOrigin.current = { x: t.clientX, y: t.clientY };
           setStick({ x: t.clientX, y: t.clientY, ox: t.clientX, oy: t.clientY });
-        } else if (!lookId.current) {
-          lookId.current = { id: t.identifier, x: t.clientX, y: t.clientY };
+        } else if (!lookId.current && !(t.target instanceof Element && t.target.closest('button'))) {
+          const gesture = { id: t.identifier, x: t.clientX, y: t.clientY, startX: t.clientX, startY: t.clientY, throwTimer: null as number | null, throwing: false };
+          if (useInventoryStore.getState().held && !useGameStore.getState().focus) {
+            gesture.throwTimer = window.setTimeout(() => {
+              if (lookId.current === gesture) {
+                gesture.throwing = true;
+                startThrow();
+              }
+            }, MOBILE_THROW_HOLD_MS);
+          }
+          lookId.current = gesture;
         }
       }
     };
@@ -63,13 +76,17 @@ export function TouchControls() {
           touchInput.moveY = -dy / R;
           if (knob.current) knob.current.style.transform = `translate3d(${dx}px, ${dy}px, 0)`;
         } else if (lookId.current && t.identifier === lookId.current.id) {
+          if (!isMobileTap(lookId.current.startX, lookId.current.startY, t.clientX, t.clientY) && lookId.current.throwTimer !== null) {
+            window.clearTimeout(lookId.current.throwTimer);
+            lookId.current.throwTimer = null;
+          }
           lookBy((t.clientX - lookId.current.x) * 1.6, (t.clientY - lookId.current.y) * 1.6);
           lookId.current.x = t.clientX;
           lookId.current.y = t.clientY;
         }
       }
     };
-    const onEnd = (e: TouchEvent) => {
+    const onEnd = (e: TouchEvent, cancelled = false) => {
       for (let i = 0; i < e.changedTouches.length; i++) {
         const t = e.changedTouches[i];
         if (t.identifier === stickId.current) {
@@ -79,20 +96,48 @@ export function TouchControls() {
           touchInput.moveY = 0;
           setStick(null);
         }
-        if (lookId.current && t.identifier === lookId.current.id) lookId.current = null;
+        if (lookId.current && t.identifier === lookId.current.id) {
+          const gesture = lookId.current;
+          if (gesture.throwTimer !== null) window.clearTimeout(gesture.throwTimer);
+          if (gesture.throwing) releaseThrow();
+          else if (!cancelled && isMobileTap(gesture.startX, gesture.startY, t.clientX, t.clientY)) performContextualTap();
+          lookId.current = null;
+        }
       }
     };
     element.addEventListener('touchstart', onStart, { passive: true });
     element.addEventListener('touchmove', onMove, { passive: true });
     element.addEventListener('touchend', onEnd, { passive: true });
-    element.addEventListener('touchcancel', onEnd, { passive: true });
+    const onCancel = (e: TouchEvent) => onEnd(e, true);
+    element.addEventListener('touchcancel', onCancel, { passive: true });
     return () => {
       element.removeEventListener('touchstart', onStart);
       element.removeEventListener('touchmove', onMove);
       element.removeEventListener('touchend', onEnd);
-      element.removeEventListener('touchcancel', onEnd);
+      element.removeEventListener('touchcancel', onCancel);
     };
   }, []);
+
+  function performContextualTap() {
+    const game = useGameStore.getState();
+    const held = useInventoryStore.getState().held || usePortableStore.getState().held;
+    const focus = game.focus;
+    const entry = focus ? interactables.get(focus.id) : undefined;
+    const action = mobileTapAction({
+      hasHeld: !!held,
+      hasFocus: !!focus,
+      canStore: !!focus?.canStore,
+      hasUseTarget: !!entry?.useTarget || !!focus?.id.startsWith('nacl-'),
+    });
+    if (action === 'store' || action === 'place') dropHeld();
+    else if (action === 'use' && focus) {
+      beginHeldUse(focus.id);
+      window.setTimeout(endHeldUse, 300);
+    } else if (action === 'interact') {
+      if (focus && !focus.canUse && focus.canGrab) interactItem(focus.id, true);
+      else interactWithFocus();
+    }
+  }
 
   if (mode !== 'walk') return null;
 
@@ -106,20 +151,8 @@ export function TouchControls() {
         </div>
       )}
       <div className="pointer-events-none fixed bottom-[36%] right-12 grid grid-cols-2 gap-3" onTouchStart={(e) => e.stopPropagation()}>
-        <button className={btn} onClick={() => interactWithFocus()} aria-label="Ашиглах">
-          E
-        </button>
         <button className={btn} onClick={inspectFocusOrHeld} aria-label="Ойроос харах">
           F
-        </button>
-        <button className={btn} onClick={() => heldObjectId() && dropHeld()} aria-label="Тавих">
-          Q
-        </button>
-        <button className={btn} onTouchStart={() => beginHeldUse()} onTouchEnd={() => endHeldUse()} onTouchCancel={() => endHeldUse()} aria-label="Ашиглах (асгах, хэмжих)">
-          R
-        </button>
-        <button className={btn} onTouchStart={() => startThrow()} onTouchEnd={() => releaseThrow()} aria-label="Шидэх">
-          T
         </button>
         <button className={`${btn} ${sprint ? '!bg-lab-yellow' : ''}`} onClick={() => setSprint((s) => !s)} aria-label="Гүйх горим" aria-pressed={sprint}>
           ⇧
