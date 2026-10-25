@@ -1,6 +1,13 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { DEFAULT_BINDINGS, type ActionName, type Bindings, type LookMode } from '../controls/keyMap';
+import { isTouchDevice } from '../utils/device';
+
+function isLowEndDevice(): boolean {
+  if (typeof navigator === 'undefined') return false;
+  const device = navigator as Navigator & { deviceMemory?: number };
+  return isTouchDevice() || (navigator.hardwareConcurrency > 0 && navigator.hardwareConcurrency <= 4) || (device.deviceMemory !== undefined && device.deviceMemory <= 4);
+}
 
 export type Quality = 'low' | 'medium' | 'high';
 
@@ -12,12 +19,13 @@ export interface QualityPreset {
   ao: boolean;
   transmission: boolean;
   contactShadows: boolean;
+  antialias: boolean;
 }
 
 export const QUALITY_PRESETS: Record<Quality, QualityPreset> = {
-  low: { dpr: [0.6, 1], shadows: false, shadowMapSize: 512, postprocessing: false, ao: false, transmission: false, contactShadows: false },
-  medium: { dpr: [0.75, 1.5], shadows: true, shadowMapSize: 1024, postprocessing: true, ao: true, transmission: true, contactShadows: true },
-  high: { dpr: [1, 2], shadows: true, shadowMapSize: 2048, postprocessing: true, ao: true, transmission: true, contactShadows: true },
+  low: { dpr: [0.6, 1.5], shadows: false, shadowMapSize: 512, postprocessing: false, ao: false, transmission: false, contactShadows: false, antialias: false },
+  medium: { dpr: [0.75, 1.5], shadows: true, shadowMapSize: 1024, postprocessing: true, ao: true, transmission: true, contactShadows: true, antialias: false },
+  high: { dpr: [1, 2], shadows: true, shadowMapSize: 2048, postprocessing: true, ao: true, transmission: true, contactShadows: true, antialias: false },
 };
 
 export interface SettingsState {
@@ -25,6 +33,7 @@ export interface SettingsState {
   fov: number;
   headBob: boolean;
   quality: Quality;
+  qualityManuallySet: boolean;
   volume: number;
   lookMode: LookMode;
   invertY: boolean;
@@ -45,7 +54,8 @@ export const useSettingsStore = create<SettingsState>()(
       sensitivity: 1,
       fov: 75,
       headBob: true,
-      quality: 'medium',
+      quality: isLowEndDevice() ? 'low' : 'medium',
+      qualityManuallySet: false,
       volume: 0.7,
       lookMode: 'mouse',
       invertY: false,
@@ -55,7 +65,7 @@ export const useSettingsStore = create<SettingsState>()(
       jumpEnabled: true,
       showFps: false,
       bindings: DEFAULT_BINDINGS,
-      set: (patch) => set(patch),
+      set: (patch) => set({ ...patch, ...(patch.quality ? { qualityManuallySet: true } : {}) }),
       rebind: (action, code) =>
         set((s) => {
           const current = s.bindings[action];
@@ -71,7 +81,13 @@ export const useSettingsStore = create<SettingsState>()(
       partialize: ({ set: _set, rebind: _rebind, resetBindings: _reset, ...rest }) => rest,
       merge: (persisted, current) => {
         const p = (persisted ?? {}) as Partial<SettingsState>;
-        return { ...current, ...p, bindings: { ...DEFAULT_BINDINGS, ...(p.bindings ?? {}) } };
+        return {
+          ...current,
+          ...p,
+          quality: p.qualityManuallySet ? (p.quality ?? current.quality) : current.quality,
+          qualityManuallySet: p.qualityManuallySet ?? false,
+          bindings: { ...DEFAULT_BINDINGS, ...(p.bindings ?? {}) },
+        };
       },
     },
   ),
