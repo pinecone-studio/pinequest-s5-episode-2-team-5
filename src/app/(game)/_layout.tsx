@@ -10,6 +10,7 @@ export default function GameLayout() {
       {/* The hub plays its own door transition, so buildings just fade in. */}
       <Stack.Screen name="lessons/index" options={{ animation: 'fade' }} />
       <Stack.Screen name="ranking" options={{ animation: 'fade' }} />
+      <Stack.Screen name="study" options={{ animation: 'fade' }} />
       <Stack.Screen name="versus" options={{ animation: 'fade' }} />
       <Stack.Screen name="friendly" options={{ animation: 'fade' }} />
       <Stack.Screen name="openlab" options={{ animation: 'fade', gestureEnabled: false, orientation: 'landscape' }} />
