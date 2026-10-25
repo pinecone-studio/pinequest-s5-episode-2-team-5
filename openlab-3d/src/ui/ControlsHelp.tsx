@@ -2,7 +2,7 @@ import { AnimatePresence, motion } from 'framer-motion';
 import { useGameStore } from '../store/useGameStore';
 import { useSettingsStore } from '../store/useSettingsStore';
 import { keyLabel, promptKey } from '../controls/keyMap';
-import { resumeWalk } from '../controls/useGameKeys';
+import { requestLock } from '../controls/pointerLock';
 
 export function ControlsList({ compact = false }: { compact?: boolean }) {
   const b = useSettingsStore((s) => s.bindings);
@@ -45,6 +45,10 @@ export function ControlsList({ compact = false }: { compact?: boolean }) {
 
 export function ControlsHelp() {
   const open = useGameStore((s) => s.panel === 'help');
+  const resumeWalk = () => {
+    useGameStore.getState().closePanel();
+    requestLock();
+  };
   return (
     <AnimatePresence>
       {open && (
