@@ -100,7 +100,13 @@ export function ExperimentCard() {
   if (!x) return null;
   const done = progress[x.id] ?? [];
   const next = x.steps.find((s) => !done.includes(s.id));
-  if (!currentSession()?.ready) return <div className="fixed left-4 top-[76px] z-30 w-[min(320px,calc(100vw-80px))] rounded-xl bg-white/95 p-3 text-lab-ink shadow-hud"><b className="block text-xs">{x.title}</b><PreparationChecklist /></div>;
+  if (!currentSession()?.ready) return <div className="pointer-events-auto fixed left-3 top-[68px] z-30 w-[min(320px,calc(100vw-24px))] rounded-xl bg-white/95 p-3 text-lab-ink shadow-hud sm:left-4 sm:top-[76px] sm:w-[min(320px,calc(100vw-80px))]">
+    <button type="button" className="focus-ring flex w-full items-center justify-between gap-2 text-left" onClick={() => setCollapsed((c) => !c)} aria-expanded={!collapsed}>
+      <span><span className="block text-[10px] font-bold uppercase tracking-wider text-amber-700">Туршилтын бэлтгэл</span><b className="block text-xs">{x.title}</b></span>
+      <span className="shrink-0 rounded-full bg-amber-100 px-2 py-1 text-[11px] font-semibold text-amber-900">{collapsed ? 'Нээх +' : 'Хураах −'}</span>
+    </button>
+    {!collapsed && <div className="mt-2 max-h-[40dvh] overflow-y-auto overscroll-contain"><PreparationChecklist /></div>}
+  </div>;
   return (
     <div className="pointer-events-auto fixed left-4 top-[76px] z-30 w-[min(300px,calc(100vw-120px))] ">
       <div className="rounded-2xl bg-white/90 p-3 text-lab-ink shadow-hud backdrop-blur">

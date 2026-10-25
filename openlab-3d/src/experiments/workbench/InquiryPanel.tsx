@@ -36,7 +36,9 @@ function InquiryContents({id,close}:{id:string;close:()=>void}) {
   const [metric,setMetric]=useState<string>();
   const commit=(next:typeof attempt)=>{
     useInquiry.getState().put(id,next);
-    if(window.parent!==window)window.parent.postMessage({type:'openlab:investigation-result',version:1,id,attempt:next},window.location.origin);
+    const result={type:'openlab:investigation-result',version:1,id,attempt:next};
+    if(window.parent!==window)window.parent.postMessage(result,window.location.origin);
+    else (window as Window & {ReactNativeWebView?:{postMessage:(value:string)=>void}}).ReactNativeWebView?.postMessage(JSON.stringify(result));
   };
   const sample=()=>{
     if(attempt.prediction.trim().length<10){setMessage('Эхлээд юу болохыг таамаглаад, шалтгаанаа бич.');return;}

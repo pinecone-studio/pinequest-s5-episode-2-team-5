@@ -62,7 +62,7 @@ function RootNavigator({ fontsReady }: { fontsReady: boolean }) {
   if (!ready) return null;
 
   return (
-    <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: Colors.night } }}>
+    <Stack screenOptions={{ headerShown: false, orientation: 'portrait', contentStyle: { backgroundColor: Colors.night } }}>
       <Stack.Protected guard={user !== null} redirectTo="/welcome">
         <Stack.Screen name="(game)" />
       </Stack.Protected>

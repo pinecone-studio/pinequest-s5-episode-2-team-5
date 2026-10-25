@@ -38,7 +38,9 @@ export function restartSession(): void {
 const embedded = window.parent !== window;
 
 function leaveLab(): void {
-  window.parent.postMessage({ type: 'openlab:exit', version: 1 }, window.location.origin);
+  const message = { type: 'openlab:exit', version: 1 };
+  if (window.parent === window) (window as Window & { ReactNativeWebView?: { postMessage: (value: string) => void } }).ReactNativeWebView?.postMessage(JSON.stringify(message));
+  else window.parent.postMessage(message, window.location.origin);
 }
 
 /** End-of-session summary: time, bench skills, inspected and placed equipment. */
