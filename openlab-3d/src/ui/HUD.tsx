@@ -22,10 +22,8 @@ import { RobotAssistant } from './RobotAssistant';
 import { Minimap } from './Minimap';
 import { ControlsHelp } from './ControlsHelp';
 import { PauseMenu } from './PauseMenu';
-import { LoadingScreen } from './LoadingScreen';
 import { SummaryScreen } from './SummaryScreen';
 import { ClickToLookHint, FpsCounter, RoomToast } from './RoomToast';
-import { TouchControls } from './TouchControls';
 import { isTouchDevice } from '../utils/device';
 import { InspectMode } from '../interaction/InspectMode';
 import { NaClHUD } from '../experiments/nacl/NaClHUD';
@@ -42,7 +40,6 @@ export function HUD() {
   const touch = isTouchDevice();
   return (
     <>
-      {inGame && touch && <TouchControls />}
       {showChrome && mode === 'walk' && <Crosshair />}
       {showChrome && mode === 'walk' && <InteractionPrompt />}
       {showChrome && mode === 'walk' && <ActionGauge />}
@@ -79,7 +76,6 @@ export function HUD() {
       <LabLaunch />
       <InquiryPanel />
       <ExperimentSuccess />
-      <LoadingScreen />
       <SummaryScreen />
     </>
   );

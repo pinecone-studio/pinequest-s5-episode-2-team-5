@@ -6,11 +6,13 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Scientist } from '@/components/avatar/scientist';
 import { AppText } from '@/components/ui/app-text';
 import { useSession } from '@/context/session';
+import { FRIENDLY_PROBLEMS } from '@/data/friendly-problems';
+import { CLASSES } from '@/data/classes';
 import problemBank from '@/data/versus-problems.json';
 import { lookFor } from '@/lib/avatar-look';
 
 type Rank = keyof typeof problemBank;
-type Problem = (typeof problemBank)[Rank][number];
+type Problem = { topic: string; prompt: string; options: string[]; answer: number; explanation: string };
 type Side = 'player' | 'bot';
 type Phase = 'fight' | 'attack' | 'result' | 'finished';
 
@@ -56,8 +58,17 @@ interface Match {
   roundWinner: Side | null;
 }
 
+const THEORY_AND_FRIENDLY: Problem[] = [
+  ...CLASSES.flatMap((chemClass) => chemClass.lessons.flatMap((lesson) => lesson.steps
+    .filter((step) => step.type === 'quiz')
+    .map((step) => ({ topic: `Онол · ${lesson.title}`, prompt: step.question, options: step.options, answer: step.answer, explanation: step.explanation })))),
+  ...FRIENDLY_PROBLEMS.map((problem) => ({ topic: `Бодлого · ${problem.category}`, prompt: problem.question, options: problem.choices, answer: problem.answer, explanation: problem.explanation })),
+];
+
 function pickProblem(rank: Rank): Problem {
-  const options = problemBank[rank] as Problem[];
+  // Each round mixes this rank's Versus questions with theory and practice quizzes.
+  const useStudyQuestion = Math.random() < 0.5;
+  const options = useStudyQuestion ? THEORY_AND_FRIENDLY : problemBank[rank] as Problem[];
   return options[Math.floor(Math.random() * options.length)];
 }
 
@@ -363,6 +374,7 @@ export function VersusGame() {
         {!match ? (
           <View style={styles.setup}>
             <AppText style={styles.kicker} color="#FFF">ХИМИЙН ТУЛААНД БЭЛД</AppText>
+            <AppText style={styles.bodyCopy}>Онолын quiz болон бодлогууд тулаанд холилдон гарна.</AppText>
             <View style={styles.introBox}>
               <View style={styles.introFighter}>
                 <FighterCharacter side="player" nickname={playerName} classId={playerClass} height={68} />
@@ -418,6 +430,7 @@ export function VersusGame() {
                 </View>
                 <View style={styles.problemBox}>
                   <AppText style={styles.problemMeta} color={RANK_INFO[match.playerRank].color}>ТАНЫ БОДЛОГО · {RANK_INFO[match.playerRank].label.toUpperCase()} · {RANK_INFO[match.playerRank].damage} DMG</AppText>
+                  <AppText style={styles.smallMono}>{match.playerProblem.topic}</AppText>
                   <AppText style={styles.problemText}>{match.playerProblem.prompt}</AppText>
                   {match.playerProblem.options.map((option, i) => (
                     <Pressable key={`${match.round}-${i}`} onPress={() => answer(i)} disabled={stunned} style={[styles.answerButton, stunned && styles.disabledButton]} accessibilityRole="button">
@@ -428,6 +441,7 @@ export function VersusGame() {
                   {!stunned && match.answerFeedback !== '' && <AppText style={styles.stunText} color="#FF6E69">STUN COMPLETE · TRY AGAIN</AppText>}
                   <View style={styles.botProblem}>
                     <AppText style={styles.problemMeta} color="#FF7771">БОТЫН БОДЛОГО · {RANK_INFO[match.botRank].label.toUpperCase()}</AppText>
+                    <AppText style={styles.smallMono}>{match.botProblem.topic}</AppText>
                     <AppText style={styles.botQuestion}>{match.botProblem.prompt}</AppText>
                   </View>
                 </View>

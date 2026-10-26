@@ -109,35 +109,20 @@ export function ShadowUpdater() {
   return <BakeShadows />;
 }
 
-/** Marks fonts and shaders ready once the lab is mounted. */
+/** Warm first-view text and compile scene materials after the first render. */
 export function Warmup() {
   const { gl, scene, camera } = useThree();
   const done = useLoadingStore((s) => s.done);
   const started = useRef(false);
   useEffect(() => {
-    let cancelled = false;
-    Promise.all(
-      Object.values(FONTS).map(
-        (font) =>
-          new Promise<void>((resolve) => {
-            preloadFont({ font, characters: GLYPHS }, () => resolve());
-          }),
-      ),
-    )
-      .then(() => document.fonts?.ready)
-      .then(() => {
-        if (!cancelled) useLoadingStore.getState().markReady('fonts');
-      });
-    return () => {
-      cancelled = true;
-    };
+    preloadFont({ font: FONTS.bold, characters: GLYPHS }, () => undefined);
   }, []);
   useEffect(() => {
-    const needed = LOAD_STEPS.filter((s) => s !== 'shaders');
+    const needed = LOAD_STEPS;
     if (started.current || !needed.every((s) => done.includes(s))) return;
     started.current = true;
-    // Let the lab render once, then compile everything (including hidden objects).
-    const id = window.setTimeout(() => {
+    // Compile after the browser has had a frame to paint the lab and start UI.
+    const id = window.requestAnimationFrame(() => {
       const hidden: Object3D[] = [];
       scene.traverse((o) => {
         if (!o.visible) {
@@ -147,15 +132,14 @@ export function Warmup() {
       });
       const finish = () => {
         hidden.forEach((o) => (o.visible = false));
-        useLoadingStore.getState().markReady('shaders');
       };
       try {
         gl.compileAsync(scene, camera).then(finish, finish);
       } catch {
         finish();
       }
-    }, 120);
-    return () => window.clearTimeout(id);
+    });
+    return () => window.cancelAnimationFrame(id);
   }, [done, gl, scene, camera]);
   return null;
 }

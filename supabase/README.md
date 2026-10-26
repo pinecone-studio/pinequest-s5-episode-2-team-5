@@ -72,12 +72,28 @@ OpenLab-ийг `npm run dev`-ээр дангаар нь нээхэд bundled JSO
 Энэ өөрчлөлт туршилтын **агуулгын каталог** хадгална. Хэрэглэгчийн хийсэн алхмууд
 одоогоор browser-ийн localStorage-д, бодисын амьд төлөв санах ойд хэвээр байна.
 
+## 8-р ангийн химийн хабыг Supabase-д хадгалах
+
+`migrations/202610250001_grade8_hub.sql` нь `hub` схем, 8–12-р ангийн content table,
+оюутны явцын RLS-тэй хүснэгтүүдийг үүсгэнэ. Агуулгын seed-ийг canonical JSON-оос гаргахын
+тулд repo-ийн root хавтаснаас `npm run grade8:sql` ажиллуулна. Энэ нь одоо байгаа 8, 9-р
+ангийн pack-уудыг хамтад нь багтаасан `grade8-hub.sql` файлыг шинэчилнэ.
+
+Supabase Dashboard → SQL Editor дээр `grade8-hub.sql`-ийг бүтнээр нь ажиллуул. Шалгалтын
+query `mn-g8-chemistry` (11 сэдэв), `g9-chem` (17 сэдэв) хоёр мөр харуулна. `hub` schema
+Data API-д ил гарахгүй; апп зөвхөн нийтлэгдсэн pack буцаадаг `public.get_revision_content_pack`
+RPC-г ашиглана. Клиентэд service-role/secret key бүү ашигла.
+
+Revision hub-ийн одоогийн явц AsyncStorage-д хадгалагддаг хэвээр; үүссэн progress хүснэгтүүдэд
+cloud sync холбогдоогүй байгаа.
+
 ## Хөгжүүлэгчийн командууд
 
 Node.js 22.6+ ашиглана. JSON-ийг код талаас шинэчилсний дараа repo-ийн root дээр:
 
 ```bash
 npm run experiments:sql
+npm run grade8:sql
 npm run test:experiments
 cd openlab-3d
 npm run build:chemquest

@@ -28,30 +28,19 @@ function Architecture() {
 }
 
 export function Lab() {
-  // Posters, signs and bottle labels are canvas textures drawn once, so wait for the
-  // Cyrillic font subsets before mounting anything that draws Mongolian text.
   const [fontsReady, setFontsReady] = useState(false);
   useEffect(() => {
     let live = true;
     canvasFontsReady.then(() => live && setFontsReady(true));
-    return () => {
-      live = false;
-    };
+    return () => { live = false; };
   }, []);
   return (
     <group>
       <Architecture />
-      {fontsReady && (
-        <>
-          {/* The balance display (drei <Text>) suspends while its font loads. */}
-          <Suspense fallback={null}>
-            <ChemistryLab />
-          </Suspense>
-          <Suspense fallback={null}>
-            <WorldItems />
-          </Suspense>
-        </>
-      )}
+      {fontsReady && <>
+        <Suspense fallback={null}><ChemistryLab /></Suspense>
+        <Suspense fallback={null}><WorldItems /></Suspense>
+      </>}
       <SkyDome />
     </group>
   );

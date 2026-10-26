@@ -13,15 +13,5 @@ export default defineConfig({
   build: {
     target: 'es2020',
     chunkSizeWarningLimit: 2500,
-    rollupOptions: {
-      output: {
-        manualChunks: {
-          three: ['three'],
-          r3f: ['@react-three/fiber', '@react-three/drei'],
-          physics: ['@react-three/rapier'],
-          post: ['@react-three/postprocessing', 'postprocessing'],
-        },
-      },
-    },
   },
 });

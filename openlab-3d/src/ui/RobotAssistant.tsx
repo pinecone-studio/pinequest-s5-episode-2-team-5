@@ -17,6 +17,8 @@ import { CATALOG } from '../equipment/equipmentCatalog';
 import { useLabStore } from '../store/useLabStore';
 import { experimentById, getExperiments, getTextbookLessons } from '../lab/experiments';
 import { sounds } from '../utils/sounds';
+import { isTouchDevice } from '../utils/device';
+import { mobileizeControlHint } from '../controls/mobileInteraction';
 
 const shell = new MeshPhysicalMaterial({ color: '#f7f8fa', roughness: 0.32, clearcoat: 0.8, clearcoatRoughness: 0.2 });
 const trim = new MeshStandardMaterial({ color: '#c9d1da', roughness: 0.45 });
@@ -227,7 +229,9 @@ export function RobotAssistant({ hidden }: { hidden: boolean }) {
       experiments: getExperiments(),
       currentExperiment: lab.active ? experimentById(lab.active) : null,
       completedSteps: lab.progress,
-      controls: 'E interact/pick up; F inspect; Q drop/place; R use held item; T throw; Tab tools; N notes; V worktop view; wear safety goggles and gloves; use fume hood for fumes.',
+      controls: isTouchDevice()
+        ? 'Touch: tap the highlighted object to interact, tap a valid target to use or store a held item, tap empty space to place it, and long-press empty space to throw; F inspect; joystick move; drag right side to look; use Settings for controls.'
+        : 'E interact/pick up; F inspect; Q drop/place; R use held item; T throw; Tab tools; N notes; V worktop view; wear safety goggles and gloves; use fume hood for fumes.',
     });
     const response = new Promise<string | null>((resolve) => {
       pending.current.set(id, resolve);
@@ -288,7 +292,7 @@ export function RobotAssistant({ hidden }: { hidden: boolean }) {
             style={{ transformOrigin: 'bottom left' }}
           >
             <div className="mb-0.5 text-[11px] font-bold uppercase tracking-wider text-cyan-600">Пип · Лабораторийн туслах</div>
-            {robot.text}
+            {isTouchDevice() ? mobileizeControlHint(robot.text) : robot.text}
             <button type="button" aria-label="Зөвлөгөөг хаах" onClick={() => setOpen(false)} className="focus-ring absolute right-2 top-1.5 rounded px-1 text-slate-400 hover:text-slate-600">
               ✕
             </button>
