@@ -1,15 +1,13 @@
 import { AnimatePresence, motion } from 'framer-motion';
 import { useGameStore } from '../store/useGameStore';
 import { useSettingsStore } from '../store/useSettingsStore';
-import { keyLabel, promptKey } from '../controls/keyMap';
+import { keyLabel, promptKey, type Bindings, type LookMode } from '../controls/keyMap';
 import { requestLock } from '../controls/pointerLock';
 import { isTouchDevice } from '../utils/device';
 
-export function ControlsList({ compact = false }: { compact?: boolean }) {
-  const b = useSettingsStore((s) => s.bindings);
-  const lookMode = useSettingsStore((s) => s.lookMode);
-  const touch = isTouchDevice();
-  const rows: [string, string][] = touch ? [
+/** Удирдлагын мөрүүд: [товч эсвэл хөдөлгөөн, юу хийх]. Утас болон компьютерт өөр жагсаалттай. ControlsList ба шинэ цэсний Удирдлага таб хоёулаа ашиглана. */
+export function controlRows(touch: boolean, b: Bindings, lookMode: LookMode): [string, string][] {
+  return touch ? [
     ['Зүүн талын joystick', 'Алхах'],
     ['Баруун талд чирэх', 'Эргэн харах'],
     ['Гэрэлтсэн зүйл дээр товших', 'Харилцах / авах'],
@@ -40,6 +38,12 @@ export function ControlsList({ compact = false }: { compact?: boolean }) {
     ['⇕', 'Бюреткийн урсгал (хулганы дугуй)'],
     ['Esc', 'Цэс / түр зогсоох'],
   ];
+}
+
+export function ControlsList({ compact = false }: { compact?: boolean }) {
+  const b = useSettingsStore((s) => s.bindings);
+  const lookMode = useSettingsStore((s) => s.lookMode);
+  const rows = controlRows(isTouchDevice(), b, lookMode);
   return (
     <ul className={`grid gap-x-6 gap-y-2 ${compact ? 'grid-cols-2' : 'grid-cols-1 sm:grid-cols-2'}`}>
       {rows.map(([k, label]) => (
