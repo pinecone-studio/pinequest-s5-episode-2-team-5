@@ -4,7 +4,6 @@
  * warm-up compiles every material while the loading screen is still up.
  */
 import { useCallback, useEffect, useMemo, useRef } from 'react';
-import { create } from 'zustand';
 import { useThree } from '@react-three/fiber';
 import { BakeShadows } from '@react-three/drei';
 import { Mesh, Vector3, type Object3D } from 'three';
@@ -13,6 +12,7 @@ import { transmissionOriginals, transmissionTwins } from '../materials/glass';
 import { usePortableStore } from '../interaction/portable';
 import { QUALITY_PRESETS, defaultQuality, useSettingsStore } from '../store/useSettingsStore';
 import { AUTO_LADDER, FrameGovernor, GOVERNOR, ladderFor, manualLadder } from './qualityGovernor';
+import { usePerfStore } from '../store/usePerfStore';
 import { useGameStore, type Mode } from '../store/useGameStore';
 import { useInventoryStore } from '../store/useInventoryStore';
 import { LOAD_STEPS, useLoadingStore } from '../store/useLoadingStore';
@@ -21,8 +21,6 @@ import { preloadFont } from 'troika-three-text';
 
 const MEASURED: Mode[] = ['walk', 'bench'];
 
-/** Live governor state for the FPS readout. */
-export const usePerfStore = create<{ dpr: number; level: number; levels: number }>()(() => ({ dpr: 1, level: 0, levels: 1 }));
 
 /**
  * Frame-rate governor: measures real frame times while you play and walks a ladder of

@@ -150,7 +150,7 @@ export function SettingsPanel() {
           <Segmented<Quality | 'auto'>
             label="Графикийн чанар"
             value={s.autoQuality ? 'auto' : s.quality}
-            onChange={(v) => (v === 'auto' ? s.set({ autoQuality: true }) : s.set({ autoQuality: false, quality: v }))}
+            onChange={(v) => (v === 'auto' ? s.set({ autoQuality: true, qualityManuallySet: false }) : s.set({ autoQuality: false, quality: v }))}
             options={[
               { value: 'auto', label: 'Автомат' },
               { value: 'low', label: 'Бага' },

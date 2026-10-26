@@ -22,7 +22,7 @@ import { CLASSES } from '@/data/classes';
  * writes it to `public/openlab/`, which Expo web serves as static files; this screen shows
  * it full screen in an iframe.
  */
-const OPENLAB_URL = '/openlab/index.html?v=performance-1';
+const OPENLAB_URL = '/openlab/index.html?v=mobile-hud-1';
 /** The built page's <title>; an SPA fallback page would not contain it. */
 const OPENLAB_MARKER = '<title>OpenLab 3D</title>';
 
@@ -135,7 +135,7 @@ function OpenLabNative() {
   const hostUri = Constants.expoConfig?.hostUri?.split('/')[0];
   const configuredUrl = process.env.EXPO_PUBLIC_OPENLAB_URL?.replace(/\/$/, '');
   const baseUrl = configuredUrl || (__DEV__ && hostUri ? `http://${hostUri}` : null);
-  const labUrl = baseUrl ? `${baseUrl}/openlab/index.html?v=mobile-native-1` : null;
+  const labUrl = baseUrl ? `${baseUrl}/openlab/index.html?v=mobile-hud-1` : null;
   const sendToLab = (message: Record<string, unknown>) => {
     const event = JSON.stringify(message);
     webView.current?.injectJavaScript(`window.dispatchEvent(new MessageEvent('message',{data:${event},origin:window.location.origin,source:window}));true;`);

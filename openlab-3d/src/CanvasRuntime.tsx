@@ -44,7 +44,7 @@ export function CanvasRuntime({
     <KeyboardControls map={map}>
       <div className="fixed inset-0" style={{ filter: mode === 'inspect' ? 'blur(8px) brightness(0.85)' : undefined, transition: 'filter 0.3s' }}>
         <Canvas
-          shadows={preset.shadows ? 'soft' : false}
+          shadows={preset.shadows ? (preset.softShadows ? 'soft' : true) : false}
           dpr={dpr}
           frameloop={frozen ? 'demand' : 'always'}
           camera={{ fov: 75, near: 0.03, far: 400, position: [0, 1.65, 0] }}
