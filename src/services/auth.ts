@@ -26,6 +26,7 @@ export interface SignUpInput {
   classId: ClassId;
   regionType: RegionType;
   regionName: string;
+  schoolId: string;
 }
 
 interface ProfileRow {
@@ -92,6 +93,7 @@ export async function signUp(input: SignUpInput): Promise<User> {
         class_id: input.classId,
         region_type: input.regionType,
         region_name: input.regionName,
+        school_id: input.schoolId,
       },
     },
   });
