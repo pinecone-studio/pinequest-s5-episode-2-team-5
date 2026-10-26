@@ -41,7 +41,7 @@ export function InteractionPrompt() {
   const key = focus ? `${focus.id}-${focus.verb}-${focus.label}-${use?.verb}-${focus.canStore}` : held ? `held-${held.id}-${use?.verb}` : 'none';
   const heldName = held ? (held.grip ? `${CATALOG[held.kind].name} (${CATALOG[held.grip.kind].name}-аар)` : CATALOG[held.kind].name) : '';
   return (
-    <div className="pointer-events-none fixed inset-x-0 bottom-24 z-20 flex justify-center px-4 sm:bottom-10" aria-live="polite">
+    <div className={`pointer-events-none fixed inset-x-0 bottom-24 z-20 flex justify-center px-4 ${touch ? '' : 'sm:bottom-10'}`} aria-live="polite">
       <AnimatePresence mode="wait">
         {(focus || held || portable) && (
           <motion.div key={key} className="flex max-w-3xl flex-wrap items-center justify-center gap-2" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 6 }} transition={{ duration: 0.14 }}>
