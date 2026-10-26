@@ -2,7 +2,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useFrame } from '@react-three/fiber';
 import { Html } from '@react-three/drei';
-import { Color, Object3D, type Group, type InstancedMesh, type Mesh, type MeshPhysicalMaterial, type MeshStandardMaterial } from 'three';
+import { CanvasTexture, Color, Object3D, RepeatWrapping, SRGBColorSpace, type Group, type InstancedMesh, type Mesh, type MeshPhysicalMaterial, type MeshStandardMaterial } from 'three';
 import { useReactionView } from '../lab/reaction-view';
 import { useChemStore } from '../store/useChemStore';
 import { useSettingsStore } from '../store/useSettingsStore';
@@ -16,13 +16,43 @@ import { reactionIntensity, foamOverflowHeight, foamPose, collapsedFoam } from '
 import { PROFILES, heightForVolume, radiusAt } from '../equipment/profiles';
 import { surfaceYAt } from '../interaction/surfaces';
 import { vesselFx } from '../lab/vesselFx';
+import { VapourPlume } from '../visuals/VapourPlume';
 import { sounds } from '../utils/sounds';
+import { lazy } from '../utils/lazy';
 const residueUntil = new Map<string, number>();
+/** Packed foam bubbles (cells with darker walls): color and bump for the foam lobes. */
+const foamCells = lazy(() => {
+    const c = document.createElement('canvas');
+    c.width = c.height = 256;
+    const x = c.getContext('2d');
+    if (x) {
+        x.fillStyle = '#e3e5e1';
+        x.fillRect(0, 0, 256, 256);
+        let seed = 11;
+        const rnd = () => ((seed = (seed * 16807) % 2147483647) / 2147483647);
+        for (let i = 0; i < 1400; i++) {
+            const cx = rnd() * 256, cy = rnd() * 256, r = 1.5 + rnd() * rnd() * 6;
+            const g = x.createRadialGradient(cx - r * .3, cy - r * .3, 0, cx, cy, r);
+            g.addColorStop(0, '#ffffff');
+            g.addColorStop(.75, '#f4f5f2');
+            g.addColorStop(1, '#d8dbd6');
+            x.fillStyle = g;
+            x.beginPath();
+            x.arc(cx, cy, r, 0, Math.PI * 2);
+            x.fill();
+        }
+    }
+    const t = new CanvasTexture(c);
+    t.wrapS = t.wrapT = RepeatWrapping;
+    t.repeat.set(4, 3);
+    t.colorSpace = SRGBColorSpace;
+    return t;
+});
 
 function VesselEffect({ id }: {
     id: string;
 }) {
-    const root = useRef<Group>(null), foam = useRef<InstancedMesh>(null), steam = useRef<InstancedMesh>(null), cloud = useRef<InstancedMesh>(null), smoke = useRef<InstancedMesh>(null);
+    const root = useRef<Group>(null), foam = useRef<InstancedMesh>(null), cloud = useRef<InstancedMesh>(null), vapour = useRef<Group>(null);
     const low = useSettingsStore((s) => s.quality === 'low' || s.reducedMotion);
     const n = low ? 24 : 72, dummy = useMemo(() => new Object3D(), []), tint = useMemo(() => new Color(), []);
     const residue = useRef<Mesh>(null);
@@ -32,8 +62,10 @@ function VesselEffect({ id }: {
     const white = useMemo(() => new Color('white'), []);
     const reaction = useReactionView((s) => s.vessels[id]);
     const productGas = reaction?.products.find((p) => p.phase === 'gas');
+    const rimSpec = CATALOG[itemDescription(id).kind!] as (typeof CATALOG)[keyof typeof CATALOG] | undefined;
+    const rim = rimSpec?.size[1] ?? .12, rimRadius = Math.max(.006, Math.min(.065, (rimSpec?.size[0] ?? .07) * .43));
     useFrame((_, rawDt) => {
-        if (!root.current || !foam.current || !steam.current || !cloud.current || !smoke.current)
+        if (!root.current || !foam.current || !cloud.current)
             return;
         const m = useChemStore.getState().mixtures[id], rx = useReactionView.getState().vessels[id], now = performance.now();
         const paused = isBenchPaused(id) || !['bench', 'walk', 'inspect'].includes(useGameStore.getState().mode);
@@ -92,46 +124,31 @@ function VesselEffect({ id }: {
             if (pose) {
                 const flatten = 1 - settling * .96;
                 const spread = 1 + settling * .22;
+                // Uneven, turned lobes read as one lumpy foam mass rather than stacked balls.
+                const lump = .86 + ((i * .618) % 1) * .3;
                 dummy.position.set(pose.x * spread, pose.y * flatten, pose.z * spread);
-                dummy.scale.set(pose.sx * spread, pose.sy * flatten, pose.sz * spread);
+                dummy.rotation.set(i * 1.3, i * 2.1, i * .7);
+                dummy.scale.set(pose.sx * spread * lump, pose.sy * flatten * (2 - lump), pose.sz * spread * lump);
             } else dummy.scale.setScalar(0);
             dummy.updateMatrix();
             foam.current.setMatrixAt(i, dummy.matrix);
         }
         foam.current.instanceMatrix.needsUpdate = true;
+        dummy.rotation.set(0, 0, 0);
         const look = mixtureLook(m);
         tint.set(look.liquid ?? '#e9f8ff');
         const foamMat = foam.current.material as MeshStandardMaterial;
         foamMat.color.lerp(tint.lerp(white, .8), Math.min(1, rawDt * 3));
-        foamMat.opacity = Math.min(1, foamHeight / .02) * (1 - settling * .8);
+        // Foam is opaque; it only thins in the last moments of draining.
+        foamMat.opacity = Math.min(1, foamHeight / .004) * (1 - settling * settling * .8);
         foamMat.roughness = .95 - settling * .65;
         if (foamHeight < .0001 && wantedFoam < .0001) motion.current.peakFoam = 0;
         // Gas bubbles are drawn inside the vessel by VesselContents (visible through glass).
         const gasIntensity = productGas && actualRate > 0 ? intensity : 0;
         const fx = vesselFx.get(id);
         const steamIntensity = liquidMl(m) > .05 ? fx?.steam ?? 0 : 0;
-        const steamCount = steamIntensity > .03 ? Math.max(2, Math.round(n / 3 * steamIntensity)) : 0;
-        steam.current.count = steamCount;
-        for (let i = 0; i < steamCount; i++) {
-            const u = (effectTime * .35 + i / Math.max(1, steamCount)) % 1;
-            dummy.position.set(Math.sin(i * 4 + u * 3) * radius * (1 + u * 2), height + foamHeight + u * .4, Math.cos(i * 2) * radius);
-            const fade = Math.sin(Math.PI * u);
-            dummy.scale.set((.008 + u * .025) * fade, (.015 + u * .045) * fade, (.008 + u * .025) * fade);
-            dummy.updateMatrix();
-            steam.current.setMatrixAt(i, dummy.matrix);
-        }
-        steam.current.instanceMatrix.needsUpdate = true;
-        const smokeIntensity = fx?.smoke ?? 0;
-        const smokeCount = smokeIntensity > .01 ? Math.max(2, Math.round(n / 3 * smokeIntensity)) : 0;
-        smoke.current.count = smokeCount;
-        for (let i = 0; i < smokeCount; i++) {
-            const u = (effectTime * .45 + i / smokeCount) % 1;
-            const fade = Math.sin(Math.PI * u);
-            dummy.position.set(Math.sin(i * 2.4 + u * 4) * radius * (1 + u), height + u * .45, Math.cos(i * 2.4 + u * 3) * radius * (1 + u));
-            dummy.scale.setScalar((.008 + u * .04) * fade);
-            dummy.updateMatrix(); smoke.current.setMatrixAt(i, dummy.matrix);
-        }
-        smoke.current.instanceMatrix.needsUpdate = true;
+        // Vapour rises from the rim, above any foam.
+        if (vapour.current) vapour.current.position.y = foamHeight;
         // Metal pieces sink at once; only powders and precipitates are stirred up.
         const cloudCount = look.sedimentMl > .001 && !look.solidMetal && liquidMl(m) > .05 ? Math.round(n * .6) : 0;
         cloud.current.count = cloudCount;
@@ -169,9 +186,8 @@ function VesselEffect({ id }: {
       <sphereGeometry args={[1, 32, 12]} />
       <meshPhysicalMaterial transparent opacity={0} roughness={.16} metalness={0} clearcoat={1} depthWrite={false} />
     </mesh><group name={`reaction-effects-${id}`} ref={root} userData={{ noBatch: true, noOutline: true }}>
-    <instancedMesh name="reaction-foam" ref={foam} args={[undefined, undefined, n]} frustumCulled={false} raycast={() => undefined}><sphereGeometry args={[1, low ? 12 : 20, 12]}/><meshStandardMaterial color="#fffefa" roughness={.95} transparent opacity={1}/></instancedMesh>
-    <instancedMesh ref={steam} args={[undefined, undefined, n]} frustumCulled={false} raycast={() => undefined}><sphereGeometry args={[1, 6, 4]}/><meshStandardMaterial color="white" transparent opacity={.13} depthWrite={false}/></instancedMesh>
-    <instancedMesh name="reaction-smoke" ref={smoke} args={[undefined, undefined, n]} frustumCulled={false} raycast={() => undefined}><sphereGeometry args={[1, 8, 6]}/><meshStandardMaterial color="#625b58" transparent opacity={.16} depthWrite={false}/></instancedMesh>
+    <group ref={vapour}><VapourPlume itemId={id} rim={rim} radius={rimRadius} /></group>
+    <instancedMesh name="reaction-foam" ref={foam} args={[undefined, undefined, n]} frustumCulled={false} raycast={() => undefined}><sphereGeometry args={[1, low ? 16 : 28, low ? 12 : 20]}/><meshStandardMaterial color="#fffefa" map={foamCells()} bumpMap={foamCells()} bumpScale={.8} roughness={.95} transparent opacity={1}/></instancedMesh>
     <instancedMesh name="reaction-cloud" ref={cloud} args={[undefined, undefined, n]} frustumCulled={false} raycast={() => undefined}><icosahedronGeometry args={[1, 0]}/><meshStandardMaterial color="white" roughness={.95}/></instancedMesh>
     {productGas && !reaction?.info && <Html position={[0, (itemDescription(id).kind ? CATALOG[itemDescription(id).kind!].size[1] : .15) + .04, 0]} center style={{ pointerEvents: 'none' }}><span data-gas={productGas.id} className="whitespace-nowrap rounded-full bg-white/95 px-2 py-1 text-sm font-bold text-sky-900 shadow">{productGas.formula.replace(/↑$/, '')}↑</span></Html>}
   </group></>;

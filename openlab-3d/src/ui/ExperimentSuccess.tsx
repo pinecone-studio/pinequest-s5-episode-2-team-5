@@ -13,6 +13,8 @@ import { releaseLock } from '../controls/usePointerLock';
 import { exitBench } from '../experiments/nacl/bench';
 import { MoleculeStage } from './MoleculeViewer';
 import { sounds } from '../utils/sounds';
+import { vesselFx } from '../lab/vesselFx';
+import { phOf } from '../chemistry/equilibrium';
 function resultFor(id: string): ReactionObservation | null {
     const vessels = useReactionView.getState().vessels, mixtures = useChemStore.getState().mixtures;
     const candidates = Object.values(vessels).filter((r) => isWorkbenchObject(r.vesselId));
@@ -27,7 +29,8 @@ function resultFor(id: string): ReactionObservation | null {
         if (id === 'gases')
             return ['acid', 'metal'].includes(r.preset) && r.rate > 1e-7;
         if (id === 'titration')
-            return r.preset === 'neutral' && r.until > performance.now();
+            // The endpoint, not the first drop: with phenolphthalein the pink must have stayed.
+            return r.preset === 'neutral' && ((m.aq.phph ?? 0) > 0 ? (phOf(m) ?? 7) >= 8.2 : r.until > performance.now());
         if (id === 'color-tests' || id === 'indicators')
             return r.effect === 'color' && r.until > performance.now();
         if (id === 'crystals' || id === 'cuso4')
@@ -46,6 +49,20 @@ function resultFor(id: string): ReactionObservation | null {
         }
     }
     return null;
+}
+/** A workbench vessel is still visibly reacting: a live rate, standing foam, bubbles or vapour. */
+function reactionStillVisible(): boolean {
+    const now = performance.now(), mixtures = useChemStore.getState().mixtures;
+    if (Object.values(useReactionView.getState().vessels).some((r) => !r.info && r.rate > 0 && r.until > now && isWorkbenchObject(r.vesselId)))
+        return true;
+    for (const [id, m] of Object.entries(mixtures)) {
+        if (!isWorkbenchObject(id))
+            continue;
+        const fx = vesselFx.get(id);
+        if (m.foam > 2 || (fx && (fx.bubbles > .05 || fx.steam > .05 || fx.smoke > .05)))
+            return true;
+    }
+    return false;
 }
 export function ExperimentSuccess() {
     const modal = usePresentation((s) => s.modal), id = usePresentation((s) => s.experiment), result = usePresentation((s) => s.reaction);
@@ -79,7 +96,11 @@ export function ExperimentSuccess() {
                 pending.current = { id: active, at: performance.now(), reaction };
                 return;
             }
-            if (performance.now() - pending.current.at < 1500)
+            const waited = performance.now() - pending.current.at;
+            if (waited < 1500)
+                return;
+            // Let the visible reaction (eruption, fizzing, boiling) play out before celebrating.
+            if (!useSettingsStore.getState().reducedMotion && waited < 9000 && reactionStillVisible())
                 return;
             endHeldUse();
             releaseLock();

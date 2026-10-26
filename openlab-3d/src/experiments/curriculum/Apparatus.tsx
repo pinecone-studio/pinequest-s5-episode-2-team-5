@@ -1,5 +1,5 @@
 import {PistonChamber} from '../grade9/PistonChamber';
-import {HotPlate,PowerSupply,Electrode} from '../grade9/RigParts';
+import {HotPlate,PowerSupply,Electrode,Furnace,WaterBath,StandThermometer,ColumnPlate,PortTag} from '../grade9/RigParts';
 import {useFrame} from '@react-three/fiber';
 import {useRef} from 'react';
 import type {Mesh} from 'three';
@@ -35,7 +35,7 @@ export function CurriculumApparatus({kind,rig,onSelect,itemId}:{kind:CurriculumK
    <mesh material={glass} position={[0,height/2,0]}><cylinderGeometry args={[radius,radius*.94,height,24,1,true]}/></mesh>
    <ChamberContents producedGasMl={kind==='fermenter'&&i===0?rig?.gas:rig?.data[`hydrogen${i}`]} diffusion={kind==='diffusionChamber'&&i===1?rig?.extent:undefined} mixture={m} capacityMl={shape==='polymer'?25:100} radius={radius} height={height} incoming={rig?.port===i&&(cue.target===itemId&&flow||actionVisual.targetId===itemId&&actionVisual.strength>0)} running={rig?.running} mixing={rig?.port===i&&(stirring||actionVisual.kind==='stir'&&actionVisual.targetId===itemId)}/>
    <mesh position={[0,.001,0]}><cylinderGeometry args={[radius*1.1,radius*1.1,.003,18]}/><meshStandardMaterial color={rig?.port===i?'#28b7d6':'#718596'}/></mesh>
-   <Label text={String(i+1)} at={[0,height*.65,radius+.001]} size={[.016,.016]}/>
+   <PortTag text={String(i+1)} at={[0,height*.65,radius+.0012]} active={rig?.port===i}/>
   </group>;
  };
  const heater=<HotPlate at={[0,.023,0]} heating={!!rig?.heating} cooling={!!rig?.cooling}/>;
@@ -68,19 +68,17 @@ export function CurriculumApparatus({kind,rig,onSelect,itemId}:{kind:CurriculumK
    {gauge}
    {shape==='fermenter'&&<Pipe points={[[.055,.1,-.05],[.055,.17,-.05],[.09,.17,-.05],[.09,.08,-.05]]}/>}
   </>:shape==='furnace'||shape==='oven'?<>
-   <Block at={[0,.09,-.015]} size={[.17,.16,.11]} color={rig?.heating?'#865044':'#647382'}/>
-   <Block at={[0,.105,.043]} size={[.12,.09,.003]} color={rig?.heating?'#c1783b':'#26343a'}/>
+   <Furnace at={[0,.09,-.015]} heating={!!rig?.heating}/>
    {well(0,0,.05,.052,.025,.07)}{well(1,-.085,.025,.014,.015,.06)}{well(2,.085,.025,.014,.015,.06)}
    {gauge}
-   {rig?.heating&&hasFeed&&<mesh position={[0,.065,.065]}><coneGeometry args={[.009,.035,12]}/><meshStandardMaterial color="#ffbe5b" emissive="#e27638" transparent opacity={.65}/></mesh>}
   </>:shape==='bath'||shape==='optical'||shape==='equilibrium'?<>
-   <Block at={[0,.035,0]} size={[.18,.055,.12]} color={rig?.cooling?'#77bad5':'#859eb2'}/>
+   <WaterBath at={[0,.035,0]} cooling={!!rig?.cooling} heating={!!rig?.heating}/>
    {well(0,-.05,0,.05,.022,.13)}{well(1,.05,0,.05,.022,.13)}{well(2,.075,-.045,.02,.013,.08)}
-   <Block at={[-.055,.21,0]} size={[.004,.12,.004]} color="#e5e7eb"/>{gauge}
+   <StandThermometer at={[-.075,.11,.03]} length={.14} temp={rig?.temperature??22}/>{gauge}
    {shape==='optical'&&<><Block at={[-.05,.048,0]} size={[.035,.002,.003]} color="#111827"/><Block at={[-.05,.048,0]} size={[.003,.002,.035]} color="#111827"/></>}
   </>:shape==='column'||shape==='distillation'||shape==='viscometer'?<>
    {well(0,-.025,0,.014,.026,.23)}
-   {shape==='distillation'?<>{[1,2,3,4].map((i)=>well(i,.065,(i-2.5)*.04,.014,.014,.06))}{[0,1,2,3,4].map(i=><Block key={i} at={[-.025,.05+i*.04,0]} size={[.045,.002,.045]} color="#a4b9c4"/>)}<Pipe points={[[-.025,.24,0],[.065,.24,0],[.065,.075,0]]}/></>:shape==='viscometer'?<>{hasFeed&&(rig?.chambers[0].s.glassBead??0)>0&&<mesh position={[-.025,.22-Math.min(.1,rig?.data.distance??0)*1.7,0]}><sphereGeometry args={[.005,12,10]}/><meshStandardMaterial color="#a7c0c8" metalness={.5}/></mesh>}<Label text={`${(rig?.data.fallTime??0).toFixed(1)} s`} at={[.067,.08,.032]} size={[.05,.025]}/></>:<>
+   {shape==='distillation'?<>{[1,2,3,4].map((i)=>well(i,.065,(i-2.5)*.04,.014,.014,.06))}{[0,1,2,3,4].map(i=><ColumnPlate key={i} at={[-.025,.05+i*.04,0]} radius={.025}/>)}<Pipe points={[[-.025,.24,0],[.065,.24,0],[.065,.075,0]]}/></>:shape==='viscometer'?<>{hasFeed&&(rig?.chambers[0].s.glassBead??0)>0&&<mesh position={[-.025,.22-Math.min(.1,rig?.data.distance??0)*1.7,0]}><sphereGeometry args={[.005,12,10]}/><meshStandardMaterial color="#a7c0c8" metalness={.5}/></mesh>}<Label text={`${(rig?.data.fallTime??0).toFixed(1)} s`} at={[.067,.08,.032]} size={[.05,.025]}/></>:<>
     {(rig?.data.oil??0)>0&&<mesh position={[-.025,.10+Math.min(.06,(rig?.data.oil??0)/100),0]}><cylinderGeometry args={[.022,.022,Math.min(.08,(rig?.data.oil??0)/200),20]}/><meshStandardMaterial color="#e3c44d" transparent opacity={.75}/></mesh>}
    </>}
   </>:shape==='pressure'?<>

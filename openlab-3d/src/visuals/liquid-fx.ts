@@ -5,8 +5,8 @@
  * - A new color enters as a plume from where liquid arrives (the top) and spreads through
  *   the old one along swirling, falling tendrils, slightly more concentrated at the front.
  * - A precipitate blooms from the same point as opaque flocs, then sinks as it settles.
- * - Color is deepened with the vessel's path length (Beer–Lambert), so thin layers of
- *   strongly colored solutions do not wash out under bright lab lighting.
+ * - Color follows the liquid's real path length (Beer–Lambert): thin films are paler,
+ *   tall columns deeper.
  */
 import { useEffect, useMemo, useRef } from 'react';
 import { useFrame } from '@react-three/fiber';
@@ -25,12 +25,17 @@ export interface LiquidUniforms {
   uTop: { value: number };
   uRadius: { value: number };
   uScale: { value: Vector3 };
-  uDepth: { value: number };
   uGlow: { value: number };
   uCloud: { value: number };
   uCloudColor: { value: Color };
   uForm: { value: number };
   uSettle: { value: number };
+  uClock: { value: number };
+  uSurf: { value: number };
+  uFizz: { value: number };
+  uFlash: { value: number };
+  uFlashSize: { value: number };
+  uFlashColor: { value: Color };
 }
 
 const NOISE = /* glsl */ `
@@ -58,6 +63,43 @@ float lfxNoise(vec3 v){
   return 105.0*dot(m*m,vec4(dot(p0,x0),dot(p1,x1),dot(p2,x2),dot(p3,x3)));
 }
 float lfxFbm(vec3 p){return lfxNoise(p)*0.6+lfxNoise(p*2.03+7.1)*0.28+lfxNoise(p*4.1-3.7)*0.12;}
+`;
+
+/**
+ * The free surface: concentric ripples where a stream lands, a stirred vortex dip with spiral
+ * arms, fizz where bubbles burst and a meniscus against the wall. Drawn as a normal
+ * perturbation (lighting and reflections move), so the cap needs no extra vertices.
+ */
+const SURFACE = /* glsl */ `
+vec3 sp = vLiquidPos * uScale;
+// The cap is found by height (lathe normals at its rim are bevelled); use its true face normal.
+if (abs(sp.y - uTop) < 0.0004 && vLiquidUp > -0.5) {
+  normal = normalize(cross(dFdx(vViewPosition), dFdy(vViewPosition)));
+  float rr = length(sp.xz);
+  float R = max(1e-4, uRadius);
+  // Slightly irregular rings: real ripples interfere and wobble.
+  float px = max(1e-7, length(dFdx(vViewPosition)));
+  // Detail finer than a few pixels only aliases into grain; fade it with distance.
+  float fine = 1.0 - smoothstep(0.08, 0.3, px * 150.0);
+  float wob = lfxNoise(vec3(sp.xz * 160.0, uClock * 0.8)) * 0.0018;
+  float rings = fine * uSurf * 0.0005 * sin((rr + wob) * 950.0 - uClock * 18.0) * exp(-rr / (R * 0.8));
+  float vortex = -uSwirl * 0.0016 * exp(-rr * rr / (R * R * 0.12))
+    + uSwirl * 0.00018 * sin(atan(sp.z, sp.x) * 3.0 + rr * 700.0 - uClock * 9.0);
+  float fizz = fine * uFizz * 0.00022 * lfxNoise(vec3(sp.xz * 1100.0, uClock * 7.0));
+  float meniscus = 0.0009 * pow(smoothstep(0.82, 1.0, rr / R), 2.0);
+  float hgt = rings + vortex + fizz + meniscus;
+  vec2 dHdxy = vec2(dFdx(hgt), dFdy(hgt)) / px;
+  vec3 sX = normalize(dFdx(-vViewPosition)), sY = normalize(dFdy(-vViewPosition));
+  vec3 r1 = cross(sY, normal), r2 = cross(normal, sX);
+  float det = dot(sX, r1) * faceDirection;
+  normal = normalize(abs(det) * normal - sign(det) * (dHdxy.x * r1 + dHdxy.y * r2));
+  // Ripples also bend what is seen through the surface: slopes facing the light brighten.
+  float shade = clamp(dHdxy.x * 0.5 - dHdxy.y * 0.7, -0.35, 0.45);
+  // Where the stream plunges in, the surface churns white with entrained air.
+  float churn = uSurf * (1.0 - uFlash * 0.75) * (1.0 - smoothstep(R * 0.03, R * 0.16, rr)) * (0.55 + 0.45 * lfxNoise(vec3(sp.xz * 1400.0, uClock * 9.0)));
+  diffuseColor.rgb = mix(diffuseColor.rgb * (1.0 + shade), vec3(0.93, 0.96, 0.98), clamp(churn, 0.0, 0.8));
+  lfxSheen = max(shade, 0.0) * 0.35 + churn * 0.3;
+}
 `;
 
 const FRAGMENT = /* glsl */ `
@@ -90,7 +132,16 @@ const FRAGMENT = /* glsl */ `
   float bloom = (1.0 - uForm) * (1.0 - smoothstep(0.0, 0.25, abs(d - (uForm * 1.7 - 0.3)))) * 0.6;
   lfxCloud = clamp(uCloud * formMask * sink * (0.3 + 0.7 * floc + bloom), 0.0, 0.94);
   col = mix(col, uCloudColor, lfxCloud);
-  diffuseColor.rgb = pow(max(col, vec3(0.0005)), vec3(mix(uDepth, 1.0, lfxCloud)));
+  // A drop's local color (e.g. pink indicator around base) blooms where it lands, then fades.
+  float flashR = 0.22 + 0.55 * uFlashSize;
+  float fromDrop = length(vec2(r, (1.0 - h) * 1.4));
+  float flash = uFlash * (1.0 - smoothstep(flashR * 0.4, flashR, fromDrop + n2 * 0.1 + n1 * 0.08));
+  col = mix(col, uFlashColor, clamp(flash * 1.2, 0.0, 0.95));
+  // Beer–Lambert over the real path: mostly the liquid's depth (we look down into vessels),
+  // partly its width. Colors are defined at a 25 mm path; a thin film is paler, a tall column deeper.
+  float path = 0.7 * (uTop - uBottom) + 0.3 * 1.6 * uRadius;
+  float depthK = clamp(path / 0.025, 0.5, 1.8);
+  diffuseColor.rgb = pow(max(col, vec3(0.0005)), vec3(mix(depthK, 1.0, lfxCloud)));
   diffuseColor.a = mix(diffuseColor.a, 1.0, lfxCloud);
 }
 `;
@@ -99,25 +150,32 @@ function patch(material: LiquidMaterial, uniforms: LiquidUniforms) {
   material.onBeforeCompile = (shader) => {
     Object.assign(shader.uniforms, uniforms);
     shader.vertexShader = shader.vertexShader
-      .replace('#include <common>', '#include <common>\nvarying vec3 vLiquidPos;')
+      .replace('#include <common>', '#include <common>\nvarying vec3 vLiquidPos;\nvarying float vLiquidUp;')
+      .replace('#include <beginnormal_vertex>', '#include <beginnormal_vertex>\nvLiquidUp = objectNormal.y;')
       .replace('#include <begin_vertex>', '#include <begin_vertex>\nvLiquidPos = transformed;');
     shader.fragmentShader = shader.fragmentShader
       .replace(
         '#include <common>',
         `#include <common>
 varying vec3 vLiquidPos;
+varying float vLiquidUp;
 uniform vec3 uPrev; uniform float uMix; uniform float uTime; uniform float uSwirl;
-uniform float uBottom; uniform float uTop; uniform float uRadius; uniform vec3 uScale; uniform float uDepth;
+uniform float uBottom; uniform float uTop; uniform float uRadius; uniform vec3 uScale;
 uniform float uGlow; uniform float uCloud; uniform vec3 uCloudColor; uniform float uForm; uniform float uSettle;
+uniform float uClock; uniform float uSurf; uniform float uFizz;
+uniform float uFlash; uniform float uFlashSize; uniform vec3 uFlashColor;
 float lfxCloud = 0.0;
+float lfxSheen = 0.0;
 ${NOISE}`,
       )
       .replace('#include <color_fragment>', `#include <color_fragment>\n${FRAGMENT}`)
+      .replace('#include <normal_fragment_maps>', `#include <normal_fragment_maps>\n${SURFACE}`)
+      .replace('#include <clearcoat_normal_fragment_maps>', '#include <clearcoat_normal_fragment_maps>\n#ifdef USE_CLEARCOAT\nclearcoatNormal = normal;\n#endif')
       // Flocs scatter light instead of letting it through.
       .replace('#include <transmission_fragment>', ShaderChunk.transmission_fragment.replace('material.transmission = transmission;', 'material.transmission = transmission * (1.0 - lfxCloud);'))
-      .replace('#include <emissivemap_fragment>', '#include <emissivemap_fragment>\ntotalEmissiveRadiance = diffuseColor.rgb * uGlow;');
+      .replace('#include <emissivemap_fragment>', '#include <emissivemap_fragment>\ntotalEmissiveRadiance = diffuseColor.rgb * uGlow + vec3(lfxSheen);');
   };
-  material.customProgramCacheKey = () => 'liquid-fx-1';
+  material.customProgramCacheKey = () => 'liquid-fx-9';
   material.needsUpdate = true;
 }
 
@@ -147,6 +205,12 @@ export interface LiquidFxInput {
   progress?: number;
   /** Color the plume starts from when `progress` drives it. */
   from?: string;
+  /** A stream is landing on the surface right now. */
+  pouring?: boolean;
+  /** 0..1 every frame: bubbles bursting at the surface. */
+  fizz?: () => number;
+  /** A drop just landed with this local color; `key` changes per drop. */
+  flash?: { color: string; key: number } | null;
 }
 
 /**
@@ -164,12 +228,17 @@ export function useLiquidFx(material: LiquidMaterial, input: LiquidFxInput) {
       uTop: { value: 1 },
       uRadius: { value: 0.03 },
       uScale: { value: new Vector3(1, 1, 1) },
-      uDepth: { value: 1.4 },
       uGlow: { value: 0.1 },
       uCloud: { value: 0 },
       uCloudColor: { value: new Color('#ffffff') },
       uForm: { value: 1 },
       uSettle: { value: 0 },
+      uClock: { value: 0 },
+      uSurf: { value: 0 },
+      uFizz: { value: 0 },
+      uFlash: { value: 0 },
+      uFlashSize: { value: 0 },
+      uFlashColor: { value: new Color('#ffffff') },
     }),
     [],
   );
@@ -200,6 +269,12 @@ export function useLiquidFx(material: LiquidMaterial, input: LiquidFxInput) {
   useEffect(() => {
     if (input.cloudColor) uniforms.uCloudColor.value.set(input.cloudColor);
   }, [input.cloudColor, uniforms]);
+  const flashAge = useRef(99);
+  useEffect(() => {
+    if (!input.flash) return;
+    uniforms.uFlashColor.value.set(input.flash.color);
+    flashAge.current = 0;
+  }, [input.flash, uniforms]);
   useFrame((_, delta) => {
     const dt = Math.min(0.1, delta);
     const reduced = useSettingsStore.getState().reducedMotion;
@@ -212,8 +287,6 @@ export function useLiquidFx(material: LiquidMaterial, input: LiquidFxInput) {
     }
     u.uRadius.value = Math.max(1e-4, input.radius);
     u.uGlow.value = input.glow ?? 0.1;
-    // Deeper vessels show a little more color; ≈1.05 for a test tube, ≈1.25 for a beaker.
-    u.uDepth.value = 1 + Math.min(0.3, input.radius * 8);
     const mixing = u.uMix.value < 1;
     const duration = reduced ? 0.6 : input.agitated ? 1.6 : 4.2;
     if (input.progress !== undefined) {
@@ -223,6 +296,15 @@ export function useLiquidFx(material: LiquidMaterial, input: LiquidFxInput) {
     const swirlTarget = reduced ? 0 : input.agitated ? 1 : mixing ? 0.55 * (1 - u.uMix.value) + 0.1 : 0.04;
     u.uSwirl.value += (swirlTarget - u.uSwirl.value) * (1 - Math.exp(-dt * 3));
     u.uTime.value += dt * (reduced ? 0.1 : 0.35 + u.uSwirl.value);
+    u.uClock.value += reduced ? 0 : dt;
+    // Rings keep spreading for a moment after the stream stops.
+    u.uSurf.value += ((input.pouring && !reduced ? 1 : 0) - u.uSurf.value) * (1 - Math.exp(-dt * (input.pouring ? 6 : 1.2)));
+    u.uFizz.value = reduced ? 0 : Math.max(0, Math.min(1, input.fizz?.() ?? 0));
+    flashAge.current += dt;
+    const life = reduced ? 0.6 : 1.6,
+      f = Math.min(1, flashAge.current / life);
+    u.uFlash.value = 1 - f * f;
+    u.uFlashSize.value = f;
     const cloud = input.cloudColor ? Math.max(0, Math.min(1, input.cloud)) : 0;
     if (s.cloud < 0.02 && cloud >= 0.02) u.uForm.value = 0;
     s.cloud = cloud;
@@ -235,15 +317,17 @@ export function useLiquidFx(material: LiquidMaterial, input: LiquidFxInput) {
 }
 
 /**
- * Liquid body material. With transmission (High) it refracts like water and is drawn in the
- * opaque pass, so it stays visible through transmissive glass; otherwise it is alpha-blended.
+ * Liquid body material. On High (refracting glass) it is opaque so the glass can show it;
+ * otherwise it is alpha-blended with the alpha glass.
  */
 export function useLiquidMaterial(color: string, turbidity: number, fx: Omit<LiquidFxInput, 'color'>): MeshPhysicalMaterial {
   const transmission = useTransmission();
   const material = useMemo(
     () =>
       transmission
-        ? new MeshPhysicalMaterial({ roughness: 0.06, metalness: 0, transmission: 1, ior: 1.33, thickness: 0.02, clearcoat: 0.3, clearcoatRoughness: 0.05, specularIntensity: 0.6 })
+        ? // Opaque on purpose: three.js glass only refracts opaque objects behind it, so a
+          // transmissive liquid would vanish behind the vessel wall. The glass does the refraction.
+          new MeshPhysicalMaterial({ roughness: 0.06, metalness: 0, clearcoat: 0.5, clearcoatRoughness: 0.05, specularIntensity: 0.6 })
         : new MeshPhysicalMaterial({ roughness: 0.12, transparent: true, opacity: 0.86, clearcoat: 0.3 }),
     [transmission],
   );
@@ -251,13 +335,11 @@ export function useLiquidMaterial(color: string, turbidity: number, fx: Omit<Liq
   useEffect(() => {
     const c = new Color(color);
     material.roughness = 0.06 + turbidity * 0.3;
-    // Refraction through a full vessel, not a 2 cm slab.
-    if (transmission) material.thickness = Math.max(0.004, fx.radius * 1.6);
-    else {
+    if (!transmission) {
       const dark = 1 - (c.r + c.g + c.b) / 3;
       material.opacity = Math.min(0.97, 0.62 + Math.max(turbidity, dark) * 0.38);
     }
   }, [material, color, turbidity, transmission, fx.radius]);
-  useLiquidFx(material, { ...fx, color });
+  useLiquidFx(material, { glow: 0.12, ...fx, color });
   return material;
 }

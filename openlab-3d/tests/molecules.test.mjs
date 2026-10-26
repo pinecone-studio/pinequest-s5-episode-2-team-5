@@ -1023,3 +1023,17 @@ test('measured tools reserve actual stock and cancellation returns only the unus
 test('device actions distinguish leads, gas hoses, nylon winding and gentle mixing',()=>{
  const start={type:'start',label:'start'};assert.equal(stores.operationFor('galvanicCell',start),'connect-electric');assert.equal(stores.operationFor('gasTrain',start),'connect-gas');assert.equal(stores.operationFor('interfacialBath',start),'measure');assert.equal(stores.operationFor('beaker',start),'stir');assert.equal(stores.operationFor('interfacialBath',{type:'configure',label:'draw',change:{operation:'draw'}}),'wind');
 });
+
+test('a drop of base into acid with phenolphthalein flashes pink where it lands while the bulk stays colourless',async()=>{
+ const out=await build({stdin:{contents:`export * from './src/visuals/drop-flash.ts'; export * from './src/chemistry/mixture.ts'; export {mixtureLook} from './src/chemistry/color.ts';`,resolveDir:process.cwd()},bundle:true,write:false,format:'esm',platform:'node'});
+ const fx=await import(`data:text/javascript;base64,${Buffer.from(out.outputFiles[0].text).toString('base64')}`);
+ const acid=fx.merge(fx.reagentMixture('hcl',20),fx.reagentMixture('phph',.1));
+ const dropped=fx.merge(acid,fx.reagentMixture('naoh',.05));
+ const hex=fx.dropFlash(acid,dropped);
+ assert.ok(hex,'the drop has a visible local colour');
+ const [r,g,b]=[1,3,5].map(i=>parseInt(hex.slice(i,i+2),16));
+ assert.ok(r>g+40&&b>g+20,`local pocket is magenta, got ${hex}`);
+ const bulk=fx.mixtureLook(dropped).liquid,[br,bg]=[1,3].map(i=>parseInt(bulk.slice(i,i+2),16));
+ assert.ok(Math.abs(br-bg)<30,`bulk stays nearly colourless, got ${bulk}`);
+ assert.equal(fx.dropFlash(fx.reagentMixture('water',20),fx.merge(fx.reagentMixture('water',20),fx.reagentMixture('water',.05))),null,'plain water shows no flash');
+});

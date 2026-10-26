@@ -34,6 +34,8 @@ import { emptyMixture, reagentMixture, liquidMl, contentMassG } from '../chemist
 import { updateBenchMixture } from '../experiments/nacl/chemistry';
 import { step as chemistryStep, DEFAULT_ENV } from '../chemistry/kinetics';
 import { mixtureLook } from '../chemistry/color';
+import { useShowcase } from '../experiments/workbench/guidance/showcase';
+import { useGuideCue } from '../experiments/workbench/guidance/runtime';
 
 declare global {
   interface Window {
@@ -47,6 +49,8 @@ export function DebugBridge() {
     let t = 0;
     window.__lab = {
       grade9:useGrade9Apparatus,
+      showcase: useShowcase,
+      guideCue: useGuideCue,
       game: useGameStore,
       experiment: useExperimentStore,
       inventory: useInventoryStore,

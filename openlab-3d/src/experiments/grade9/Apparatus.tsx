@@ -1,5 +1,5 @@
 import {PistonChamber} from './PistonChamber';
-import {HotPlate,SpiritLamp,RigBurner,Electrode,IndicatorBulb} from './RigParts';
+import {HotPlate,SpiritLamp,RigBurner,Electrode,IndicatorBulb,ColumnPlate,ChromaPaper,PortTag,Chiller,Dewar} from './RigParts';
 import {OperationVisual} from './OperationVisual';
 import {actionVisual} from '../../interaction/actions';
 import {ChamberContents} from './ChamberContents';
@@ -38,8 +38,6 @@ export function Grade9Apparatus({kind,itemId,...props}:GroupProps&{kind:RigKind;
   useGrade9Apparatus.getState().tick(itemId,acc.current);acc.current=0;
   const r=useGrade9Apparatus.getState().rigs[itemId];if(r?.running)useChemStore.getState().setMixtures({[itemId]:r.chambers[r.port]});
  });
- const labels=useMemo(()=>[1,2,3].map(number=>{const c=document.createElement('canvas');c.width=64;c.height=64;const ctx=c.getContext('2d');if(ctx){ctx.fillStyle='#f0f9ff';ctx.fillRect(0,0,64,64);ctx.fillStyle='#075985';ctx.font='bold 48px sans-serif';ctx.textAlign='center';ctx.fillText(String(number),32,51);}return new CanvasTexture(c);}),[]);
- useEffect(()=>()=>labels.forEach(label=>label.dispose()),[labels]);
  const receiving=useGuideCue(s=>s.target===itemId),flow=useShowcase(s=>s.flow),stirring=useShowcase(s=>s.targetId===itemId&&s.operation==='stir'&&s.status==='playing');
  const selectedPort=rig?.port??0;
  const well=(i:number,x:number,z=0)=>{
@@ -48,7 +46,7 @@ export function Grade9Apparatus({kind,itemId,...props}:GroupProps&{kind:RigKind;
   const ph=contents?phOf(contents):null;
   const solidColor=litmus?(ph!==null&&ph<6?'#dd5470':ph!==null&&ph>8?'#5566d9':contents?.s.litmus_red?'#dd5470':'#5566d9'):look?.solidColor??'#e3e7eb';
   return <group key={i} position={[x,.014,z]}>
-   {kind==='gasTrain'&&<mesh position={[0,.057,.026]} onClick={e=>{e.stopPropagation();if(itemId){useGrade9Apparatus.getState().change(itemId,{port:i});if(contents)useChemStore.getState().setMixtures({[itemId]:contents});}}}><planeGeometry args={[.024,.024]}/><meshBasicMaterial map={labels[i]}/></mesh>}
+   {kind==='gasTrain'&&<PortTag text={String(i+1)} at={[0,.065,.0262]} active={selectedPort===i} size={.013}/>}
    <mesh material={glass} position={[0,.05,0]}><cylinderGeometry args={[.025,.024,.1,24,1,true]}/></mesh>
    <ChamberContents producedGasMl={i===0&&['gasTrain','conductivityTester'].includes(kind)?rig?.gas:undefined} diffusion={kind==='diffusionCell'&&i===0?rig?.extent:undefined} liquidColor={kind==='convectionCell'&&rig?new Color(look?.liquid??'#cde8f0').lerp(new Color(mixtureLook(rig.chambers[i===0?1:0]).liquid??'#cde8f0'),rig.extent*.5).getStyle():undefined} mixture={contents} radius={.025} height={.1} incoming={selectedPort===i&&(receiving&&flow||actionVisual.targetId===itemId&&actionVisual.strength>0)} running={rig?.running} mixing={rig?.port===i&&(stirring||actionVisual.kind==='stir'&&actionVisual.targetId===itemId)} showSolid={!litmus}/>
    {litmus&&<mesh position={[0,.004,0]}><boxGeometry args={[.008,.001,.035]}/><meshStandardMaterial color={solidColor}/></mesh>}
@@ -71,10 +69,11 @@ export function Grade9Apparatus({kind,itemId,...props}:GroupProps&{kind:RigKind;
  </>:kind==='chromatographyTank'?<>
   <mesh material={glass} position={[0,.129,0]}><boxGeometry args={[.075,.23,.04]}/></mesh>
   {rig&&rig.chambers[0].water>0&&<Box at={[0,.014+Math.min(.03,rig.chambers[0].water/3000)/2,0]} size={[.07,Math.min(.03,rig.chambers[0].water/3000),.035]} color="#9ed5eb"/>}
-  {(rig?.chambers[2].s.paper??0)>0&&<Box at={[0,.114,.008]} size={[.03,.2,.001]} color="#fff7df"/>}
-  <Box at={[0,.034,.009]} size={[.03,.001,.001]} color="#64748b"/>
-  {(rig?.chambers[2].s.paper??0)>0&&(rig?.bands.length?rig.bands:[0]).map((v,i)=><mesh key={i} position={[0,.034+v*.01,.01]}><sphereGeometry args={[.004,12,8]}/><meshStandardMaterial color={['#d44f70','#e8bc32','#4782d2'][i]}/></mesh>)}
-  {rig&&<Box at={[0,.034+rig.extent*.01,.01]} size={[.03,.001,.001]} color="#55bcd6"/>}
+  {(rig?.chambers[2].s.paper??0)>0&&<>
+   <ChromaPaper at={[0,.124,.004]} height={.2} front={Math.max(0,.01+(rig?.extent??0)*.01)} spots={(rig?.bands.length?rig.bands:[0]).map((v,i)=>({y:.01+v*.01,color:['#d44f70','#e8bc32','#4782d2'][i],spread:Math.min(1,v*.15)}))}/>
+   <mesh position={[0,.234,.004]} rotation={[0,0,Math.PI/2]}><cylinderGeometry args={[.0018,.0018,.08,10]}/><meshStandardMaterial color="#c9d2d8" metalness={.8} roughness={.3}/></mesh>
+  </>}
+  <mesh position={[0,.246,0]}><boxGeometry args={[.081,.004,.046]}/><meshPhysicalMaterial color="#e8f2f6" roughness={.1} transparent opacity={.5} depthWrite={false}/></mesh>
  </>:kind==='corrosionRack'?<>
   {Array.from({length:7},(_,i)=><group key={i} position={[(i%4-1.5)*.05,0,(i<4?-.04:.035)]}>
    <mesh material={glass} position={[0,.06,0]}><cylinderGeometry args={[.019,.019,.1,18,1,true]}/></mesh>
@@ -85,8 +84,8 @@ export function Grade9Apparatus({kind,itemId,...props}:GroupProps&{kind:RigKind;
  </>:kind==='fractionatingColumn'?<>
   <mesh material={glass} position={[0,.145,0]}><cylinderGeometry args={[.025,.025,.25,24,1,true]}/></mesh>
   {rig?.extent===1&&<mesh position={[0,.038,0]}><cylinderGeometry args={[.021,.021,.028,24]}/><meshStandardMaterial color="#8ed8ef" transparent opacity={.6}/></mesh>}
-  {Array.from({length:6},(_,i)=><Box key={i} at={[0,.04+i*.035,0]} size={[.045,.003,.045]} color="#a3b7c3"/>)}
-  <Box at={[-.07,.05,0]} size={[.07,.08,.07]} color="#5694ab"/><Box at={[.07,.05,0]} size={[.05,.07,.06]} color="#859da9"/>
+  {Array.from({length:6},(_,i)=><ColumnPlate key={i} at={[0,.04+i*.035,0]} radius={.024}/>)}
+  <Chiller at={[-.07,.05,0]} cooling={!!rig?.cooling}/><Dewar at={[.07,.014,0]}/>
  </>:kind==='reactionTile'?<>{Array.from({length:6},(_,i)=>well(i,(i%3-1)*.065,i<3?-.035:.035))}</>:<>
   <group position={[0,kind==='calorimeter'?.14:kind==='gasTrain'?.08:0,0]}>{well(0,-.065)}</group>{well(1,.065)}
   {['gasTrain','convectionCell'].includes(kind)&&<Box at={[0,.14,0]} size={[.13,.006,.006]} color="#9ac2cd"/>}

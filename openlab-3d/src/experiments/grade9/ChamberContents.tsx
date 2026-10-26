@@ -23,7 +23,7 @@ export function ChamberContents({mixture,radius,height,incoming=false,mixing=fal
  const precipitate=volume>0&&!!phases?.visiblePrecipitate&&(phases.suspension??0)>.01;
  const r=radius*.88;
  // Diffusion is measured by the simulation: the dye plume follows it instead of a timer.
- const liquidMat=useLiquidMaterial(liquidColor??look?.liquid??'#cde8f0',look?.turbidity??0,{agitated,cloud:precipitate?phases!.suspension:0,cloudColor:phases?.precipitateColor??null,bottom:0,top:1,radius:r,manual:true,progress:diffusion===undefined?undefined:Math.min(1,diffusion),from:CLEAR});
+ const liquidMat=useLiquidMaterial(liquidColor??look?.liquid??'#cde8f0',look?.turbidity??0,{agitated,pouring:incoming,fizz:()=>bubbleLife.current>0?(boiling?1:.7):0,cloud:precipitate?phases!.suspension:0,cloudColor:phases?.precipitateColor??null,bottom:0,top:1,radius:r,manual:true,progress:diffusion===undefined?undefined:Math.min(1,diffusion),from:CLEAR});
  const organicMat=useLiquidMaterial(phases?.organicColor??'#eff2e9',0,{agitated,cloud:0,cloudColor:null,bottom:aqueousHeight,top:target,radius:r});
  // Brown NO₂ deepens with its amount; colorless gases are not drawn.
  const no2=mixture?.g?.NO2??0;

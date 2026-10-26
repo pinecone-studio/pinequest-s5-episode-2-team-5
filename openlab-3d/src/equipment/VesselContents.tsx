@@ -12,12 +12,14 @@ import {ReactionCloud} from '../visuals/ReactionCloud';
  */
 import { useEffect, useMemo, useRef } from 'react';
 import { useFrame } from '@react-three/fiber';
-import { AdditiveBlending, CanvasTexture, IcosahedronGeometry, LatheGeometry, MeshBasicMaterial, MeshStandardMaterial, SpriteMaterial, Vector2, type Group, type Sprite } from 'three';
+import { AdditiveBlending, IcosahedronGeometry, LatheGeometry, MeshBasicMaterial, MeshStandardMaterial, Vector2, type Group } from 'three';
 import type { MixtureLook } from '../chemistry/color';
 import { lazy } from '../utils/lazy';
 import { bandGeometry, heightForVolume, radiusAt, rimHeight, type VesselProfile } from './profiles';
 import { BubbleSprites } from '../visuals/BubbleSprites';
 import { useLiquidMaterial } from '../visuals/liquid-fx';
+import { dropFlash } from '../visuals/drop-flash';
+import { Condensation } from '../visuals/ThermalFx';
 import { vesselFx } from '../lab/vesselFx';
 import { useReactionView } from '../lab/reaction-view';
 import { reactionIntensity } from '../lab/reaction-animation';
@@ -34,19 +36,6 @@ const flameGeometry = lazy(() => {
   return new LatheGeometry(pts, 12);
 });
 
-const steamTexture = lazy(() => {
-  const c = document.createElement('canvas');
-  c.width = c.height = 64;
-  const ctx = c.getContext('2d');
-  if (ctx) {
-    const g = ctx.createRadialGradient(32, 32, 2, 32, 32, 30);
-    g.addColorStop(0, 'rgba(255,255,255,0.75)');
-    g.addColorStop(1, 'rgba(255,255,255,0)');
-    ctx.fillStyle = g;
-    ctx.fillRect(0, 0, 64, 64);
-  }
-  return new CanvasTexture(c);
-});
 
 function useSolidMaterial(color: string, metal: boolean): MeshStandardMaterial {
   const material = useMemo(() => new MeshStandardMaterial({ roughness: 0.85 }), []);
@@ -60,14 +49,15 @@ function useSolidMaterial(color: string, metal: boolean): MeshStandardMaterial {
 }
 
 /** Bubbles rising through the liquid while gas is released or the liquid boils. */
+/** Boiling / released gas from the simulation, or a live gas-producing reaction (mol/s). */
+function gasIntensity(itemId: string): number {
+  const rx = useReactionView.getState().vessels[itemId];
+  const gas = rx && !rx.info && rx.until > performance.now() && rx.products.some((p) => p.phase === 'gas') ? reactionIntensity(rx.rate) : 0;
+  return Math.min(1, Math.max(vesselFx.get(itemId)?.bubbles ?? 0, gas));
+}
+
 function Bubbles({ itemId, profile, bottom, top, fromSolid }: { itemId: string; profile: VesselProfile; bottom: number; top: number; fromSolid: boolean }) {
-  const intensity = () => {
-    // Boiling / released gas from the simulation, or a live gas-producing reaction (mol/s).
-    const rx = useReactionView.getState().vessels[itemId];
-    const gas = rx && !rx.info && rx.until > performance.now() && rx.products.some((p) => p.phase === 'gas') ? reactionIntensity(rx.rate) : 0;
-    return Math.min(1, Math.max(vesselFx.get(itemId)?.bubbles ?? 0, gas));
-  };
-  return <BubbleSprites intensity={intensity} radiusAt={(y) => radiusAt(profile, y)} bottom={bottom} top={top} fromSolid={fromSolid} />;
+  return <BubbleSprites intensity={() => gasIntensity(itemId)} radiusAt={(y) => radiusAt(profile, y)} bottom={bottom} top={top} fromSolid={fromSolid} />;
 }
 
 const granuleGeometry = lazy(() => new IcosahedronGeometry(1, 0));
@@ -91,39 +81,6 @@ function Granules({ profile, bottom, ml, material }: { profile: VesselProfile; b
     <group userData={{ noOutline: true, noBatch: true }}>
       {pieces.map((g, i) => (
         <mesh key={i} geometry={granuleGeometry()} material={material} position={g.p} rotation={g.rot} scale={g.s} castShadow raycast={() => undefined} />
-      ))}
-    </group>
-  );
-}
-
-/** Steam puffs above the rim of a hot vessel. */
-function Steam({ itemId, rim, radius }: { itemId: string; rim: number; radius: number }) {
-  const group = useRef<Group>(null);
-  const puffs = useMemo(() => Array.from({ length: 6 }, (_, i) => ({ t: i / 6, x: (Math.random() - 0.5) * radius, z: (Math.random() - 0.5) * radius })), [radius]);
-  const material = useMemo(() => new SpriteMaterial({ map: steamTexture(), transparent: true, depthWrite: false, opacity: 0 }), []);
-  useEffect(() => () => material.dispose(), [material]);
-  useFrame((_, dt) => {
-    const g = group.current;
-    if (!g) return;
-    const fx = vesselFx.get(itemId);
-    const steam = fx ? Math.min(1, fx.steam + fx.smoke) : 0;
-    g.visible = steam > 0.02;
-    if (!g.visible) return;
-    material.opacity = 0.18 + steam * 0.45;
-    material.color.set(fx && fx.smoke > fx.steam ? '#55524d' : '#ffffff');
-    g.children.forEach((child, i) => {
-      const p = puffs[i];
-      p.t = (p.t + dt * 0.45) % 1;
-      const sprite = child as Sprite;
-      sprite.position.set(p.x * (1 + p.t), rim + p.t * 0.12, p.z * (1 + p.t));
-      const s = radius * (0.9 + p.t * 2.2);
-      sprite.scale.set(s, s, s);
-    });
-  });
-  return (
-    <group ref={group} userData={{ noOutline: true, noBatch: true }}>
-      {puffs.map((_, i) => (
-        <sprite key={i} material={material} raycast={() => undefined} />
       ))}
     </group>
   );
@@ -158,13 +115,16 @@ export function VesselContents({ profile, look, itemId }: VesselContentsProps) {
   const agitated=!!itemId&&(stirring||receiving&&flow||actionVisual.targetId===itemId&&actionVisual.strength>0);
   const mixture=useChemStore(s=>itemId?s.mixtures[itemId]:undefined);
   const phases=useMemo(()=>mixture?appearanceOf(mixture):null,[mixture]);
+  // Each small addition flashes its local color where it lands (titration pink, etc.).
+  const previous=useRef(mixture);
+  const flash=useMemo(()=>{const color=dropFlash(previous.current,mixture);previous.current=mixture;return color?{color,key:performance.now()}:null;},[mixture]);
   const rim = rimHeight(profile);
   const bottom = profile.wall[0][1];
   const sedimentTop = look.sedimentMl > 0.005 ? heightForVolume(profile, look.sedimentMl * (look.liquid ? 1 : 1.4)) : bottom;
   const liquidTop = look.liquid ? heightForVolume(profile, look.sedimentMl + look.liquidMl) : sedimentTop;
   const boundary=phases?.layered?heightForVolume(profile,look.sedimentMl+phases.aqueousMl):liquidTop;
   const precipitate=!!phases?.visiblePrecipitate&&(phases.suspension??0)>.01;
-  const liquidMat = useLiquidMaterial(look.liquid ?? '#cfe6f5', look.turbidity, { agitated, cloud: precipitate ? phases!.suspension : 0, cloudColor: phases?.precipitateColor ?? null, bottom: sedimentTop, top: boundary, radius: radiusAt(profile, (sedimentTop + boundary) / 2) });
+  const liquidMat = useLiquidMaterial(look.liquid ?? '#cfe6f5', look.turbidity, { agitated, pouring: receiving && flow, fizz: () => (itemId ? gasIntensity(itemId) : 0), flash, cloud: precipitate ? phases!.suspension : 0, cloudColor: phases?.precipitateColor ?? null, bottom: sedimentTop, top: boundary, radius: radiusAt(profile, (sedimentTop + boundary) / 2) });
   const organicMat=useLiquidMaterial(phases?.organicColor??'#eff2e9',0,{ agitated, cloud: 0, cloudColor: null, bottom: boundary, top: liquidTop, radius: radiusAt(profile, liquidTop) });
   const solidMat = useSolidMaterial(look.solidColor ?? '#ffffff', look.solidMetal);
   const rimR = radiusAt(profile, rim);
@@ -190,8 +150,8 @@ export function VesselContents({ profile, look, itemId }: VesselContentsProps) {
         </group>
       )}
       {itemId && look.liquid && <Bubbles itemId={itemId} profile={profile} bottom={sedimentTop} top={liquidTop} fromSolid={!!showSediment || look.solidMetal} />}
-      {itemId && <Steam itemId={itemId} rim={rim} radius={radiusAt(profile, rim)} />}
       {look.burning && <Flame y={Math.max(liquidTop, bottom)} radius={radiusAt(profile, liquidTop) * 0.9} />}
+      {mixture && showLiquid && <Condensation profile={profile} bottom={bottom} top={liquidTop} temp={mixture.temp} />}
     </group>
   );
 }

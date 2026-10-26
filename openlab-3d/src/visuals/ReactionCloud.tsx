@@ -3,7 +3,7 @@ import {useFrame} from '@react-three/fiber';
 import {IcosahedronGeometry,MeshStandardMaterial,Object3D,type InstancedMesh} from 'three';
 import {useSettingsStore} from '../store/useSettingsStore';
 import {lazy} from '../utils/lazy';
-const floc=lazy(()=>new IcosahedronGeometry(1,0));
+const floc=lazy(()=>new IcosahedronGeometry(1,1));
 /**
  * Macroscopic precipitate flocs, not molecules, confined to the measured liquid. They bloom
  * where the reagent lands (the surface), billow outward, swirl when stirred and sink as the
@@ -35,8 +35,9 @@ export function ReactionCloud({radius,bottom,top,color,strength,agitated=false}:
    const fall=((b+clock.current*(.02+.03*c))%1);
    const level0=1-fall*(1-settle*.75);
    const y=bottom+h*Math.max(.04,Math.min(.97,(1-ease)*.95+ease*level0*(1-settle*.7)));
-   dummy.position.set(Math.cos(angle)*r,y,Math.sin(angle)*r);
-   const size=radius*(.05+.09*c)*(.5+.5*ease)*(1+(1-ease)*.8);
+   const size=Math.min(h*.2,radius*(.05+.09*c)*(.5+.5*ease)*(1+(1-ease)*.8));
+   // Flocs stay under the surface and above the bottom.
+   dummy.position.set(Math.cos(angle)*r,Math.min(top-size*.7,Math.max(bottom+size*.6,y)),Math.sin(angle)*r);
    dummy.scale.set(size*(1+a*.6),size*(.55+b*.4),size*(1+c*.5));
    dummy.rotation.set(i*.7+clock.current*.3,angle,i*.3);
    dummy.updateMatrix();m.setMatrixAt(i,dummy.matrix);

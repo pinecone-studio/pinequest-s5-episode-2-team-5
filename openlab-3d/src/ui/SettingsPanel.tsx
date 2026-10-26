@@ -148,6 +148,9 @@ export function SettingsPanel() {
         <Row label="Хөдөлгөөн багасгах" hint="Алхахад ганхах болон эд зүйлсийн найгалтыг унтраана">
           <Toggle label="Хөдөлгөөн багасгах" checked={s.reducedMotion} onChange={(v) => s.set({ reducedMotion: v })} />
         </Row>
+        <Row label="Урвал руу ойртуулах" hint="Чөлөөт туршилтад урвал эхлэхэд камер тухайн саванд ойртоно">
+          <Toggle label="Урвал руу ойртуулах" checked={s.reactionAutoZoom} onChange={(v) => s.set({ reactionAutoZoom: v })} />
+        </Row>
       </section>
       <section className="py-3">
         <h3 className="mb-1 text-xs font-bold uppercase tracking-wider text-slate-400">График ба дуу</h3>
