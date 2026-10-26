@@ -139,17 +139,17 @@ function simulate(dt: number): void {
   }
   if (Object.keys(patch).length > 0) chem.setMixtures(patch);
 
-  // Knocked-over vessels spill; a loose test tube cannot hold liquid at all.
+  // Knocked-over vessels spill.
   const spills: Record<string, Mixture> = {};
   for (const w of inv.worldItems) {
     if (isBenchPaused(w.id) || useShowcase.getState().source === w.id) continue;
     const def = CATALOG[w.kind];
     if(isGrade9Rig(w.kind))continue; // Sealed compartments are managed by the apparatus engine.
-    if (!def.upright && w.kind !== 'testTube') continue;
+    if (!def.upright) continue;
     const m = useChemStore.getState().mixtures[w.id] ?? seedMixture(w.variant);
     if (liquidMl(m) < 0.3) continue;
     const p = livePose(w);
-    if (w.kind !== 'testTube' && p.upY > 0.35) continue;
+    if (p.upY > 0.35) continue;
     const out = Math.min(liquidMl(m), 45 * dt);
     const { taken, rest } = takeLiquid(m, out);
     spills[w.id] = rest;

@@ -1,8 +1,9 @@
-import {AQ,SOLIDS,type AqId,type SolidId} from './species';
+import {AQ,HYDROXIDES,SALTS,SOLIDS,type AqId,type SolidId} from './species';
 import {liquidMl,type Mixture} from './mixture';
 /** Observable phases only. No reaction, matter creation or completion is performed here. */
 const IMMISCIBLE:AqId[]=['oilFluid','cyclohexane','hexane','octane','decane','hexadecane','waxLiquid'];
-const PRECIPITATES:SolidId[]=['CuOH2','FeOH3','FeOH2','AgCl','BaSO4','CaCO3','AlOH3','NiOH2'];
+// Every solid the equilibrium model can precipitate from solution (Ksp tables).
+const PRECIPITATES:SolidId[]=[...new Set<SolidId>([...HYDROXIDES.map(h=>h.solid),...SALTS.map(s=>s.solid)])];
 export function appearanceOf(m:Mixture){
  const organicMl=IMMISCIBLE.reduce((sum,id)=>{const d=AQ[id];return sum+(m.aq[id]??0)*d.molarMass/(d.density??1);},0);
  const total=liquidMl(m),aqueousMl=Math.max(0,total-organicMl);

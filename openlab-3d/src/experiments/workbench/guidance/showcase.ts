@@ -127,6 +127,8 @@ export function tickShowcase(dt:number){
   if(gas){tip[0]=j.from[0]+.024;tip[1]=j.from[1]+.169;tip[2]=j.from[2];}
   const toolAnchor:Point=gas?[j.from[0]+.024,j.from[1]+.169,j.from[2]]:measuringTool?[tip[0]-.04,tip[1]+.035,tip[2]]:[p[0]-.025,p[1]+.06,p[2]];
   const cap:Point|null=gas||j.step.type==='move'?null:[j.from[0]+.06,j.from[1]+.01,j.from[2]+.025];
+  // Once liquid flows, push in on the receiving vessel so the mixing fills the view.
+  if(!gas&&!j.focused&&motionTime>=3.2){j.focused=true;benchView.frame([j.to[0],j.to[1]-.03,j.to[2]],.2,.2);}
   useShowcase.setState({cap,toolAnchor,tip,mouth:j.to,flow:motionTime>=3&&motionTime<5&&!(j.step.type==='dose'&&j.step.stopWhen&&endpointResult(j.def,j.step,j.step.stopWhen).ok),carried:j.buffer?Math.max(0,j.step.amount-j.delivered):0,delivered:j.delivered,phase:gas?'Хийн хаалтыг нээж хоолойгоор дамжуулж байна':motion.phase});
 
  }else{

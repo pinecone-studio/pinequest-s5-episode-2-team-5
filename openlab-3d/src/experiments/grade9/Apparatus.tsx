@@ -1,4 +1,5 @@
-import {ActuatedBlock} from './ActuatedBlock';
+import {PistonChamber} from './PistonChamber';
+import {HotPlate,SpiritLamp,RigBurner,Electrode,IndicatorBulb} from './RigParts';
 import {OperationVisual} from './OperationVisual';
 import {actionVisual} from '../../interaction/actions';
 import {ChamberContents} from './ChamberContents';
@@ -64,10 +65,7 @@ export function Grade9Apparatus({kind,itemId,...props}:GroupProps&{kind:RigKind;
   {rig&&rig.extent>0&&<mesh position={[(rig.chambers[0].aq.NH3?1:-1)*.0195,.1,0]} rotation={[0,Math.PI/2,0]}><torusGeometry args={[.01,.0025,8,24]}/><meshStandardMaterial color="white"/></mesh>}
   {[-.105,.105].map((x,i)=><mesh key={i} position={[x,.1,0]}><sphereGeometry args={[.012,12,10]}/><meshStandardMaterial color={rig?.chambers[i].from.length?'#f5f1dc':'#d8e0e5'}/></mesh>)}
  </>:kind==='gasSyringe'?<>
-  <mesh material={glass} rotation={[0,0,Math.PI/2]} position={[0,.12,0]}><cylinderGeometry args={[.02,.02,.18,24,1,true]}/></mesh>
-  <ActuatedBlock at={[Math.min(.09,-.07+(rig?.gas??0)/maxVolume*.16),.12,0]} size={[.006,.036,.036]} color="#273843"/>
-  <Box at={[.1,.12,0]} size={[.09,.007,.007]} color="#94a3b8"/>
-  {Array.from({length:11},(_,i)=><Box key={i} at={[-.08+i*.016,.141,0]} size={[.001,.002,i%5?.009:.018]} color="#173a86"/>)}
+  <group position={[0,.12,0]}><PistonChamber volumeMl={rig?.gas??0} capacityMl={maxVolume}/></group>
   <mesh position={[0,.12,.022]}><planeGeometry args={[.18,.023]}/><meshBasicMaterial map={ruler} transparent/></mesh>
   <Box at={[0,.045,0]} size={[.19,.06,.08]} color="#537888"/>{well(0,-.075,.045)}
  </>:kind==='chromatographyTank'?<>
@@ -80,6 +78,7 @@ export function Grade9Apparatus({kind,itemId,...props}:GroupProps&{kind:RigKind;
  </>:kind==='corrosionRack'?<>
   {Array.from({length:7},(_,i)=><group key={i} position={[(i%4-1.5)*.05,0,(i<4?-.04:.035)]}>
    <mesh material={glass} position={[0,.06,0]}><cylinderGeometry args={[.019,.019,.1,18,1,true]}/></mesh>
+   <group position={[0,.01,0]}><ChamberContents mixture={rig?.chambers[i]} radius={.018} height={.09} running={rig?.running} showSolid={false}/></group>
    {((rig?.chambers[i].s.Fe??0)+(rig?.chambers[i].s.FeOH3??0))>0&&<Box at={[0,.06,0]} size={[.004,.075,.004]} color={(rig?.rust[i]??0)>.1?'#a54f26':rig?.chambers[i].from.includes('paint')?'#5092a5':rig?.chambers[i].from.includes('plastic')?'#f1f5f9':'#939fa5'}/>}
    {(rig?.rust[i]??0)>.05&&<mesh position={[0,.033,0]}><cylinderGeometry args={[.015,.015,(rig?.rust[i]??0)*.02,12]}/><meshStandardMaterial color="#a54f26"/></mesh>}
   </group>)}
@@ -92,10 +91,10 @@ export function Grade9Apparatus({kind,itemId,...props}:GroupProps&{kind:RigKind;
   <group position={[0,kind==='calorimeter'?.14:kind==='gasTrain'?.08:0,0]}>{well(0,-.065)}</group>{well(1,.065)}
   {['gasTrain','convectionCell'].includes(kind)&&<Box at={[0,.14,0]} size={[.13,.006,.006]} color="#9ac2cd"/>}
   {kind==='gasTrain'&&<><mesh geometry={hose}><meshStandardMaterial color="#90bac8" transparent opacity={.75}/></mesh>{well(2,0,.055)}<mesh material={glass} position={[0,.17,.045]}><cylinderGeometry args={[.012,.012,.08,20,1,true]}/></mesh></>}
-  {kind==='conductivityTester'&&<><Box at={[-.075,.09,0]} size={[.003,.08,.008]} color={metal}/><Box at={[-.055,.09,0]} size={[.003,.08,.008]} color={metal}/><mesh position={[.06,.15,0]}><sphereGeometry args={[.012,12,10]}/><meshStandardMaterial color={(rig?.extent??0)>.5?'#f9e34e':'#5d6869'} emissive={(rig?.extent??0)>.5?'#bfa41a':'#000000'}/></mesh></>}
-  {['calorimeter','heatingBath','gasTrain'].includes(kind)&&<Box at={[-.065,.025,0]} size={[.065,.028,.065]} color={rig?.heating?'#da713b':'#566975'}/>}
-  {kind==='calorimeter'&&rig?.heating&&rig.chambers[1].ethanol>0&&<mesh position={[-.065,.11,0]}><coneGeometry args={[.007,.035,12]}/><meshStandardMaterial color="#ffc45b" emissive="#da6726" transparent opacity={.85}/></mesh>}
-  {kind==='gasTrain'&&rig?.heating&&<mesh position={[-.065,.065,0]}><coneGeometry args={[.006,.03,12]}/><meshStandardMaterial color="#63b8f4" emissive="#3984e2" transparent opacity={.85}/></mesh>}
+  {kind==='conductivityTester'&&<><Electrode at={[-.075,.09,0]} height={.08} color="#9aa5ad" clip={null}/><Electrode at={[-.055,.09,0]} height={.08} color="#9aa5ad" clip={null}/><IndicatorBulb at={[.06,.15,0]} on={(rig?.extent??0)>.5}/></>}
+  {kind==='heatingBath'&&<HotPlate at={[-.065,.026,0]} size={[.065,.028,.065]} heating={!!rig?.heating}/>}
+  {kind==='calorimeter'&&<SpiritLamp at={[-.065,.012,0]} lit={!!rig?.heating&&(rig?.chambers[1].ethanol??0)>0} fuel={Math.min(1,(rig?.chambers[1].ethanol??0)/10)}/>}
+  {kind==='gasTrain'&&<RigBurner at={[-.065,.012,0]} lit={!!rig?.heating}/>}
   {kind==='heatingBath'&&(rig?.chambers[0].s.ice??0)>0&&<Box at={[-.065,.06,0]} size={[.024,.025,.023]} color="#e1f5ff"/>}
  </>}
  {!isCurriculumRig(kind)&&!['gasTrain','reactionTile','corrosionRack','diffusionTube','fractionatingColumn'].includes(kind)&&well(2,0,.055)}

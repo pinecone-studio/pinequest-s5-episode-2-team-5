@@ -12,7 +12,7 @@ import { itemDescription, itemPosition, isWorkbenchObject, isBenchPaused } from 
 import { heldObjectId } from '../experiments/nacl/sandbox';
 import { mixtureLook } from '../chemistry/color';
 import { liquidMl } from '../chemistry/mixture';
-import { reactionIntensity, foamOverflowHeight, bubblePose, foamPose, collapsedFoam } from '../lab/reaction-animation';
+import { reactionIntensity, foamOverflowHeight, foamPose, collapsedFoam } from '../lab/reaction-animation';
 import { PROFILES, heightForVolume, radiusAt } from '../equipment/profiles';
 import { surfaceYAt } from '../interaction/surfaces';
 import { vesselFx } from '../lab/vesselFx';
@@ -22,7 +22,7 @@ const residueUntil = new Map<string, number>();
 function VesselEffect({ id }: {
     id: string;
 }) {
-    const root = useRef<Group>(null), foam = useRef<InstancedMesh>(null), gas = useRef<InstancedMesh>(null), steam = useRef<InstancedMesh>(null), cloud = useRef<InstancedMesh>(null), smoke = useRef<InstancedMesh>(null);
+    const root = useRef<Group>(null), foam = useRef<InstancedMesh>(null), steam = useRef<InstancedMesh>(null), cloud = useRef<InstancedMesh>(null), smoke = useRef<InstancedMesh>(null);
     const low = useSettingsStore((s) => s.quality === 'low' || s.reducedMotion);
     const n = low ? 24 : 72, dummy = useMemo(() => new Object3D(), []), tint = useMemo(() => new Color(), []);
     const residue = useRef<Mesh>(null);
@@ -33,7 +33,7 @@ function VesselEffect({ id }: {
     const reaction = useReactionView((s) => s.vessels[id]);
     const productGas = reaction?.products.find((p) => p.phase === 'gas');
     useFrame((_, rawDt) => {
-        if (!root.current || !foam.current || !gas.current || !steam.current || !cloud.current || !smoke.current)
+        if (!root.current || !foam.current || !steam.current || !cloud.current || !smoke.current)
             return;
         const m = useChemStore.getState().mixtures[id], rx = useReactionView.getState().vessels[id], now = performance.now();
         const paused = isBenchPaused(id) || !['bench', 'walk', 'inspect'].includes(useGameStore.getState().mode);
@@ -82,7 +82,6 @@ function VesselEffect({ id }: {
         const effectTime = motion.current.time;
         const profile = kind && kind in PROFILES ? PROFILES[kind as keyof typeof PROFILES] : null;
         const surface = profile ? heightForVolume(profile, liquidMl(m)) : height * Math.min(.94, liquidMl(m) / Math.max(1, spec?.capacityMl ?? 150));
-        const surfaceRadius = profile ? Math.min(radius, radiusAt(profile, surface) * .85) : radius;
         // At the rim the real foam already occupies the headspace. Overflow becomes a
         // visible column, then lobes running down to the supporting bench.
         const foamCount = foamHeight > .002 ? n : 0;
@@ -107,17 +106,8 @@ function VesselEffect({ id }: {
         foamMat.opacity = Math.min(1, foamHeight / .02) * (1 - settling * .8);
         foamMat.roughness = .95 - settling * .65;
         if (foamHeight < .0001 && wantedFoam < .0001) motion.current.peakFoam = 0;
+        // Gas bubbles are drawn inside the vessel by VesselContents (visible through glass).
         const gasIntensity = productGas && actualRate > 0 ? intensity : 0;
-        const gasCount = gasIntensity > .005 && liquidMl(m) > .05 ? Math.max(2, Math.round(n * gasIntensity)) : 0;
-        gas.current.count = gasCount;
-        for (let i = 0; i < gasCount; i++) {
-            const bubble = bubblePose(i, effectTime, surfaceRadius, .003, surface, gasIntensity, low);
-            dummy.position.set(bubble.x, bubble.y, bubble.z);
-            dummy.scale.setScalar(bubble.size);
-            dummy.updateMatrix();
-            gas.current.setMatrixAt(i, dummy.matrix);
-        }
-        gas.current.instanceMatrix.needsUpdate = true;
         const fx = vesselFx.get(id);
         const steamIntensity = liquidMl(m) > .05 ? fx?.steam ?? 0 : 0;
         const steamCount = steamIntensity > .03 ? Math.max(2, Math.round(n / 3 * steamIntensity)) : 0;
@@ -142,7 +132,8 @@ function VesselEffect({ id }: {
             dummy.updateMatrix(); smoke.current.setMatrixAt(i, dummy.matrix);
         }
         smoke.current.instanceMatrix.needsUpdate = true;
-        const cloudCount = look.sedimentMl > .001 && liquidMl(m) > .05 ? Math.round(n * .6) : 0;
+        // Metal pieces sink at once; only powders and precipitates are stirred up.
+        const cloudCount = look.sedimentMl > .001 && !look.solidMetal && liquidMl(m) > .05 ? Math.round(n * .6) : 0;
         cloud.current.count = cloudCount;
         (cloud.current.material as MeshStandardMaterial).color.lerp(tint.set(look.solidColor ?? '#ffffff'), Math.min(1, rawDt * 2));
         for (let i = 0; i < cloudCount; i++) {
@@ -179,10 +170,9 @@ function VesselEffect({ id }: {
       <meshPhysicalMaterial transparent opacity={0} roughness={.16} metalness={0} clearcoat={1} depthWrite={false} />
     </mesh><group name={`reaction-effects-${id}`} ref={root} userData={{ noBatch: true, noOutline: true }}>
     <instancedMesh name="reaction-foam" ref={foam} args={[undefined, undefined, n]} frustumCulled={false} raycast={() => undefined}><sphereGeometry args={[1, low ? 12 : 20, 12]}/><meshStandardMaterial color="#fffefa" roughness={.95} transparent opacity={1}/></instancedMesh>
-    <instancedMesh name="reaction-gas" ref={gas} args={[undefined, undefined, n]} frustumCulled={false} raycast={() => undefined}><sphereGeometry args={[1, 6, 4]}/><meshStandardMaterial color="#edfaff" transparent opacity={.25} depthWrite={false}/></instancedMesh>
     <instancedMesh ref={steam} args={[undefined, undefined, n]} frustumCulled={false} raycast={() => undefined}><sphereGeometry args={[1, 6, 4]}/><meshStandardMaterial color="white" transparent opacity={.13} depthWrite={false}/></instancedMesh>
     <instancedMesh name="reaction-smoke" ref={smoke} args={[undefined, undefined, n]} frustumCulled={false} raycast={() => undefined}><sphereGeometry args={[1, 8, 6]}/><meshStandardMaterial color="#625b58" transparent opacity={.16} depthWrite={false}/></instancedMesh>
-    <instancedMesh name="reaction-cloud" ref={cloud} args={[undefined, undefined, n]} frustumCulled={false} raycast={() => undefined}><sphereGeometry args={[1, 6, 4]}/><meshStandardMaterial color="white" roughness={.95} transparent opacity={.72} depthWrite={false}/></instancedMesh>
+    <instancedMesh name="reaction-cloud" ref={cloud} args={[undefined, undefined, n]} frustumCulled={false} raycast={() => undefined}><icosahedronGeometry args={[1, 0]}/><meshStandardMaterial color="white" roughness={.95}/></instancedMesh>
     {productGas && !reaction?.info && <Html position={[0, (itemDescription(id).kind ? CATALOG[itemDescription(id).kind!].size[1] : .15) + .04, 0]} center style={{ pointerEvents: 'none' }}><span data-gas={productGas.id} className="whitespace-nowrap rounded-full bg-white/95 px-2 py-1 text-sm font-bold text-sky-900 shadow">{productGas.formula.replace(/↑$/, '')}↑</span></Html>}
   </group></>;
 }

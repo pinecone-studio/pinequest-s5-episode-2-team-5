@@ -26,8 +26,14 @@ export interface MixtureLook {
 const WHITE = new Color(1, 1, 1);
 const tmp = new Color();
 
+/**
+ * Beer–Lambert at the reference path. Very high absorbance is compressed: a school vessel is
+ * seen through a thin layer and its meniscus, so a strong solution keeps its hue (deep magenta,
+ * deep purple) instead of collapsing to black.
+ */
 function absorb(t: Color, hex: string, exponent: number): void {
   if (exponent <= 1e-4) return;
+  if (exponent > 3) exponent = 3 + Math.log(exponent / 3) * 1.5;
   tmp.set(hex);
   t.r *= Math.pow(Math.max(0.002, tmp.r), exponent);
   t.g *= Math.pow(Math.max(0.002, tmp.g), exponent);
@@ -95,7 +101,8 @@ function liquidColor(m: Mixture, V: number, ph: number): Color {
   if (blue > 0) absorb(t, '#1b1446', blue / 0.0006);
   // Indicators.
   const phph = conc(m, 'phph', V);
-  if (phph > 0) absorb(t, '#e0158e', (phph * frac(ph, 9.3)) / 1e-4);
+  // The base form absorbs green (552 nm) and passes red and violet: magenta, not crimson.
+  if (phph > 0) absorb(t, '#e613c4', (phph * frac(ph, 9.3)) / 1e-4);
   const btb = conc(m, 'btb', V);
   if (btb > 0) {
     const b = frac(ph, 7.1);

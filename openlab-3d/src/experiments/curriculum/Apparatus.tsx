@@ -1,4 +1,5 @@
-import {ActuatedBlock} from '../grade9/ActuatedBlock';
+import {PistonChamber} from '../grade9/PistonChamber';
+import {HotPlate,PowerSupply,Electrode} from '../grade9/RigParts';
 import {useFrame} from '@react-three/fiber';
 import {useRef} from 'react';
 import type {Mesh} from 'three';
@@ -37,7 +38,7 @@ export function CurriculumApparatus({kind,rig,onSelect,itemId}:{kind:CurriculumK
    <Label text={String(i+1)} at={[0,height*.65,radius+.001]} size={[.016,.016]}/>
   </group>;
  };
- const heater=<Block at={[0,.023,0]} size={[.10,.035,.09]} color={rig?.heating?'#d27a35':rig?.cooling?'#58aacf':'#566879'}/>;
+ const heater=<HotPlate at={[0,.023,0]} heating={!!rig?.heating} cooling={!!rig?.cooling}/>;
  const gauge=<Label text={`${(rig?.temperature??22).toFixed(1)}°C`} at={[0,.035,.077]}/>;
  const hasFeed=rig?.chambers.some(m=>solidMassG(m)>0||liquidMl(m)>0||gasMl(m)>0);
  return <group>
@@ -49,16 +50,15 @@ export function CurriculumApparatus({kind,rig,onSelect,itemId}:{kind:CurriculumK
   </>:shape==='electrolysis'||shape==='galvanic'||shape==='migration'?<>
    {well(0,-.06)}{well(1,.06)}
    {shape==='galvanic'&&well(2,0,.045,.014,.018,.06)}
-   {(shape==='galvanic'?[-.06,.06]:[-.07,-.05,.05,.07]).map((x,i)=><Block key={i} at={[x,.1,0]} size={[.004,.10,.012]} color={i%2?'#b97545':'#75838c'}/>)}
+   {(shape==='galvanic'?[-.06,.06]:[-.07,-.05,.05,.07]).map((x,i)=><Electrode key={i} at={[x,.1,0]} height={.1} color={i%2?'#b97545':'#8d989f'} clip={null}/>)}
    <Pipe points={[[-.06,.15,0],[-.06,.22,0],[.06,.22,0],[.06,.15,0]]} color="#b6453d" motion={{id:itemId,operation:'connect-electric',connected:!!rig?.running}}/>
    {shape==='galvanic'&&<>
     <Pipe points={[[-.06,.075,0],[-.06,.165,0],[-.035,.18,0],[.035,.18,0],[.06,.165,0],[.06,.075,0]]} color={(rig?.chambers[2]&&liquidMl(rig.chambers[2])>0)?'#e3edf2':'#819aaa'} motion={{id:itemId,operation:'connect-electric',connected:!!rig?.running}}/>
     <Pipe points={[[0,.074,.045],[0,.16,.045],[0,.18,0]]} color="#bfd5df"/>
     <Label text="Zn −" at={[-.06,.155,.012]} size={[.03,.014]}/><Label text="Cu +" at={[.06,.155,.012]} size={[.03,.014]}/>
    </>}
-   <Block at={[0,.21,0]} size={[.055,.035,.035]} color="#263c4d"/>
-   <Label text={shape==='galvanic'?`${(rig?.data.cellVoltage??0).toFixed(2)} V`:`${rig?.voltage??3} V`} at={[0,.21,.019]} size={[.05,.02]}/>
-   {shape==='electrolysis'&&<><Block at={[-.07,.082,.008]} size={[.004+Math.min(.008,(rig?.data.deposited??0)*20),.04,.012]} color="#c8874d"/>{well(2,.08,.045,.014,.013,.06)}</>}
+   <PowerSupply at={[0,.21,0]} on={!!rig?.running} text={shape==='galvanic'?`${(rig?.data.cellVoltage??0).toFixed(2)} V`:`${rig?.voltage??3} V`}/>
+   {shape==='electrolysis'&&<>{(rig?.data.deposited??0)>1e-10&&<Block at={[-.07,.082,.008]} size={[.004+Math.min(.008,(rig?.data.deposited??0)*20),.04,.012]} color={(rig?.chambers[1].s.Ni??0)>0?'#a8b4ac':'#c8874d'}/>}{well(2,.08,.045,.014,.013,.06)}</>}
    {shape==='migration'&&<Pipe points={[[-.06,.10,0],[-.06,.04,0],[.06,.04,0],[.06,.10,0]]} color={(rig?.data.migration??0)>.1?'#d8bb47':'#9cc6d5'}/>}
   </>:shape==='reflux'||shape==='fermenter'||shape==='cracking'||shape==='gaswash'?<>
    {heater}{well(0,-.045,0,.042,.03,.10)}{well(1,.07,.018,.014,.023,.09)}{well(2,.055,-.05,.014,.02,.08)}
@@ -84,9 +84,7 @@ export function CurriculumApparatus({kind,rig,onSelect,itemId}:{kind:CurriculumK
     {(rig?.data.oil??0)>0&&<mesh position={[-.025,.10+Math.min(.06,(rig?.data.oil??0)/100),0]}><cylinderGeometry args={[.022,.022,Math.min(.08,(rig?.data.oil??0)/200),20]}/><meshStandardMaterial color="#e3c44d" transparent opacity={.75}/></mesh>}
    </>}
   </>:shape==='pressure'?<>
-   <mesh material={glass} position={[0,.12,0]} rotation={[0,0,Math.PI/2]}><cylinderGeometry args={[.033,.033,.19,24,1,true]}/></mesh>
-   <ActuatedBlock at={[Math.max(-.08,Math.min(.08,((rig?.volumeMl??250)/500)*.16-.08)),.12,0]} size={[.006,.06,.06]} color="#596e7d"/>
-   <Block at={[.10,.12,0]} size={[.07,.008,.008]} color="#afbcc6"/>
+   <group position={[0,.12,0]}><PistonChamber volumeMl={rig?.volumeMl??250} capacityMl={500} length={.16} radius={.033} brownGas={(rig?.chambers[0].g?.NO2??0)>0}/></group>
    <Label text={`${(rig?.pressure??1).toFixed(2)} bar`} at={[0,.05,.06]}/>
    {well(0,-.07,.04,.014,.015,.06)}{well(1,.07,.04,.014,.015,.06)}
   </>:shape==='molecule'?<>

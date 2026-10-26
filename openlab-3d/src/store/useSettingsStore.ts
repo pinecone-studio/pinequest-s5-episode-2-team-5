@@ -27,10 +27,14 @@ export interface QualityPreset {
   antialias: boolean;
 }
 
+/** Bump when the Auto ladder changes, so devices re-measure instead of starting low. */
+const AUTO_LADDER_ID = 2;
+
 export const QUALITY_PRESETS: Record<Quality, QualityPreset> = {
-  low: { dpr: [0.6, 1.5], shadows: false, softShadows: false, shadowMapSize: 512, postprocessing: false, ao: false, aoHalfRes: true, transmission: false, contactShadows: false, antialias: false },
-  medium: { dpr: [0.75, 1.5], shadows: true, softShadows: false, shadowMapSize: 1024, postprocessing: true, ao: true, aoHalfRes: true, transmission: false, contactShadows: true, antialias: false },
-  high: { dpr: [1, 2], shadows: true, softShadows: true, shadowMapSize: 2048, postprocessing: true, ao: true, aoHalfRes: false, transmission: true, contactShadows: true, antialias: false },
+  // Never below 1× resolution: lower looks blocky. MSAA is cheap on mobile tile GPUs.
+  low: { dpr: [1, 1.5], shadows: false, softShadows: false, shadowMapSize: 512, postprocessing: false, ao: false, aoHalfRes: true, transmission: false, contactShadows: false, antialias: true },
+  medium: { dpr: [1, 2], shadows: true, softShadows: false, shadowMapSize: 1024, postprocessing: true, ao: true, aoHalfRes: true, transmission: false, contactShadows: true, antialias: true },
+  high: { dpr: [1, 2], shadows: true, softShadows: true, shadowMapSize: 2048, postprocessing: true, ao: true, aoHalfRes: false, transmission: true, contactShadows: true, antialias: true },
 };
 
 /** Phones, tablets and machines with few cores or little memory start on Low; Auto raises it if they keep up. */
@@ -48,6 +52,8 @@ export interface SettingsState {
   autoQuality: boolean;
   /** Last level the governor settled on, so the next visit starts there. */
   autoLevel: number | null;
+  /** Which Auto ladder `autoLevel` indexes; a saved level from an older ladder is dropped. */
+  autoLadder: number;
   volume: number;
   lookMode: LookMode;
   invertY: boolean;
@@ -72,6 +78,7 @@ export const useSettingsStore = create<SettingsState>()(
       qualityManuallySet: false,
       autoQuality: true,
       autoLevel: null,
+      autoLadder: AUTO_LADDER_ID,
       volume: 0.7,
       lookMode: 'mouse',
       invertY: false,
@@ -104,6 +111,8 @@ export const useSettingsStore = create<SettingsState>()(
           qualityManuallySet: p.qualityManuallySet ?? false,
           // A tier picked before Auto existed stays picked.
           autoQuality: p.autoQuality ?? !(p.qualityManuallySet ?? false),
+          autoLevel: p.autoLadder === AUTO_LADDER_ID ? (p.autoLevel ?? null) : null,
+          autoLadder: AUTO_LADDER_ID,
           bindings: { ...DEFAULT_BINDINGS, ...(p.bindings ?? {}) },
         };
       },

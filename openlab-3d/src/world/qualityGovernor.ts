@@ -11,14 +11,18 @@ export interface Level {
   dpr: number;
 }
 
-/** Auto mode, best to worst: resolution drops first (free to change), then the effects tier. */
+/**
+ * Auto mode, best to worst. Sharpness comes first: effects step down (High → Medium → Low)
+ * while the image stays at 1.5×, and resolution only drops after that, never below 1×,
+ * where the lab turns visibly soft and blocky.
+ */
 export const AUTO_LADDER: Level[] = [
+  { quality: 'high', dpr: 2 },
+  { quality: 'high', dpr: 1.5 },
   { quality: 'medium', dpr: 1.5 },
-  { quality: 'medium', dpr: 1 },
+  { quality: 'low', dpr: 1.5 },
+  { quality: 'low', dpr: 1.25 },
   { quality: 'low', dpr: 1 },
-  { quality: 'low', dpr: 0.75 },
-  { quality: 'low', dpr: 0.6 },
-  { quality: 'low', dpr: 0.5 },
 ];
 
 /** A manually chosen tier keeps its effects and only adapts the resolution within its range. */
@@ -44,8 +48,9 @@ export const GOVERNOR = {
   windowS: 2,
   /** Frames right after a change are ignored (shader compiles, buffer resizes), s. */
   settleS: 2.5,
-  slowFps: 50,
-  fastFps: 57,
+  /** A steady 40+ fps sharp image beats a blurry 60. */
+  slowFps: 40,
+  fastFps: 55,
   /** Slow windows in a row before stepping down. */
   slowWindows: 2,
   /** Fast windows in a row before trying one step up. */

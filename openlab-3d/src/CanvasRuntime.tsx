@@ -1,7 +1,7 @@
 import { lazy, Suspense, useCallback, useState } from 'react';
 import { Canvas } from '@react-three/fiber';
 import { KeyboardControls } from '@react-three/drei';
-import { ACESFilmicToneMapping, SRGBColorSpace } from 'three';
+import { NeutralToneMapping, SRGBColorSpace } from 'three';
 import type { buildMovementMap } from './controls/keyMap';
 import { setPointerTarget, usePointerLockSync } from './controls/usePointerLock';
 import { useGameKeys } from './controls/useGameKeys';
@@ -49,7 +49,7 @@ export function CanvasRuntime({
           dpr={dpr}
           frameloop={frozen ? 'demand' : 'always'}
           camera={{ fov: 75, near: 0.03, far: 400, position: [0, 1.65, 0] }}
-          gl={{ antialias: preset.antialias, toneMapping: ACESFilmicToneMapping, outputColorSpace: SRGBColorSpace, powerPreference: 'high-performance', stencil: false }}
+          gl={{ antialias: preset.antialias, toneMapping: NeutralToneMapping, outputColorSpace: SRGBColorSpace, powerPreference: 'high-performance', stencil: false }}
           onCreated={onCreated}
           aria-label="Химийн лабораторийн 3D дүрс"
         >

@@ -42,6 +42,6 @@ export function OperationVisual({id,kind,rig}:{id?:string;kind:string;rig?:RigSt
 
   <group ref={gas} visible={false}>{[0,1].map((i)=><group key={i}><mesh position={i===0?[target[0],target[1],target[2]]:[.055,.115,.02]}><cylinderGeometry args={[.007,.007,.013,12]}/><meshStandardMaterial color="#424f59"/></mesh></group>)}</group>
   <mesh ref={arrow} visible={false} renderOrder={4}><coneGeometry args={[.004,.012,10]}/><meshBasicMaterial color="#f6d56f"/></mesh>
-  {active&&badge[operation]&&<Html position={[0,.29,.035]} center zIndexRange={[18,12]} style={{pointerEvents:'none'}}><div className="whitespace-nowrap rounded-full border border-amber-200 bg-amber-50/95 px-3 py-1 text-[10px] font-semibold text-amber-950 shadow" aria-label="Хөдөлж буй багажийн үйлдэл">{badge[operation]}</div></Html>}
+  {active&&badge[operation]&&<Html position={[0,.38,.035]} center zIndexRange={[18,12]} style={{pointerEvents:'none'}}><div className="whitespace-nowrap rounded-full border border-amber-200 bg-amber-50/95 px-3 py-1 text-[10px] font-semibold text-amber-950 shadow" aria-label="Хөдөлж буй багажийн үйлдэл">{badge[operation]}</div></Html>}
  </group>;
 }

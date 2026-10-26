@@ -12,10 +12,9 @@ import { useRapier } from '@react-three/rapier';
 import { Color, Mesh, MeshBasicMaterial, MeshPhysicalMaterial, Quaternion, Raycaster, Vector2, Vector3, type Group } from 'three';
 import { EquipmentModel } from '../equipment/registry';
 import { CATALOG } from '../equipment/equipmentCatalog';
-import { liquidMl } from '../chemistry/mixture';
 import { playerState, useGameStore } from '../store/useGameStore';
 import { useInventoryStore } from '../store/useInventoryStore';
-import { mixtureOf, useChemStore } from '../store/useChemStore';
+import { useChemStore } from '../store/useChemStore';
 import { useSettingsStore } from '../store/useSettingsStore';
 import { sounds } from '../utils/sounds';
 import { bench as stationBench } from '../experiments/nacl/bench';
@@ -130,10 +129,6 @@ export function HeldItem() {
       const h = useInventoryStore.getState().held;
       if (!target || !h) return false;
       const inv = useInventoryStore.getState();
-      if (h.kind === 'testTube' && liquidMl(mixtureOf(h.id, h.variant)) > 0.3) {
-        useGameStore.getState().showToast('Шингэнтэй хуруу шилийг хэвтүүлж болохгүй', 'Хуруу шилний тавиур руу хараад Q дар — асгарна');
-        return true;
-      }
       const raised = supportHeightAt(target.point.x, target.point.z, inv.worldItems, h.kind);
       const y = Math.max(raised ?? -1, target.point.y);
       endHeldUse();
