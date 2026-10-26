@@ -1,2 +1,2 @@
-name,region_type,aimag_id,soum_id,is_sample
-ЖИШЭЭ СУРГУУЛЬ — туршилтын мөр,ulaanbaatar,,,true
+name,region_type,district_id,aimag_id,soum_id,is_sample
+ЖИШЭЭ СУРГУУЛЬ — туршилтын мөр,ulaanbaatar,bzd,,,true

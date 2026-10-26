@@ -6,7 +6,8 @@
  */
 import { supabase } from '@/lib/supabase';
 import { fallbackUser } from '@/lib/auth-profile-fallback';
-import { fetchLocationProfile } from '@/services/location';
+import type { LocationDraft } from '@/data/location';
+import { fetchLocationProfile, saveLocationProfile } from '@/services/location';
 import type { ClassId, LessonResult, PublicPlayer, User } from '@/types';
 
 export type AuthField = 'email' | 'password' | 'nickname';
@@ -26,6 +27,7 @@ export interface SignUpInput {
   password: string;
   nickname: string;
   classId: ClassId;
+  location: LocationDraft;
 }
 
 interface ProfileRow {
@@ -121,7 +123,16 @@ export async function signUp(input: SignUpInput): Promise<User> {
   if (!data.user || !data.session) {
     throw new AuthError('Имэйлээ шалгаж бүртгэлээ баталгаажуулаад нэвтэрнэ үү');
   }
-  return fetchProfile(data.user.id, data.user);
+  let user = await fetchProfile(data.user.id, data.user);
+  try {
+    const location = await saveLocationProfile(data.user.id, input.location);
+    user = { ...user, location, locationStatus: 'complete' };
+  } catch {
+    // Account creation succeeded. Preserve the session and let the user retry from
+    // their profile instead of turning a location write failure into signup failure.
+    user = { ...user, location: null, locationStatus: 'unavailable' };
+  }
+  return user;
 }
 
 export async function signIn(emailInput: string, password: string): Promise<User> {

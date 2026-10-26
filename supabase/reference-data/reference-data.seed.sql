@@ -24,6 +24,18 @@ insert into public.aimags(id, name) values
   ('MN81', 'Завхан')
 on conflict (id) do update set name = excluded.name;
 
+insert into public.ub_districts(id, name) values
+  ('bzd', 'Баянзүрх дүүрэг'),
+  ('bgd', 'Баянгол дүүрэг'),
+  ('sbd', 'Сүхбаатар дүүрэг'),
+  ('chd', 'Чингэлтэй дүүрэг'),
+  ('hud', 'Хан-Уул дүүрэг'),
+  ('sxd', 'Сонгинохайрхан дүүрэг'),
+  ('nld', 'Налайх дүүрэг'),
+  ('bhd', 'Багануур дүүрэг'),
+  ('bkd', 'Багахангай дүүрэг')
+on conflict (id) do update set name = excluded.name;
+
 insert into public.soums(id, aimag_id, name) values
   ('MN4804', 'MN48', 'Адаацаг'),
   ('MN4404', 'MN44', 'Айраг'),
@@ -358,6 +370,6 @@ insert into public.soums(id, aimag_id, name) values
 on conflict (id) do update set aimag_id = excluded.aimag_id, name = excluded.name;
 
 -- schools-template.csv contains only a clearly marked sample, not a verified directory.
-insert into public.schools(name, region_type, aimag_id, soum_id, is_sample) values
-  ('ЖИШЭЭ СУРГУУЛЬ — туршилтын мөр', 'ulaanbaatar', null, null, true)
-on conflict do nothing;
+insert into public.schools(name, region_type, district_id, aimag_id, soum_id, is_sample) values
+  ('ЖИШЭЭ СУРГУУЛЬ — туршилтын мөр', 'ulaanbaatar', 'bzd', null, null, true)
+on conflict do update set district_id = excluded.district_id, is_sample = excluded.is_sample;

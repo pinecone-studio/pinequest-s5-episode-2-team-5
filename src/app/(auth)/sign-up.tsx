@@ -14,6 +14,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { AvatarPreview } from '@/components/auth/avatar-preview';
 import { FormError, FormSection } from '@/components/auth/form-section';
+import { LocationSchoolForm } from '@/components/profile/location-school-form';
 import { AppText } from '@/components/ui/app-text';
 import { ClassCard } from '@/components/ui/class-card';
 import { GameButton } from '@/components/ui/game-button';
@@ -24,6 +25,7 @@ import { Colors, Fonts } from '@/constants/theme';
 import { useSession } from '@/context/session';
 import { CLASSES } from '@/data/classes';
 import { haptics } from '@/lib/haptics';
+import type { LocationDraft } from '@/data/location';
 import {
   NICKNAME_MAX,
   passwordStrength,
@@ -54,6 +56,7 @@ export default function SignUpScreen() {
   const [password, setPassword] = useState('');
   const [nickname, setNickname] = useState('');
   const [classId, setClassId] = useState<ClassId | null>(null);
+  const [location, setLocation] = useState<LocationDraft | null>(null);
   const [touched, setTouched] = useState<Partial<Record<Field, boolean>>>({});
   const [submitted, setSubmitted] = useState(false);
   const [submitting, setSubmitting] = useState(false);
@@ -85,7 +88,7 @@ export default function SignUpScreen() {
 
   const submit = async () => {
     setSubmitted(true);
-    if (!classId || Object.values(errors).some(Boolean)) {
+    if (!classId || !location || Object.values(errors).some(Boolean)) {
       haptics.error();
       // The class picker sits right above the button; field errors are further up.
       if (errors.email || errors.password || errors.nickname) scrollRef.current?.scrollTo({ y: 0, animated: true });
@@ -94,7 +97,7 @@ export default function SignUpScreen() {
     setSubmitting(true);
     setServerError(null);
     try {
-      await signUp({ email, password, nickname, classId });
+      await signUp({ email, password, nickname, classId, location });
       haptics.success();
       // The auth guard swaps this screen for the hub once the session exists.
     } catch (error) {
@@ -224,6 +227,24 @@ export default function SignUpScreen() {
               <AppText variant="caption" color={Colors.danger}>
                 {errorFor('classId')}
               </AppText>
+            )}
+          </FormSection>
+
+          <FormSection title="Байршил, сургууль" icon="map-marker-outline">
+            <AppText variant="caption">Сургуулийн мэдээлэл зөвхөн таны профайлд хадгалагдана.</AppText>
+            <LocationSchoolForm
+              onSave={(draft) => {
+                setLocation(draft);
+              }}
+              saveLabel={location ? 'Байршлыг шинэчлэх' : 'Байршлыг сонгох'}
+            />
+            {location && (
+              <AppText variant="caption" color={Colors.success}>
+                Байршил сонголоо. Бүртгүүлэхэд хадгална.
+              </AppText>
+            )}
+            {submitted && !location && (
+              <AppText variant="caption" color={Colors.danger}>Байршил, сургуулиа сонгоод үргэлжлүүлнэ үү.</AppText>
             )}
           </FormSection>
 
