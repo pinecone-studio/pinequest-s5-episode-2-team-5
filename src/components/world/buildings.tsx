@@ -1,17 +1,14 @@
 import { MaterialCommunityIcons } from '@expo/vector-icons';
-import { useEffect } from 'react';
 import { StyleSheet, View } from 'react-native';
 import Animated, {
-  Easing,
   useAnimatedStyle,
   useSharedValue,
-  withRepeat,
-  withTiming,
   type SharedValue,
 } from 'react-native-reanimated';
 import Svg, { Circle, Defs, Ellipse, G, Line, LinearGradient, Path, Rect, Stop } from 'react-native-svg';
 
 import type { BuildingDef } from './world-config';
+import { useScreenLoop } from '@/hooks/use-screen-loop';
 
 const OUTLINE = '#2A1B5C';
 const GOLD = '#FFC93C';
@@ -20,9 +17,7 @@ const CLASS_FLAGS = ['#4ADE80', '#FFB938', '#FF5C7A'];
 /** A 0→1 clock that loops forever, shared by a sprite's ambient animations. */
 function useLoop(duration: number) {
   const t = useSharedValue(0);
-  useEffect(() => {
-    t.set(withRepeat(withTiming(1, { duration, easing: Easing.linear }), -1, false));
-  }, [duration, t]);
+  useScreenLoop(t, { duration });
   return t;
 }
 

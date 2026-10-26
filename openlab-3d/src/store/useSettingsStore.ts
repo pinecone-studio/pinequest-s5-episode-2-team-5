@@ -1,30 +1,48 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { DEFAULT_BINDINGS, type ActionName, type Bindings, type LookMode } from '../controls/keyMap';
+import { isTouchDevice } from '../utils/device';
 
 export type Quality = 'low' | 'medium' | 'high';
 
 export interface QualityPreset {
   dpr: [number, number];
   shadows: boolean;
+  /** PCF soft shadows (more texture samples per pixel) instead of plain PCF. */
+  softShadows: boolean;
   shadowMapSize: number;
   postprocessing: boolean;
   ao: boolean;
+  /** Ambient occlusion at half resolution (about a quarter of the cost). */
+  aoHalfRes: boolean;
+  /** Refracting glass: three.js redraws every opaque object into a texture whenever it is on screen. */
   transmission: boolean;
   contactShadows: boolean;
 }
 
 export const QUALITY_PRESETS: Record<Quality, QualityPreset> = {
-  low: { dpr: [0.6, 1], shadows: false, shadowMapSize: 512, postprocessing: false, ao: false, transmission: false, contactShadows: false },
-  medium: { dpr: [0.75, 1.5], shadows: true, shadowMapSize: 1024, postprocessing: true, ao: true, transmission: true, contactShadows: true },
-  high: { dpr: [1, 2], shadows: true, shadowMapSize: 2048, postprocessing: true, ao: true, transmission: true, contactShadows: true },
+  low: { dpr: [0.5, 1], shadows: false, softShadows: false, shadowMapSize: 512, postprocessing: false, ao: false, aoHalfRes: true, transmission: false, contactShadows: false },
+  medium: { dpr: [0.75, 1.5], shadows: true, softShadows: false, shadowMapSize: 1024, postprocessing: true, ao: true, aoHalfRes: true, transmission: false, contactShadows: true },
+  high: { dpr: [1, 2], shadows: true, softShadows: true, shadowMapSize: 2048, postprocessing: true, ao: true, aoHalfRes: false, transmission: true, contactShadows: true },
 };
+
+/** Phones, tablets and machines with few cores or little memory start on Low; Auto raises it if they keep up. */
+export function defaultQuality(): Quality {
+  if (typeof navigator === 'undefined') return 'medium';
+  const memory = (navigator as Navigator & { deviceMemory?: number }).deviceMemory;
+  const weak = isTouchDevice() || (navigator.hardwareConcurrency ?? 8) <= 4 || (memory !== undefined && memory <= 4);
+  return weak ? 'low' : 'medium';
+}
 
 export interface SettingsState {
   sensitivity: number;
   fov: number;
   headBob: boolean;
   quality: Quality;
+  /** Auto: the frame-rate governor picks the quality and resolution (Settings → Auto). */
+  autoQuality: boolean;
+  /** Last level the governor settled on, so the next visit starts there. */
+  autoLevel: number | null;
   volume: number;
   lookMode: LookMode;
   invertY: boolean;
@@ -45,7 +63,9 @@ export const useSettingsStore = create<SettingsState>()(
       sensitivity: 1,
       fov: 75,
       headBob: true,
-      quality: 'medium',
+      quality: defaultQuality(),
+      autoQuality: true,
+      autoLevel: null,
       volume: 0.7,
       lookMode: 'mouse',
       invertY: false,
