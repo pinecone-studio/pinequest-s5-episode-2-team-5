@@ -261,50 +261,69 @@ export function RobotAssistant({ hidden }: { hidden: boolean }) {
     sounds.play('ui');
     useGameStore.getState().say(contextualHint(), 'wave');
   };
+  // On phones and tablets the bottom-left belongs to the joystick: Pip becomes a small
+  // button beside the menu (and skips its own 3D canvas).
+  const touch = isTouchDevice();
   return (
-    <div className={`fixed bottom-2 left-2 z-30 flex items-end ${hidden ? 'hidden' : ''}`}>
-      <button type="button" aria-label="Лабораторийн туслах роботоос зөвлөгөө авах" onClick={onClick} className="focus-ring pointer-events-auto h-[82px] w-[72px] rounded-3xl sm:h-[150px] sm:w-[130px]">
-        <Canvas frameloop={hidden ? 'never' : 'demand'} dpr={glPixel} gl={{ alpha: true, antialias: true }} camera={{ position: [0, 0.05, 3.6], fov: 30 }} style={{ pointerEvents: 'none' }}>
-          <ambientLight intensity={0.6} />
-          <directionalLight position={[2, 3, 3]} intensity={1.8} />
-          <Environment resolution={32} frames={1}>
-            <Lightformer form="rect" intensity={2.5} position={[0, 3, 2]} rotation={[-Math.PI / 3, 0, 0]} scale={[4, 2, 1]} />
-            <Lightformer form="rect" intensity={1} color="#bde9ff" position={[-3, 0, 1]} rotation={[0, Math.PI / 2, 0]} scale={[3, 3, 1]} />
-          </Environment>
-          <RobotModel />
-          <Ticker fps={lowQuality ? 15 : 30} />
-          <mesh position={[0, -1.12, 0]} rotation={[-Math.PI / 2, 0, 0]}>
-            <circleGeometry args={[0.36, 32]} />
-            <meshBasicMaterial color="#000000" transparent opacity={0.12} />
-          </mesh>
-        </Canvas>
-      </button>
+    <div className={`${touch ? 'fixed left-[84px] top-3 z-30' : 'fixed bottom-2 left-2 z-30 flex items-end'} ${hidden ? 'hidden' : ''}`}>
+      {touch ? (
+        <button type="button" aria-label="Лабораторийн туслах роботоос зөвлөгөө авах" onClick={onClick} className="focus-ring pointer-events-auto flex h-11 w-11 items-center justify-center rounded-full bg-white/90 text-xl shadow-hud active:scale-95">
+          🤖
+        </button>
+      ) : (
+        <button type="button" aria-label="Лабораторийн туслах роботоос зөвлөгөө авах" onClick={onClick} className="focus-ring pointer-events-auto h-[82px] w-[72px] rounded-3xl sm:h-[150px] sm:w-[130px]">
+          <Canvas frameloop={hidden ? 'never' : 'demand'} dpr={glPixel} gl={{ alpha: true, antialias: true }} camera={{ position: [0, 0.05, 3.6], fov: 30 }} style={{ pointerEvents: 'none' }}>
+            <ambientLight intensity={0.6} />
+            <directionalLight position={[2, 3, 3]} intensity={1.8} />
+            <Environment resolution={32} frames={1}>
+              <Lightformer form="rect" intensity={2.5} position={[0, 3, 2]} rotation={[-Math.PI / 3, 0, 0]} scale={[4, 2, 1]} />
+              <Lightformer form="rect" intensity={1} color="#bde9ff" position={[-3, 0, 1]} rotation={[0, Math.PI / 2, 0]} scale={[3, 3, 1]} />
+            </Environment>
+            <RobotModel />
+            <Ticker fps={lowQuality ? 15 : 30} />
+            <mesh position={[0, -1.12, 0]} rotation={[-Math.PI / 2, 0, 0]}>
+              <circleGeometry args={[0.36, 32]} />
+              <meshBasicMaterial color="#000000" transparent opacity={0.12} />
+            </mesh>
+          </Canvas>
+        </button>
+      )}
       <AnimatePresence mode="wait">
         {robot.open && robot.text && (
           <motion.div
             key={robot.id}
             role="status"
             aria-live="polite"
-            className="pointer-events-auto fixed bottom-[94px] left-2 max-h-[35dvh] max-w-[min(280px,calc(100vw-24px))] overflow-y-auto rounded-2xl rounded-bl-md bg-white px-4 py-3 text-sm leading-snug text-lab-ink shadow-hud sm:relative sm:bottom-auto sm:left-auto sm:mb-[86px] sm:ml-[-8px] sm:max-h-none sm:max-w-[min(300px,calc(100vw-160px))]"
+            className={touch
+              ? 'pointer-events-auto fixed left-[84px] top-[64px] flex max-h-[45dvh] max-w-[min(300px,calc(100vw-180px))] flex-col rounded-2xl rounded-tl-md bg-white px-4 py-3 text-sm leading-snug text-lab-ink shadow-hud'
+              : 'pointer-events-auto fixed bottom-[94px] left-2 max-h-[35dvh] max-w-[min(280px,calc(100vw-24px))] overflow-y-auto rounded-2xl rounded-bl-md bg-white px-4 py-3 text-sm leading-snug text-lab-ink shadow-hud sm:relative sm:bottom-auto sm:left-auto sm:mb-[86px] sm:ml-[-8px] sm:max-h-none sm:max-w-[min(300px,calc(100vw-160px))]'}
             initial={{ opacity: 0, scale: 0.8, x: -10 }}
             animate={{ opacity: 1, scale: 1, x: 0 }}
             exit={{ opacity: 0, scale: 0.9 }}
-            style={{ transformOrigin: 'bottom left' }}
+            style={{ transformOrigin: touch ? 'top left' : 'bottom left' }}
           >
-            <div className="mb-0.5 text-[11px] font-bold uppercase tracking-wider text-cyan-600">Пип · Лабораторийн туслах</div>
-            {isTouchDevice() ? mobileizeControlHint(robot.text) : robot.text}
+            {/* On touch only the text scrolls, so the ask button below always stays in view. */}
+            <div className={touch ? 'min-h-0 overflow-y-auto' : undefined}>
+              <div className="mb-0.5 text-[11px] font-bold uppercase tracking-wider text-cyan-600">Пип · Лабораторийн туслах</div>
+              {isTouchDevice() ? mobileizeControlHint(robot.text) : robot.text}
+            </div>
+            {touch && !chatOpen && (
+              <button type="button" onClick={() => { setChatOpen(true); setOpen(false); }} className="focus-ring mt-2 block shrink-0 self-start rounded-full bg-cyan-600 px-3 py-1.5 text-xs font-bold text-white">
+                Pip-ээс асуух
+              </button>
+            )}
             <button type="button" aria-label="Зөвлөгөөг хаах" onClick={() => setOpen(false)} className="focus-ring absolute right-2 top-1.5 rounded px-1 text-slate-400 hover:text-slate-600">
               ✕
             </button>
           </motion.div>
         )}
       </AnimatePresence>
-      {robot.open && !chatOpen && (
+      {!touch && robot.open && !chatOpen && (
         <button type="button" onClick={() => { setChatOpen(true); setOpen(false); }} className="focus-ring pointer-events-auto absolute bottom-2 left-[76px] rounded-full bg-cyan-600 px-3 py-2 text-[11px] font-bold text-white shadow-hud sm:left-[148px] sm:text-xs">
           Pip-ээс асуух
         </button>
       )}
-      {!chatOpen && !hidden && !robot.open && (
+      {!touch && !chatOpen && !hidden && !robot.open && (
         <button type="button" onClick={() => setChatOpen(true)} className="focus-ring pointer-events-auto fixed bottom-3 left-[88px] z-40 rounded-full border border-cyan-200 bg-white px-3 py-2 text-[11px] font-bold text-cyan-800 shadow-hud sm:bottom-4 sm:left-[166px] sm:text-xs">💬 Pip чат</button>
       )}
       {chatOpen && (

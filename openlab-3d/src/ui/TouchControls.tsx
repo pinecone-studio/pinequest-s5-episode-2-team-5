@@ -168,6 +168,13 @@ export function TouchControls() {
   const btn = 'pointer-events-auto flex h-11 w-11 items-center justify-center rounded-full bg-black/45 text-base font-bold text-white backdrop-blur active:scale-95 active:bg-black/60';
   return (
     <div ref={root} className="fixed inset-0 z-10 touch-none">
+      {/* Resting joystick: shows where to put a thumb. It still starts wherever the left half is touched. */}
+      {!stick && (
+        <div className="pointer-events-none fixed bottom-6 left-6 opacity-80" aria-hidden>
+          <div className="h-28 w-28 rounded-full border-2 border-white/60 bg-black/20" />
+          <div className="absolute left-8 top-8 h-12 w-12 rounded-full bg-white/70" />
+        </div>
+      )}
       {stick && (
         <div className="pointer-events-none fixed" style={{ left: stick.ox - R, top: stick.oy - R }}>
           <div className="h-28 w-28 rounded-full border-2 border-white/50 bg-white/10" />

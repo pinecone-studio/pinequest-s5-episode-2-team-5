@@ -18,7 +18,6 @@ export function ControlsList({ compact = false }: { compact?: boolean }) {
     ['Хоосон газар удаан дарах', 'Шидэх'],
     ['F', 'Ойроос харах'],
     ['⇧', 'Гүйх горим'],
-    ['Тохиргоо → Удирдлага', 'Гарын товчлолыг үзэх, өөрчлөх'],
   ] : [
     [`${keyLabel(b.forward[0])} ${keyLabel(b.left[0])} ${keyLabel(b.backward[0])} ${keyLabel(b.right[0])} / ↑ ← ↓ →`, 'Алхах'],
     [lookMode === 'mouse' ? 'Хулгана' : `← → / ${keyLabel(b.turnLeft[0])} ${keyLabel(b.turnRight[0])}`, 'Эргэн харах'],

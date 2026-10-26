@@ -2,6 +2,7 @@ import { useEffect, useState, type ReactNode } from 'react';
 import { useSettingsStore, type Quality } from '../store/useSettingsStore';
 import { ACTION_LABELS, keyLabel, type ActionName } from '../controls/keyMap';
 import { sounds } from '../utils/sounds';
+import { isTouchDevice } from '../utils/device';
 
 /** A setting: label and hint on the left, control on the right (or below it when `stacked`). */
 function Row({ label, children, hint, stacked = false }: { label: string; children: ReactNode; hint?: string; stacked?: boolean }) {
@@ -106,24 +107,28 @@ function KeyRemap() {
 
 export function SettingsPanel() {
   const s = useSettingsStore();
+  // Phones and tablets have no mouse or keyboard: hide those settings there.
+  const touch = isTouchDevice();
   useEffect(() => sounds.setVolume(s.volume), [s.volume]);
   return (
     <div className="divide-y divide-slate-100">
       <section className="pb-3">
         <h3 className="mb-1 text-xs font-bold uppercase tracking-wider text-slate-400">Удирдлага</h3>
-        <Row label="Харах горим" hint="Товчлуураар: ←/→ эсвэл Q/E эргүүлнэ, Enter ашиглана">
-          <Segmented
-            label="Харах горим"
-            value={s.lookMode}
-            onChange={(v) => s.set({ lookMode: v })}
-            options={[
-              { value: 'mouse', label: 'Хулганаар' },
-              { value: 'keyboard', label: 'Товчлуураар' },
-            ]}
-          />
-        </Row>
-        <Row label={`Хулганы мэдрэмж · ${s.sensitivity.toFixed(1)}`}>
-          <input aria-label="Хулганы мэдрэмж" className="range w-36" type="range" min={0.2} max={3} step={0.1} value={s.sensitivity} onChange={(e) => s.set({ sensitivity: Number(e.target.value) })} />
+        {!touch && (
+          <Row label="Харах горим" hint="Товчлуураар: ←/→ эсвэл Q/E эргүүлнэ, Enter ашиглана">
+            <Segmented
+              label="Харах горим"
+              value={s.lookMode}
+              onChange={(v) => s.set({ lookMode: v })}
+              options={[
+                { value: 'mouse', label: 'Хулганаар' },
+                { value: 'keyboard', label: 'Товчлуураар' },
+              ]}
+            />
+          </Row>
+        )}
+        <Row label={`${touch ? 'Харах мэдрэмж' : 'Хулганы мэдрэмж'} · ${s.sensitivity.toFixed(1)}`}>
+          <input aria-label={touch ? 'Харах мэдрэмж' : 'Хулганы мэдрэмж'} className="range w-36" type="range" min={0.2} max={3} step={0.1} value={s.sensitivity} onChange={(e) => s.set({ sensitivity: Number(e.target.value) })} />
         </Row>
         <Row label="Босоо тэнхлэгийг урвуулах">
           <Toggle label="Босоо тэнхлэгийг урвуулах" checked={s.invertY} onChange={(v) => s.set({ invertY: v })} />
@@ -166,10 +171,12 @@ export function SettingsPanel() {
           <input aria-label="Дууны түвшин" className="range w-36" type="range" min={0} max={1} step={0.05} value={s.volume} onChange={(e) => s.set({ volume: Number(e.target.value) })} />
         </Row>
       </section>
-      <section className="pt-3">
-        <h3 className="mb-2 text-xs font-bold uppercase tracking-wider text-slate-400">Товчлуурын тохиргоо</h3>
-        <KeyRemap />
-      </section>
+      {!touch && (
+        <section className="pt-3">
+          <h3 className="mb-2 text-xs font-bold uppercase tracking-wider text-slate-400">Товчлуурын тохиргоо</h3>
+          <KeyRemap />
+        </section>
+      )}
     </div>
   );
 }

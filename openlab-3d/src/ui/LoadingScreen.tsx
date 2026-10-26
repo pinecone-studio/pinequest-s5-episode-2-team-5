@@ -7,6 +7,7 @@ import { sounds } from '../utils/sounds';
 import { useSettingsStore } from '../store/useSettingsStore';
 import { ControlsList } from './ControlsHelp';
 import { SettingsPanel } from './SettingsPanel';
+import { isTouchDevice } from '../utils/device';
 
 function Logo() {
   return (
@@ -73,7 +74,7 @@ export function LoadingScreen() {
                 </div>
                 <span>{complete ? 'Бэлэн' : `${label}…`}</span>
               </div>
-              <p className="mt-2 text-center text-xs text-slate-400">Эргэн харахад хулгана түгжигдэнэ — хүссэн үедээ Esc дарж чөлөөлнө.</p>
+              <p className="mt-2 text-center text-xs text-slate-400">{isTouchDevice() ? 'Зүүн доод талын joystick-оор алхаж, баруун талд чирж эргэн харна.' : 'Эргэн харахад хулгана түгжигдэнэ — хүссэн үедээ Esc дарж чөлөөлнө.'}</p>
           </motion.div>
         </motion.div>
       )}
