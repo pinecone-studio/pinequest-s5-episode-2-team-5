@@ -5,6 +5,7 @@
  * The rest of the app only talks to this file and `leaderboard.ts`.
  */
 import { supabase } from '@/lib/supabase';
+import { fetchLocationProfile } from '@/services/location';
 import type { ClassId, LessonResult, PublicPlayer, User } from '@/types';
 
 export type AuthField = 'email' | 'password' | 'nickname';
@@ -44,12 +45,17 @@ const toUser = (row: ProfileRow): User => ({
   xp: row.xp,
   completed: row.completed ?? {},
   createdAt: row.created_at,
+  location: null,
 });
 
 async function fetchProfile(id: string): Promise<User> {
   const { data, error } = await supabase.from('profiles').select('*').eq('id', id).single();
   if (error || !data) throw new AuthError('Профайлыг ачаалж чадсангүй. Дахин оролдоно уу');
-  return toUser(data as ProfileRow);
+  const [user, location] = await Promise.all([
+    Promise.resolve(toUser(data as ProfileRow)),
+    fetchLocationProfile(id),
+  ]);
+  return { ...user, location };
 }
 
 /** Supabase answers in English; the sign-in and sign-up screens show Mongolian. */
@@ -133,7 +139,7 @@ export async function saveUser(user: User): Promise<User> {
 
 /** Everyone with an account, as other players see them. */
 export async function listPlayers(): Promise<PublicPlayer[]> {
-  const { data, error } = await supabase.from('profiles').select('id, nickname, class_id, xp');
+  const { data, error } = await supabase.from('player_directory').select('id, nickname, class_id, xp');
   if (error || !data) return [];
   return data.map((row) => ({
     id: row.id,
