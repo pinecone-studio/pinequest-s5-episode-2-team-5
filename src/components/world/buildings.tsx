@@ -1,17 +1,14 @@
 import { MaterialCommunityIcons } from '@expo/vector-icons';
-import { useEffect } from 'react';
 import { StyleSheet, View } from 'react-native';
 import Animated, {
-  Easing,
   useAnimatedStyle,
   useSharedValue,
-  withRepeat,
-  withTiming,
   type SharedValue,
 } from 'react-native-reanimated';
 import Svg, { Circle, Defs, Ellipse, G, Line, LinearGradient, Path, Rect, Stop } from 'react-native-svg';
 
 import type { BuildingDef } from './world-config';
+import { useScreenLoop } from '@/hooks/use-screen-loop';
 
 const OUTLINE = '#2A1B5C';
 const GOLD = '#FFC93C';
@@ -20,9 +17,7 @@ const CLASS_FLAGS = ['#4ADE80', '#FFB938', '#FF5C7A'];
 /** A 0→1 clock that loops forever, shared by a sprite's ambient animations. */
 function useLoop(duration: number) {
   const t = useSharedValue(0);
-  useEffect(() => {
-    t.set(withRepeat(withTiming(1, { duration, easing: Easing.linear }), -1, false));
-  }, [duration, t]);
+  useScreenLoop(t, { duration });
   return t;
 }
 
@@ -52,8 +47,8 @@ export function BuildingWindowLights({ building, scale = 1 }: { building: Buildi
 
   const isLessonsHall = building.sprite === 'hall';
   const { rect } = building;
-  const width = isLessonsHall ? 300 : 200;
-  const height = isLessonsHall ? 280 : 260;
+  const width = isLessonsHall ? 300 : rect.w;
+  const height = isLessonsHall ? 280 : rect.h;
   const windows = isLessonsHall
     ? [{ x: 54, y: 146, width: 40, height: 58 }, { x: 206, y: 146, width: 40, height: 58 }]
     : [{ x: 39, y: 130, width: 34, height: 42 }, { x: 127, y: 130, width: 34, height: 42 }];
@@ -72,7 +67,7 @@ export function BuildingWindowLights({ building, scale = 1 }: { building: Buildi
           zIndex: rect.y + rect.h + 1,
         },
       ]}>
-      <Svg width={width} height={height} viewBox={`0 0 ${width} ${height}`}>
+      <Svg width={width} height={height} viewBox={isLessonsHall ? '0 0 300 280' : '0 0 200 260'}>
         {windows.map((window) => (
           <G key={`${window.x}-${window.y}`}>
             <Rect
@@ -118,14 +113,15 @@ export function BuildingWindowLights({ building, scale = 1 }: { building: Buildi
 }
 
 function HubHouse({ building }: { building: BuildingDef }) {
+  const { w, h } = building.rect;
   const color = building.color;
-  const friendly = building.id === 'friendly';
+  const study = building.id === 'study';
   const openlab = building.id === 'openlab';
   return (
-    <Svg width={200} height={260} viewBox="0 0 200 260">
+    <Svg width={w} height={h} viewBox="0 0 200 260">
       <Ellipse cx={100} cy={249} rx={94} ry={9} fill="#14320A" opacity={0.22} />
       <Rect x={13} y={223} width={174} height={25} rx={7} fill="#E9E4F8" stroke={OUTLINE} strokeWidth={3} />
-      <Rect x={27} y={102} width={146} height={125} rx={7} fill={friendly ? '#DDFBFF' : openlab ? '#F1FFE1' : '#FFF0F3'} stroke={OUTLINE} strokeWidth={3} />
+      <Rect x={27} y={102} width={146} height={125} rx={7} fill={study ? '#F3E8FF' : openlab ? '#F1FFE1' : '#FFF0F3'} stroke={OUTLINE} strokeWidth={3} />
       <Rect x={31} y={205} width={138} height={16} fill={color} opacity={0.32} />
       <Rect x={39} y={130} width={34} height={42} rx={7} fill="#9BE8FF" stroke={OUTLINE} strokeWidth={2.5} />
       <Line x1={56} y1={131} x2={56} y2={171} stroke="#FFFFFF" strokeWidth={2.5} />
@@ -138,9 +134,9 @@ function HubHouse({ building }: { building: BuildingDef }) {
       <Path d="M8 105 L100 37 L192 105 Z" fill={color} stroke={OUTLINE} strokeWidth={3} strokeLinejoin="round" />
       <Path d="M34 99 L100 51 L166 99 Z" fill="#FFFFFF" opacity={0.22} />
       <Rect x={5} y={100} width={190} height={13} rx={5} fill={color} stroke={OUTLINE} strokeWidth={3} />
-      {friendly ? <Path d="M100 69 C88 57 74 72 100 91 C126 72 112 57 100 69Z" fill="#FFFFFF" stroke={OUTLINE} strokeWidth={2} /> : null}
+      {study ? <><Path d="M82 65 L118 65 L118 89 L82 89 Z" fill="#FFFFFF" stroke={OUTLINE} strokeWidth={2} /><Path d="M100 65 L100 89" stroke={OUTLINE} strokeWidth={2} /></> : null}
       {openlab ? <><Path d="M92 59 L108 59 L108 70 L120 87 Q123 91 118 91 L82 91 Q77 91 80 87 L92 70Z" fill="#E2F7FF" stroke={OUTLINE} strokeWidth={2.5} /><Path d="M84 81 L116 81 L120 88 L80 88Z" fill="#7CFF6B" /></> : null}
-      {!friendly && !openlab ? <><Path d="M84 72 L96 60 L108 72 L96 84 Z" fill="#FFFFFF" stroke={OUTLINE} strokeWidth={2.5} /><Path d="M98 84 L112 69" stroke="#FFFFFF" strokeWidth={4} strokeLinecap="round" /></> : null}
+      {!study && !openlab ? <><Path d="M84 72 L96 60 L108 72 L96 84 Z" fill="#FFFFFF" stroke={OUTLINE} strokeWidth={2.5} /><Path d="M98 84 L112 69" stroke="#FFFFFF" strokeWidth={4} strokeLinecap="round" /></> : null}
       <Circle cx={100} cy={35} r={8} fill={GOLD} stroke={OUTLINE} strokeWidth={2.5} />
       <Bush x={20} y={222} />
       <Bush x={180} y={222} />

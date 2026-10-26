@@ -20,7 +20,7 @@ import { benchPlan, registerHolder, STORAGE_INFO, type StorageCategory } from '.
 import { HolderContents, holderLabel } from '../../interaction/StoredItems';
 import { storeInto } from '../../interaction/storage';
 import { sounds } from '../../utils/sounds';
-import { BoxInstance, FrontInstance, HandleInstance, HIGHLIGHT, HolderInstance, LabelPlate, LinerInstance, PanelInstance, TRAY_WALL, unitBox, WHITE } from './BenchParts';
+import { BoxInstance, FrontInstance, HandleInstance, HIGHLIGHT, HolderInstance, LabelPlate, LinerInstance, PanelInstance, syncBenchParts, TRAY_WALL, unitBox, WHITE } from './BenchParts';
 import { DOOR_SWING, DRAWER_SWING, useSwing } from './swing';
 
 export type ModuleKind = 'drawers' | 'door' | 'open' | 'sink';
@@ -79,6 +79,7 @@ function useHolderInteraction(id: string, open: boolean, base: string, category:
 /** Overlay front: an 18 mm slab with a raised center panel. Outer face at z = 0. */
 function FrontSlab({ width, height, focused = false }: { width: number; height: number; focused?: boolean }) {
   const tint = focused ? HIGHLIGHT : WHITE;
+  useEffect(() => syncBenchParts(), [focused]);
   return (
     <>
       <FrontInstance position={[0, 0, -FRONT_T / 2]} scale={[width, height, FRONT_T]} color={tint} />
@@ -108,6 +109,7 @@ function Drawer({ id, width, height, depth, category }: { id: string; width: num
   const slide = Math.min(0.35, trayD * 0.85);
   const showContents = useSwing(open, DRAWER_SWING, (k) => {
     if (group.current) group.current.position.z = k * slide;
+    syncBenchParts();
   });
   const trayW = width - 0.06;
   const trayH = height - 0.056;
@@ -155,6 +157,7 @@ function CabinetDoor({ id, width, height, depth, hinge, shelfTop, category }: { 
   const { label, onStore } = useHolderInteraction(id, open, 'Шүүгээ', category);
   const showContents = useSwing(open, DOOR_SWING, (k) => {
     if (pivot.current) pivot.current.rotation.y = hinge * k * (Math.PI / 2);
+    syncBenchParts();
   });
   const hx = (hinge * width) / 2;
   const interiorBottom = -height / 2 + PANEL + 0.002;

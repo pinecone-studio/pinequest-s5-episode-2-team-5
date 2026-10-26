@@ -42,16 +42,20 @@ export function applyRemoteExperiments(rows: unknown): boolean {
 
 /** ChemQuest fetches with its existing Supabase client and sends public lesson data only. */
 export function connectExperimentCatalog(): () => void {
-  if (window.parent === window) return () => {};
+  const nativeBridge = (window as Window & { ReactNativeWebView?: { postMessage: (message: string) => void } }).ReactNativeWebView;
+  const standalone = window.parent === window;
+  if (standalone && !nativeBridge) return () => {};
   const origin = window.location.origin;
   const receive = (event: MessageEvent<unknown>) => {
-    if (event.origin !== origin || event.source !== window.parent) return;
+    if (event.origin !== origin || event.source !== (standalone ? window : window.parent)) return;
     const data = event.data;
     if (!data || typeof data !== 'object' || !('type' in data) || data.type !== 'chemquest:experiment-catalog' || !('version' in data) || data.version !== 1 || !('rows' in data)) return;
     applyRemoteExperiments(data.rows);
     textbookLessons = 'lessons' in data && Array.isArray(data.lessons) ? data.lessons : [];
   };
   window.addEventListener('message', receive);
-  window.parent.postMessage({ type: 'openlab:catalog-ready', version: 1 }, origin);
+  const ready = { type: 'openlab:catalog-ready', version: 1 };
+  if (standalone) nativeBridge?.postMessage(JSON.stringify(ready));
+  else window.parent.postMessage(ready, origin);
   return () => window.removeEventListener('message', receive);
 }

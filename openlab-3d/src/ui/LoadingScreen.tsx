@@ -1,11 +1,13 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { useGameStore } from '../store/useGameStore';
 import { loadingProgress, useLoadingStore } from '../store/useLoadingStore';
-import { requestLock } from '../controls/usePointerLock';
+import { requestLock } from '../controls/pointerLock';
 import { sounds } from '../utils/sounds';
 import { useSettingsStore } from '../store/useSettingsStore';
 import { ControlsList } from './ControlsHelp';
+import { SettingsPanel } from './SettingsPanel';
+import { isTouchDevice } from '../utils/device';
 
 function Logo() {
   return (
@@ -35,12 +37,13 @@ export function enterLab(): void {
 
 /** Loading progress, then the "Click to enter the lab" start screen with the controls. */
 export function LoadingScreen() {
+  const [settingsOpen, setSettingsOpen] = useState(false);
   const mode = useGameStore((s) => s.mode);
   const done = useLoadingStore((s) => s.done);
   const { progress, label, complete } = loadingProgress(done);
   useEffect(() => {
-    if (complete && useGameStore.getState().mode === 'loading') useGameStore.getState().setMode('start');
-  }, [complete]);
+    if (useGameStore.getState().mode === 'loading') useGameStore.getState().setMode('start');
+  }, []);
   const visible = mode === 'loading' || mode === 'start';
   return (
     <AnimatePresence>
@@ -53,21 +56,7 @@ export function LoadingScreen() {
           exit={{ opacity: 0 }}
           transition={{ duration: 0.4 }}
         >
-          {mode === 'loading' ? (
-            <div className="w-full max-w-md text-center">
-              <div className="flex justify-center">
-                <Logo />
-              </div>
-              <div className="mt-10 h-3 w-full overflow-hidden rounded-full bg-slate-200" role="progressbar" aria-valuemin={0} aria-valuemax={100} aria-valuenow={Math.round(progress * 100)} aria-label="Лабораторийг ачаалж байна">
-                <motion.div className="h-full rounded-full bg-lab-yellow" initial={{ width: "4%" }} animate={{ width: `${Math.max(4, progress * 100)}%` }} transition={{ ease: 'easeOut', duration: 0.35 }} />
-              </div>
-              <div className="mt-3 flex justify-between text-sm text-slate-500">
-                <span>{label}…</span>
-                <span className="font-semibold tabular-nums">{Math.round(progress * 100)}%</span>
-              </div>
-            </div>
-          ) : (
-            <motion.div className="panel-card w-full max-w-2xl p-6 sm:p-8" initial={{ y: 20, opacity: 0 }} animate={{ y: 0, opacity: 1 }}>
+          <motion.div className="panel-card w-full max-w-2xl p-6 sm:p-8" initial={{ y: 20, opacity: 0 }} animate={{ y: 0, opacity: 1 }}>
               <Logo />
               <p className="mt-4 text-slate-600">
                 Бүрэн тоноглогдсон <b>химийн лабораторид</b> 30 төрлийн багаж, 50 бодистой ажиллаарай. Шургуулга, шүүгээг нээж хэрэгслээ аваад, R-ийг дарсаар асгаж холино — тунадас, хий, өнгө, дулаан бодит хуулиар үүснэ. Шил унавал хагарна, асгарвал арчина. NaCl ширээн дээр V дарж ойроос ажиллана. <b>Цэс → Туршилт</b> хэсэгт нэмэлт заавар бий; туршилт сонгох шаардлагагүй.
@@ -78,10 +67,27 @@ export function LoadingScreen() {
               <button type="button" className="btn-yellow mt-6 w-full py-4 text-lg" onClick={enterLab} autoFocus>
                 Лабораторид орох
               </button>
-              <p className="mt-2 text-center text-xs text-slate-400">Эргэн харахад хулгана түгжигдэнэ — хүссэн үедээ Esc дарж чөлөөлнө.</p>
-            </motion.div>
-          )}
+              <button type="button" className="btn-ghost mt-2 w-full py-3" onClick={() => setSettingsOpen(true)}>⚙ Тохиргоо ба удирдлага</button>
+              <div className="mt-3 flex items-center gap-3 text-xs text-slate-400" aria-live="polite">
+                <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-slate-200" role="progressbar" aria-valuemin={0} aria-valuemax={100} aria-valuenow={Math.round(progress * 100)} aria-label="3D лабораторийг ард ачаалж байна">
+                  <motion.div className="h-full bg-lab-yellow" animate={{ width: `${Math.max(4, progress * 100)}%` }} transition={{ ease: 'easeOut', duration: 0.35 }} />
+                </div>
+                <span>{complete ? 'Бэлэн' : `${label}…`}</span>
+              </div>
+              <p className="mt-2 text-center text-xs text-slate-400">{isTouchDevice() ? 'Зүүн доод талын joystick-оор алхаж, баруун талд чирж эргэн харна.' : 'Эргэн харахад хулгана түгжигдэнэ — хүссэн үедээ Esc дарж чөлөөлнө.'}</p>
+          </motion.div>
         </motion.div>
+      )}
+      {settingsOpen && (
+        <div className="fixed inset-0 z-[80] flex items-center justify-center bg-slate-950/60 p-3" role="dialog" aria-modal="true" aria-label="Тохиргоо">
+          <section className="panel-card flex max-h-[90dvh] w-full max-w-xl flex-col p-4 sm:p-6">
+            <header className="mb-2 flex items-center justify-between">
+              <h2 className="font-display text-xl font-bold">Тохиргоо</h2>
+              <button type="button" className="focus-ring rounded-lg px-3 py-2" onClick={() => setSettingsOpen(false)} aria-label="Тохиргоог хаах">✕</button>
+            </header>
+            <div className="scrollbar-thin overflow-y-auto"><SettingsPanel /></div>
+          </section>
+        </div>
       )}
     </AnimatePresence>
   );

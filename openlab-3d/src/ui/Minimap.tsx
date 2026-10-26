@@ -2,10 +2,15 @@ import { useEffect, useMemo, useRef } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { playerState, useGameStore } from '../store/useGameStore';
 import { LAB_BOUNDS, WALLS } from '../world/layout';
+import { isTouchDevice } from '../utils/device';
 
 const W = LAB_BOUNDS.maxX - LAB_BOUNDS.minX;
 const H = LAB_BOUNDS.maxZ - LAB_BOUNDS.minZ;
-const SCALE = 12;
+// Утсан дээр газрын зургийг хагас хэмжээнд (6) гаргана, компьютер дээр хэвээр (12).
+const TOUCH = isTouchDevice();
+const SCALE = TOUCH ? 6 : 12;
+const LINE = TOUCH ? 1.2 : 1.6;
+const ARROW = TOUCH ? 0.7 : 1;
 
 const toX = (x: number) => (x - LAB_BOUNDS.minX) * SCALE;
 const toY = (z: number) => (z - LAB_BOUNDS.minZ) * SCALE;
@@ -47,7 +52,7 @@ export function Minimap() {
     let raf = 0;
     const tick = () => {
       const deg = (-playerState.yaw * 180) / Math.PI;
-      arrow.current?.setAttribute('transform', `translate(${toX(playerState.position.x)} ${toY(playerState.position.z)}) rotate(${deg})`);
+      arrow.current?.setAttribute('transform', `translate(${toX(playerState.position.x)} ${toY(playerState.position.z)}) rotate(${deg}) scale(${ARROW})`);
       raf = requestAnimationFrame(tick);
     };
     raf = requestAnimationFrame(tick);
@@ -58,21 +63,21 @@ export function Minimap() {
     <AnimatePresence>
       {visible && (
         <motion.div
-          className="pointer-events-none fixed bottom-4 right-4 z-20 overflow-hidden rounded-2xl border border-white/60 bg-white/80 shadow-hud backdrop-blur max-sm:hidden"
+          className={`pointer-events-none fixed z-20 overflow-hidden border border-white/60 bg-white/80 shadow-hud backdrop-blur max-sm:hidden ${TOUCH ? 'bottom-2 right-2 rounded-xl' : 'bottom-4 right-4 rounded-2xl'}`}
           initial={{ opacity: 0, scale: 0.9 }}
           animate={{ opacity: 1, scale: 1 }}
           exit={{ opacity: 0, scale: 0.9 }}
           role="img"
           aria-label="Химийн лабораторийн газрын зураг."
         >
-          <div className="flex items-center justify-between px-3 pt-2 text-[11px] font-semibold text-slate-600">
+          <div className={`flex items-center justify-between font-semibold text-slate-600 ${TOUCH ? 'px-2 pt-1 text-[9px]' : 'px-3 pt-2 text-[11px]'}`}>
             <span>Химийн лаборатори</span>
-            <span className="kbd !text-[10px]">M</span>
+            {!TOUCH && <span className="kbd !text-[10px]">M</span>}
           </div>
           <svg width={W * SCALE + 12} height={H * SCALE + 12} viewBox={`-6 -6 ${W * SCALE + 12} ${H * SCALE + 12}`}>
             <rect x={0} y={0} width={W * SCALE} height={H * SCALE} fill="#e2f3e4" />
-            <path d={walls.solid} stroke="#475569" strokeWidth={1.6} strokeLinecap="square" fill="none" />
-            <path d={walls.glass} stroke="#7cc4ff" strokeWidth={1.6} fill="none" />
+            <path d={walls.solid} stroke="#475569" strokeWidth={LINE} strokeLinecap="square" fill="none" />
+            <path d={walls.glass} stroke="#7cc4ff" strokeWidth={LINE} fill="none" />
             <g ref={arrow}>
               <circle r={6} fill="#2563eb" opacity={0.18} />
               <path d="M0 -6 L4.5 4.5 L0 2.2 L-4.5 4.5 Z" fill="#2563eb" stroke="#fff" strokeWidth={1} />

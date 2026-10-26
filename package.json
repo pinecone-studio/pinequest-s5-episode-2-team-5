@@ -34,6 +34,7 @@
     "react-native-screens": "~4.30.0",
     "react-native-svg": "15.16.0",
     "react-native-web": "~0.21.4",
+    "react-native-webview": "14.0.1",
     "react-native-worklets": "0.13.0"
   },
   "devDependencies": {
@@ -54,6 +55,7 @@
     "learning:grade7:sql": "node --experimental-strip-types scripts/generate-grade7-sql.mjs",
     "learning:grade10:sql": "node --experimental-strip-types scripts/generate-grade10-sql.mjs",
     "experiments:sql": "node --experimental-strip-types scripts/generate-experiment-sql.mjs",
+    "grade8:sql": "node scripts/generate-grade8-hub-sql.mjs",
     "test:experiments": "node --experimental-strip-types --test scripts/experiment-catalog.test.mjs",
     "test:hub": "node --experimental-strip-types --test scripts/revision-hub.test.mjs scripts/revision-study.test.mjs scripts/catalyst-journey.test.mjs scripts/periodic-learning.test.mjs scripts/grade9-content.test.mjs scripts/grade10-content.test.mjs scripts/grade7-content.test.mjs"
   },

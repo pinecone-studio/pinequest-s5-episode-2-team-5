@@ -15,11 +15,14 @@ import { spawnNearPlayer } from '../interaction/spawn';
 import { currentSession, useWorkbench } from '../experiments/workbench/session';
 import { PreparationChecklist } from '../experiments/workbench/PreparationHints';
 import { sounds } from '../utils/sounds';
+import { isTouchDevice } from '../utils/device';
+import { mobileizeControlHint } from '../controls/mobileInteraction';
 
 export function ActionGauge() {
   const { label, detail, visible } = useActionHud();
   return (
-    <div className="pointer-events-none fixed inset-x-0 bottom-40 z-20 flex justify-center sm:bottom-24">
+    // Утсан дээр доод эгнээ (Туршилтын бэлтгэл, газрын зураг) завгүй тул заагч дээш гарна.
+    <div className={`pointer-events-none fixed inset-x-0 bottom-40 z-20 flex justify-center ${isTouchDevice() ? '' : 'sm:bottom-24'}`}>
       <AnimatePresence>
         {visible && (
           <motion.div className="rounded-2xl bg-sky-900/75 px-4 py-2 text-center text-white shadow-hud backdrop-blur" initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}>
@@ -77,7 +80,7 @@ export function SafetyBadges() {
             key={what}
             type="button"
             onClick={() => worn[what] && take(what)}
-            title={worn[what] ? 'Дарж тайлах' : 'Ширээн дээрх эсвэл «Хамгаалалт» шургуулганаас аваад E дарж зүү'}
+            title={worn[what] ? 'Дарж тайлах' : isTouchDevice() ? 'Ширээн дээрх эсвэл «Хамгаалалт» шургуулганаас аваад товшиж зүү' : 'Ширээн дээрх эсвэл «Хамгаалалт» шургуулганаас аваад E дарж зүү'}
             className={`focus-ring flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-semibold shadow-hud backdrop-blur ${worn[what] ? 'bg-emerald-500/90 text-white' : 'bg-black/45 text-white/80'}`}
           >
             <span>{what === 'goggles' ? '🥽' : '🧤'}</span>
@@ -96,11 +99,28 @@ export function ExperimentCard() {
   const progress = useLabStore((s) => s.progress);
   useWorkbench((s) => s.sessions);
   const [collapsed, setCollapsed] = useState(false);
+  // Утсан дээр «Туршилтын бэлтгэл» доод эгнээнд, анх хураасан байдалтай гарна.
+  const touch = isTouchDevice();
+  const [prepCollapsed, setPrepCollapsed] = useState(touch);
   const x = active ? experiments.find((experiment) => experiment.id === active) : undefined;
   if (!x) return null;
   const done = progress[x.id] ?? [];
   const next = x.steps.find((s) => !done.includes(s.id));
-  if (!currentSession()?.ready) return <div className="fixed left-4 top-[76px] z-30 w-[min(320px,calc(100vw-80px))] rounded-xl bg-white/95 p-3 text-lab-ink shadow-hud"><b className="block text-xs">{x.title}</b><PreparationChecklist /></div>;
+  if (!currentSession()?.ready) {
+    const closed = touch ? prepCollapsed : collapsed;
+    const toggle = () => (touch ? setPrepCollapsed((c) => !c) : setCollapsed((c) => !c));
+    // Утас: зүүн талд Pip робот ба «Pip чат» (192px хүртэл), баруун талд газрын зураг (124px) байна.
+    const box = touch
+      ? 'pointer-events-auto fixed bottom-2 left-[192px] right-[124px] z-30 rounded-xl bg-white/95 p-2 text-lab-ink shadow-hud'
+      : 'pointer-events-auto fixed left-3 top-[68px] z-30 w-[min(320px,calc(100vw-24px))] rounded-xl bg-white/95 p-3 text-lab-ink shadow-hud sm:left-4 sm:top-[76px] sm:w-[min(320px,calc(100vw-80px))]';
+    return <div className={box}>
+      <button type="button" className="focus-ring flex w-full items-center justify-between gap-2 text-left" onClick={toggle} aria-expanded={!closed}>
+        <span><span className="block text-[10px] font-bold uppercase tracking-wider text-amber-700">Туршилтын бэлтгэл</span><b className="block text-xs">{x.title}</b></span>
+        <span className="shrink-0 rounded-full bg-amber-100 px-2 py-1 text-[11px] font-semibold text-amber-900">{closed ? 'Нээх +' : 'Хураах −'}</span>
+      </button>
+      {!closed && <div className={`mt-2 overflow-y-auto overscroll-contain ${touch ? 'max-h-[45dvh]' : 'max-h-[40dvh]'}`}><PreparationChecklist /></div>}
+    </div>;
+  }
   return (
     <div className="pointer-events-auto fixed left-4 top-[76px] z-30 w-[min(300px,calc(100vw-120px))] ">
       <div className="rounded-2xl bg-white/90 p-3 text-lab-ink shadow-hud backdrop-blur">
@@ -131,7 +151,7 @@ export function ExperimentCard() {
                 className="focus-ring mt-2 w-full rounded-lg bg-white px-2 py-1 text-left text-[11px] text-slate-700 hover:bg-slate-100"
                 onClick={() => useGameStore.getState().say(next.hint, 'think')}
               >
-                💡 Зөвлөгөө: {next.hint}
+                💡 Зөвлөгөө: {isTouchDevice() ? mobileizeControlHint(next.hint) : next.hint}
               </button>
             )}
           </>

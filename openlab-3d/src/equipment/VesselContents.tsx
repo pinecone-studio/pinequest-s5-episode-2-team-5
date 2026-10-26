@@ -69,8 +69,23 @@ function useLiquidMaterial(color: string, turbidity: number): MeshPhysicalMateri
       material.opacity = Math.min(0.97, 0.55 + Math.max(turbidity, dark) * 0.45);
     }
   }, [material, color, turbidity, transmission]);
-  const target=useMemo(()=>new Color(),[]);
-  useFrame((_,dt)=>{target.set(color);material.color.lerp(target,Math.min(1,dt*4));material.emissive.copy(material.color);});
+  // Fade to a new color; parse it once per change and stop work once the fade has landed.
+  const target = useMemo(() => new Color(), []);
+  const placed = useRef(false);
+  useEffect(() => {
+    target.set(color);
+    if (!placed.current) {
+      placed.current = true;
+      material.color.copy(target);
+      material.emissive.copy(target);
+    }
+  }, [target, color, material]);
+  useFrame((_, dt) => {
+    const c = material.color;
+    if (Math.abs(c.r - target.r) + Math.abs(c.g - target.g) + Math.abs(c.b - target.b) < 1e-3) return;
+    c.lerp(target, Math.min(1, dt * 4));
+    material.emissive.copy(c);
+  });
   return material;
 }
 

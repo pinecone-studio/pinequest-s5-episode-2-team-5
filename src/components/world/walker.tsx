@@ -1,4 +1,3 @@
-import { useEffect } from 'react';
 import { StyleSheet, View } from 'react-native';
 import Animated, {
   cancelAnimation,
@@ -6,7 +5,6 @@ import Animated, {
   useAnimatedReaction,
   useAnimatedStyle,
   useSharedValue,
-  withRepeat,
   withSequence,
   withTiming,
   type SharedValue,
@@ -16,6 +14,7 @@ import { scheduleOnRN } from 'react-native-worklets';
 import { Scientist } from '@/components/avatar/scientist';
 import { AppText } from '@/components/ui/app-text';
 import { Colors, Fonts } from '@/constants/theme';
+import { useScreenLoop } from '@/hooks/use-screen-loop';
 import type { AvatarLook } from '@/lib/avatar-look';
 
 import type { Point } from './world-config';
@@ -112,9 +111,7 @@ export function WalkerView({ walker, look, nickname, isPlayer = false, scale = 1
   const { x, y, moving, facing, odometer, opacity } = walker;
   const idle = useSharedValue(0);
 
-  useEffect(() => {
-    idle.set(withRepeat(withTiming(1, { duration: 1300, easing: Easing.inOut(Easing.sin) }), -1, true));
-  }, [idle]);
+  useScreenLoop(idle, { duration: 1300, easing: 'sine', reverse: true });
 
   const boxStyle = useAnimatedStyle(() => ({
     opacity: opacity.get(),

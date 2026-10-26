@@ -10,6 +10,8 @@ import { playerApi, playerState, useGameStore } from '../store/useGameStore';
 import { useExperimentStore } from '../store/useExperimentStore';
 import { useInventoryStore } from '../store/useInventoryStore';
 import { useSettingsStore } from '../store/useSettingsStore';
+import { usePerfStore } from '../store/usePerfStore';
+import { useBenchSync } from '../world/furniture/BenchParts';
 import { useLoadingStore } from '../store/useLoadingStore';
 import { bench, enterBench, exitBench } from '../experiments/nacl/bench';
 import { useWorkbench, selectBenchExperiment, demonstratePreparation, currentSession } from '../experiments/workbench/session';
@@ -49,6 +51,8 @@ export function DebugBridge() {
       experiment: useExperimentStore,
       inventory: useInventoryStore,
       settings: useSettingsStore,
+      perf: usePerfStore,
+      benchSync: useBenchSync,
       loading: useLoadingStore,
       chem: useChemStore,
       lab: useLabStore,

@@ -4,18 +4,21 @@
  * arms. Rendered in its own small transparent canvas with idle bob, blinking and a wave.
  * Clicking it opens a speech bubble with a contextual hint; it reacts to bench skills.
  */
-import { useEffect, useMemo, useRef, useState, type FormEvent } from 'react';
-import { Canvas, useFrame } from '@react-three/fiber';
+import { useEffect, useRef, useState, type FormEvent } from 'react';
+import { Canvas, useFrame, useThree } from '@react-three/fiber';
 import { Environment, Lightformer } from '@react-three/drei';
 import { AnimatePresence, motion } from 'framer-motion';
 import { CapsuleGeometry, MeshPhysicalMaterial, MeshStandardMaterial, SphereGeometry, TorusGeometry, type Group } from 'three';
 import { useGameStore } from '../store/useGameStore';
+import { useSettingsStore } from '../store/useSettingsStore';
 import { SKILLS, useExperimentStore, type SkillId } from '../store/useExperimentStore';
 import { useInventoryStore } from '../store/useInventoryStore';
 import { CATALOG } from '../equipment/equipmentCatalog';
 import { useLabStore } from '../store/useLabStore';
 import { experimentById, getExperiments, getTextbookLessons } from '../lab/experiments';
 import { sounds } from '../utils/sounds';
+import { isTouchDevice } from '../utils/device';
+import { mobileizeControlHint } from '../controls/mobileInteraction';
 
 const shell = new MeshPhysicalMaterial({ color: '#f7f8fa', roughness: 0.32, clearcoat: 0.8, clearcoatRoughness: 0.2 });
 const trim = new MeshStandardMaterial({ color: '#c9d1da', roughness: 0.45 });
@@ -28,6 +31,19 @@ const visorGeo = new SphereGeometry(0.405, 40, 24, Math.PI * 0.14, Math.PI * 0.7
 const bodyGeo = new CapsuleGeometry(0.3, 0.22, 10, 28);
 const armGeo = new CapsuleGeometry(0.075, 0.16, 6, 16);
 const eyeGeo = new TorusGeometry(0.07, 0.018, 10, 28, Math.PI);
+
+/**
+ * The robot is a second WebGL canvas: redraw it at a modest rate instead of every display
+ * frame, since its idle bob does not need 60 fps and each frame competes with the lab.
+ */
+function Ticker({ fps }: { fps: number }) {
+  const invalidate = useThree((s) => s.invalidate);
+  useEffect(() => {
+    const id = window.setInterval(() => invalidate(), 1000 / fps);
+    return () => window.clearInterval(id);
+  }, [invalidate, fps]);
+  return null;
+}
 
 function RobotModel() {
   const root = useRef<Group>(null);
@@ -185,8 +201,9 @@ export function RobotAssistant({ hidden }: { hidden: boolean }) {
     return () => window.clearTimeout(id);
   }, [robot.open, robot.id, setOpen]);
   useEffect(() => {
+    const standalone = window.parent === window;
     const receive = (event: MessageEvent<unknown>) => {
-      if (event.origin !== window.location.origin || event.source !== window.parent || !event.data || typeof event.data !== 'object') return;
+      if (event.origin !== window.location.origin || event.source !== (standalone ? window : window.parent) || !event.data || typeof event.data !== 'object') return;
       const data = event.data as { type?: unknown; version?: unknown; id?: unknown; answer?: unknown };
       if (data.type !== 'chemquest:pip-answer' || data.version !== 1 || typeof data.id !== 'string') return;
       const resolve = pending.current.get(data.id);
@@ -212,14 +229,19 @@ export function RobotAssistant({ hidden }: { hidden: boolean }) {
       experiments: getExperiments(),
       currentExperiment: lab.active ? experimentById(lab.active) : null,
       completedSteps: lab.progress,
-      controls: 'E interact/pick up; F inspect; Q drop/place; R use held item; T throw; Tab tools; N notes; V worktop view; wear safety goggles and gloves; use fume hood for fumes.',
+      controls: isTouchDevice()
+        ? 'Touch: tap the highlighted object to interact, tap a valid target to use or store a held item, tap empty space to place it, and long-press empty space to throw; F inspect; joystick move; drag right side to look; use Settings for controls.'
+        : 'E interact/pick up; F inspect; Q drop/place; R use held item; T throw; Tab tools; N notes; V worktop view; wear safety goggles and gloves; use fume hood for fumes.',
     });
     const response = new Promise<string | null>((resolve) => {
       pending.current.set(id, resolve);
-      window.parent.postMessage({
+      const message = {
         type: 'openlab:ask-pip', version: 1, id, question,
         history: messages.slice(-8), context,
-      }, window.location.origin);
+      };
+      if (window.parent === window) {
+        (window as Window & { ReactNativeWebView?: { postMessage: (value: string) => void } }).ReactNativeWebView?.postMessage(JSON.stringify(message));
+      } else window.parent.postMessage(message, window.location.origin);
     });
     const answer = await Promise.race([
       response,
@@ -229,7 +251,8 @@ export function RobotAssistant({ hidden }: { hidden: boolean }) {
     setMessages((items) => [...items, { role: 'model', text: answer ?? 'Pip-тэй холбогдож чадсангүй. Нэвтэрсэн эсэх болон Gemini тохиргоогоо шалгаарай.' }]);
     setWaiting(false);
   };
-  const glPixel = useMemo(() => Math.min(2, window.devicePixelRatio || 1), []);
+  const lowQuality = useSettingsStore((st) => st.quality === 'low');
+  const glPixel = Math.min(lowQuality ? 1 : 1.5, window.devicePixelRatio || 1);
   const onClick = () => {
     if (robot.open) {
       setOpen(false);
@@ -238,50 +261,73 @@ export function RobotAssistant({ hidden }: { hidden: boolean }) {
     sounds.play('ui');
     useGameStore.getState().say(contextualHint(), 'wave');
   };
+  // On phones and tablets the bottom-left belongs to the joystick: Pip becomes a small
+  // button beside the menu (and skips its own 3D canvas).
+  const touch = isTouchDevice();
   return (
-    <div className={`fixed bottom-2 left-2 z-30 flex items-end ${hidden ? 'hidden' : ''}`}>
-      <button type="button" aria-label="Лабораторийн туслах роботоос зөвлөгөө авах" onClick={onClick} className="focus-ring pointer-events-auto h-[150px] w-[130px] rounded-3xl sm:h-[170px] sm:w-[150px]">
-        <Canvas frameloop={hidden ? 'never' : 'always'} dpr={glPixel} gl={{ alpha: true, antialias: true }} camera={{ position: [0, 0.05, 3.6], fov: 30 }} style={{ pointerEvents: 'none' }}>
-          <ambientLight intensity={0.6} />
-          <directionalLight position={[2, 3, 3]} intensity={1.8} />
-          <Environment resolution={32} frames={1}>
-            <Lightformer form="rect" intensity={2.5} position={[0, 3, 2]} rotation={[-Math.PI / 3, 0, 0]} scale={[4, 2, 1]} />
-            <Lightformer form="rect" intensity={1} color="#bde9ff" position={[-3, 0, 1]} rotation={[0, Math.PI / 2, 0]} scale={[3, 3, 1]} />
-          </Environment>
-          <RobotModel />
-          <mesh position={[0, -1.12, 0]} rotation={[-Math.PI / 2, 0, 0]}>
-            <circleGeometry args={[0.36, 32]} />
-            <meshBasicMaterial color="#000000" transparent opacity={0.12} />
-          </mesh>
-        </Canvas>
-      </button>
+    <div className={`${touch ? 'fixed left-[84px] top-3 z-30' : 'fixed bottom-2 left-2 z-30 flex items-end'} ${hidden ? 'hidden' : ''}`}>
+      {touch ? (
+        <button type="button" aria-label="Лабораторийн туслах роботоос зөвлөгөө авах" onClick={onClick} className="focus-ring pointer-events-auto flex h-11 w-11 items-center justify-center rounded-full bg-white/90 text-xl shadow-hud active:scale-95">
+          🤖
+        </button>
+      ) : (
+        <button type="button" aria-label="Лабораторийн туслах роботоос зөвлөгөө авах" onClick={onClick} className="focus-ring pointer-events-auto h-[82px] w-[72px] rounded-3xl sm:h-[150px] sm:w-[130px]">
+          <Canvas frameloop={hidden ? 'never' : 'demand'} dpr={glPixel} gl={{ alpha: true, antialias: true }} camera={{ position: [0, 0.05, 3.6], fov: 30 }} style={{ pointerEvents: 'none' }}>
+            <ambientLight intensity={0.6} />
+            <directionalLight position={[2, 3, 3]} intensity={1.8} />
+            <Environment resolution={32} frames={1}>
+              <Lightformer form="rect" intensity={2.5} position={[0, 3, 2]} rotation={[-Math.PI / 3, 0, 0]} scale={[4, 2, 1]} />
+              <Lightformer form="rect" intensity={1} color="#bde9ff" position={[-3, 0, 1]} rotation={[0, Math.PI / 2, 0]} scale={[3, 3, 1]} />
+            </Environment>
+            <RobotModel />
+            <Ticker fps={lowQuality ? 15 : 30} />
+            <mesh position={[0, -1.12, 0]} rotation={[-Math.PI / 2, 0, 0]}>
+              <circleGeometry args={[0.36, 32]} />
+              <meshBasicMaterial color="#000000" transparent opacity={0.12} />
+            </mesh>
+          </Canvas>
+        </button>
+      )}
       <AnimatePresence mode="wait">
         {robot.open && robot.text && (
           <motion.div
             key={robot.id}
             role="status"
             aria-live="polite"
-            className="pointer-events-auto relative mb-[86px] ml-[-8px] max-w-[min(300px,calc(100vw-160px))] rounded-2xl rounded-bl-md bg-white px-4 py-3 text-sm leading-snug text-lab-ink shadow-hud"
+            className={touch
+              ? 'pointer-events-auto fixed left-[84px] top-[64px] flex max-h-[45dvh] max-w-[min(300px,calc(100vw-180px))] flex-col rounded-2xl rounded-tl-md bg-white px-4 py-3 text-sm leading-snug text-lab-ink shadow-hud'
+              : 'pointer-events-auto fixed bottom-[94px] left-2 max-h-[35dvh] max-w-[min(280px,calc(100vw-24px))] overflow-y-auto rounded-2xl rounded-bl-md bg-white px-4 py-3 text-sm leading-snug text-lab-ink shadow-hud sm:relative sm:bottom-auto sm:left-auto sm:mb-[86px] sm:ml-[-8px] sm:max-h-none sm:max-w-[min(300px,calc(100vw-160px))]'}
             initial={{ opacity: 0, scale: 0.8, x: -10 }}
             animate={{ opacity: 1, scale: 1, x: 0 }}
             exit={{ opacity: 0, scale: 0.9 }}
-            style={{ transformOrigin: 'bottom left' }}
+            style={{ transformOrigin: touch ? 'top left' : 'bottom left' }}
           >
-            <div className="mb-0.5 text-[11px] font-bold uppercase tracking-wider text-cyan-600">Пип · Лабораторийн туслах</div>
-            {robot.text}
+            {/* On touch only the text scrolls, so the ask button below always stays in view. */}
+            <div className={touch ? 'min-h-0 overflow-y-auto' : undefined}>
+              <div className="mb-0.5 text-[11px] font-bold uppercase tracking-wider text-cyan-600">Пип · Лабораторийн туслах</div>
+              {isTouchDevice() ? mobileizeControlHint(robot.text) : robot.text}
+            </div>
+            {touch && !chatOpen && (
+              <button type="button" onClick={() => { setChatOpen(true); setOpen(false); }} className="focus-ring mt-2 block shrink-0 self-start rounded-full bg-cyan-600 px-3 py-1.5 text-xs font-bold text-white">
+                Pip-ээс асуух
+              </button>
+            )}
             <button type="button" aria-label="Зөвлөгөөг хаах" onClick={() => setOpen(false)} className="focus-ring absolute right-2 top-1.5 rounded px-1 text-slate-400 hover:text-slate-600">
               ✕
             </button>
           </motion.div>
         )}
       </AnimatePresence>
-      {robot.open && !chatOpen && (
-        <button type="button" onClick={() => { setChatOpen(true); setOpen(false); }} className="focus-ring pointer-events-auto absolute bottom-2 left-[128px] rounded-full bg-cyan-600 px-3 py-2 text-xs font-bold text-white shadow-hud sm:left-[148px]">
+      {!touch && robot.open && !chatOpen && (
+        <button type="button" onClick={() => { setChatOpen(true); setOpen(false); }} className="focus-ring pointer-events-auto absolute bottom-2 left-[76px] rounded-full bg-cyan-600 px-3 py-2 text-[11px] font-bold text-white shadow-hud sm:left-[148px] sm:text-xs">
           Pip-ээс асуух
         </button>
       )}
+      {!touch && !chatOpen && !hidden && !robot.open && (
+        <button type="button" onClick={() => setChatOpen(true)} className="focus-ring pointer-events-auto fixed bottom-3 left-[88px] z-40 rounded-full border border-cyan-200 bg-white px-3 py-2 text-[11px] font-bold text-cyan-800 shadow-hud sm:bottom-4 sm:left-[166px] sm:text-xs">💬 Pip чат</button>
+      )}
       {chatOpen && (
-        <section aria-label="Pip AI chat" className="pointer-events-auto fixed bottom-4 left-3 z-50 flex h-[min(70vh,520px)] w-[min(390px,calc(100vw-24px))] flex-col overflow-hidden rounded-2xl border border-cyan-200 bg-white text-lab-ink shadow-2xl">
+        <section aria-label="Pip AI chat" className="pointer-events-auto fixed bottom-3 left-3 z-50 flex h-[min(58dvh,420px)] max-h-[calc(100dvh-24px)] w-[min(330px,calc(100vw-24px))] flex-col overflow-hidden rounded-2xl border border-cyan-200 bg-white text-lab-ink shadow-2xl sm:bottom-4 sm:left-3 sm:h-[min(62vh,520px)] sm:w-[min(390px,calc(100vw-24px))]">
           <header className="flex items-center justify-between bg-cyan-700 px-4 py-3 text-white">
             <div><div className="text-sm font-bold">Pip · AI туслах</div><div className="text-[11px] opacity-80">Хичээл ба лабораторийн тухай асуугаарай</div></div>
             <button type="button" aria-label="Чатыг хаах" onClick={() => setChatOpen(false)} className="focus-ring rounded px-2 text-lg">✕</button>

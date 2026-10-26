@@ -5,12 +5,19 @@ create table if not exists profiles (
   email text not null,
   nickname text not null,
   class_id text not null check (class_id in ('beginner', 'medium', 'hard')),
+  region_type text check (region_type in ('city', 'province')),
+  region_name text,
   xp int not null default 0 check (xp >= 0),
   completed jsonb not null default '{}',
-  created_at timestamptz not null default now()
+  created_at timestamptz not null default now(),
+  constraint profiles_region_pair_check check (
+    (region_type is null and region_name is null)
+    or (region_type is not null and region_name is not null and length(trim(region_name)) between 1 and 80)
+  )
 );
 create unique index if not exists profiles_nickname_key on profiles (lower(nickname));
 create index if not exists profiles_xp_idx on profiles (xp desc);
+create index if not exists profiles_region_xp_idx on profiles (region_type, region_name, xp desc) where region_type is not null;
 
 alter table profiles enable row level security;
 create policy "read profiles" on profiles for select to authenticated using (true);
@@ -21,12 +28,14 @@ create policy "update own profile" on profiles for update to authenticated
 create or replace function handle_new_user() returns trigger
 language plpgsql security definer set search_path = public as $$
 begin
-  insert into profiles (id, email, nickname, class_id)
+  insert into profiles (id, email, nickname, class_id, region_type, region_name)
   values (
     new.id,
     new.email,
     new.raw_user_meta_data ->> 'nickname',
-    coalesce(new.raw_user_meta_data ->> 'class_id', 'beginner')
+    coalesce(new.raw_user_meta_data ->> 'class_id', 'beginner'),
+    new.raw_user_meta_data ->> 'region_type',
+    new.raw_user_meta_data ->> 'region_name'
   );
   return new;
 end;

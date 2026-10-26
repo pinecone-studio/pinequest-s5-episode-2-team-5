@@ -24,7 +24,7 @@ export const WORLD = { width: 640, height: 1100 } as const;
 /** Scenery-only band at the top, so building signs clear the HUD. */
 const TOP_STRIP = 112;
 
-export type BuildingId = 'lessons' | 'ranking' | 'versus' | 'friendly' | 'openlab';
+export type BuildingId = 'lessons' | 'study' | 'openlab';
 
 /** Which sprite (and hit shape) a building is drawn with. */
 export type BuildingSprite = 'hall' | 'tower' | 'house';
@@ -56,26 +56,12 @@ export const BUILDINGS: BuildingDef[] = [
     door: { x: 320, y: 434 },
   },
   {
-    id: 'ranking',
-    sprite: 'tower',
-    label: 'Global Ranking',
-    route: '/ranking',
-    icon: 'trophy',
-    color: '#F5A623',
-    rect: { x: 440, y: 470, w: 190, h: 320 },
-    door: { x: 535, y: 812 },
-  },
-  {
-    id: 'versus', sprite: 'house', label: 'Versus Hub', route: '/versus', icon: 'sword-cross', color: '#FF5C7A',
-    rect: { x: 10, y: 390, w: 200, h: 260 }, door: { x: 110, y: 662 },
-  },
-  {
-    id: 'friendly', sprite: 'house', label: 'Friendly Hub', route: '/friendly', icon: 'heart-multiple', color: '#3DE0F5',
-    rect: { x: 10, y: 710, w: 200, h: 260 }, door: { x: 110, y: 980 },
+    id: 'study', sprite: 'house', label: 'Study Hub', route: '/study', icon: 'book-open-page-variant', color: '#FF5C7A',
+    rect: { x: 10, y: 510, w: 210, h: 273 }, door: { x: 115, y: 795 },
   },
   {
     id: 'lessons', sprite: 'house', label: 'Lesson Hall', route: '/lessons', icon: 'book-open-variant', color: '#7C4DFF',
-    rect: { x: 430, y: 820, w: 200, h: 260 }, door: { x: 530, y: 1080 },
+    rect: { x: 470, y: 390, w: 160, h: 208 }, door: { x: 550, y: 610 },
   },
 ];
 
@@ -93,9 +79,12 @@ export const PATHS: Point[][] = [
   ],
   [
     { x: 400, y: 700 },
-    { x: 446, y: 808 },
-    { x: 535, y: 818 },
-    { x: 535, y: 796 },
+    { x: 300, y: 750 },
+  ],
+  [
+    { x: 400, y: 700 },
+    { x: 470, y: 655 },
+    { x: 550, y: 610 },
   ],
   [
     { x: 300, y: 754 },
@@ -105,27 +94,8 @@ export const PATHS: Point[][] = [
   ],
   [
     { x: 208, y: 680 },
-    { x: 165, y: 670 },
-    { x: 110, y: 662 },
-  ],
-  [
-    { x: 335, y: 850 },
-    { x: 318, y: 875 },
-    { x: 285, y: 902 },
-    { x: 248, y: 936 },
-    { x: 230, y: 961 },
-    { x: 206, y: 976 },
-    { x: 165, y: 981 },
-    { x: 110, y: 980 },
-  ],
-  [
-    { x: 345, y: 960 },
-    { x: 385, y: 988 },
-    { x: 415, y: 1025 },
-    { x: 410, y: 1060 },
-    { x: 414, y: 1088 },
-    { x: 465, y: 1092 },
-    { x: 530, y: 1084 },
+    { x: 165, y: 710 },
+    { x: 110, y: 782 },
   ],
 ];
 
@@ -178,8 +148,6 @@ export const BENCHES: Point[] = [
   { x: 214, y: 830 },
 ];
 
-export const SIGNPOST: Point = { x: 404, y: 900 };
-
 export const FLOWER_BEDS = [
   { x: 248, y: 462, rx: 34, ry: 14 },
   { x: 394, y: 462, rx: 34, ry: 14 },
@@ -201,7 +169,6 @@ export function worldObstacles(): Obstacle[] {
     })),
     ...LAMPS.map((l) => ({ kind: 'ellipse' as const, x: l.x, y: l.y - 4, rx: 5, ry: 5 })),
     ...BENCHES.map((b) => ({ kind: 'rect' as const, x: b.x - 22, y: b.y - 16, w: 44, h: 16 })),
-    { kind: 'rect', x: SIGNPOST.x - 6, y: SIGNPOST.y - 10, w: 12, h: 10 },
     // Decorative strip behind the Lessons Hall.
     { kind: 'rect', x: 0, y: 0, w: WORLD.width, h: TOP_STRIP },
   ];

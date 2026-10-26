@@ -2,15 +2,17 @@ import { useEffect, useState, type ReactNode } from 'react';
 import { useSettingsStore, type Quality } from '../store/useSettingsStore';
 import { ACTION_LABELS, keyLabel, type ActionName } from '../controls/keyMap';
 import { sounds } from '../utils/sounds';
+import { isTouchDevice } from '../utils/device';
 
-function Row({ label, children, hint }: { label: string; children: ReactNode; hint?: string }) {
+/** A setting: label and hint on the left, control on the right (or below it when `stacked`). */
+function Row({ label, children, hint, stacked = false }: { label: string; children: ReactNode; hint?: string; stacked?: boolean }) {
   return (
-    <div className="flex items-center justify-between gap-4 py-2">
+    <div className={stacked ? 'flex flex-col gap-2 py-2' : 'flex items-center justify-between gap-4 py-2'}>
       <div>
         <div className="text-sm font-medium text-slate-800">{label}</div>
         {hint && <div className="text-xs text-slate-500">{hint}</div>}
       </div>
-      <div className="shrink-0">{children}</div>
+      <div className={stacked ? '' : 'shrink-0'}>{children}</div>
     </div>
   );
 }
@@ -33,6 +35,8 @@ function Toggle({ checked, onChange, label }: { checked: boolean; onChange: (v: 
   );
 }
 
+const QUALITY_LABEL: Record<Quality, string> = { low: 'Бага', medium: 'Дунд', high: 'Өндөр' };
+
 function Segmented<T extends string>({ value, options, onChange, label }: { value: T; options: { value: T; label: string }[]; onChange: (v: T) => void; label: string }) {
   return (
     <div role="radiogroup" aria-label={label} className="flex rounded-xl bg-slate-100 p-1">
@@ -46,7 +50,7 @@ function Segmented<T extends string>({ value, options, onChange, label }: { valu
             onChange(o.value);
             sounds.play('ui');
           }}
-          className={`focus-ring rounded-lg px-3 py-1.5 text-xs font-semibold transition ${value === o.value ? 'bg-white text-lab-ink shadow' : 'text-slate-500 hover:text-slate-700'}`}
+          className={`focus-ring flex-1 rounded-lg px-3 py-1.5 text-xs font-semibold transition ${value === o.value ? 'bg-white text-lab-ink shadow' : 'text-slate-500 hover:text-slate-700'}`}
         >
           {o.label}
         </button>
@@ -103,24 +107,28 @@ function KeyRemap() {
 
 export function SettingsPanel() {
   const s = useSettingsStore();
+  // Phones and tablets have no mouse or keyboard: hide those settings there.
+  const touch = isTouchDevice();
   useEffect(() => sounds.setVolume(s.volume), [s.volume]);
   return (
     <div className="divide-y divide-slate-100">
       <section className="pb-3">
         <h3 className="mb-1 text-xs font-bold uppercase tracking-wider text-slate-400">Удирдлага</h3>
-        <Row label="Харах горим" hint="Товчлуураар: ←/→ эсвэл Q/E эргүүлнэ, Enter ашиглана">
-          <Segmented
-            label="Харах горим"
-            value={s.lookMode}
-            onChange={(v) => s.set({ lookMode: v })}
-            options={[
-              { value: 'mouse', label: 'Хулганаар' },
-              { value: 'keyboard', label: 'Товчлуураар' },
-            ]}
-          />
-        </Row>
-        <Row label={`Хулганы мэдрэмж · ${s.sensitivity.toFixed(1)}`}>
-          <input aria-label="Хулганы мэдрэмж" className="range w-36" type="range" min={0.2} max={3} step={0.1} value={s.sensitivity} onChange={(e) => s.set({ sensitivity: Number(e.target.value) })} />
+        {!touch && (
+          <Row label="Харах горим" hint="Товчлуураар: ←/→ эсвэл Q/E эргүүлнэ, Enter ашиглана">
+            <Segmented
+              label="Харах горим"
+              value={s.lookMode}
+              onChange={(v) => s.set({ lookMode: v })}
+              options={[
+                { value: 'mouse', label: 'Хулганаар' },
+                { value: 'keyboard', label: 'Товчлуураар' },
+              ]}
+            />
+          </Row>
+        )}
+        <Row label={`${touch ? 'Харах мэдрэмж' : 'Хулганы мэдрэмж'} · ${s.sensitivity.toFixed(1)}`}>
+          <input aria-label={touch ? 'Харах мэдрэмж' : 'Хулганы мэдрэмж'} className="range w-36" type="range" min={0.2} max={3} step={0.1} value={s.sensitivity} onChange={(e) => s.set({ sensitivity: Number(e.target.value) })} />
         </Row>
         <Row label="Босоо тэнхлэгийг урвуулах">
           <Toggle label="Босоо тэнхлэгийг урвуулах" checked={s.invertY} onChange={(v) => s.set({ invertY: v })} />
@@ -143,12 +151,13 @@ export function SettingsPanel() {
       </section>
       <section className="py-3">
         <h3 className="mb-1 text-xs font-bold uppercase tracking-wider text-slate-400">График ба дуу</h3>
-        <Row label="Графикийн чанар" hint="Бага: нэмэлт эффект, сүүдэр, шилний хугарал унтарна">
-          <Segmented<Quality>
+        <Row stacked label="Графикийн чанар" hint={s.autoQuality ? `Автомат: 60 FPS барихын тулд чанар, нягтралыг өөрөө тохируулна · одоо ${QUALITY_LABEL[s.quality]}` : 'Бага: нэмэлт эффект, сүүдэр, шилний хугарал унтарна'}>
+          <Segmented<Quality | 'auto'>
             label="Графикийн чанар"
-            value={s.quality}
-            onChange={(v) => s.set({ quality: v })}
+            value={s.autoQuality ? 'auto' : s.quality}
+            onChange={(v) => (v === 'auto' ? s.set({ autoQuality: true, qualityManuallySet: false }) : s.set({ autoQuality: false, quality: v }))}
             options={[
+              { value: 'auto', label: 'Автомат' },
               { value: 'low', label: 'Бага' },
               { value: 'medium', label: 'Дунд' },
               { value: 'high', label: 'Өндөр' },
@@ -162,10 +171,12 @@ export function SettingsPanel() {
           <input aria-label="Дууны түвшин" className="range w-36" type="range" min={0} max={1} step={0.05} value={s.volume} onChange={(e) => s.set({ volume: Number(e.target.value) })} />
         </Row>
       </section>
-      <section className="pt-3">
-        <h3 className="mb-2 text-xs font-bold uppercase tracking-wider text-slate-400">Товчлуурын тохиргоо</h3>
-        <KeyRemap />
-      </section>
+      {!touch && (
+        <section className="pt-3">
+          <h3 className="mb-2 text-xs font-bold uppercase tracking-wider text-slate-400">Товчлуурын тохиргоо</h3>
+          <KeyRemap />
+        </section>
+      )}
     </div>
   );
 }

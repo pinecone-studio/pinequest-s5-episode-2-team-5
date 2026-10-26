@@ -8,6 +8,7 @@ import { usePortableStore } from '../interaction/portable';
 import { keyLabel, promptKey } from '../controls/keyMap';
 import { describeUse } from '../interaction/actions';
 import { interactables } from '../interaction/registry';
+import { isTouchDevice } from '../utils/device';
 
 function Chip({ k, children, primary = false }: { k?: string; children: React.ReactNode; primary?: boolean }) {
   return (
@@ -35,33 +36,34 @@ export function InteractionPrompt() {
   const r = keyLabel(bindings.pour[0]);
   const t = keyLabel(bindings.throw[0]);
   const entry = focus ? interactables.get(focus.id) : undefined;
+  const touch = isTouchDevice();
   const use = describeUse(held, entry?.useTarget ?? null);
   const key = focus ? `${focus.id}-${focus.verb}-${focus.label}-${use?.verb}-${focus.canStore}` : held ? `held-${held.id}-${use?.verb}` : 'none';
   const heldName = held ? (held.grip ? `${CATALOG[held.kind].name} (${CATALOG[held.grip.kind].name}-аар)` : CATALOG[held.kind].name) : '';
   return (
-    <div className="pointer-events-none fixed inset-x-0 bottom-24 z-20 flex justify-center px-4 sm:bottom-10" aria-live="polite">
+    <div className={`pointer-events-none fixed inset-x-0 bottom-24 z-20 flex justify-center px-4 ${touch ? '' : 'sm:bottom-10'}`} aria-live="polite">
       <AnimatePresence mode="wait">
         {(focus || held || portable) && (
           <motion.div key={key} className="flex max-w-3xl flex-wrap items-center justify-center gap-2" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 6 }} transition={{ duration: 0.14 }}>
             {focus?.canUse && (
-              <Chip k={e} primary>
-                {focus.label} {focus.verb}
+              <Chip k={touch ? undefined : e} primary>
+                {touch ? `Товш: ${focus.label} ${focus.verb}` : `${focus.label} ${focus.verb}`}
               </Chip>
             )}
-            {focus && !focus.canUse && <Chip primary>{focus.label}</Chip>}
-            {use && <Chip k={r}>{use.verb}{use.continuous ? ' (дарсаар)' : ''}</Chip>}
-            {portable && <><Chip k={q}>{portable.label} тавих</Chip><Chip k={r}>Чиглүүлж ашиглах</Chip></>}
-            {held && focus?.canStore && <Chip k={q}>{focus.storeVerb ?? 'энд хийх'}</Chip>}
-            {focus?.canGrab && <Chip k={g}>Авах</Chip>}
+            {focus && !focus.canUse && <Chip primary>{touch ? `Товшиж ${focus.canGrab ? 'авах' : 'сонгох'}: ${focus.label}` : focus.label}</Chip>}
+            {use && <Chip k={touch ? undefined : r}>{touch ? `Барьж байгаад товшиж ${use.verb}` : `${use.verb}${use.continuous ? ' (дарсаар)' : ''}`}</Chip>}
+            {portable && <><Chip k={touch ? undefined : q}>{touch ? `${portable.label} тавихын тулд гадаргууг товш` : `${portable.label} тавих`}</Chip><Chip k={touch ? undefined : r}>{touch ? 'Зорьсон зүйлээ товшиж ашиглах' : 'Чиглүүлж ашиглах'}</Chip></>}
+            {held && focus?.canStore && <Chip k={touch ? undefined : q}>{touch ? `Товшиж ${focus.storeVerb ?? 'энд хийх'}` : (focus.storeVerb ?? 'энд хийх')}</Chip>}
+            {focus?.canGrab && <Chip k={touch ? undefined : g}>{touch ? 'Товшиж авах' : 'Авах'}</Chip>}
             {focus?.canInspect && <Chip k={f}>Ойроос харах</Chip>}
             {focus?.canScroll && <Chip k="⇕">Урсгал тохируулах</Chip>}
-            {focus?.canDrag && <Chip k={e}>дарсаар чирэх</Chip>}
+            {focus?.canDrag && <Chip k={touch ? undefined : e}>{touch ? 'Товшиж харилцах' : 'дарсаар чирэх'}</Chip>}
             {held && !focus && (
               <>
-                <Chip k={q} primary>
-                  {heldName} тавих
+                <Chip k={touch ? undefined : q} primary>
+                  {touch ? `${heldName} тавихын тулд товш` : `${heldName} тавих`}
                 </Chip>
-                <Chip k={t}>Шидэх</Chip>
+                <Chip k={touch ? undefined : t}>{touch ? 'Удаан дарж шидэх' : 'Шидэх'}</Chip>
                 <Chip k={f}>Ойроос харах</Chip>
               </>
             )}

@@ -10,7 +10,7 @@ import { CATALOG, type EquipmentKind } from '../equipment/equipmentCatalog';
 import { contentMassG } from '../chemistry/mixture';
 import { mixtureOf } from '../store/useChemStore';
 import type { WorldItem } from '../world/itemsLayout';
-import { preStepHooks } from '../controls/PhysicsDriver';
+import { preStepHooks } from '../physics/stepHooks';
 
 export const bodies = new Map<string, RapierRigidBody>();
 /** Speed of each awake body before the latest physics substep (impact detection). */

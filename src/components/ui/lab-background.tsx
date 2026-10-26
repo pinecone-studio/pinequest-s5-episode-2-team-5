@@ -1,17 +1,14 @@
 import { LinearGradient } from 'expo-linear-gradient';
-import { useEffect, type ReactNode } from 'react';
+import { type ReactNode } from 'react';
 import { StyleSheet, useWindowDimensions, View, type StyleProp, type ViewStyle } from 'react-native';
 import Animated, {
-  Easing,
   useAnimatedStyle,
   useSharedValue,
-  withDelay,
-  withRepeat,
-  withTiming,
 } from 'react-native-reanimated';
 import Svg, { Polygon } from 'react-native-svg';
 
 import { Colors } from '@/constants/theme';
+import { useScreenLoop } from '@/hooks/use-screen-loop';
 import { seededRandom } from '@/lib/random';
 
 interface LabBackgroundProps {
@@ -81,11 +78,7 @@ interface BubbleProps {
 function Bubble({ x, size, duration, delay, sway, travel }: BubbleProps) {
   const progress = useSharedValue(0);
 
-  useEffect(() => {
-    progress.set(
-      withDelay(delay, withRepeat(withTiming(1, { duration, easing: Easing.linear }), -1, false)),
-    );
-  }, [delay, duration, progress]);
+  useScreenLoop(progress, { duration, delay });
 
   const style = useAnimatedStyle(() => {
     const p = progress.get();

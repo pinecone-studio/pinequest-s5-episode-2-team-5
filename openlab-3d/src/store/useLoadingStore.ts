@@ -2,15 +2,13 @@ import { useEffect } from 'react';
 import { create } from 'zustand';
 
 /** Everything that must be ready before the start screen: engine, lab, fonts, shaders. */
-export const LOAD_STEPS = ['engine', 'architecture', 'chemistry', 'fonts', 'shaders'] as const;
+export const LOAD_STEPS = ['engine', 'architecture', 'chemistry'] as const;
 export type LoadStep = (typeof LOAD_STEPS)[number];
 
 const LABELS: Record<LoadStep, string> = {
   engine: 'Физикийн хөдөлгүүрийг асааж байна',
   architecture: 'Хана босгож байна',
   chemistry: 'Аяганд уусмал хийж байна',
-  fonts: 'Шошго хэвлэж байна',
-  shaders: 'Шилэн савыг өнгөлж байна',
 };
 
 interface LoadingState {

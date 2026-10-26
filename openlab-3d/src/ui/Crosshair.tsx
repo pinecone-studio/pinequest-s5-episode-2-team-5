@@ -1,9 +1,18 @@
 import { useGameStore } from '../store/useGameStore';
+import { isTouchDevice } from '../utils/device';
 
-/** Center arrow; its tip marks the aim point and it grows while something is in focus. */
+/** Center arrow (a ring on touch devices); it marks the aim point and grows while something is in focus. */
 export function Crosshair() {
   const focused = useGameStore((s) => !!s.focus);
   const dragging = useGameStore((s) => !!s.dragging);
+  // Phones and tablets have no mouse: a small aiming ring instead of an arrow pointer.
+  if (isTouchDevice()) {
+    return (
+      <div className="pointer-events-none fixed left-1/2 top-1/2 z-20 -translate-x-1/2 -translate-y-1/2" aria-hidden>
+        <div className={`rounded-full border-2 border-white shadow-[0_0_2px_rgba(0,0,0,0.6)] transition-all duration-150 ${focused ? 'h-6 w-6 bg-white/25' : 'h-3 w-3'} ${dragging ? 'border-lab-yellow' : ''}`} />
+      </div>
+    );
+  }
   return (
     <div className="pointer-events-none fixed left-1/2 top-1/2 z-20" aria-hidden>
       <svg

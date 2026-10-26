@@ -2,7 +2,7 @@ import { createContext, use, useEffect, useState, type ReactNode } from 'react';
 
 import { applyLessonResult, type CompletionResult } from '@/lib/progress';
 import * as auth from '@/services/auth';
-import type { Stars, User } from '@/types';
+import type { RegionType, Stars, User } from '@/types';
 
 interface SessionContextValue {
   user: User | null;
@@ -11,6 +11,7 @@ interface SessionContextValue {
   signIn: (email: string, password: string) => Promise<void>;
   signOut: () => Promise<void>;
   completeLesson: (lessonId: string, stars: Stars) => Promise<CompletionResult>;
+  updateRegion: (regionType: RegionType, regionName: string) => Promise<void>;
 }
 
 const SessionContext = createContext<SessionContextValue | null>(null);
@@ -40,6 +41,10 @@ export function SessionProvider({ children }: { children: ReactNode }) {
       const next = applyLessonResult(user, lessonId, stars);
       setUser(await auth.saveUser(next.user));
       return next.result;
+    },
+    updateRegion: async (regionType, regionName) => {
+      if (!user) throw new Error('Not signed in');
+      setUser(await auth.updateUserRegion(user, regionType, regionName));
     },
   };
 

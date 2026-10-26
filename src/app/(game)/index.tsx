@@ -11,7 +11,6 @@ import Animated, {
 import { scheduleOnRN } from 'react-native-worklets';
 
 import { DoorTransition } from '@/components/hub/door-transition';
-import { HubChatOverlay } from '@/components/hub/chat-overlay';
 import { HintCard, HudTop } from '@/components/hub/hub-hud';
 import { PlayerCard } from '@/components/hub/player-card';
 import { ProfileSheet } from '@/components/hub/profile-sheet';
@@ -20,13 +19,12 @@ import { Ground } from '@/components/world/ground';
 import { buildNavGrid, findPath, nearestWalkable } from '@/components/world/nav-grid';
 import { LivePlayer } from '@/components/world/live-player';
 import type { RemoteHandle } from '@/components/world/remote-player';
-import { Bench, Fountain, Lamp, Signpost, Tree } from '@/components/world/scenery';
+import { Bench, Fountain, Lamp, Tree } from '@/components/world/scenery';
 import { useWalker, WalkerView } from '@/components/world/walker';
 import {
   BENCHES,
   BUILDINGS,
   LAMPS,
-  SIGNPOST,
   SPAWN,
   TREES,
   WORLD,
@@ -130,7 +128,7 @@ export default function HubScreen() {
 }
 
 function Hub({ user }: { user: User }) {
-  const { signOut } = useSession();
+  const { signOut, updateRegion } = useSession();
   const { width, height } = useWindowDimensions();
   const mapZoom = width / WORLD.width;
   const mapOriginX = (WORLD.width / 2) * (1 - mapZoom);
@@ -257,7 +255,6 @@ function Hub({ user }: { user: User }) {
           {BENCHES.map((b) => (
             <Bench key={`${b.x},${b.y}`} {...b} spriteScale={MAP_SPRITE_SCALE} />
           ))}
-          <Signpost {...SIGNPOST} spriteScale={MAP_SPRITE_SCALE} />
           <Fountain spriteScale={MAP_SPRITE_SCALE} />
           {BUILDINGS.map((b) => (
             <BuildingSprite key={b.id} building={b} scale={MAP_SPRITE_SCALE} />
@@ -310,8 +307,6 @@ function Hub({ user }: { user: User }) {
         onProfilePress={() => setProfileOpen(true)}
       />
       {showHint && <HintCard nickname={user.nickname} />}
-      <HubChatOverlay user={user} />
-
       <DoorTransition progress={transition} building={entering} />
 
       <PlayerCard
@@ -327,6 +322,7 @@ function Hub({ user }: { user: User }) {
         user={user}
         visible={profileOpen}
         onClose={() => setProfileOpen(false)}
+        onUpdateRegion={updateRegion}
         onSignOut={() => {
           setProfileOpen(false);
           signOut();
