@@ -14,6 +14,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { AvatarPreview } from '@/components/auth/avatar-preview';
 import { FormError, FormSection } from '@/components/auth/form-section';
+import { RegionPicker, type RegionSelection } from '@/components/ranking/region-picker';
 import { AppText } from '@/components/ui/app-text';
 import { ClassCard } from '@/components/ui/class-card';
 import { GameButton } from '@/components/ui/game-button';
@@ -34,7 +35,7 @@ import {
 import { AuthError, isNicknameAvailable, type AuthField } from '@/services/auth';
 import type { ClassId } from '@/types';
 
-type Field = AuthField | 'classId';
+type Field = AuthField | 'classId' | 'region';
 
 const STRENGTH = [
   { label: '', color: Colors.border },
@@ -54,6 +55,7 @@ export default function SignUpScreen() {
   const [password, setPassword] = useState('');
   const [nickname, setNickname] = useState('');
   const [classId, setClassId] = useState<ClassId | null>(null);
+  const [region, setRegion] = useState<RegionSelection | null>(null);
   const [touched, setTouched] = useState<Partial<Record<Field, boolean>>>({});
   const [submitted, setSubmitted] = useState(false);
   const [submitting, setSubmitting] = useState(false);
@@ -64,6 +66,7 @@ export default function SignUpScreen() {
     password: validatePassword(password),
     nickname: validateNickname(nickname),
     classId: classId ? null : 'Эхлэх түвшнээ сонгоно уу',
+    region: region ? null : 'Хот эсвэл аймгаа сонгоно уу',
   };
 
   const errorFor = (field: Field) => {
@@ -85,7 +88,7 @@ export default function SignUpScreen() {
 
   const submit = async () => {
     setSubmitted(true);
-    if (!classId || Object.values(errors).some(Boolean)) {
+    if (!classId || !region || Object.values(errors).some(Boolean)) {
       haptics.error();
       // The class picker sits right above the button; field errors are further up.
       if (errors.email || errors.password || errors.nickname) scrollRef.current?.scrollTo({ y: 0, animated: true });
@@ -94,7 +97,7 @@ export default function SignUpScreen() {
     setSubmitting(true);
     setServerError(null);
     try {
-      await signUp({ email, password, nickname, classId });
+      await signUp({ email, password, nickname, classId, regionType: region.type, regionName: region.name });
       haptics.success();
       // The auth guard swaps this screen for the hub once the session exists.
     } catch (error) {
@@ -201,6 +204,22 @@ export default function SignUpScreen() {
               textContentType="username"
               returnKeyType="done"
             />
+          </FormSection>
+
+          <FormSection title="Байршил" icon="map-marker">
+            <AppText variant="caption">Чансааг хот, аймгаар ангилахад ашиглана.</AppText>
+            <RegionPicker
+              value={region}
+              onChange={(selection) => {
+                setRegion(selection);
+                touch('region');
+              }}
+            />
+            {errorFor('region') && (
+              <AppText variant="caption" color={Colors.danger}>
+                {errorFor('region')}
+              </AppText>
+            )}
           </FormSection>
 
           <FormSection title="Эхлэх түвшин" icon="school-outline">

@@ -47,8 +47,8 @@ export function BuildingWindowLights({ building, scale = 1 }: { building: Buildi
 
   const isLessonsHall = building.sprite === 'hall';
   const { rect } = building;
-  const width = isLessonsHall ? 300 : 200;
-  const height = isLessonsHall ? 280 : 260;
+  const width = isLessonsHall ? 300 : rect.w;
+  const height = isLessonsHall ? 280 : rect.h;
   const windows = isLessonsHall
     ? [{ x: 54, y: 146, width: 40, height: 58 }, { x: 206, y: 146, width: 40, height: 58 }]
     : [{ x: 39, y: 130, width: 34, height: 42 }, { x: 127, y: 130, width: 34, height: 42 }];
@@ -67,7 +67,7 @@ export function BuildingWindowLights({ building, scale = 1 }: { building: Buildi
           zIndex: rect.y + rect.h + 1,
         },
       ]}>
-      <Svg width={width} height={height} viewBox={`0 0 ${width} ${height}`}>
+      <Svg width={width} height={height} viewBox={isLessonsHall ? '0 0 300 280' : '0 0 200 260'}>
         {windows.map((window) => (
           <G key={`${window.x}-${window.y}`}>
             <Rect
@@ -113,11 +113,12 @@ export function BuildingWindowLights({ building, scale = 1 }: { building: Buildi
 }
 
 function HubHouse({ building }: { building: BuildingDef }) {
+  const { w, h } = building.rect;
   const color = building.color;
   const study = building.id === 'study';
   const openlab = building.id === 'openlab';
   return (
-    <Svg width={200} height={260} viewBox="0 0 200 260">
+    <Svg width={w} height={h} viewBox="0 0 200 260">
       <Ellipse cx={100} cy={249} rx={94} ry={9} fill="#14320A" opacity={0.22} />
       <Rect x={13} y={223} width={174} height={25} rx={7} fill="#E9E4F8" stroke={OUTLINE} strokeWidth={3} />
       <Rect x={27} y={102} width={146} height={125} rx={7} fill={study ? '#F3E8FF' : openlab ? '#F1FFE1' : '#FFF0F3'} stroke={OUTLINE} strokeWidth={3} />

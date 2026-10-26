@@ -6,7 +6,6 @@ export default function GameLayout() {
   return (
     <Stack screenOptions={{ headerShown: false, orientation: 'portrait', contentStyle: { backgroundColor: Colors.night } }}>
       <Stack.Screen name="index" />
-      <Stack.Screen name="chat" options={{ animation: 'slide_from_bottom' }} />
       {/* The hub plays its own door transition, so buildings just fade in. */}
       <Stack.Screen name="lessons/index" options={{ animation: 'fade' }} />
       <Stack.Screen name="ranking" options={{ animation: 'fade' }} />
