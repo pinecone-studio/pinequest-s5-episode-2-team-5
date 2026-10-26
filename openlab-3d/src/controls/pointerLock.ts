@@ -1,4 +1,5 @@
 import { useSettingsStore } from '../store/useSettingsStore';
+import { isTouchDevice } from '../utils/device';
 
 let target: HTMLElement | null = null;
 let expectingUnlock = false;
@@ -12,7 +13,8 @@ export function isPointerLocked(): boolean {
 }
 
 export function requestLock(): void {
-  if (!target || useSettingsStore.getState().lookMode !== 'mouse') return;
+  // Phones and tablets look around by dragging; there is no mouse to capture.
+  if (!target || isTouchDevice() || useSettingsStore.getState().lookMode !== 'mouse') return;
   if (document.pointerLockElement === target) return;
   try {
     const result = target.requestPointerLock() as unknown;
