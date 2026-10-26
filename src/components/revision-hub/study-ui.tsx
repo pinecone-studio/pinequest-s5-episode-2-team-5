@@ -30,14 +30,14 @@ export function StudyPage({ title, subtitle, children, home = false }: { title: 
   const insets = useSafeAreaInsets();
   const [menu, setMenu] = useState<boolean | null>(null);
   const [focus, setFocus] = useState(false);
-  const { saved, error, retry, packId } = useRevision();
+  const { saved, error, retry, packId, contentSource } = useRevision();
   const showRail = !focus && (menu ?? width >= 1100);
   return <LabBackground bubbles={0}>
     {!focus && <ScreenHeader title={title} subtitle={subtitle} onBack={() => home ? router.replace('/lessons') : router.replace(packId === 'g9-chem' ? '/hub/g9-chem' : '/hub/g8-chem')}/>}
     <View style={[ui.toolbar, focus && { paddingTop: insets.top + 8 }]}>
       {!focus && <GameButton title={showRail ? 'Цэс хураах' : 'Сэдвийн цэс'} size="sm" variant="secondary" onPress={() => setMenu(!showRail)}/>}
       <GameButton title={focus ? 'Бүтэн харагдац' : 'Төвлөрөх'} size="sm" variant="secondary" onPress={() => setFocus(!focus)}/>
-      <AppText variant="caption">{error ? 'Хадгалалт амжилтгүй' : saved ? 'Төхөөрөмжид хадгалсан' : 'Хадгалж байна…'}</AppText>
+      <AppText variant="caption">Агуулга: {contentSource === 'supabase' ? 'Supabase' : 'төхөөрөмжийн нөөц'} · Явц: {error ? 'хадгалалт амжилтгүй' : saved ? 'төхөөрөмжид хадгалсан' : 'хадгалж байна…'}</AppText>
       {error && <GameButton title="Дахин хадгалах" size="sm" variant="danger" onPress={retry}/>}
     </View>
     <View style={{ flex: 1, flexDirection: width >= 1100 ? 'row' : 'column' }}>

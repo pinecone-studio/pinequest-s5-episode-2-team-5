@@ -5,6 +5,8 @@ import { AppText } from '@/components/ui/app-text';
 import { GameButton } from '@/components/ui/game-button';
 import { Colors } from '@/constants/theme';
 import { emptyRevision, restoreRevision, type RevisionProgress } from '@/lib/revision-progress';
+import { applyRemotePack } from '@/data/revision-hub';
+import { supabase } from '@/lib/supabase';
 
 interface RevisionContext {
   packId: 'g8-chem' | 'g9-chem';
@@ -13,6 +15,7 @@ interface RevisionContext {
   saved: boolean;
   error: boolean;
   retry: () => void;
+  contentSource: 'bundled' | 'supabase';
 }
 const Context = createContext<RevisionContext | null>(null);
 const queues = new Map<string, Promise<void>>();
@@ -26,6 +29,7 @@ export function RevisionProvider({ userId, children, packId = 'g8-chem' }: { use
   const [attempt, setAttempt] = useState(0);
   const [saved, setSaved] = useState(true);
   const [error, setError] = useState(false);
+  const [contentSource, setContentSource] = useState<'bundled' | 'supabase'>('bundled');
   const revision = useRef(0);
   const mounted = useRef(true);
   useEffect(() => {
@@ -41,6 +45,19 @@ export function RevisionProvider({ userId, children, packId = 'g8-chem' }: { use
     })();
     return () => { active = false; mounted.current = false; };
   }, [key, attempt]);
+
+  useEffect(() => {
+    let active = true;
+    const packKey = packId === 'g9-chem' ? 'g9-chem' : 'mn-g8-chemistry';
+    void supabase.rpc('get_revision_content_pack', { requested_pack_id: packKey })
+      .then(({ data, error: loadContentError }) => {
+        if (!active) return;
+        const accepted = !loadContentError && data && applyRemotePack(packId, data);
+        setContentSource(accepted ? 'supabase' : 'bundled');
+      })
+      .then(undefined, () => { if (active) setContentSource('bundled'); });
+    return () => { active = false; };
+  }, [packId]);
 
   const persist = (state: RevisionProgress) => {
     setSaved(false); setError(false);
@@ -59,7 +76,7 @@ export function RevisionProvider({ userId, children, packId = 'g8-chem' }: { use
     current.current = next; setProgress(next); persist(next);
   };
   if (!ready) return <View style={{ padding: 24, gap: 16 }}>{loadError ? <><AppText>Явцыг ачаалж чадсангүй.</AppText><GameButton title="Дахин оролдох" onPress={() => setAttempt(attempt + 1)}/></> : <ActivityIndicator color={Colors.lime}/>}</View>;
-  return <Context value={{ packId, progress, update, saved, error, retry: () => persist(current.current) }}>{children}</Context>;
+  return <Context value={{ packId, progress, update, saved, error, contentSource, retry: () => persist(current.current) }}>{children}</Context>;
 }
 export function useRevision() {
   const value = use(Context);

@@ -24,7 +24,7 @@ export const WORLD = { width: 640, height: 1100 } as const;
 /** Scenery-only band at the top, so building signs clear the HUD. */
 const TOP_STRIP = 112;
 
-export type BuildingId = 'lessons' | 'ranking' | 'versus' | 'friendly' | 'openlab';
+export type BuildingId = 'lessons' | 'study' | 'openlab';
 
 /** Which sprite (and hit shape) a building is drawn with. */
 export type BuildingSprite = 'hall' | 'tower' | 'house';
@@ -56,22 +56,8 @@ export const BUILDINGS: BuildingDef[] = [
     door: { x: 320, y: 434 },
   },
   {
-    id: 'ranking',
-    sprite: 'tower',
-    label: 'Global Ranking',
-    route: '/ranking',
-    icon: 'trophy',
-    color: '#F5A623',
-    rect: { x: 440, y: 470, w: 190, h: 320 },
-    door: { x: 535, y: 812 },
-  },
-  {
-    id: 'versus', sprite: 'house', label: 'Versus Hub', route: '/versus', icon: 'sword-cross', color: '#FF5C7A',
-    rect: { x: 10, y: 390, w: 200, h: 260 }, door: { x: 110, y: 662 },
-  },
-  {
-    id: 'friendly', sprite: 'house', label: 'Friendly Hub', route: '/friendly', icon: 'heart-multiple', color: '#3DE0F5',
-    rect: { x: 10, y: 710, w: 200, h: 260 }, door: { x: 110, y: 980 },
+    id: 'study', sprite: 'house', label: 'Study Hub', route: '/study', icon: 'book-open-page-variant', color: '#FF5C7A',
+    rect: { x: 10, y: 510, w: 200, h: 260 }, door: { x: 110, y: 782 },
   },
   {
     id: 'lessons', sprite: 'house', label: 'Lesson Hall', route: '/lessons', icon: 'book-open-variant', color: '#7C4DFF',
@@ -93,9 +79,7 @@ export const PATHS: Point[][] = [
   ],
   [
     { x: 400, y: 700 },
-    { x: 446, y: 808 },
-    { x: 535, y: 818 },
-    { x: 535, y: 796 },
+    { x: 300, y: 750 },
   ],
   [
     { x: 300, y: 754 },
@@ -105,18 +89,8 @@ export const PATHS: Point[][] = [
   ],
   [
     { x: 208, y: 680 },
-    { x: 165, y: 670 },
-    { x: 110, y: 662 },
-  ],
-  [
-    { x: 335, y: 850 },
-    { x: 318, y: 875 },
-    { x: 285, y: 902 },
-    { x: 248, y: 936 },
-    { x: 230, y: 961 },
-    { x: 206, y: 976 },
-    { x: 165, y: 981 },
-    { x: 110, y: 980 },
+    { x: 165, y: 710 },
+    { x: 110, y: 782 },
   ],
   [
     { x: 345, y: 960 },

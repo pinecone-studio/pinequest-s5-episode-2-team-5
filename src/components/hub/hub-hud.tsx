@@ -1,4 +1,5 @@
 import { MaterialCommunityIcons } from '@expo/vector-icons';
+import { router } from 'expo-router';
 import { useEffect } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
 import Animated, {
@@ -67,6 +68,13 @@ export function HudTop({
             size={18}
             color={nightMode ? Colors.gold : Colors.cyan}
           />
+        </Pressable>
+        <Pressable
+          onPress={() => router.push('/ranking')}
+          accessibilityRole="button"
+          accessibilityLabel="Global Rank"
+          style={styles.modeButton}>
+          <MaterialCommunityIcons name="trophy" size={18} color={Colors.gold} />
         </Pressable>
         <OnlinePill count={online} />
       </View>

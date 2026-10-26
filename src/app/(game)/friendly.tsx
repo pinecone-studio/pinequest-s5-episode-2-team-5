@@ -1,5 +1,5 @@
-import { QuizHub } from '@/components/hub/quiz-hub';
+import { FriendlyHub } from '@/components/hub/friendly-hub';
 
 export default function FriendlyScreen() {
-  return <QuizHub />;
+  return <FriendlyHub />;
 }
