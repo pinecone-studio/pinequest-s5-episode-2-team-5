@@ -49,6 +49,33 @@ drop trigger if exists experiments_updated_at on public.experiments;
 create trigger experiments_updated_at before update on public.experiments
   for each row execute function public.touch_experiment_updated_at();
 
+
+-- Remove the informational difficulty tier from stored experiment JSON.
+-- Keep all experiment rows and their lesson content.
+do $$ begin
+  if to_regclass('public.experiments') is null then
+    return;
+  end if;
+
+  alter table public.experiments drop constraint if exists experiments_content_shape;
+
+  update public.experiments
+  set content = content - 'level'
+  where content ? 'level';
+
+  alter table public.experiments
+    add constraint experiments_content_shape check (coalesce(
+      jsonb_typeof(content) = 'object'
+      and content ->> 'id' = id
+      and jsonb_typeof(content -> 'title') = 'string'
+      and length(btrim(content ->> 'title')) > 0
+      and jsonb_typeof(content -> 'goal') = 'string'
+      and jsonb_typeof(content -> 'materials') = 'array'
+      and jsonb_typeof(content -> 'safety') = 'string'
+      and jsonb_typeof(content -> 'steps') = 'array'
+      and jsonb_typeof(content -> 'explain') = 'string', false));
+end $$;
+
 insert into public.experiments (id, schema_version, sort_order, is_published, content)
 select seed.id, 1, seed.sort_order, true, seed.content
 from jsonb_to_recordset($openlab_seed$
@@ -59,7 +86,6 @@ from jsonb_to_recordset($openlab_seed$
     "content": {
       "id": "safety",
       "title": "Аюулгүй ажиллагааны бэлтгэл",
-      "level": "Эхлэл",
       "goal": "Лабораторид ажиллахын өмнө хамгаалах хэрэгслээ өмсөж, яаралтай үеийн хэрэгслүүдийг таньж мэдэх.",
       "materials": [
         "Хамгаалалтын шил — баруун хананы ширээ, «Хамгаалалт» шургуулга",
@@ -119,7 +145,6 @@ from jsonb_to_recordset($openlab_seed$
     "content": {
       "id": "boil",
       "title": "Горелк асааж ус буцалгах",
-      "level": "Эхлэл",
       "goal": "Бунзены горелк, гурван хөлт тавиур ашиглан ус халааж, буцлах температурыг хэмжих.",
       "materials": [
         "Бунзены горелк + гурван хөлт тавиур — А арлын ширээ",
@@ -181,7 +206,6 @@ from jsonb_to_recordset($openlab_seed$
     "content": {
       "id": "indicators",
       "title": "Индикатороор хүчил, шүлт таних",
-      "level": "Эхлэл",
       "goal": "Индикатор болон pH цаасаар уусмал хүчиллэг, саармаг эсвэл шүлтлэг эсэхийг тодорхойлох.",
       "materials": [
         "HCl, NaOH, цууны хүчил — «ХҮЧИЛ», «ШҮЛТ» шүүгээ",
@@ -249,7 +273,6 @@ from jsonb_to_recordset($openlab_seed$
     "content": {
       "id": "titration",
       "title": "Саармагжуулах урвал — титрлэлт",
-      "level": "Дунд",
       "goal": "Давсны хүчлийг натрийн гидроксидоор фенолфталеины тусламжтай титрлэж эквивалент цэгийг олох.",
       "materials": [
         "Бюретка (NaOH-оор дүүргэсэн) — B арлын ширээ",
@@ -309,7 +332,6 @@ from jsonb_to_recordset($openlab_seed$
     "content": {
       "id": "precipitates",
       "title": "Тунадас үүсэх урвал",
-      "level": "Эхлэл",
       "goal": "Ион солилцох урвалаар өнгөт тунадас гаргаж, нэгийг нь шүүх.",
       "materials": [
         "CuSO₄, FeCl₃, FeSO₄, NaCl — B арлын хуруу шилний тавиур",
@@ -370,7 +392,6 @@ from jsonb_to_recordset($openlab_seed$
     "content": {
       "id": "gases",
       "title": "Хий ялгарах урвал",
-      "level": "Эхлэл",
       "goal": "Карбонат болон идэвхтэй металл хүчилтэй урвалд орж хий ялгаруулахыг ажиглах.",
       "materials": [
         "Хүнсний сод, гантиг — «ХАТУУ ДАВС» шүүгээ",
@@ -423,7 +444,6 @@ from jsonb_to_recordset($openlab_seed$
     "content": {
       "id": "metals",
       "title": "Металлын идэвхийн цуваа",
-      "level": "Дунд",
       "goal": "Идэвхтэй металл нь идэвх багатай металлыг давсных нь уусмалаас ялгаруулдгийг харах.",
       "materials": [
         "Төмрийн үртэс, зэсийн үртэс — «МЕТАЛЛ, ХАТУУ» шүүгээ",
@@ -472,7 +492,6 @@ from jsonb_to_recordset($openlab_seed$
     "content": {
       "id": "flame",
       "title": "Дөлийн сорил",
-      "level": "Эхлэл",
       "goal": "Металлын ионыг дөлийн өнгөөр таних.",
       "materials": [
         "Нихром утас — C арлын ширээ",
@@ -525,7 +544,6 @@ from jsonb_to_recordset($openlab_seed$
     "content": {
       "id": "crystals",
       "title": "Ууршуулж талстжуулах",
-      "level": "Эхлэл",
       "goal": "Давсны уусмалыг ууршуулж талст гаргах.",
       "materials": [
         "NaCl уусмалтай ууршуулах аяга — А арлын хойд талд, тавиур дээр бэлэн",
@@ -575,7 +593,6 @@ from jsonb_to_recordset($openlab_seed$
     "content": {
       "id": "cuso4",
       "title": "Зэсийн сульфат: ус алдах ба авах",
-      "level": "Дунд",
       "goal": "Цэнхэр CuSO₄·5H₂O талстыг халааж цагаан болгоод, ус дусааж буцааж цэнхэр болгох.",
       "materials": [
         "CuSO₄·5H₂O талст — «ХАТУУ ДАВС» шүүгээ, баруун хананы жингийн дэргэд",
@@ -614,7 +631,6 @@ from jsonb_to_recordset($openlab_seed$
     "content": {
       "id": "elephant",
       "title": "Зааны шүдний оо",
-      "level": "Эхлэл",
       "goal": "Катализаторын нөлөөгөөр устөрөгчийн хэт исэл хурдан задарч хөөс үүсгэхийг харах.",
       "materials": [
         "H₂O₂ 3%, угаалгын шингэн, KI — татах шүүгээн дотор",
@@ -624,8 +640,8 @@ from jsonb_to_recordset($openlab_seed$
       "steps": [
         {
           "id": "h2o2",
-          "text": "Цилиндрт H₂O₂ асга",
-          "hint": "H₂O₂ лонх аваад цилиндр рүү хараад R дарсаар асга (30 мл орчим).",
+          "text": "Цилиндрт 20–30 мл H₂O₂ хэмжиж нэм",
+          "hint": "Хими VIII, х.102: 100 мл-ийн цилиндрт 20–30 мл H₂O₂ хэмж. Аппын лонх 3% уусмалтай; эзэлхүүнийг менискийн доод ирмэгээр унш.",
           "completion": {
             "events": [
               "use:h2o2"
@@ -635,7 +651,7 @@ from jsonb_to_recordset($openlab_seed$
         {
           "id": "soap",
           "text": "Угаалгын шингэн нэм",
-          "hint": "Савангийн лонхоор цилиндр рүү бага зэрэг асга.",
+          "hint": "Ном угаалгын шингэнийг бага хэмжээгээр нэмэхийг заасан; тогтмол мл өгөөгүй. Хэрэглэсэн хэмжээгээ тэмдэглэж харьцуул.",
           "completion": {
             "events": [
               "use:soap"
@@ -644,8 +660,8 @@ from jsonb_to_recordset($openlab_seed$
         },
         {
           "id": "cat",
-          "text": "KI нэмж хөөс оргилуул",
-          "hint": "KI-ийн уусмалаас хэдэн мл асга.",
+          "text": "KI катализаторыг хэмжиж нэм",
+          "hint": "Хими VIII, х.102: катализатор ойролцоогоор 0.1 г. Аппын 0.5 М KI уусмалд энэ нь ≈1.2 мл-тэй тэнцэнэ. 1 мл, дараа нь 0.1 мл-ээр хэмжиж нэм. Энэ нь номын масс тунг уусмалын эзэлхүүнд шилжүүлсэн хувилбар.",
           "completion": {
             "events": [
               "foam"
@@ -662,7 +678,6 @@ from jsonb_to_recordset($openlab_seed$
     "content": {
       "id": "color-tests",
       "title": "Өнгөт чанарын урвал",
-      "level": "Дунд",
       "goal": "Ионыг өнгөт урвалаар илрүүлэх: цардуул–иод, Fe³⁺–SCN⁻, Cu²⁺–NH₃.",
       "materials": [
         "Цардуулын уусмал, иод — «ЗААГЧ» шүүгээ",
@@ -711,7 +726,6 @@ from jsonb_to_recordset($openlab_seed$
     "content": {
       "id": "thermo",
       "title": "Дулаан ялгаруулах ба шингээх уусалт",
-      "level": "Дунд",
       "goal": "Зарим бодис уусахдаа дулаан ялгаруулж, зарим нь шингээдгийг термометрээр батлах.",
       "materials": [
         "NH₄NO₃ — «ХАТУУ ДАВС» шүүгээ",
@@ -776,7 +790,6 @@ from jsonb_to_recordset($openlab_seed$
     "content": {
       "id": "fire",
       "title": "Шатамхай шингэний аюулгүй байдал",
-      "level": "Ахисан",
       "goal": "Этанол дөлөнд хэрхэн асдагийг ажиглаж, галыг зөв аргаар унтраах.",
       "materials": [
         "Этанол — шар өнгийн шатамхай бодисын шүүгээ (зүүн хана)",

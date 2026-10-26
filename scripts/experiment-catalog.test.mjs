@@ -8,8 +8,14 @@ const rows = definitions.map((content) => ({ id: content.id, schema_version: 1, 
 
 test('all 14 bundled experiments round-trip through database JSON with stable ids', () => {
   assert.equal(definitions.length, 14);
+  assert.ok(definitions.every((item) => !('level' in item)));
   assert.deepEqual(parseExperimentRows(JSON.parse(JSON.stringify(rows))), definitions);
   assert.equal(new Set(definitions.map((item) => item.id)).size, 14);
+});
+
+test('legacy tier metadata is ignored without changing experiment content', () => {
+  const legacy = { ...definitions[0], level: 'Эхлэл' };
+  assert.deepEqual(parseExperiment(legacy), definitions[0]);
 });
 
 test('elephant toothpaste retains its three event-driven completion rules', () => {

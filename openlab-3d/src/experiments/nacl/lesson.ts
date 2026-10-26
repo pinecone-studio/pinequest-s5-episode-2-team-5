@@ -3,7 +3,7 @@ import { LABEL_KEYS, NAMES, STEPS } from './data';
 
 /** The built-in physical station is independent of the remotely editable guide catalog. */
 export const NACL_LESSON: Experiment = {
-  id: 'nacl', title: 'Карбонатаас натрийн хлорид гарган авах', level: 'Дунд',
+  id: 'nacl', title: 'Карбонатаас натрийн хлорид гарган авах',
   goal: 'Хүчил, карбонатын урвалаар давс гарган авч шүүх, ууршуулах, талстжуулах.',
   materials: LABEL_KEYS.map((key) => NAMES[key]),
   safety: 'Нүдний шил зүү. Хүчлийг бага багаар цутга. Халуун савыг болгоомжтой барь; хуурай болтол бүү халаа.',

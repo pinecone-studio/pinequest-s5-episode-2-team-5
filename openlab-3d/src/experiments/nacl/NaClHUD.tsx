@@ -37,7 +37,7 @@ import { mobileizeControlHint } from '../../controls/mobileInteraction';
 function readItem(id: string) {
   mixture(id);
   useSandbox.setState({ inspected: id });
-  useBenchView.setState({ selected: id, level: 'detail' });
+  useBenchView.setState({ selected: id, viewMode: 'detail' });
   if (useGameStore.getState().mode === 'walk') enterBench(id);
 }
 
