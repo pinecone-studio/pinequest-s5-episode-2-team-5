@@ -7,6 +7,7 @@ import { setPointerTarget, usePointerLockSync } from './controls/usePointerLock'
 import { useGameKeys } from './controls/useGameKeys';
 import { useGameStore, type Mode } from './store/useGameStore';
 import type { QualityPreset } from './store/useSettingsStore';
+import { isTouchDevice } from './utils/device';
 
 const LabScene = lazy(() => import('./world/LabScene'));
 const TouchControls = lazy(() => import('./ui/TouchControls').then(({ TouchControls }) => ({ default: TouchControls })));
@@ -55,7 +56,8 @@ export function CanvasRuntime({
           {import.meta.env.DEV && <Suspense fallback={null}><DebugBridge /></Suspense>}
         </Canvas>
       </div>
-      <TouchControls />
+      {/* Утасны удирдлага (joystick, E F Q R) зөвхөн утас/таблет ба Expo Go дээр. PC-д гараар удирдана. */}
+      {isTouchDevice() && <TouchControls />}
     </KeyboardControls>
   );
 }
