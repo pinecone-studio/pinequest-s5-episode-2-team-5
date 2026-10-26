@@ -37,6 +37,10 @@ export function TouchControls() {
     }
   }, [mode]);
 
+  // root div нь зөвхөн 'walk' горимд байдаг (бусад үед компонент `null` буцаана), тэр бүр шинээр
+  // үүснэ. Тиймээс сонсогчдыг `walking` өөрчлөгдөх бүрт дахин холбоно. Эс бөгөөс анх горим 'walk'
+  // болоход эсвэл цэс/тэмдэглэл хаагдаад буцахад joystick болон харах хөдөлгөөн ажиллахгүй.
+  const walking = mode === 'walk';
   useEffect(() => {
     const element = root.current;
     if (!element) return;
@@ -117,8 +121,14 @@ export function TouchControls() {
       element.removeEventListener('touchmove', onMove);
       element.removeEventListener('touchend', onEnd);
       element.removeEventListener('touchcancel', onCancel);
+      // Цэс нээгдэхэд хүрэлт дундаа тасарч болно (touchend ирэхгүй). Эс цэвэрлэвэл joystick
+      // болон харах хөдөлгөөн «идэвхтэй» гэж гацаж, буцаж ирэхэд дахин эхлэхгүй.
+      stickId.current = null;
+      stickOrigin.current = null;
+      if (lookId.current?.throwTimer != null) window.clearTimeout(lookId.current.throwTimer);
+      lookId.current = null;
     };
-  }, []);
+  }, [walking]);
 
   function performContextualTap() {
     const game = useGameStore.getState();
