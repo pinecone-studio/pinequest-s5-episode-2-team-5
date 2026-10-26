@@ -44,13 +44,18 @@ const sqlString = (value) => `'${value.replaceAll("'", "''")}'`;
 const aimags = readCsv('aimags.csv');
 const soums = readCsv('soums.csv');
 const districts = readCsv('ub-districts.csv');
-const schools = readCsv('schools-template.csv');
+const schools = readCsv('schools.csv');
 
 if (aimags.length !== 21) throw new Error(`Expected 21 aimags, got ${aimags.length}`);
 if (districts.length !== 9) throw new Error(`Expected 9 Ulaanbaatar districts, got ${districts.length}`);
 if (soums.length !== 330) throw new Error(`Expected 330 rural soums, got ${soums.length}`);
 if (aimags.some((row) => !row.id || !row.name) || soums.some((row) => !row.id || !row.aimag_id || !row.name)) {
   throw new Error('Aimag or soum reference row has an empty required field');
+}
+if (schools.some((row) => !row.name || !row.esis_id || !['rural', 'ulaanbaatar'].includes(row.region_type)
+  || (row.region_type === 'rural' && !row.aimag_id)
+  || (row.region_type === 'ulaanbaatar' && !row.district_id))) {
+  throw new Error('School data has missing identity or location fields');
 }
 
 const lines = [
@@ -68,12 +73,12 @@ const lines = [
   soums.map((row) => `  (${sqlString(row.id)}, ${sqlString(row.aimag_id)}, ${sqlString(row.name)})`).join(',\n'),
   'on conflict (id) do update set aimag_id = excluded.aimag_id, name = excluded.name;',
   '',
-  '-- schools-template.csv contains only a clearly marked sample, not a verified directory.',
-  'insert into public.schools(name, region_type, district_id, aimag_id, soum_id, is_sample) values',
-  schools.map((row) => `  (${sqlString(row.name)}, ${sqlString(row.region_type)}, ${row.district_id ? sqlString(row.district_id) : 'null'}, ${row.aimag_id ? sqlString(row.aimag_id) : 'null'}, ${row.soum_id ? sqlString(row.soum_id) : 'null'}, ${row.is_sample === 'true'})`).join(',\n'),
-  'on conflict do update set district_id = excluded.district_id, is_sample = excluded.is_sample;',
+  '-- schools.csv is normalized from the official ESIS school-directory JSON.',
+  'insert into public.schools(name, region_type, district_id, aimag_id, soum_id, is_sample, esis_id) values',
+  schools.map((row) => `  (${sqlString(row.name)}, ${sqlString(row.region_type)}, ${row.district_id ? sqlString(row.district_id) : 'null'}, ${row.aimag_id ? sqlString(row.aimag_id) : 'null'}, ${row.soum_id ? sqlString(row.soum_id) : 'null'}, ${row.is_sample === 'true'}, ${sqlString(row.esis_id)})`).join(',\n'),
+  'on conflict (esis_id) where esis_id is not null do update set name = excluded.name, region_type = excluded.region_type, district_id = excluded.district_id, aimag_id = excluded.aimag_id, soum_id = excluded.soum_id, is_sample = false;',
   '',
 ];
 
 writeFileSync(resolve(root, 'reference-data.seed.sql'), lines.join('\n'));
-console.log(`Generated seed SQL for ${districts.length} districts, ${aimags.length} aimags, ${soums.length} soums, and ${schools.length} school template rows.`);
+console.log(`Generated seed SQL for ${districts.length} districts, ${aimags.length} aimags, ${soums.length} soums, and ${schools.length} official schools.`);

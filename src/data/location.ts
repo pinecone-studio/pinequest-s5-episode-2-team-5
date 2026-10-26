@@ -10,7 +10,9 @@ export function dependentSoums(soums: Soum[], aimagId: string | null) { return a
 export function dependentSchools(schools: School[], region: RegionType, aimagId: string | null, soumId: string | null, districtId: string | null = null) {
   if (region === 'ulaanbaatar') return schools.filter((s) => s.region_type === region && (!districtId || s.district_id === districtId));
   if (!aimagId || !soumId) return [];
-  return schools.filter((s) => s.region_type === region && s.aimag_id === aimagId && s.soum_id === soumId);
+  // ESIS publishes parent aimag for rural schools, not their soum. Include those
+  // verified aimag-wide entries and any manually curated exact-soum entries.
+  return schools.filter((s) => s.region_type === region && s.aimag_id === aimagId && (!s.soum_id || s.soum_id === soumId));
 }
 export function validateLocation(draft: LocationDraft) {
   if (!draft.region_type) return 'Байршлын төрлөө сонгоно уу.';

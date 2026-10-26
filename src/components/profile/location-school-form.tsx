@@ -108,6 +108,7 @@ export function LocationSchoolForm({
           onSelect={(id) => { setAimag(id); setSoum(null); setSchool(null); setOther(''); setSearch(''); }} />
         <Select label="Сум *" items={soums.map(({ id, name }) => ({ id, name }))} value={soum} disabled={!aimag}
           onSelect={(id) => { setSoum(id); setSchool(null); setOther(''); setSearch(''); }} />
+        {soum && <AppText variant="caption">Сургуулийн нээлттэй бүртгэл аймгийн түвшинд байна. Сумын бүх сургуулийг харууллаа.</AppText>}
       </>}
 
       <AppText variant="label">Сургууль *</AppText>
