@@ -26,6 +26,7 @@ export interface SignUpInput {
   classId: ClassId;
   regionType: RegionType;
   regionName: string;
+  subregionName: string;
   schoolId: string;
 }
 
@@ -36,6 +37,7 @@ interface ProfileRow {
   class_id: ClassId;
   region_type: RegionType | null;
   region_name: string | null;
+  subregion_name: string | null;
   xp: number;
   completed: Record<string, LessonResult>;
   created_at: string;
@@ -48,6 +50,7 @@ const toUser = (row: ProfileRow): User => ({
   classId: row.class_id,
   regionType: row.region_type,
   regionName: row.region_name,
+  subregionName: row.subregion_name,
   xp: row.xp,
   completed: row.completed ?? {},
   createdAt: row.created_at,
@@ -93,6 +96,7 @@ export async function signUp(input: SignUpInput): Promise<User> {
         class_id: input.classId,
         region_type: input.regionType,
         region_name: input.regionName,
+        subregion_name: input.subregionName,
         school_id: input.schoolId,
       },
     },
@@ -146,18 +150,18 @@ export async function saveUser(user: User): Promise<User> {
   return user;
 }
 
-export async function updateUserRegion(user: User, regionType: RegionType, regionName: string): Promise<User> {
+export async function updateUserRegion(user: User, regionType: RegionType, regionName: string, subregionName: string): Promise<User> {
   const { error } = await supabase
     .from('profiles')
-    .update({ region_type: regionType, region_name: regionName })
+    .update({ region_type: regionType, region_name: regionName, subregion_name: subregionName })
     .eq('id', user.id);
   if (error) throw new AuthError('Could not update your location');
-  return { ...user, regionType, regionName };
+  return { ...user, regionType, regionName, subregionName };
 }
 
 /** Everyone with an account, as other players see them. */
 export async function listPlayers(): Promise<PublicPlayer[]> {
-  const { data, error } = await supabase.from('profiles').select('id, nickname, class_id, xp, region_type, region_name');
+  const { data, error } = await supabase.from('profiles').select('id, nickname, class_id, xp, region_type, region_name, subregion_name');
   if (error || !data) return [];
   return data.map((row) => ({
     id: row.id,
@@ -165,6 +169,7 @@ export async function listPlayers(): Promise<PublicPlayer[]> {
     classId: row.class_id as ClassId,
     regionType: row.region_type as RegionType | null,
     regionName: row.region_name as string | null,
+    subregionName: row.subregion_name as string | null,
     xp: row.xp,
   }));
 }

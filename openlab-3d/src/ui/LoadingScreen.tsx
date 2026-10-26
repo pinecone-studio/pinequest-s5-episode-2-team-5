@@ -8,6 +8,10 @@ import { useSettingsStore } from '../store/useSettingsStore';
 import { ControlsList } from './ControlsHelp';
 import { SettingsPanel } from './SettingsPanel';
 import { isTouchDevice } from '../utils/device';
+import { WelcomeCard } from './WelcomeCard';
+
+// true = шинэ загвар (Pip, 3 алхам). false болговол хуучин карт буцаж гарна.
+const NEW_START_DESIGN: boolean = true;
 
 function Logo() {
   return (
@@ -38,6 +42,8 @@ export function enterLab(): void {
 /** Loading progress, then the "Click to enter the lab" start screen with the controls. */
 export function LoadingScreen() {
   const [settingsOpen, setSettingsOpen] = useState(false);
+  // "Бүх товчлуур харах" цонх (шинэ загварт)
+  const [keysOpen, setKeysOpen] = useState(false);
   const mode = useGameStore((s) => s.mode);
   const done = useLoadingStore((s) => s.done);
   const { progress, label, complete } = loadingProgress(done);
@@ -51,11 +57,17 @@ export function LoadingScreen() {
         <motion.div
           key="loading"
           className="fixed inset-0 z-[60] flex items-center justify-center overflow-y-auto p-4"
-          style={{ background: mode === 'loading' ? 'linear-gradient(160deg,#f6f7f9 0%,#e7ebef 100%)' : 'rgba(238,240,242,0.55)', backdropFilter: mode === 'start' ? 'blur(6px)' : undefined }}
+          // Шинэ загвар: цайвар ягаан дэвсгэр. Хуучин дэвсгэр доор хэвээр байгаа.
+          style={{ background: NEW_START_DESIGN ? '#ece8fc' : mode === 'loading' ? 'linear-gradient(160deg,#f6f7f9 0%,#e7ebef 100%)' : 'rgba(238,240,242,0.55)', backdropFilter: !NEW_START_DESIGN && mode === 'start' ? 'blur(6px)' : undefined }}
           initial={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           transition={{ duration: 0.4 }}
         >
+          {NEW_START_DESIGN && (
+            <WelcomeCard onEnter={enterLab} onShowKeys={() => setKeysOpen(true)} onOpenSettings={() => setSettingsOpen(true)} progress={progress} label={label} complete={complete} />
+          )}
+          {/* Хуучин карт — устгаагүй, NEW_START_DESIGN = false үед гарна */}
+          {!NEW_START_DESIGN && (
           <motion.div className="panel-card w-full max-w-2xl p-6 sm:p-8" initial={{ y: 20, opacity: 0 }} animate={{ y: 0, opacity: 1 }}>
               <Logo />
               <p className="mt-4 text-slate-600">
@@ -76,6 +88,7 @@ export function LoadingScreen() {
               </div>
               <p className="mt-2 text-center text-xs text-slate-400">{isTouchDevice() ? 'Зүүн доод талын joystick-оор алхаж, баруун талд чирж эргэн харна.' : 'Эргэн харахад хулгана түгжигдэнэ — хүссэн үедээ Esc дарж чөлөөлнө.'}</p>
           </motion.div>
+          )}
         </motion.div>
       )}
       {settingsOpen && (
@@ -86,6 +99,17 @@ export function LoadingScreen() {
               <button type="button" className="focus-ring rounded-lg px-3 py-2" onClick={() => setSettingsOpen(false)} aria-label="Тохиргоог хаах">✕</button>
             </header>
             <div className="scrollbar-thin overflow-y-auto"><SettingsPanel /></div>
+          </section>
+        </div>
+      )}
+      {keysOpen && (
+        <div className="fixed inset-0 z-[80] flex items-center justify-center bg-slate-950/60 p-3" role="dialog" aria-modal="true" aria-label="Бүх товчлуур">
+          <section className="panel-card flex max-h-[90dvh] w-full max-w-xl flex-col p-4 sm:p-6">
+            <header className="mb-2 flex items-center justify-between">
+              <h2 className="font-display text-xl font-bold">Бүх товчлуур</h2>
+              <button type="button" className="focus-ring rounded-lg px-3 py-2" onClick={() => setKeysOpen(false)} aria-label="Хаах">✕</button>
+            </header>
+            <div className="scrollbar-thin overflow-y-auto"><ControlsList /></div>
           </section>
         </div>
       )}

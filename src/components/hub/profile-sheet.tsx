@@ -21,7 +21,7 @@ interface ProfileSheetProps {
 
 export function ProfileSheet({ user, visible, onClose, onSignOut }: ProfileSheetProps) {
   const { level, into, needed, ratio } = levelProgress(user.xp);
-  const totalLessons = CLASSES.reduce((sum, c) => sum + c.lessons.length, 0);
+  const totalLessons = CLASSES.reduce((sum, chemClass) => sum + chemClass.lessons.length, 0);
   const done = Object.keys(user.completed).length;
 
   return (

@@ -14,7 +14,8 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { AvatarPreview } from '@/components/auth/avatar-preview';
 import { FormError, FormSection } from '@/components/auth/form-section';
-import { RegionPicker, type RegionSelection } from '@/components/ranking/region-picker';
+import { LocationSchoolPicker } from '@/components/auth/location-school-picker';
+import type { RegionSelection } from '@/components/ranking/region-picker';
 import { AppText } from '@/components/ui/app-text';
 import { GameButton } from '@/components/ui/game-button';
 import { LabBackground } from '@/components/ui/lab-background';
@@ -32,9 +33,8 @@ import {
 } from '@/lib/validation';
 import { AuthError, isNicknameAvailable, type AuthField } from '@/services/auth';
 import type { ClassId } from '@/types';
-import { SchoolPicker } from '@/components/auth/school-picker';
 
-type Field = AuthField | 'region' | 'school';
+type Field = AuthField | 'region' | 'school' | 'subregion';
 
 const STRENGTH = [
   { label: '', color: Colors.border },
@@ -55,6 +55,7 @@ export default function SignUpScreen() {
   const [nickname, setNickname] = useState('');
   const classId: ClassId = 'beginner';
   const [region, setRegion] = useState<RegionSelection | null>(null);
+  const [subregionName, setSubregionName] = useState('');
   const [schoolId, setSchoolId] = useState<string | null>(null);
   const [touched, setTouched] = useState<Partial<Record<Field, boolean>>>({});
   const [submitted, setSubmitted] = useState(false);
@@ -66,6 +67,7 @@ export default function SignUpScreen() {
     password: validatePassword(password),
     nickname: validateNickname(nickname),
     region: region ? null : 'Хот эсвэл аймгаа сонгоно уу',
+    subregion: subregionName.trim() ? null : 'Сум эсвэл дүүргийн нэр оруулна уу',
     school: schoolId ? null : 'Сургуулиа сонгоно уу',
   };
 
@@ -96,7 +98,7 @@ export default function SignUpScreen() {
     setSubmitting(true);
     setServerError(null);
     try {
-      await signUp({ email, password, nickname, classId, regionType: region.type, regionName: region.name, schoolId });
+      await signUp({ email, password, nickname, classId, regionType: region.type, regionName: region.name, subregionName: subregionName.trim(), schoolId });
       haptics.success();
       // The auth guard swaps this screen for the hub once the session exists.
     } catch (error) {
@@ -206,31 +208,33 @@ export default function SignUpScreen() {
           </FormSection>
 
           <FormSection title="Байршил" icon="map-marker">
-            <AppText variant="caption">Чансааг хот, аймгаар ангилахад ашиглана.</AppText>
-            <RegionPicker
-              value={region}
-              onChange={(selection) => {
+            <LocationSchoolPicker
+              region={region}
+              schoolId={schoolId}
+              onRegionChange={(selection) => {
                 setRegion(selection);
+                setSubregionName('');
                 setSchoolId(null);
                 touch('region');
               }}
-            />
-            {errorFor('region') && (
-              <AppText variant="caption" color={Colors.danger}>
-                {errorFor('region')}
-              </AppText>
-            )}
-            <SchoolPicker
-              region={region}
-              value={schoolId}
-              onChange={(id) => {
+              onSchoolChange={(id) => {
                 setSchoolId(id);
                 touch('school');
               }}
+              regionError={errorFor('region')}
+              schoolError={errorFor('school')}
             />
-            {errorFor('school') && (
-              <AppText variant="caption" color={Colors.danger}>{errorFor('school')}</AppText>
-            )}
+            <TextField
+              label={region?.type === 'province' ? 'Сум' : 'Дүүрэг'}
+              icon="map-marker-outline"
+              placeholder={region?.type === 'province' ? 'Сумын нэр' : 'Дүүргийн нэр'}
+              value={subregionName}
+              onChangeText={(value) => { setSubregionName(value); touch('subregion'); }}
+              error={errorFor('subregion')}
+              maxLength={80}
+              autoCapitalize="words"
+              returnKeyType="done"
+            />
           </FormSection>
 
           {serverError && !serverError.field && <FormError message={serverError.message} />}
