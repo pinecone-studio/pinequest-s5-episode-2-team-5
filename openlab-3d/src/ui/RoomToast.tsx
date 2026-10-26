@@ -3,6 +3,8 @@ import { AnimatePresence, motion } from 'framer-motion';
 import { useGameStore } from '../store/useGameStore';
 import { useSettingsStore } from '../store/useSettingsStore';
 import { keyLabel } from '../controls/keyMap';
+import { isTouchDevice } from '../utils/device';
+import { mobileizeControlHint } from '../controls/mobileInteraction';
 
 /** Short banner at the top center for quick notices. */
 export function RoomToast() {
@@ -19,8 +21,8 @@ export function RoomToast() {
       <AnimatePresence>
         {visible && toast && (
           <motion.div key={toast.id} className="max-w-lg rounded-2xl bg-white/95 px-4 py-2.5 text-center text-lab-ink shadow-hud backdrop-blur" initial={{ opacity: 0, y: -12 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }}>
-            <div className="font-display text-sm font-semibold leading-tight">{toast.title}</div>
-            {toast.subtitle && <div className="text-xs text-slate-600">{toast.subtitle}</div>}
+            <div className="font-display text-sm font-semibold leading-tight">{isTouchDevice() ? mobileizeControlHint(toast.title) : toast.title}</div>
+            {toast.subtitle && <div className="text-xs text-slate-600">{isTouchDevice() ? mobileizeControlHint(toast.subtitle) : toast.subtitle}</div>}
           </motion.div>
         )}
       </AnimatePresence>

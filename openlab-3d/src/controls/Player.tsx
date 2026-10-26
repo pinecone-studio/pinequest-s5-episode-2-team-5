@@ -18,19 +18,18 @@ import {
   DECELERATION,
   EYE_OFFSET,
   GRAVITY,
-  GROUP_PICKABLE,
   JUMP_VELOCITY,
   KEY_TURN_SPEED,
   PITCH_LIMIT,
-  PLAYER_COLLISION,
   SPRINT_MULTIPLIER,
   WALK_SPEED,
 } from '../utils/constants';
+import { GROUP_PICKABLE, PLAYER_COLLISION } from '../physics/collisionGroups';
 import { SPAWN } from '../world/layout';
 import { sounds } from '../utils/sounds';
 import { touchInput } from '../interaction/heldApi';
 import type { MoveAction } from './keyMap';
-import { preStepHooks } from './PhysicsDriver';
+import { preStepHooks } from '../physics/stepHooks';
 
 export const playerBodyRef: { current: RapierRigidBody | null } = { current: null };
 
@@ -76,7 +75,9 @@ export function Player() {
       const p = { x, y: CAPSULE_CENTER_Y + 0.05, z };
       rb.setTranslation(p, true);
       rb.setNextKinematicTranslation(p);
-      playerState.position.set(x, 0, z);
+      playerState.position.x = x;
+      playerState.position.y = 0;
+      playerState.position.z = z;
       playerState.yaw = yaw;
       playerState.pitch = 0;
       velocity.current.set(0, 0, 0);
@@ -157,7 +158,9 @@ export function Player() {
     const ny = t.y + move.y;
     const nz = t.z + move.z;
     rb.setNextKinematicTranslation({ x: nx, y: ny, z: nz });
-    playerState.position.set(nx, ny - CAPSULE_CENTER_Y, nz);
+    playerState.position.x = nx;
+    playerState.position.y = ny - CAPSULE_CENTER_Y;
+    playerState.position.z = nz;
     playerState.speed = Math.hypot(move.x, move.z) / dt;
     playerState.grounded = grounded.current;
 

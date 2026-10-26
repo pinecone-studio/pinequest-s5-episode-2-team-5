@@ -1,4 +1,3 @@
-import { Vector3 } from 'three';
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { SPAWN } from '../world/layout';
@@ -38,7 +37,7 @@ export interface LogEntry {
 
 /** Non-reactive per-frame player data (read in render loops, never subscribed to). */
 export const playerState = {
-  position: new Vector3(SPAWN.x, 0, SPAWN.z),
+  position: { x: SPAWN.x, y: 0, z: SPAWN.z },
   yaw: SPAWN.yaw,
   pitch: 0,
   speed: 0,

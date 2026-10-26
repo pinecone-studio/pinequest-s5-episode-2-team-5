@@ -19,7 +19,7 @@ import { useGameStore } from '../store/useGameStore';
 import { useInventoryStore } from '../store/useInventoryStore';
 import { mixtureOf, seedMixture, useChemStore, type ToolState } from '../store/useChemStore';
 import { emitLab } from '../lab/events';
-import { PICKABLE_COLLISION } from '../utils/constants';
+import { PICKABLE_COLLISION } from '../physics/collisionGroups';
 import { sounds } from '../utils/sounds';
 import type { WorldItem } from '../world/itemsLayout';
 import { breakItem, BREAK_SPEED, impactSound } from '../physics/breakage';

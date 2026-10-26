@@ -19,7 +19,7 @@ function isFree(x: number, z: number, y: number, r: number): boolean {
 
 export function findSpawnSpot(kind: EquipmentKind): { point: Vector3; onSurface: boolean } {
   const r = footprint(kind);
-  const base = nearestSurfacePoint(playerState.position, 4, r + 0.03);
+  const base = nearestSurfacePoint(new Vector3(playerState.position.x, playerState.position.y, playerState.position.z), 4, r + 0.03);
   if (base) {
     const s = surfaces.get(base.surfaceId);
     if (s) {

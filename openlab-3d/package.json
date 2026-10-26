@@ -9,7 +9,7 @@
     "build:chemquest": "tsc -b && vite build --base /openlab/ --outDir ../public/openlab --emptyOutDir",
     "typecheck": "tsc -b --noEmit",
     "preview": "vite preview",
-    "test:workbench": "node --experimental-strip-types --test tests/molecules.test.mjs"
+    "test:workbench": "node --experimental-strip-types --test tests/molecules.test.mjs tests/mobile-interaction.test.mjs"
   },
   "dependencies": {
     "@fontsource/inter": "5.2.8",

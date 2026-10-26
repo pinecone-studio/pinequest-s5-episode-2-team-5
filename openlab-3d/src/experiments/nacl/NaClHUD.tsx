@@ -32,6 +32,7 @@ import { useChemStore,mixtureOf } from '../../store/useChemStore';
 import { currentSession, jumpToStep, useWorkbench } from '../workbench/session';
 import { isTouchDevice } from '../../utils/device';
 import { PreparationChecklist } from '../workbench/PreparationHints';
+import { mobileizeControlHint } from '../../controls/mobileInteraction';
 
 function readItem(id: string) {
   mixture(id);
@@ -183,8 +184,9 @@ export function NaClHUD() {
   const preparing = !!lesson && !session?.ready;
   const done = active ? progress[active] ?? [] : [];
   const nextStep = lesson?.steps.findIndex((s) => !done.includes(s.id)) ?? 0;
-  const selectedStep = session?.stepOverride ?? (nextStep < 0 ? lesson?.steps.length ?? 0 : nextStep);
-  const guide = experimentGuide(session?.stepOverride ?? undefined);
+  const autoStep = nextStep < 0 ? lesson?.steps.length ?? 0 : nextStep;
+  const selectedStep = isTouchDevice() ? autoStep : (session?.stepOverride ?? autoStep);
+  const guide = experimentGuide(isTouchDevice() ? undefined : session?.stepOverride ?? undefined);
   const q = promptKey('drop', settings.bindings, settings.lookMode);
   const receiver = benchUseTarget();
   const receiverLabel = receiver ? describe(receiver).label : null;
@@ -204,13 +206,13 @@ export function NaClHUD() {
       <div className="truncate text-xs font-bold">{lesson?.title ?? 'Туршилт сонгоогүй байна'}{preparing ? ' · Бэлтгэл' : ''}</div>
       {session?.teacher && <span className="mt-1 inline-block rounded-full bg-indigo-50 px-2 py-1 text-[11px] font-bold text-indigo-700">👩‍🏫 Багшийн горим</span>}
       {preparing ? <PreparationChecklist /> : lesson && <>
-        <p className="mt-1 text-xs font-semibold">{active === 'nacl' ? guide.current.hint : lesson.steps[selectedStep]?.text ?? 'Туршилт дууслаа.'}</p>
+        <p className="mt-1 text-xs font-semibold">{active === 'nacl' ? (isTouchDevice() ? mobileizeControlHint(guide.current.hint) : guide.current.hint) : lesson.steps[selectedStep]?.text ?? 'Туршилт дууслаа.'}</p>
         {active === 'elephant' && selectedStep < lesson.steps.length && <p className="mt-1 rounded bg-sky-50 p-2 text-sm font-bold text-sky-950">{selectedStep === 0 ? 'H₂O₂: 20–30 мл → цилиндр' : selectedStep === 1 ? 'Саван: бага хэмжээ · нэмсэн мл-ээ тэмдэглэ' : `KI (0.5 М): ≈${KI_DOSE_ML?.toFixed(1) ?? '—'} мл → цилиндр`}</p>}
         {active !== 'nacl' && lesson.steps[selectedStep] && <details key={lesson.steps[selectedStep].id} className="mt-1 text-[11px]"><summary className="cursor-pointer text-sky-800">Тусламж хэрэгтэй юу?</summary><p className="mt-1">{lesson.steps[selectedStep].hint}</p></details>}
         {active && <MeasurementGuide experiment={active} target={receiver ?? view.selected} step={lesson.steps[selectedStep]?.id}/>}
       </>}
       {lesson && <details className="mt-1 text-[11px]"><summary className="cursor-pointer text-slate-500">Алхмууд</summary><div className="mt-1 flex flex-wrap gap-1">{lesson.steps.map((step, i) => <button key={step.id} className="rounded bg-slate-100 px-2 py-1" onClick={() => jumpToStep(i)}>{(active === 'nacl' && guide.steps[i]?.done) || done.includes(step.id) ? '✓ ' : ''}{i + 1}. {step.text}</button>)}</div></details>}
-      {lesson && <p className="mt-1 text-[11px] text-slate-600" role="status">{active === 'nacl' && !preparing ? guide.warning : state.warning}</p>}
+      {lesson && <p className="mt-1 text-[11px] text-slate-600" role="status">{isTouchDevice() ? mobileizeControlHint(active === 'nacl' && !preparing ? guide.warning : state.warning) : active === 'nacl' && !preparing ? guide.warning : state.warning}</p>}
     </aside>}
     {closeup && !workbench.drawer && isTouchDevice() && <CameraControls />}
     {closeup && !workbench.drawer && <div className="pointer-events-none fixed inset-x-4 bottom-4 z-20 hidden rounded-xl sm:block bg-white/95 px-3 py-2 text-center text-[11px] text-lab-ink shadow sm:inset-x-auto sm:left-1/2 sm:max-w-xl sm:-translate-x-1/2">
