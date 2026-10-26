@@ -34,7 +34,7 @@ import {
 import { AuthError, isNicknameAvailable, type AuthField } from '@/services/auth';
 import type { ClassId } from '@/types';
 
-type Field = AuthField | 'region' | 'school';
+type Field = AuthField | 'region' | 'school' | 'subregion';
 
 const STRENGTH = [
   { label: '', color: Colors.border },
@@ -55,6 +55,7 @@ export default function SignUpScreen() {
   const [nickname, setNickname] = useState('');
   const classId: ClassId = 'beginner';
   const [region, setRegion] = useState<RegionSelection | null>(null);
+  const [subregionName, setSubregionName] = useState('');
   const [schoolId, setSchoolId] = useState<string | null>(null);
   const [touched, setTouched] = useState<Partial<Record<Field, boolean>>>({});
   const [submitted, setSubmitted] = useState(false);
@@ -66,6 +67,7 @@ export default function SignUpScreen() {
     password: validatePassword(password),
     nickname: validateNickname(nickname),
     region: region ? null : 'Хот эсвэл аймгаа сонгоно уу',
+    subregion: subregionName.trim() ? null : 'Сум эсвэл дүүргийн нэр оруулна уу',
     school: schoolId ? null : 'Сургуулиа сонгоно уу',
   };
 
@@ -96,7 +98,7 @@ export default function SignUpScreen() {
     setSubmitting(true);
     setServerError(null);
     try {
-      await signUp({ email, password, nickname, classId, regionType: region.type, regionName: region.name, schoolId });
+      await signUp({ email, password, nickname, classId, regionType: region.type, regionName: region.name, subregionName: subregionName.trim(), schoolId });
       haptics.success();
       // The auth guard swaps this screen for the hub once the session exists.
     } catch (error) {
@@ -211,6 +213,7 @@ export default function SignUpScreen() {
               schoolId={schoolId}
               onRegionChange={(selection) => {
                 setRegion(selection);
+                setSubregionName('');
                 setSchoolId(null);
                 touch('region');
               }}
@@ -220,6 +223,17 @@ export default function SignUpScreen() {
               }}
               regionError={errorFor('region')}
               schoolError={errorFor('school')}
+            />
+            <TextField
+              label={region?.type === 'province' ? 'Сум' : 'Дүүрэг'}
+              icon="map-marker-outline"
+              placeholder={region?.type === 'province' ? 'Сумын нэр' : 'Дүүргийн нэр'}
+              value={subregionName}
+              onChangeText={(value) => { setSubregionName(value); touch('subregion'); }}
+              error={errorFor('subregion')}
+              maxLength={80}
+              autoCapitalize="words"
+              returnKeyType="done"
             />
           </FormSection>
 

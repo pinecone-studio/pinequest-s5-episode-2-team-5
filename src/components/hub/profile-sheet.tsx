@@ -7,6 +7,7 @@ import { BottomSheet } from '@/components/ui/bottom-sheet';
 import { ClassBadge } from '@/components/ui/class-badge';
 import { GameButton } from '@/components/ui/game-button';
 import { ProgressBar } from '@/components/ui/progress-bar';
+import { TextField } from '@/components/ui/text-field';
 import { RegionPicker, type RegionSelection } from '@/components/ranking/region-picker';
 import { StatTile } from '@/components/ui/stat-tile';
 import { Colors } from '@/constants/theme';
@@ -19,7 +20,7 @@ interface ProfileSheetProps {
   visible: boolean;
   onClose: () => void;
   onSignOut: () => void;
-  onUpdateRegion: (regionType: RegionType, regionName: string) => Promise<void>;
+  onUpdateRegion: (regionType: RegionType, regionName: string, subregionName: string) => Promise<void>;
 }
 
 export function ProfileSheet({ user, visible, onClose, onSignOut, onUpdateRegion }: ProfileSheetProps) {
@@ -28,6 +29,7 @@ export function ProfileSheet({ user, visible, onClose, onSignOut, onUpdateRegion
   );
   const [savingRegion, setSavingRegion] = useState(false);
   const [regionError, setRegionError] = useState(false);
+  const [subregionName, setSubregionName] = useState(user.subregionName ?? '');
   const { level, into, needed, ratio } = levelProgress(user.xp);
   const totalLessons = CLASSES.reduce((sum, c) => sum + c.lessons.length, 0);
   const done = Object.keys(user.completed).length;
@@ -37,7 +39,7 @@ export function ProfileSheet({ user, visible, onClose, onSignOut, onUpdateRegion
     setSavingRegion(true);
     setRegionError(false);
     try {
-      await onUpdateRegion(region.type, region.name);
+      await onUpdateRegion(region.type, region.name, subregionName.trim());
     } catch {
       setRegionError(true);
     } finally {
@@ -66,14 +68,23 @@ export function ProfileSheet({ user, visible, onClose, onSignOut, onUpdateRegion
       </View>
       <View style={styles.regionSection}>
         <AppText variant="label" color={Colors.cyan}>Чансааны байршил</AppText>
-        <RegionPicker value={region} onChange={setRegion} />
+        <RegionPicker value={region} onChange={(selection) => { setRegion(selection); setSubregionName(''); }} />
+        <TextField
+          label={region?.type === 'province' ? 'Сум' : 'Дүүрэг'}
+          icon="map-marker-outline"
+          placeholder={region?.type === 'province' ? 'Сумын нэр' : 'Дүүргийн нэр'}
+          value={subregionName}
+          onChangeText={setSubregionName}
+          maxLength={80}
+          autoCapitalize="words"
+        />
         {regionError && <AppText variant="caption" color={Colors.danger}>Байршлыг хадгалж чадсангүй.</AppText>}
         <GameButton
           title="Байршил хадгалах"
           icon="map-marker-check"
           size="sm"
           loading={savingRegion}
-          disabled={!region || (region.type === user.regionType && region.name === user.regionName)}
+          disabled={!region || !subregionName.trim() || (region.type === user.regionType && region.name === user.regionName && subregionName.trim() === (user.subregionName ?? ''))}
           onPress={saveRegion}
         />
       </View>
