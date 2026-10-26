@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { useGameStore } from '../store/useGameStore';
 import { useSettingsStore } from '../store/useSettingsStore';
+import { usePerfStore } from '../store/usePerfStore';
 import { keyLabel } from '../controls/keyMap';
 import { isTouchDevice } from '../utils/device';
 import { mobileizeControlHint } from '../controls/mobileInteraction';
