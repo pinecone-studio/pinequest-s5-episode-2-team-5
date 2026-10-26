@@ -11,7 +11,7 @@ interface SessionContextValue {
   signIn: (email: string, password: string) => Promise<void>;
   signOut: () => Promise<void>;
   completeLesson: (lessonId: string, stars: Stars) => Promise<CompletionResult>;
-  updateRegion: (regionType: RegionType, regionName: string) => Promise<void>;
+  updateRegion: (regionType: RegionType, regionName: string, subregionName: string) => Promise<void>;
 }
 
 const SessionContext = createContext<SessionContextValue | null>(null);
@@ -42,9 +42,9 @@ export function SessionProvider({ children }: { children: ReactNode }) {
       setUser(await auth.saveUser(next.user));
       return next.result;
     },
-    updateRegion: async (regionType, regionName) => {
+    updateRegion: async (regionType, regionName, subregionName) => {
       if (!user) throw new Error('Not signed in');
-      setUser(await auth.updateUserRegion(user, regionType, regionName));
+      setUser(await auth.updateUserRegion(user, regionType, regionName, subregionName));
     },
   };
 

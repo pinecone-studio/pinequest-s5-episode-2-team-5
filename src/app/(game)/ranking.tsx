@@ -7,19 +7,16 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { PlayerPortrait } from '@/components/avatar/player-portrait';
 import { Podium } from '@/components/ranking/podium';
 import { RankRow } from '@/components/ranking/rank-row';
-import { RegionPicker, type RegionSelection } from '@/components/ranking/region-picker';
 import { AppText } from '@/components/ui/app-text';
 import { LabBackground } from '@/components/ui/lab-background';
 import { ScreenHeader } from '@/components/ui/screen-header';
 import { Colors, Fonts, Radius } from '@/constants/theme';
 import { useSession } from '@/context/session';
-import { CLASSES, getClass } from '@/data/classes';
-import { CITY_REGIONS } from '@/data/regions';
 import { haptics } from '@/lib/haptics';
 import { fetchLeaderboard, rankPlayers } from '@/services/leaderboard';
-import type { ClassId, PublicPlayer, User } from '@/types';
+import type { PublicPlayer, User } from '@/types';
 
-type Filter = ClassId | 'all';
+type RankScope = 'all' | 'regional';
 
 export default function RankingScreen() {
   const { user } = useSession();
@@ -29,12 +26,8 @@ export default function RankingScreen() {
 function Ranking({ user }: { user: User }) {
   const insets = useSafeAreaInsets();
   const [players, setPlayers] = useState<PublicPlayer[] | null>(null);
-  const [filter, setFilter] = useState<Filter>('all');
-  const [region, setRegion] = useState<RegionSelection>(() =>
-    user.regionType && user.regionName
-      ? { type: user.regionType, name: user.regionName }
-      : { type: 'city', name: CITY_REGIONS[0] },
-  );
+  const [scope, setScope] = useState<RankScope>('all');
+  const region = user.regionType && user.regionName ? { type: user.regionType, name: user.regionName } : null;
   const [refreshing, setRefreshing] = useState(false);
 
   useFocusEffect(
@@ -49,19 +42,26 @@ function Ranking({ user }: { user: User }) {
     setRefreshing(false);
   };
 
-  const ranked = players
+  const globalRanked = players ? rankPlayers(players, 'all') : [];
+  const regionalRanked = players && region
     ? rankPlayers(
-        players.filter((player) => player.regionType === region.type && player.regionName === region.name),
-        filter,
+        players.filter(
+          (player) =>
+            !!user.subregionName?.trim() &&
+            player.regionType === region.type &&
+            player.regionName === region.name &&
+            player.subregionName === user.subregionName,
+        ),
+        'all',
       )
     : [];
+  const ranked = scope === 'all' ? globalRanked : regionalRanked;
   const me = ranked.find((p) => p.id === user.id);
 
   return (
     <LabBackground bubbles={5}>
       <ScreenHeader title="Global Ranking" subtitle="Hall of Fame" />
-      <RegionPicker value={region} onChange={setRegion} />
-      <FilterTabs value={filter} onChange={setFilter} />
+      <ScopeTabs value={scope} regionType={user.regionType} onChange={setScope} />
       {players === null ? (
         <ActivityIndicator color={Colors.gold} size="large" style={styles.loading} />
       ) : (
@@ -84,31 +84,32 @@ function Ranking({ user }: { user: User }) {
           showsVerticalScrollIndicator={false}
         />
       )}
-      <MyRank user={user} rank={me?.rank ?? null} filter={filter} region={region} />
+      <MyRank user={user} rank={me?.rank ?? null} region={region} scope={scope} />
     </LabBackground>
   );
 }
 
-function FilterTabs({ value, onChange }: { value: Filter; onChange: (f: Filter) => void }) {
-  const options: { id: Filter; label: string; color: string }[] = [
-    { id: 'all', label: 'All', color: Colors.gold },
-    ...CLASSES.map((c) => ({ id: c.id, label: c.name, color: c.color.main })),
+function ScopeTabs({ value, regionType, onChange }: { value: RankScope; regionType: User['regionType']; onChange: (scope: RankScope) => void }) {
+  const localLabel = regionType === 'province' ? 'Аймаг · сум' : regionType === 'city' ? 'Хот · дүүрэг' : 'Орон нутаг';
+  const options: { id: RankScope; label: string }[] = [
+    { id: 'all', label: 'All' },
+    { id: 'regional', label: localLabel },
   ];
   return (
-    <View style={styles.filters} accessibilityRole="tablist">
-      {options.map((o) => {
-        const active = o.id === value;
+    <View style={styles.scopeTabs} accessibilityRole="tablist">
+      {options.map((option) => {
+        const active = value === option.id;
         return (
           <Pressable
-            key={o.id}
-            onPress={() => {
-              haptics.select();
-              onChange(o.id);
-            }}
+            key={option.id}
             accessibilityRole="tab"
             accessibilityState={{ selected: active }}
-            style={[styles.filter, active && { backgroundColor: o.color, borderColor: o.color }]}>
-            <AppText style={[styles.filterText, { color: active ? Colors.night : Colors.textMuted }]}>{o.label}</AppText>
+            onPress={() => {
+              haptics.select();
+              onChange(option.id);
+            }}
+            style={[styles.scopeTab, active && styles.scopeTabActive]}>
+            <AppText style={[styles.scopeTabText, active && styles.scopeTabTextActive]}>{option.label}</AppText>
           </Pressable>
         );
       })}
@@ -119,13 +120,13 @@ function FilterTabs({ value, onChange }: { value: Filter; onChange: (f: Filter) 
 function MyRank({
   user,
   rank,
-  filter,
   region,
+  scope,
 }: {
   user: User;
   rank: number | null;
-  filter: Filter;
-  region: RegionSelection;
+  region: { type: 'city' | 'province'; name: string } | null;
+  scope: RankScope;
 }) {
   const insets = useSafeAreaInsets();
   return (
@@ -134,16 +135,20 @@ function MyRank({
         <PlayerPortrait nickname={user.nickname} classId={user.classId} size={44} ring={Colors.lime} />
         <View style={styles.myRankBody}>
           <AppText variant="label" color={Colors.lime}>
-            Your rank
+            {scope === 'all' ? 'All rank' : region?.type === 'province' ? 'Сумын rank' : region?.type === 'city' ? 'Дүүргийн rank' : 'Орон нутгийн rank'}
           </AppText>
           <AppText variant="bodyStrong" numberOfLines={1}>
             {rank !== null
-              ? `#${rank} · ${region.name} · ${filter === 'all' ? 'бүх түвшин' : getClass(filter).name}`
+              ? scope === 'all'
+                ? `#${rank}`
+                : `#${rank} · ${region?.name}, ${user.subregionName} ${region?.type === 'province' ? 'сум' : 'дүүрэг'}`
+              : scope === 'all'
+                ? 'Global байр тооцоолж чадсангүй'
               : !user.regionType || !user.regionName
                 ? 'Профайлдаа байршлаа сонгоно уу'
-                : user.regionType !== region.type || user.regionName !== region.name
-                  ? 'Өөр байршлын чансаа'
-                  : `${region.name} · ${filter === 'all' ? 'бүх түвшин' : getClass(filter).name}`}
+                : !user.subregionName?.trim()
+                  ? `Профайлдаа ${user.regionType === 'province' ? 'сум' : 'дүүрэг'}-аа оруулна уу`
+                  : `${user.regionName}, ${user.subregionName} ${user.regionType === 'province' ? 'сум' : 'дүүрэг'}-д тоглогч алга`}
           </AppText>
         </View>
         <View style={styles.myXp}>
@@ -157,17 +162,11 @@ function MyRank({
 
 const styles = StyleSheet.create({
   loading: { marginTop: 80 },
-  filters: { flexDirection: 'row', gap: 8, paddingHorizontal: 16, paddingBottom: 4 },
-  filter: {
-    flex: 1,
-    alignItems: 'center',
-    paddingVertical: 8,
-    borderRadius: 999,
-    borderWidth: 2,
-    borderColor: Colors.border,
-    backgroundColor: Colors.panel,
-  },
-  filterText: { fontFamily: Fonts.bold, fontSize: 14, lineHeight: 18 },
+  scopeTabs: { flexDirection: 'row', gap: 8, paddingHorizontal: 16, paddingBottom: 8 },
+  scopeTab: { flex: 1, alignItems: 'center', justifyContent: 'center', minHeight: 48, paddingHorizontal: 10, borderRadius: 999, borderWidth: 2, borderColor: Colors.border, backgroundColor: Colors.panel },
+  scopeTabActive: { backgroundColor: Colors.cyan, borderColor: Colors.cyan },
+  scopeTabText: { fontFamily: Fonts.bold, fontSize: 14, lineHeight: 18, color: Colors.textMuted, textAlign: 'center' },
+  scopeTabTextActive: { color: Colors.night },
   list: { paddingHorizontal: 16, width: '100%', maxWidth: 560, alignSelf: 'center' },
   podium: { marginBottom: 16 },
   separator: { height: 10 },

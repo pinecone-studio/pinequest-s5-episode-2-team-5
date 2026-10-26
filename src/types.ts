@@ -63,6 +63,7 @@ export interface User {
   classId: ClassId;
   regionType?: RegionType | null;
   regionName?: string | null;
+  subregionName?: string | null;
   xp: number;
   completed: Record<string, LessonResult>;
   createdAt: string;
@@ -75,5 +76,6 @@ export interface PublicPlayer {
   classId: ClassId;
   regionType?: RegionType | null;
   regionName?: string | null;
+  subregionName?: string | null;
   xp: number;
 }
