@@ -1,3 +1,4 @@
+import {PhysicalShowcase} from './experiments/workbench/guidance/PhysicalShowcase';
 import { ReactionEffects } from './world/ReactionEffects';
 import { Suspense, useCallback, useEffect, useMemo, useState } from 'react';
 import { Canvas } from '@react-three/fiber';
@@ -63,6 +64,7 @@ export default function App() {
           camera={{ fov: 75, near: 0.03, far: 400, position: [0, 1.65, 0] }}
           gl={{ antialias: !preset.postprocessing, toneMapping: ACESFilmicToneMapping, outputColorSpace: SRGBColorSpace, powerPreference: 'high-performance', stencil: false }}
           onCreated={({ gl }) => {
+            gl.localClippingEnabled=true;
             setPointerTarget(gl.domElement);
             setCanvasEl(gl.domElement);
           }}
@@ -79,6 +81,7 @@ export default function App() {
               <HeldItem />
               <ChemSim />
               <WorkbenchRuntime />
+              <PhysicalShowcase />
               <LabFx />
               <ReactionEffects />
             </Physics>

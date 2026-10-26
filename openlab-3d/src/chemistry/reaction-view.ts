@@ -1,3 +1,4 @@
+import { GASES, type GasId } from '../experiments/curriculum/materials';
 /** Semantic observations of the existing chemistry model. No UI/store or invented rates. */
 import { AQ, SOLIDS, SALTS, HYDROXIDES, ACTIVITY, type AqId, type SolidId } from './species';
 import { acidityToNeutral, cuAmmine } from './equilibrium';
@@ -155,6 +156,7 @@ export function stepObservations(before: Mixture, result: StepResult, dt: number
 /** Physical mixing has moving particles but no invented chemical products or rate. */
 export function physicalMixing(m: Mixture): ReactionObservation {
   const species = Object.entries(m.aq).filter(([,n]) => n > 1e-10).map(([id]) => ion(id as AqId));
+  for(const [id,n] of Object.entries(m.g??{}))if((n??0)>1e-12){const d=GASES[id as GasId];species.push(atom(id,d.name,d.formula,d.color,1,'gas'));}
   if (m.water > 0) species.unshift(W());
   if (m.ethanol > 0) species.push(atom('ethanol', 'Этанол', 'C₂H₅OH', '#ffffff'));
   for (const [id,n] of Object.entries(m.s)) if (n > 1e-10) species.push(solid(id as SolidId));

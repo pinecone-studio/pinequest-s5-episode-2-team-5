@@ -1,4 +1,6 @@
-import {liquidMl,solidMassG} from '../../chemistry/mixture';
+import {guidedPlan} from '../workbench/guidance/plans';
+import {useGuideCue} from '../workbench/guidance/runtime';
+import {gasMl,liquidMl,solidMassG} from '../../chemistry/mixture';
 import {Grade9Controls} from '../grade9/Controls';
 import { KI_DOSE_ML } from '../../lab/quantity-guidance';
 import { MeasurementGuide } from '../workbench/MeasurementGuide';
@@ -72,12 +74,13 @@ function WorldLabels() {
 
 function SubstanceCard() {
   const id = useSandbox((s) => s.inspected);
+  const demoPlaying=useGuideCue(s=>!!s.target);
   useChemStore((s) => id ? s.mixtures[id] : undefined);
   const portable = usePortableStore((s) => s.held);
   const normal = useInventoryStore((s) => s.held);
   const mode = useGameStore((s) => s.mode);
   const inspecting = useBenchView((s) => s.inspecting);
-  if (!id) return null;
+  if (!id||demoPlaying) return null;
   const heldId = portable?.id ?? normal?.id;
   const item = describe(id); const m = mixture(id); const key = partKey(id);
   const close = () => {
@@ -87,7 +90,8 @@ function SubstanceCard() {
   };
   const tool = heldId ? describe(heldId) : null;
   const heldContents=heldId?mixtureOf(heldId,normal?.variant):undefined;
-  const doseUnit=heldContents&&liquidMl(heldContents)<=.005&&solidMassG(heldContents)>0?'г':'см³';
+  const doseGas=!!heldContents&&gasMl(heldContents)>0&&liquidMl(heldContents)<.005;
+  const doseUnit=doseGas?'мл хий':heldContents&&liquidMl(heldContents)<=.005&&solidMassG(heldContents)>0?'г':'см³';
   const fittingPaper = !!tool && ['paper', 'stack'].includes(tool.role) && key === 'funnel';
   const canPour = !!tool && !['paper', 'stack'].includes(tool.role) && tool.capacity > 0 && item.capacity > 0 && heldId !== id;
   const action = () => { if (heldId !== id) beginHeldUse(id); };
@@ -110,7 +114,7 @@ function SubstanceCard() {
       <p className="mb-2 text-[11px] text-slate-600">{tool?.label} → {item.label}</p>
       <button className="touch-none rounded-lg bg-slate-200 px-3 py-2 text-xs font-bold" onPointerDown={(e) => { e.currentTarget.setPointerCapture(e.pointerId); action(); }} onPointerUp={endHeldUse} onPointerCancel={endHeldUse} onBlur={endHeldUse}
         onKeyDown={(e) => { if ((e.key === ' ' || e.key === 'Enter') && !e.repeat) { e.preventDefault(); action(); } }} onKeyUp={endHeldUse}>Дарж барьж {fittingPaper ? 'цаасыг суулгах' : canPour ? 'цутгах' : 'ашиглах'}</button>
-      {canPour && <div className="mt-2 flex flex-wrap gap-2"><button className="rounded-lg bg-sky-100 px-3 py-2 text-xs font-bold" onClick={() => dose(.1)}>0.1 {doseUnit} {doseUnit==='г'?'хийх':'цутгах'}</button><button className="rounded-lg bg-sky-100 px-3 py-2 text-xs font-bold" onClick={() => dose(1)}>1 {doseUnit} {doseUnit==='г'?'хийх':'цутгах'}</button><button className="rounded-lg bg-sky-100 px-3 py-2 text-xs font-bold" onClick={() => dose(5)}>5 {doseUnit} {doseUnit==='г'?'хийх':'цутгах'}</button></div>}
+      {canPour && <div className="mt-2 flex flex-wrap gap-2"><button className="rounded-lg bg-sky-100 px-3 py-2 text-xs font-bold" onClick={() => dose(.1)}>0.1 {doseUnit} {doseGas?'дамжуулах':doseUnit==='г'?'хийх':'цутгах'}</button><button className="rounded-lg bg-sky-100 px-3 py-2 text-xs font-bold" onClick={() => dose(1)}>1 {doseUnit} {doseGas?'дамжуулах':doseUnit==='г'?'хийх':'цутгах'}</button><button className="rounded-lg bg-sky-100 px-3 py-2 text-xs font-bold" onClick={() => dose(5)}>5 {doseUnit} {doseGas?'дамжуулах':doseUnit==='г'?'хийх':'цутгах'}</button></div>}
     </div>}
     <div className="mt-3 flex flex-wrap gap-2">
       {((interactables.get(id)?.onGrab && interactables.get(id)?.onGrab !== interactables.get(id)?.onInteract) || key === 'lamp' || key === 'scope') && <button className="rounded-lg bg-slate-100 px-3 py-2 text-xs font-bold" onClick={() => { const entry = interactables.get(id); if (key) labUse.start(id); else entry?.onInteract?.(); }}>Ашиглах</button>}
@@ -179,6 +183,7 @@ export function NaClHUD() {
   const settings = useSettingsStore();
   const held = portable?.label ?? (normal ? describe(normal.id).label : null);
   const closeup = mode === 'bench';
+  const cohesiveGuide=!!active&&!!guidedPlan(active);
   const lesson = catalog.find((x) => x.id === active);
   const preparing = !!lesson && !session?.ready;
   const done = active ? progress[active] ?? [] : [];
@@ -200,17 +205,18 @@ export function NaClHUD() {
       <button className="rounded-full bg-white/95 px-3 py-2 shadow" onClick={exitBench}>Ширээнээс гарах</button>
       {isTouchDevice() && view.inspecting && <button className="rounded-full bg-white/95 px-3 py-2 shadow" onClick={benchView.back}>Esc · Ширээнд буцах</button>}
     </div>}
-    {closeup && !workbench.drawer && <aside className="fixed left-3 right-12 top-14 z-30 max-h-[24vh] overflow-auto rounded-xl bg-white/95 p-3 text-lab-ink shadow-hud sm:right-auto sm:max-w-lg" aria-label="Туршилтын заавар">
+    {closeup && !workbench.drawer && <aside className="fixed left-3 right-12 top-14 z-30 max-h-[43vh] overflow-auto overscroll-contain rounded-xl bg-white/95 p-3 text-lab-ink shadow-hud sm:right-auto sm:max-h-[75vh] sm:w-[340px] sm:max-w-lg" aria-label="Туршилтын заавар">
       <div className="truncate text-xs font-bold">{lesson?.title ?? 'Туршилт сонгоогүй байна'}{preparing ? ' · Бэлтгэл' : ''}</div>
-      {session?.teacher && <span className="mt-1 inline-block rounded-full bg-indigo-50 px-2 py-1 text-[11px] font-bold text-indigo-700">👩‍🏫 Багшийн горим</span>}
+      {session?.teacher && !cohesiveGuide && <span className="mt-1 inline-block rounded-full bg-indigo-50 px-2 py-1 text-[11px] font-bold text-indigo-700">👩‍🏫 Багшийн горим</span>}
+      {cohesiveGuide&&active&&<MeasurementGuide experiment={active} target={receiver??view.selected} step={lesson?.steps[selectedStep]?.id}/>}
       {preparing ? <PreparationChecklist /> : lesson && <>
-        <p className="mt-1 text-xs font-semibold">{active === 'nacl' ? guide.current.hint : lesson.steps[selectedStep]?.text ?? 'Туршилт дууслаа.'}</p>
-        {active === 'elephant' && selectedStep < lesson.steps.length && <p className="mt-1 rounded bg-sky-50 p-2 text-sm font-bold text-sky-950">{selectedStep === 0 ? 'H₂O₂: 20–30 мл → цилиндр' : selectedStep === 1 ? 'Саван: бага хэмжээ · нэмсэн мл-ээ тэмдэглэ' : `KI (0.5 М): ≈${KI_DOSE_ML?.toFixed(1) ?? '—'} мл → цилиндр`}</p>}
-        {active !== 'nacl' && lesson.steps[selectedStep] && <details key={lesson.steps[selectedStep].id} className="mt-1 text-[11px]"><summary className="cursor-pointer text-sky-800">Тусламж хэрэгтэй юу?</summary><p className="mt-1">{lesson.steps[selectedStep].hint}</p></details>}
-        {active && <MeasurementGuide experiment={active} target={receiver ?? view.selected} step={lesson.steps[selectedStep]?.id}/>}
+        {!cohesiveGuide&&<p className="mt-1 text-xs font-semibold">{active === 'nacl' ? guide.current.hint : lesson.steps[selectedStep]?.text ?? 'Туршилт дууслаа.'}</p>}
+        {!cohesiveGuide && active === 'elephant' && selectedStep < lesson.steps.length && <p className="mt-1 rounded bg-sky-50 p-2 text-sm font-bold text-sky-950">{selectedStep === 0 ? 'H₂O₂: 20–30 мл → цилиндр' : selectedStep === 1 ? 'Саван: бага хэмжээ · нэмсэн мл-ээ тэмдэглэ' : `KI (0.5 М): ≈${KI_DOSE_ML?.toFixed(1) ?? '—'} мл → цилиндр`}</p>}
+        {!cohesiveGuide && active !== 'nacl' && lesson.steps[selectedStep] && <details key={lesson.steps[selectedStep].id} className="mt-1 text-[11px]"><summary className="cursor-pointer text-sky-800">Тусламж хэрэгтэй юу?</summary><p className="mt-1">{lesson.steps[selectedStep].hint}</p></details>}
+        {!cohesiveGuide && active && <MeasurementGuide experiment={active} target={receiver ?? view.selected} step={lesson.steps[selectedStep]?.id}/>}
       </>}
-      {lesson && <details className="mt-1 text-[11px]"><summary className="cursor-pointer text-slate-500">Алхмууд</summary><div className="mt-1 flex flex-wrap gap-1">{lesson.steps.map((step, i) => <button key={step.id} className="rounded bg-slate-100 px-2 py-1" onClick={() => jumpToStep(i)}>{(active === 'nacl' && guide.steps[i]?.done) || done.includes(step.id) ? '✓ ' : ''}{i + 1}. {step.text}</button>)}</div></details>}
-      {lesson && <p className="mt-1 text-[11px] text-slate-600" role="status">{active === 'nacl' && !preparing ? guide.warning : state.warning}</p>}
+      {!cohesiveGuide && lesson && <details className="mt-1 text-[11px]"><summary className="cursor-pointer text-slate-500">Алхмууд</summary><div className="mt-1 flex flex-wrap gap-1">{lesson.steps.map((step, i) => <button key={step.id} className="rounded bg-slate-100 px-2 py-1" onClick={() => jumpToStep(i)}>{(active === 'nacl' && guide.steps[i]?.done) || done.includes(step.id) ? '✓ ' : ''}{i + 1}. {step.text}</button>)}</div></details>}
+      {!cohesiveGuide && lesson && <p className="mt-1 text-[11px] text-slate-600" role="status">{active === 'nacl' && !preparing ? guide.warning : state.warning}</p>}
     </aside>}
     {closeup && !workbench.drawer && isTouchDevice() && <CameraControls />}
     {closeup && !workbench.drawer && <div className="pointer-events-none fixed inset-x-4 bottom-4 z-20 hidden rounded-xl sm:block bg-white/95 px-3 py-2 text-center text-[11px] text-lab-ink shadow sm:inset-x-auto sm:left-1/2 sm:max-w-xl sm:-translate-x-1/2">

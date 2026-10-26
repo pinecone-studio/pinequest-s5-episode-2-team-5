@@ -1,3 +1,4 @@
+import { reactCurriculum } from '../experiments/curriculum/reactions';
 /**
  * Everything that takes time: dissolving solids, gases bubbling off, metals reacting
  * with acid or displacing other metals, redox, catalytic decomposition, heating,
@@ -65,7 +66,7 @@ function boilingPoint(m: Mixture): number {
 
 /** Turns the dissolved salts of a drying solution into crystals; volatile leftovers escape. */
 export function dryOut(input: Mixture): Mixture {
-  const m: Mixture = { ...input, aq: { ...input.aq }, s: { ...input.s } };
+  const m: Mixture = { ...input, g:{...input.g}, aq: { ...input.aq }, s: { ...input.s } };
   for (const id of CRYSTALLIZE) {
     const d = SOLIDS[id].dissolve;
     if (!d) continue;
@@ -91,7 +92,7 @@ export function dryOut(input: Mixture): Mixture {
 
 export function step(input: Mixture, dtRaw: number, env: StepEnv): StepResult {
   const dt = Math.min(0.3, Math.max(0, dtRaw));
-  const m: Mixture = { ...input, aq: { ...input.aq }, s: { ...input.s }, from: input.from };
+  const m: Mixture = { ...input, g:{...input.g}, aq: { ...input.aq }, s: { ...input.s }, from: input.from };
   const gas = { CO2: 0, H2: 0, O2: 0, NH3: 0, steam: 0, smoke: 0 };
   const notes: string[] = [];
   let heat = 0; // J released by reactions this step
@@ -389,7 +390,9 @@ export function step(input: Mixture, dtRaw: number, env: StepEnv): StepResult {
   // 8. Settling, foam.
   const fizz = gas.CO2 + gas.H2 + gas.O2;
   const stirred = Math.max(env.stir, Math.min(1, fizz * 40), boiling ? 0.8 : 0);
-  m.cloud = Math.max(stirred, m.cloud * Math.exp(-dt / 5));
+  // Fine hydroxide/halide precipitates remain visibly suspended before settling.
+  const settlingSeconds=['CuOH2','FeOH3','FeOH2','AgCl','BaSO4','CaCO3','AlOH3','NiOH2'].some(id=>(m.s[id as SolidId]??0)>1e-10)?45:5;
+  m.cloud = Math.max(stirred, m.cloud * Math.exp(-dt / settlingSeconds));
   if (gas.O2 > 0 || gas.CO2 > 0) {
     const soap = get(m, 'soap') > 1e-6 ? 1 : 0.06;
     m.foam += (gas.O2 + gas.CO2) * dt * 24000 * 1.1 * soap;
@@ -403,6 +406,7 @@ export function step(input: Mixture, dtRaw: number, env: StepEnv): StepResult {
     notes.push('dry');
     changed = true;
   }
+  const curriculumChanges=reactCurriculum(out,dt);if(curriculumChanges.length){changed=true;notes.push(...curriculumChanges.map(c=>c.equation));}
   // Equilibria only depend on composition, so skip the solve when nothing reacted.
   const eq = changed ? equilibrate(out) : { m: out, formed: [] as SolidId[] };
   out = eq.m;

@@ -1,4 +1,6 @@
+import { CURRICULUM_RIGS } from '../curriculum/kinds';
 export const RIG_NAMES = {
+ ...Object.fromEntries(Object.entries(CURRICULUM_RIGS).map(([id,d])=>[id,d.name])) as {[K in keyof typeof CURRICULUM_RIGS]: (typeof CURRICULUM_RIGS)[K]['name']},
  convectionCell:'Конвекцийн хос сав',heatingBath:'Мөс хайлуулах халаагуур',gasSyringe:'Хийн тариур ба термостат',diffusionCell:'Диффузийн ажиглах сав',diffusionTube:'Хийн диффузийн хоолой',conductivityTester:'Цахилгаан дамжуулах соригч',reactionTile:'Тусгаарлагдсан сорилын хавтан',chromatographyTank:'Хроматографийн камер',gasTrain:'Хий үүсгэх ба хураах угсралт',calorimeter:'Спиртэн дэнтэй калориметр',corrosionRack:'Зэврэлтийн харьцуулах тавиур',fractionatingColumn:'Агаарын фракцлах багана',
 } as const;
 export type RigKind=keyof typeof RIG_NAMES;

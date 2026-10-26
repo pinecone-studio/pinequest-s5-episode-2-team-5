@@ -1,0 +1,55 @@
+import {useState} from 'react';
+import {useGrade9Apparatus} from '../grade9/store';
+import {useChemStore,mixtureOf} from '../../store/useChemStore';
+import {useInventoryStore} from '../../store/useInventoryStore';
+import {transfer} from '../../interaction/actions';
+import {composition} from '../../chemistry/describe';
+import {emptyMixture,liquidMl,solidMassG,gasMl} from '../../chemistry/mixture';
+import {formatMeasurement} from '../../../../src/lib/measurement-format';
+import {CURRICULUM_RIGS,type CurriculumKind} from './kinds';
+import type {RigState} from '../grade9/process';
+import {REAGENTS} from '../../chemistry/reagents';
+export function CurriculumControls({id,rig}:{id:string;rig:RigState}){
+ const [first,setFirst]=useState(0),[last,setLast]=useState(1),[doseAmount,setDoseAmount]=useState('1');
+ const kind=rig.kind as CurriculumKind,d=CURRICULUM_RIGS[kind],store=useGrade9Apparatus.getState();
+ const change=(x:Partial<RigState>)=>store.change(id,x);
+ const held=useInventoryStore(s=>s.held),hm=held?useChemStore.getState().mixtures[held.id]??mixtureOf(held.id,held.variant):undefined;
+ const gas=!!hm&&gasMl(hm)>0&&liquidMl(hm)<.005,solid=!!hm&&solidMassG(hm)>0&&liquidMl(hm)<.005&&!gas;
+ const style='min-h-10 rounded-lg border border-slate-300 bg-white px-3 py-2 text-xs font-semibold disabled:opacity-40';
+ const thermal=['phaseBath','refluxBath','magneticReactor','combustionFurnace','opticalBench','dryingOven','pressureCell','refluxReactor','limeFurnace','oilColumn','crackingTube','dehydrationFlask','fermenter','enzymeRack'].includes(kind);
+ const electrical=['electrolysisCell','migrationTube'].includes(kind);
+ const speed=['exposureRack','soilBench','fermenter','enzymeRack','electrolysisCell','galvanicCell'].includes(kind);
+ const maxTemp=kind==='magneticReactor'||kind==='oilColumn'?400:kind==='combustionFurnace'||kind==='limeFurnace'?1100:kind==='crackingTube'?700:kind==='phaseBath'?150:kind==='dryingOven'?250:kind==='dehydrationFlask'?220:kind==='refluxBath'?100:kind==='enzymeRack'||kind==='fermenter'?100:kind==='pressureCell'?650:180;
+ const select=(port:number)=>{change({port});useChemStore.getState().setMixtures({[id]:rig.chambers[port]});};
+ const start=()=>{store.start(id);const next=useGrade9Apparatus.getState().rigs[id];if(next.running)useChemStore.getState().setMixtures({[id]:next.chambers[next.port]});};
+ return <section className="my-3 space-y-3 border-t border-slate-200 pt-3" aria-label="Сурах бичгийн багажийн удирдлага">
+  <strong className="block">{d.name}</strong>
+  <p className="text-xs">Тасалгаагаа сонгоод бодис/дээжийн савыг гартаа ав. Хэмжсэн хэсэг нь эх савнаас хасагдаж, сонгосон тасалгаанд орно.</p>
+  <div className="grid grid-cols-1 gap-1 sm:grid-cols-2">{rig.chambers.map((m,i)=>{const c=composition(m);return <button key={i} className={`${style} text-left ${rig.port===i?'border-sky-600 bg-sky-50':''}`} aria-pressed={rig.port===i} onClick={()=>select(i)}><b>{i+1}. {d.ports[i]}</b><span className="block font-mono">{formatMeasurement(liquidMl(m))} мл · {formatMeasurement(solidMassG(m))} г · {formatMeasurement(gasMl(m))} мл хий</span><span className="block text-[10px] text-slate-500">{[...c.dissolved,...c.solids].map(s=>s.formula).join(', ')||'Хоосон'}</span></button>;})}</div>
+  <div className="rounded-lg bg-sky-50 p-2 text-xs">
+   <b>{held&&held.id!==id?`${held.variant?.reagent?REAGENTS[held.variant.reagent].name:held.kind} → ${d.ports[rig.port]}`:'Шилжүүлэх бодисын савыг эхлээд гартаа ав.'}</b>
+   {held&&held.id!==id&&<div className="mt-2 flex flex-wrap gap-1">{(gas?[5,50,100]:solid?[.1,1,5]:[1,5,25]).map(amount=><button key={amount} className={style} onClick={()=>transfer(held,{id,kind},amount)}>{amount} {solid?'г':gas?'мл хий':'мл'} {gas?'дамжуулах':'хийх'}</button>)}</div>}
+   {held&&held.id!==id&&<div className="mt-2 flex flex-wrap items-end gap-2"><label className="flex-1">Өөрийн хэмжээг оруулах ({solid?'г':gas?'мл хий':'мл'})<input aria-label="Хэмжиж хийх хэмжээ" className="mt-1 block min-h-10 w-full rounded border border-slate-300 bg-white p-2" type="number" min="0.001" max="500" step="any" value={doseAmount} onChange={e=>setDoseAmount(e.target.value)}/></label><button className={style} disabled={!(Number(doseAmount)>0&&Number(doseAmount)<=500)} onClick={()=>transfer(held,{id,kind},Number(doseAmount))}>Хэмжиж нэмэх</button></div>}
+  </div>
+  <div className="flex flex-wrap gap-2"><button className={`${style} bg-sky-700 text-white`} onClick={start}>{electrical?'Хэлхээг залгах / ажиллуулах':kind==='fallingBallViscometer'?'Бөмбөлгийг суллаж цаг эхлүүлэх':'Багажийг ажиллуулах / холих'}</button><button className={style} disabled={!rig.running} onClick={()=>change({running:false,connected:false})}>Зогсоох</button></div>
+  {thermal&&<div className="rounded border p-2 text-xs"><label className="flex flex-wrap items-center gap-2">Термостатын тохируулга (°C)<input aria-label="Термостатын температур" className="w-24 rounded border p-2" type="number" min={-30} max={maxTemp} value={kind==='enzymeRack'?rig.targets[rig.port]:rig.targetTemperature} onChange={e=>{const value=Number(e.target.value);if(Number.isFinite(value))change(kind==='enzymeRack'?{targets:rig.targets.map((t,i)=>i===rig.port?Math.max(-30,Math.min(maxTemp,value)):t)}:{targetTemperature:Math.max(-30,Math.min(maxTemp,value))});}}/></label><div className="mt-2 flex gap-2"><button className={style} aria-pressed={rig.heating} onClick={()=>change({heating:!rig.heating,cooling:false})}>Халаалт {rig.heating?'унтраах':'асаах'}</button><button className={style} aria-pressed={rig.cooling} onClick={()=>change({cooling:!rig.cooling,heating:false})}>Хөргүүр {rig.cooling?'унтраах':'асаах'}</button></div></div>}
+  {electrical&&<div className="flex flex-wrap gap-2 text-xs"><label>Хүчдэл / В <input aria-label="DC хүчдэл" className="w-20 rounded border p-2" type="number" min="0" max="12" step=".5" value={rig.voltage} onChange={e=>{const n=Number(e.target.value);if(Number.isFinite(n))change({voltage:Math.max(0,Math.min(12,n))});}}/></label>{kind==='electrolysisCell'&&<label>Гүйдэл / A <input aria-label="DC гүйдэл" className="w-20 rounded border p-2" type="number" min="0" max="2" step=".05" value={rig.current} onChange={e=>{const n=Number(e.target.value);if(Number.isFinite(n))change({current:Math.max(0,Math.min(2,n))});}}/></label>}</div>}
+  {kind==='galvanicCell'&&<><button className={style} aria-pressed={rig.connected} onClick={()=>change({connected:!rig.connected})}>Ачааллыг {rig.connected?'салгах':'холбох'}</button><label className="block text-xs">Эсэргүүцэл / Ω <input aria-label="Ачааллын эсэргүүцэл" className="w-24 rounded border p-2" type="number" min="1" max="10000" value={rig.resistance} onChange={e=>{const n=Number(e.target.value);if(Number.isFinite(n))change({resistance:Math.max(1,Math.min(10000,n))});}}/></label></>}
+  {kind==='pressureCell'&&<label className="block text-xs">Поршений эзлэхүүн / мл <input aria-label="Поршений эзлэхүүн" className="w-24 rounded border p-2" type="number" min="1" max="1000" value={rig.volumeMl} onChange={e=>{const n=Number(e.target.value);if(Number.isFinite(n))change({volumeMl:Math.max(1,Math.min(1000,n))});}}/></label>}
+  {['magneticReactor','materialsBench'].includes(kind)&&<button className={style} onClick={()=>change({operation:'magnet',running:true})}>Соронзыг ойртуулах / Fe ялгах</button>}
+  {kind==='combustionFurnace'&&<button className={style} onClick={()=>change({operation:'ignite',running:true})}>Асаагуураар түлш асаах</button>}
+  {kind==='interfacialBath'&&<button className={style} onClick={()=>change({operation:'draw',running:true})}>Үүссэн найлон утсыг ороож авах</button>}
+  {kind==='soilBench'&&<div className="flex flex-wrap gap-2"><button className={style} onClick={()=>change({operation:'filter',running:true})}>Шүүлтүүрийг нээж шүүгдэс цуглуулах</button><button className={style} aria-pressed={rig.light>0} onClick={()=>change({light:rig.light?0:1})}>Гэрэл {rig.light?'унтраах':'асаах'}</button></div>}
+  {kind==='diffusionChamber'&&<button className={style} aria-pressed={rig.light>0} onClick={()=>change({light:rig.light?0:1})}>Сэнсний урсгал {rig.light?'унтраах':'асаах'}</button>}
+  {kind==='exposureRack'&&<><button className={style} aria-pressed={rig.covers[rig.port]} onClick={()=>change({covers:rig.covers.map((b,i)=>i===rig.port?!b:b)})}>Сонгосон үүрийн агаарын таг {rig.covers[rig.port]?'нээх':'хаах'}</button><button className={style} aria-pressed={rig.scratched} onClick={()=>change({scratched:!rig.scratched})}>Бүрхүүлд {rig.scratched?'сэвгүй болгох':'сэв гаргах'}</button></>}
+  {kind==='fermenter'&&<button className={style} aria-pressed={rig.closed} onClick={()=>change({closed:!rig.closed})}>Исгэх сав: {rig.closed?'агааргүй усан хаалт':'агаарт нээлттэй'}</button>}
+  {kind==='molecularKit'&&<div className="space-y-2 rounded border p-2 text-xs"><p>Физик загварын C зангилаануудыг өөрөө холбо.</p><label>C <select aria-label="Холбоосын эхний C" className="rounded border p-2" value={first} onChange={e=>setFirst(Number(e.target.value))}>{[0,1,2,3,4,5].map(i=><option key={i} value={i}>{i+1}</option>)}</select></label><label> → C <select aria-label="Холбоосын хоёр дахь C" className="rounded border p-2" value={last} onChange={e=>setLast(Number(e.target.value))}>{[0,1,2,3,4,5].map(i=><option key={i} value={i}>{i+1}</option>)}</select></label><button className={style} onClick={()=>{if(first!==last&&!rig.bonds.some(([a,b])=>a===first&&b===last||a===last&&b===first)&&rig.bonds.filter(b=>b.includes(first)).length<4&&rig.bonds.filter(b=>b.includes(last)).length<4)change({bonds:[...rig.bonds,[first,last]],running:true});}}>Ишээр холбох</button><button className={style} onClick={()=>change({bonds:[],data:{},running:true})}>Холбоосуудыг салгах</button></div>}
+  {speed&&<div className="flex flex-wrap items-center gap-1 text-xs"><span>Симуляцийн цаг:</span>{[1,60,3600,86400].map(factor=><button key={factor} className={style} aria-pressed={rig.timeScale===factor} onClick={()=>change({timeScale:factor})}>×{factor}</button>)}</div>}
+  <button className={style} onClick={()=>change({elapsed:0,data:{},results:[],running:false})}>Цаг / тоолуурыг тэглэх</button>
+  <button className={style} onClick={()=>{const chambers=rig.chambers.map((m,i)=>i===rig.port?emptyMixture():m);change({chambers,running:false,results:[],equation:'',data:{},...(kind==='molecularKit'?{bonds:[]}: {})});useChemStore.getState().setMixtures({[id]:emptyMixture()});}}>Сонгосон тасалгааг цэвэрлэх</button>
+  <p role="status" className="rounded bg-sky-50 p-2 text-xs">{rig.message}</p>
+  {rig.equation&&<p className="rounded bg-amber-50 p-2 text-sm font-semibold" aria-label="Ажиглагдсан урвал">{rig.equation}</p>}
+  <dl className="text-xs">{rig.results.map((r,i)=><div key={i} className="flex justify-between gap-2"><dt>{r.label}</dt><dd className="font-mono">{formatMeasurement(r.value)} {r.unit}</dd></div>)}</dl>
+  <p className="text-[10px] text-slate-500">Эдгээр нь ширээн дээрх бодит шилжүүлсэн хэсгүүдийн симуляцийн хэмжилт. Урвалын хугацаа, гадаргын болон өсөлтийн коэффициентүүд сургалтын ойролцоо. Дэвтэрт хадгалж хоёр нөхцөлөө харьцуул.</p>
+ </section>;
+}

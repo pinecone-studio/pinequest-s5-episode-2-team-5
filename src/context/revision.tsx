@@ -7,7 +7,7 @@ import { Colors } from '@/constants/theme';
 import { emptyRevision, restoreRevision, type RevisionProgress } from '@/lib/revision-progress';
 
 interface RevisionContext {
-  packId: 'g8-chem' | 'g9-chem';
+  packId: 'g7-chem' | 'g8-chem' | 'g9-chem' | 'g10-chem';
   progress: RevisionProgress;
   update: (change: (current: RevisionProgress) => RevisionProgress) => void;
   saved: boolean;
@@ -17,8 +17,8 @@ interface RevisionContext {
 const Context = createContext<RevisionContext | null>(null);
 const queues = new Map<string, Promise<void>>();
 
-export function RevisionProvider({ userId, children, packId = 'g8-chem' }: { userId: string; children: ReactNode; packId?: 'g8-chem' | 'g9-chem' }) {
-  const key = `chemquest.revision.${packId === 'g9-chem' ? 'g9' : 'g8'}.v1.${userId}`;
+export function RevisionProvider({ userId, children, packId = 'g8-chem' }: { userId: string; children: ReactNode; packId?: 'g7-chem' | 'g8-chem' | 'g9-chem' | 'g10-chem' }) {
+  const key = `chemquest.revision.${packId.slice(0, -5)}.v1.${userId}`;
   const current = useRef(emptyRevision());
   const [progress, setProgress] = useState(emptyRevision);
   const [ready, setReady] = useState(false);

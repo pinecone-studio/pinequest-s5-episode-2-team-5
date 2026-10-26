@@ -13,6 +13,7 @@ export const useBenchView = create<{
 export const benchView = {
   heldObject: (): Object3D | null => null,
   focus: (_id: string) => {},
+  frame: (_center:[number,number,number], _width:number, _height:number) => {},
   inspect: (_id: string) => {},
   back: () => {},
   reaction: (_id: string) => {},

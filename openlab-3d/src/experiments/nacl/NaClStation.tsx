@@ -143,6 +143,12 @@ export function NaClStation() {
       useSandbox.setState({ inspected: id, hovered: null });
       tablePointer.active = false;
     };
+    benchView.frame = (center, width, height) => {
+      const target=new Vector3(...center);
+      const distance=Math.max(.25,height/(2*Math.tan(42*Math.PI/360))*1.3,width/(2*Math.tan(42*Math.PI/360)*camera.aspect)*1.2);
+      move(target.clone().add(new Vector3(0,.12,1).normalize().multiplyScalar(distance)),target,.6);
+      useBenchView.setState({level:'detail',inspecting:false});
+    };
     benchView.focus = (id) => { if (useBenchView.getState().inspecting) benchView.back(); focus(id); };
     benchView.reaction = (id) => focus(id, .7);
     benchView.inspect = (id) => {

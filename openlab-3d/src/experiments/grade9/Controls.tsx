@@ -1,3 +1,5 @@
+import { CurriculumControls } from '../curriculum/Controls';
+import { isCurriculumRig } from '../curriculum/kinds';
 import {useEffect} from 'react';
 import {useGrade9Apparatus} from './store';
 import {rigReadings} from './process';
@@ -12,11 +14,12 @@ export function Grade9Controls({id}:{id:string}){
  const rig=useGrade9Apparatus(s=>s.rigs[id]);
  useEffect(()=>{if(kind&&isGrade9Rig(kind))useGrade9Apparatus.getState().ensure(id,useLabStore.getState().active??'',kind);},[id,kind]);
  if(!kind||!isGrade9Rig(kind)||!rig)return null;
+ if(isCurriculumRig(kind))return <CurriculumControls id={id} rig={rig}/>;
  const store=useGrade9Apparatus.getState(),change=(x:Parameters<typeof store.change>[1])=>store.change(id,x);
  const start=()=>{store.start(id);if(kind==='gasTrain'&&useGrade9Apparatus.getState().rigs[id].running){store.change(id,{port:0});useChemStore.getState().setMixtures({[id]:useGrade9Apparatus.getState().rigs[id].chambers[0]});}if(useGrade9Apparatus.getState().rigs[id].running)emitLab({key:`g9:${rig.experiment}:operate`,quiet:true,itemId:id});};
  const names=kind==='gasTrain'?['Урвалын сав','Нэмэх бодис','Хий хүлээн авах сав']:kind==='chromatographyTank'?['Ус / уусгагч','Бэхний толбо','Цаас']:kind==='calorimeter'?['Усны сав','Спиртэн дэн','Нөөц']:kind==='diffusionTube'?['Зүүн төгсгөл','Баруун төгсгөл','Нөөц']:kind==='diffusionCell'?['Ус / үндсэн орчин','Тархах бодис','Желатин / цаас']:kind==='conductivityTester'?['Шалгах дээж','Нөөц','Нөөц']:['Эхний сав','Хоёр дахь сав','Нөөц'];
  const button='min-h-10 rounded-lg border border-slate-300 bg-white px-2 py-2 text-xs font-semibold';
- return <div className="my-3 space-y-2 border-t border-slate-200 pt-3" aria-label="IX ангийн багажийн удирдлага">
+ return <div className="my-3 space-y-2 border-t border-slate-200 pt-3" aria-label="Судалгааны багажийн удирдлага">
   <b className="block text-xs">{RIG_NAMES[kind]}</b>
   <p className="text-[11px]">Тасалгаагаа сонго → бодисоо авч өмнөхтэй адил цутга / халбагаар хий.</p>
   <div className="flex flex-wrap gap-1">{rig.chambers.map((m,i)=><button key={i} className={`${button} ${rig.port===i?'border-sky-600 bg-sky-100':''}`} aria-pressed={rig.port===i} onClick={()=>{change({port:i});useChemStore.getState().setMixtures({[id]:m});}}>{kind==='corrosionRack'||kind==='reactionTile'?`Үүр ${i+1}`:names[i]} · {liquidMl(m).toFixed(1)} мл / {solidMassG(m).toFixed(2)} г</button>)}</div>

@@ -1,3 +1,6 @@
+import {useShowcase} from '../experiments/workbench/guidance/showcase';
+import {GuideStockMarker} from '../experiments/workbench/guidance/GuideMarker';
+import { GasCylinder } from './GasCylinder';
 import {Grade9Apparatus} from '../experiments/grade9/Apparatus';
 import {isGrade9Rig} from '../experiments/grade9/kinds';
 /** Maps a catalog kind (+ variant, live contents and tool state) to its procedural 3D model. */
@@ -76,6 +79,7 @@ function sampleColor(tool?: ToolState): string | undefined {
 }
 
 export function EquipmentModel({ kind, variant, mixture, itemId, lit, flameColor, reading, upright, tool, decorative, ...props }: EquipmentModelProps) {
+  const open=useShowcase(s=>!!itemId&&s.source===itemId&&s.cap!==null);
   const contents = mixture ?? seedMixture(variant);
   const look: MixtureLook | undefined = useMemo(() => {
     if (!isContainer(kind)) return undefined;
@@ -91,6 +95,7 @@ export function EquipmentModel({ kind, variant, mixture, itemId, lit, flameColor
   // The label band is painted in the substance's real color, so a bottle reads the same in the
   // drawer, on a shelf and on the worktop (stock color is fixed: it does not flicker while pouring).
   const stripe = variant?.reagent ? reagentColor(variant.reagent) : undefined;
+  if(kind==='gasCylinder')return <group {...props}><GuideStockMarker id={itemId}/><GasCylinder itemId={itemId} label={reagent?.label??'Хий'} name={reagent?.name??'Баллон'} color={stripe??'#8bb0be'}/></group>;
   switch (kind) {
     case 'paperStrip':return <group {...props}><mesh position={[0,.001,0]}><boxGeometry args={[.03,.0005,.2]}/><meshStandardMaterial color={variant?.reagent==='s_litmus_red'?'#dd5470':variant?.reagent==='s_litmus_blue'?'#5566d9':'#fcf4db'} roughness={.9}/></mesh></group>;
     case 'beaker':
@@ -104,11 +109,11 @@ export function EquipmentModel({ kind, variant, mixture, itemId, lit, flameColor
     case 'graduatedCylinder':
       return <GraduatedCylinder {...fx} {...props} />;
     case 'reagentBottle':
-      return <ReagentBottle look={look} decorative={decorative} label={reagent?.label ?? variant?.label} name={reagent?.name} stripe={stripe} {...props} />;
+      return <group {...props}><GuideStockMarker id={itemId}/><ReagentBottle itemId={itemId} open={open} look={look} decorative={decorative} label={reagent?.label ?? variant?.label} name={reagent?.name} stripe={stripe} /></group>;
     case 'dropperBottle':
-      return <DropperBottle look={look} decorative={decorative} label={reagent?.label ?? variant?.label} name={reagent?.name} stripe={stripe} {...props} />;
+      return <group {...props}><GuideStockMarker id={itemId}/><DropperBottle open={open} look={look} decorative={decorative} label={reagent?.label ?? variant?.label} name={reagent?.name} stripe={stripe} /></group>;
     case 'reagentJar':
-      return <ReagentJar {...fx} label={reagent?.label ?? variant?.label} name={reagent?.name} stripe={stripe} {...props} />;
+      return <group {...props}><GuideStockMarker id={itemId}/><ReagentJar open={open} {...fx} label={reagent?.label ?? variant?.label} name={reagent?.name} stripe={stripe} /></group>;
     case 'bunsenBurner':
       return <BunsenBurner lit={lit} flameColor={flameColor} {...props} />;
     case 'tripod':

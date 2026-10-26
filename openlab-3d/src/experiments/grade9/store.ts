@@ -1,3 +1,4 @@
+import {protocolSpeed} from '../workbench/guidance/clock';
 import {rigObservations} from './observations';
 import {publishReaction} from '../../lab/reaction-view';
 import {create} from 'zustand';
@@ -10,6 +11,6 @@ export const useGrade9Apparatus=create<ApparatusStore>()((set,get)=>({
  load:(id,portion)=>set(s=>({rigs:{...s.rigs,[id]:loadRig(s.rigs[id],portion)}})),
  change:(id,change)=>set(s=>s.rigs[id]?{rigs:{...s.rigs,[id]:{...s.rigs[id],...change}}}:s),
  start:id=>set(s=>s.rigs[id]?{rigs:{...s.rigs,[id]:startRig(s.rigs[id])}}:s),
- tick:(id,dt)=>{const r=get().rigs[id];if(r?.running){const next=tickRig(r,dt);for(const reaction of rigObservations(r,next,dt))publishReaction(id,reaction);set(s=>({rigs:{...s.rigs,[id]:next}}));}},
+ tick:(id,dt)=>{const r=get().rigs[id];if(r?.running){let next=r;const total=dt*protocolSpeed(id),n=Math.max(1,Math.ceil(total/.2));for(let i=0;i<n;i++)next=tickRig(next,total/n);for(const reaction of rigObservations(r,next,dt))publishReaction(id,reaction);set(s=>({rigs:{...s.rigs,[id]:next}}));}},
  clear:id=>set(s=>{const rigs={...s.rigs};delete rigs[id];return {rigs};}),reset:()=>set({rigs:{}}),
 }));

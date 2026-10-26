@@ -76,7 +76,7 @@ function ExperimentsTab() {
       </div>
       <input className="min-h-10 w-full rounded-lg border border-slate-200 p-2 text-sm" aria-label="Туршилт хайх" placeholder="Туршилт хайх…" value={search} onChange={(e)=>setSearch(e.target.value)}/>
       <div className="flex flex-wrap gap-2">{[['all','Бүгд'],['bench','Ширээний туршилт'],['model','Виртуал багаж']].map(([id,label])=><button key={id} className={`min-h-10 rounded-full border px-3 text-xs ${kind===id?'border-sky-500 bg-sky-50':'border-slate-200'}`} aria-pressed={kind===id} onClick={()=>setKind(id)}>{label}</button>)}</div>
-      <div className="flex flex-wrap gap-2">{[['all','Бүх анги'],['8','8-р анги'],['9','9-р анги']].map(([id,label])=><button key={id} className={`min-h-10 rounded-full border px-3 text-xs ${grade===id?'border-sky-500 bg-sky-50':'border-slate-200'}`} aria-pressed={grade===id} onClick={()=>setGrade(id)}>{label}</button>)}</div>
+      <div className="flex flex-wrap gap-2">{[['all','Бүх анги'],['7','7-р анги'],['8','8-р анги'],['9','9-р анги'],['10','10-р анги']].map(([id,label])=><button key={id} className={`min-h-10 rounded-full border px-3 text-xs ${grade===id?'border-sky-500 bg-sky-50':'border-slate-200'}`} aria-pressed={grade===id} onClick={()=>setGrade(id)}>{label}</button>)}</div>
       <ul className="space-y-2">
         {filtered.map((x) => {
           const done = progress[x.id] ?? [];

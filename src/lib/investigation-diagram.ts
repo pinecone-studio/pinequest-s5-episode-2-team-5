@@ -1,7 +1,11 @@
+import { grade7Diagram } from './grade7-diagram';
+import { grade10Diagram } from './grade10-diagram';
 import type { InvestigationDefinition, Trial } from './textbook-investigations';
 export type DiagramShape = {kind:'circle';x:number;y:number;r:number;fill:string;stroke?:string}|{kind:'rect';x:number;y:number;width:number;height:number;fill:string;stroke?:string}|{kind:'line';x:number;y:number;x2:number;y2:number;stroke:string}|{kind:'text';x:number;y:number;text:string;fill:string};
 /** Read-only views of a recorded trial, not another reaction simulator. */
 export function investigationDiagram(def:InvestigationDefinition,trial:Trial):DiagramShape[]{
+  if (def.grade === 7 && def.mode === 'model') return grade7Diagram(def, trial);
+  if (def.grade === 10 && def.mode === 'model') return grade10Diagram(def, trial);
   const p=trial.parameters,first=trial.readings[0]?.value??0;
   const shapes:DiagramShape[]=[];
   if(def.grade===9){

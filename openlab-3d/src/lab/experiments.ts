@@ -23,7 +23,15 @@ export function experimentById(id: string): Experiment | undefined {
 }
 export function applyRemoteExperiments(rows: unknown): boolean {
   try {
-    const experiments = parseExperimentRows(rows);
+    const experiments = parseExperimentRows(rows).map(remote=>{
+      const local=BUNDLED_EXPERIMENTS.find(e=>e.id===remote.id);
+      if(!local||!/^g(?:7|10)-/.test(remote.id))return remote;
+      // Published pre-upgrade model guides must not hide physical stock or restore model-only credit.
+      return {...remote,materials:local.materials,safety:local.safety,explain:local.explain,steps:local.steps.map(step=>{
+        const edit=remote.steps.find(s=>s.id===step.id);
+        return edit?{...step,text:edit.text,hint:edit.hint}:step;
+      })};
+    });
     useExperimentCatalog.setState({ experiments: [...experiments.filter((x) => x.id !== 'nacl'), ...BUNDLED_EXPERIMENTS.filter((x) => x.id !== 'nacl' && !experiments.some((r) => r.id === x.id)), NACL_LESSON], source: 'supabase' });
     return true;
   } catch {

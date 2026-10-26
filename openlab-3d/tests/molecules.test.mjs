@@ -101,7 +101,7 @@ import { join } from 'node:path';
 import { pathToFileURL } from 'node:url';
 const storeTmp=await mkdtemp(join(tmpdir(),'openlab-preparation-test-'));
 test.after(()=>rm(storeTmp,{recursive:true,force:true}));
-await build({stdin:{contents:`export * from './src/experiments/grade9/process.ts'; export {useGrade9Apparatus} from './src/experiments/grade9/store.ts'; export * from '../src/lib/textbook-investigations.ts'; export {INVESTIGATIONS as inquiryDefinitions} from '../src/lib/textbook-investigations.ts'; export {TEXTBOOK_EXPERIMENTS} from './src/experiments/workbench/textbook.ts'; export {getExperiments,applyRemoteExperiments} from './src/lab/experiments.ts'; export {useInquiry,clearInquiry} from './src/experiments/workbench/inquiry-store.ts'; export * from './src/lab/quantity-guidance.ts'; export * from './src/lab/measurements.ts'; export {transfer} from './src/interaction/actions.ts'; export {vesselObservation} from './src/lab/container-observation.ts'; export {snapToSupport} from './src/interaction/supportPlacement.ts'; export {supportSpots} from './src/interaction/bodies.ts'; export {benchUseTarget} from './src/interaction/benchUseTarget.ts'; export {tablePointer} from './src/interaction/heldApi.ts'; export {useBenchView} from './src/experiments/nacl/view.ts'; export {useSandbox,labUse,labSpace,simulateLab} from './src/experiments/nacl/sandbox.ts'; export {usePortableStore} from './src/interaction/portable.ts'; export {interactItem} from './src/interaction/interactItem.ts'; export {interactables} from './src/interaction/registry.ts'; export { useLabStore } from './src/store/useLabStore.ts'; export * from './src/experiments/workbench/session.ts'; export {useInventoryStore,storedIn} from './src/store/useInventoryStore.ts'; export {useChemStore} from './src/store/useChemStore.ts'; export {useGameStore} from './src/store/useGameStore.ts'; export * from './src/lab/reaction-view.ts'; export {registerHolder,seedHolder} from './src/interaction/holders.ts';`,resolveDir:process.cwd()},bundle:true,outfile:join(storeTmp,'stores.mjs'),format:'esm',platform:'node'});
+await build({stdin:{contents:`export * from './src/equipment/liquid-plane.ts';export {PROFILES} from './src/equipment/profiles.ts';export * from './src/experiments/workbench/guidance/pour-physics.ts';export * from './src/experiments/workbench/guidance/operation.ts';export * from './src/chemistry/appearance.ts';export * from './src/experiments/grade9/chamber-view.ts';export * from './src/experiments/workbench/guidance/conditions.ts';export * from './src/experiments/workbench/guidance/endpoint.ts';export * from './src/experiments/workbench/guidance/results.ts';export * from './src/experiments/workbench/guidance/clock.ts';export * from './src/chemistry/advance.ts';export {DEFAULT_ENV} from './src/chemistry/kinetics.ts';export {CATALOG} from './src/equipment/equipmentCatalog.ts';export {emptyMixture} from './src/chemistry/mixture.ts';export * from './src/experiments/workbench/guidance/definitions.ts'; export * from './src/experiments/workbench/guidance/prepare.ts'; export * from './src/experiments/workbench/guidance/showcase.ts'; export * from './src/experiments/workbench/guidance/plans.ts'; export * from './src/experiments/workbench/guidance/runtime.ts'; export * from './src/experiments/grade9/process.ts'; export {useGrade9Apparatus} from './src/experiments/grade9/store.ts'; export * from '../src/lib/textbook-investigations.ts'; export {INVESTIGATIONS as inquiryDefinitions} from '../src/lib/textbook-investigations.ts'; export {TEXTBOOK_EXPERIMENTS} from './src/experiments/workbench/textbook.ts'; export {getExperiments,applyRemoteExperiments} from './src/lab/experiments.ts'; export {useInquiry,clearInquiry} from './src/experiments/workbench/inquiry-store.ts'; export * from './src/lab/quantity-guidance.ts'; export * from './src/lab/measurements.ts'; export {transfer,heldHeat} from './src/interaction/actions.ts'; export {vesselObservation} from './src/lab/container-observation.ts'; export {snapToSupport} from './src/interaction/supportPlacement.ts'; export {supportSpots} from './src/interaction/bodies.ts'; export {benchUseTarget} from './src/interaction/benchUseTarget.ts'; export {tablePointer} from './src/interaction/heldApi.ts'; export {useBenchView} from './src/experiments/nacl/view.ts'; export {useSandbox,labUse,labSpace,simulateLab} from './src/experiments/nacl/sandbox.ts'; export {usePortableStore} from './src/interaction/portable.ts'; export {interactItem} from './src/interaction/interactItem.ts'; export {interactables} from './src/interaction/registry.ts'; export { useLabStore } from './src/store/useLabStore.ts'; export * from './src/experiments/workbench/session.ts'; export {useInventoryStore,storedIn} from './src/store/useInventoryStore.ts'; export {useChemStore} from './src/store/useChemStore.ts'; export {useGameStore} from './src/store/useGameStore.ts'; export * from './src/lab/reaction-view.ts'; export {registerHolder,seedHolder} from './src/interaction/holders.ts';`,resolveDir:process.cwd()},bundle:true,outfile:join(storeTmp,'stores.mjs'),format:'esm',platform:'node'});
 globalThis.localStorage={getItem:()=>null,setItem:()=>{},removeItem:()=>{}};
 const stores=await import(pathToFileURL(join(storeTmp,'stores.mjs')).href);
 test('guide starts after preparation; earlier real observations are still recorded',()=>{
@@ -700,4 +700,326 @@ test('lemon apparatus explains missing inputs and mixes later staged additions',
  r=loadPort(r,1,'s_nahco3',.1);r=stores.startRig(r);
  assert.equal(chem.solidMassG(r.chambers[1]),0);
  r=advance(r,5);assert.ok(r.gas>before);
+});
+
+test('all Grade 10 guides prepare valid scoped supplies and keep model evidence separate',()=>{
+ const activities=stores.inquiryDefinitions.filter(d=>d.grade===10);
+ assert.equal(activities.length,45);
+ for(const d of activities){
+  stores.useInventoryStore.getState().reset();stores.useChemStore.getState().reset();stores.resetWorkbench();
+  stores.selectBenchExperiment(d.id,true);stores.demonstratePreparation();
+  const session=stores.useWorkbench.getState().sessions[d.id];
+  assert.ok(session?.ready,d.id);
+  assert.equal(stores.suppliesFor(d.id).length,d.supplies.length);
+  for(const supply of stores.suppliesFor(d.id))assert.ok(supply.kind&&supply.name,d.id);
+  if(d.mode==='model')assert.equal(d.supplies.length,0);
+ }
+ stores.resetWorkbench();stores.useInventoryStore.getState().reset();
+});
+test('Grade 10 acid gas bench uses actual limiting reagent and does not create gas from water',()=>{
+ let r=loadPort(stores.createRig('g10-carbonate','gasTrain'),0,'s_caco3',.1);
+ r=loadPort(r,1,'hcl',1);r=advance(stores.startRig(r),180);
+ assert.ok(r.gas>0);assert.ok(r.gas<=12.001,'1 ml of 1 M HCl supplies at most 0.5 mmol CO2');
+ let empty=loadPort(stores.createRig('g10-carbonate','gasTrain'),0,'water',20);
+ empty=loadPort(empty,1,'water',10);empty=advance(stores.startRig(empty),60);assert.equal(empty.gas,0);
+});
+
+test('all Grade 7 guides prepare valid supplies and preserve Grade 8–10 fallback guides',()=>{
+ const activities=stores.inquiryDefinitions.filter(d=>d.grade===7);
+ assert.equal(activities.length,32);
+ for(const d of activities){
+  stores.useInventoryStore.getState().reset();stores.useChemStore.getState().reset();stores.resetWorkbench();
+  stores.selectBenchExperiment(d.id,true);stores.demonstratePreparation();
+  assert.ok(stores.useWorkbench.getState().sessions[d.id]?.ready,d.id);
+  assert.equal(stores.suppliesFor(d.id).length,d.supplies.length);
+  for(const supply of stores.suppliesFor(d.id))assert.ok(supply.kind&&supply.name,d.id);
+  if(d.mode==='model')assert.equal(d.supplies.length,0);
+ }
+ stores.resetWorkbench();stores.useInventoryStore.getState().reset();
+});
+test('Grade 7 chloride and sulfate benches produce bounded hydrogen from actual portions',()=>{
+ for(const [id,acid] of [['g7-chloride','hcl'],['g7-sulfate','h2so4']]){
+  let r=loadPort(stores.createRig(id,'gasTrain'),0,'s_mg',.1);
+  r=loadPort(r,1,acid,1);r=advance(stores.startRig(r),180);
+  assert.ok(r.gas>0,id);assert.ok(r.gas<=12.001,id);
+  const blank=advance(stores.startRig(loadPort(stores.createRig(id,'gasTrain'),0,'water',20)),60);assert.equal(blank.gas,0);
+ }
+});
+test('new Grade 7 bench guides require bench evidence while legacy Grade 8 event IDs stay stable',()=>{
+ for(const d of stores.inquiryDefinitions){
+  const guide=stores.TEXTBOOK_EXPERIMENTS.find(e=>e.id===d.id);
+  const physical=d.mode==='bench'&&d.grade!==8;
+  for(const step of guide.steps)assert.equal(step.id.endsWith('-bench'),physical,d.id);
+ }
+});
+
+test('every Grade 7 and 10 activity now has physical stock and a working device, without outcome sliders',()=>{
+ const all=stores.inquiryDefinitions.filter(d=>d.grade===7||d.grade===10);assert.equal(all.length,77);
+ for(const d of all){assert.equal(d.mode,'bench',d.id);assert.equal(d.controls.length,0,d.id);assert.ok(d.supplies.length>=2,d.id);assert.ok(stores.suppliesFor(d.id).every(s=>s.kind&&s.name),d.id);}
+});
+test('new gas cylinders and organic stocks transfer finite portions with correct units and no free products',()=>{
+ const gas=chem.reagentMixture('gas_o2',100),portion=chem.takeLiquid(gas,25);
+ assert.ok(Math.abs(portion.taken.g.O2*24000-25)<1e-9);assert.ok(Math.abs(portion.rest.g.O2*24000-75)<1e-9);
+ const acetone=chem.reagentMixture('acetone',10);assert.ok(Math.abs(chem.liquidMl(acetone)-10)<1e-9);assert.equal(acetone.water,0);
+ const part=chem.takeLiquid(acetone,2.5);assert.ok(Math.abs(chem.contentMassG(part.taken)+chem.contentMassG(part.rest)-chem.contentMassG(acetone))<1e-10);
+ const soil=chem.reagentMixture('soil_clay',1);assert.ok(Math.abs(chem.solidMassG(soil)-1)<1e-8);
+ for(const d of stores.inquiryDefinitions.filter(d=>[7,10].includes(d.grade)&&d.labRig)){
+  const r=stores.startRig(stores.createRig(d.id,d.labRig));assert.equal(r.running,false,d.id);
+ }
+});
+test('iron/sulfur furnace consumes actual stock, conserves mass, and magnet extracts excess Fe',()=>{
+ let r=loadPort(stores.createRig('g7-iron-sulfur-reaction','magneticReactor'),0,'s_fe',1.12);r=loadPort(r,1,'s_s',.32);
+ r=stores.startRig({...r,heating:true,targetTemperature:350});r=advance(r,90);
+ const m=r.chambers[0];assert.ok(m.s.FeS>0);assert.ok(m.s.Fe>0);
+ assert.ok(Math.abs(chem.solidMassG(m)-1.44)<.0001);
+ const left=m.s.Fe;r=advance({...r,operation:'magnet'},1);assert.ok(r.chambers[2].s.Fe>=left);assert.ok(r.chambers[0].s.FeS>0);
+});
+test('loaded oxygen bounds metal combustion and methane can form complete or incomplete products',()=>{
+ let r=loadPort(stores.createRig('g7-magnesium-burning','combustionFurnace'),0,'s_mg',.1);r=loadPort(r,1,'gas_o2',20);
+ r=advance(stores.startRig({...r,heating:true,targetTemperature:700}),90);assert.ok(r.chambers[0].s.MgO>0);assert.ok(r.chambers[0].s.MgO<=20/24000*2+1e-9);
+ for(const [oxygen,expected] of [[100,'CO2'],[75,'CO']]){
+  let r=loadPort(stores.createRig('g10-combustion','combustionFurnace'),0,'gas_ch4',50);r=loadPort(r,1,'gas_o2',oxygen);r=advance(stores.startRig({...r,operation:'ignite'}),20);assert.ok(r.chambers[0].g[expected]>0,expected);
+ }
+});
+test('acetone distillation collects actual liquid and hydrated salt cycles keep finite material',()=>{
+ let r=loadPort(stores.createRig('g10-boiling','refluxBath'),0,'acetone',5);r=advance(stores.startRig({...r,heating:true,targetTemperature:70}),90);
+ assert.ok(chem.liquidMl(r.chambers[1])>0);assert.ok(Math.abs(chem.liquidMl(r.chambers[0])+chem.liquidMl(r.chambers[1])-5)<1e-8);
+ let salt=loadPort(stores.createRig('g10-hydrate','dryingOven'),0,'s_cuso4',1);salt=advance(stores.startRig({...salt,heating:true,targetTemperature:180}),100);assert.ok(salt.chambers[0].s.CuSO4>0);assert.ok(salt.chambers[2].water>0);
+});
+test('thiosulfate sulfur, hot acid copper and ethene bromination consume the real limiting reagents',()=>{
+ let r=loadPort(stores.createRig('g10-thiosulfate','opticalBench'),0,'thiosulfate',10);r=loadPort(r,1,'hcl',5);r=advance(stores.startRig(r),80);assert.ok(r.chambers[0].s.S>0);assert.ok(r.chambers[0].g.SO2>0);assert.equal(r.data.crossVisible,0);
+ let copper=loadPort(stores.createRig('g10-sulfur-acid','refluxReactor'),0,'s_cu',.1);copper=loadPort(copper,1,'h2so4_conc',1);copper=advance(stores.startRig({...copper,heating:true,targetTemperature:90}),100);assert.ok(copper.chambers[0].aq.Cu>0);assert.ok(copper.chambers[0].g.SO2>0);
+ let ethene=loadPort(stores.createRig('g10-alkene','gasWashTrain'),0,'bromine',5);ethene=loadPort(ethene,1,'gas_ethene',20);ethene=advance(stores.startRig(ethene),30);assert.ok(ethene.chambers[0].aq.dibromoethane>0);assert.ok(ethene.chambers[0].g.C2H4>=0);
+});
+test('electrolysis uses current and electrode material; galvanic current requires its load circuit',()=>{
+ let r=loadPort(stores.createRig('g10-electroplating','electrolysisCell'),0,'niso4',20);r=loadPort(r,1,'s_fe',1);r=loadPort(r,2,'s_nickel',1);
+ const off=advance(stores.startRig({...r,current:0}),10);assert.equal(off.data.deposited??0,0);
+ const on=advance(stores.startRig({...r,timeScale:60}),20);assert.ok(on.chambers[1].s.Ni>0);assert.ok(on.chambers[2].s.Ni<r.chambers[2].s.Ni);assert.ok(on.data.charge>0);
+ let cell=loadPort(stores.createRig('g10-galvanic','galvanicCell'),0,'s_zn',1);cell=loadPort(cell,0,'znso4',10);cell=loadPort(cell,1,'s_cu',1);cell=loadPort(cell,1,'cuso4',10);cell=loadPort(cell,2,'nacl',5);
+ cell=advance(stores.startRig(cell),1);assert.ok(cell.data.cellVoltage>0);assert.equal(cell.data.cellCurrent,0);const zn=cell.chambers[0].s.Zn;cell=advance({...cell,connected:true},10);assert.ok(cell.chambers[0].s.Zn<zn);
+});
+test('ester, fermentation and nylon produce withdrawable material only from loaded reactants',()=>{
+ let ester=loadPort(stores.createRig('g10-esterification','refluxReactor'),0,'glacial_acetic',5);ester=loadPort(ester,0,'ethanol',5);ester=loadPort(ester,1,'h2so4_conc',.1);ester=advance(stores.startRig({...ester,heating:true,targetTemperature:75}),100);assert.ok(ester.chambers[0].aq.ethylAcetate>0);
+ let ferment=loadPort(stores.createRig('g10-fermentation','fermenter'),0,'glucose',10);ferment=loadPort(ferment,0,'s_yeast',.1);ferment=advance(stores.startRig({...ferment,timeScale:3600}),20);assert.ok(ferment.chambers[0].ethanol>0);assert.ok(ferment.chambers[2].g.CO2>0);
+ let nylon=loadPort(stores.createRig('g10-nylon','interfacialBath'),0,'diamine',10);nylon=loadPort(nylon,1,'sebacoyl',10);const initial=nylon.chambers.reduce((s,m)=>s+chem.contentMassG(m),0);nylon=advance(stores.startRig(nylon),40);assert.ok(nylon.chambers[2].s.nylon610>0);assert.ok(nylon.data.hcl>0);const final=nylon.chambers.reduce((s,m)=>s+chem.contentMassG(m),0);assert.ok(Math.abs(initial-final)<.01,`${initial} vs ${final}`);nylon=advance({...nylon,operation:'draw'},1);assert.ok(nylon.chambers[3].s.nylon610>0);
+});
+test('oil fractions, soil filtration and molecular kits have real material-dependent results',()=>{
+ let oil=loadPort(stores.createRig('g10-oil-distillation','oilColumn'),0,'crude_oil',10);oil=advance(stores.startRig({...oil,heating:true,targetTemperature:320}),200);assert.ok(oil.chambers.slice(1).some(m=>chem.liquidMl(m)>0));assert.ok(Math.abs(oil.chambers.reduce((s,m)=>s+chem.liquidMl(m),0)-10)<1e-7);
+ let soil=loadPort(stores.createRig('g7-soil-retention','soilBench'),0,'soil_clay',1);soil=loadPort(soil,0,'oil',20);const mass=soil.chambers.reduce((s,m)=>s+chem.contentMassG(m),0);soil=advance(stores.startRig({...soil,operation:'filter'}),100);assert.ok(chem.liquidMl(soil.chambers[2])>0);assert.ok(chem.solidMassG(soil.chambers[0])>.99);assert.ok(Math.abs(soil.chambers.reduce((s,m)=>s+chem.contentMassG(m),0)-mass)<1e-8);
+ let kit=loadPort(stores.createRig('g10-isomers','molecularKit'),0,'model_carbon',6);kit=loadPort(kit,1,'model_hydrogen',14);kit=advance(stores.startRig({...kit,bonds:[[0,1],[1,2],[2,3],[3,4],[4,5]]}),1);assert.equal(kit.data.kitComplete,1);assert.equal(kit.data.isomer,0);
+});
+test('stale published Grade 7/10 model guides cannot hide stock or restore notebook-only completion',()=>{
+ for(const id of ['g7-iron-sulfur-reaction','g10-electrolysis']){
+  const local=stores.TEXTBOOK_EXPERIMENTS.find(e=>e.id===id),old={...local,title:'Published title',materials:['Виртуал загвар'],steps:local.steps.map((s,i)=>({...s,id:['predict','measure','explain'][i],completion:{events:[`inquiry:${id}:${['predict','measure','explain'][i]}`]}}))};
+  assert.equal(stores.applyRemoteExperiments([{id,schema_version:1,content:old}]),true);
+  const current=stores.getExperiments().find(e=>e.id===id);assert.equal(current.title,'Published title');assert.deepEqual(current.materials,local.materials);assert.ok(current.steps.every(s=>s.id.endsWith('-bench')));
+ }
+});
+
+test('closed gas equilibria conserve loaded atoms and respond to piston compression',()=>{
+ let r=loadPort(stores.createRig('g10-no2-equilibrium','pressureCell'),0,'gas_n2o4',100);
+ const atoms=m=>2*(m.g?.N2O4??0)+(m.g?.NO2??0);
+ const initial=atoms(r.chambers[0]);r=advance(stores.startRig({...r,volumeMl:1000}),150);
+ assert.ok(r.chambers[0].g.NO2>0);assert.ok(Math.abs(atoms(r.chambers[0])-initial)<1e-10);
+ const before=r.chambers[0].g.NO2;r=advance({...r,volumeMl:100},150);
+ assert.ok(r.chambers[0].g.NO2<before);assert.ok(Math.abs(atoms(r.chambers[0])-initial)<1e-10);
+ let haber=loadPort(stores.createRig('g10-haber','pressureCell'),0,'gas_n2',50);haber=loadPort(haber,1,'gas_h2',150);haber=loadPort(haber,0,'s_fe',.1);
+ haber=advance(stores.startRig(haber),150);assert.ok(haber.chambers[0].g.NH3>0);
+ const m=haber.chambers[0];assert.ok(Math.abs(2*(m.g.N2??0)+(m.g.NH3??0)-100/24000)<1e-10);assert.ok(Math.abs(2*(m.g.H2??0)+3*(m.g.NH3??0)-300/24000)<1e-10);
+});
+test('phase baths, viscosity and sealed corrosion depend on actual loaded material',()=>{
+ let wax=loadPort(stores.createRig('g7-wax-water','phaseBath'),0,'s_wax',1);wax=advance(stores.startRig({...wax,heating:true,targetTemperature:90}),100);assert.ok(wax.chambers[0].aq.waxLiquid>0);
+ const timeFor=reagent=>{let r=loadPort(stores.createRig('g10-viscosity','fallingBallViscometer'),0,reagent,10);r=loadPort(r,0,'s_glass_beads',.01);return advance(stores.startRig(r),20).data.fallTime;};
+ assert.ok(timeFor('oil')>timeFor('water'));
+ let dry=loadPort(stores.createRig('g7-rust-conditions','exposureRack'),0,'s_fe',1);dry=loadPort(dry,0,'deoxygenated_water',5);dry=advance(stores.startRig({...dry,covers:dry.covers.map(()=>true),timeScale:86400}),10);assert.equal(dry.rust[0],0);
+});
+
+
+test('every experiment-specific demo uses its own supplied stock and valid finite transfers across grades 7–10',()=>{
+ const defs=Object.keys(stores.GUIDED_PLANS).map(id=>stores.guideDefinition(id));assert.ok(defs.every(Boolean));
+ for(const g of [7,8,9,10])assert.ok(defs.some(d=>d.grade===g));
+ assert.ok(stores.inquiryDefinitions.filter(d=>d.grade===9).every(d=>stores.guidedPlan(d.id)));
+ for(const d of defs){
+  stores.resetWorkbench();stores.useInventoryStore.getState().reset();stores.useChemStore.getState().reset();
+  stores.selectBenchExperiment(d.id,true);stores.demonstratePreparation();stores.prepareShowcaseEquipment(d);const session=stores.currentSession();assert.ok(session.ready,d.id);
+  for(const [i,step] of stores.GUIDED_PLANS[d.id].entries()){
+   assert.ok(stores.focusGuideStep(d,step),`${d.id} step ${i}`);
+   if(step.type==='dose'){assert.ok(d.supplies.includes(`reagent:${step.reagent}`),d.id);assert.ok(step.amount>0);const rig=stores.useGrade9Apparatus.getState().rigs[session.objects[stores.guideTargetKind(d,step)]];if(rig)assert.ok(step.port<rig.chambers.length,d.id);}
+   const result=stores.executeGuideStep(d,step);assert.ok(result.ok,`${d.id} step ${i}: ${result.message}`);
+  }
+ }
+ stores.clearGuideCue();stores.resetWorkbench();
+});
+test('guide refuses missing or depleted stock and preparation keeps saved notebook evidence',()=>{
+ const d=stores.inquiryDefinitions.find(d=>d.id==='g10-nylon'),step=stores.guidedPlan(d.id)[0];
+ stores.useLabStore.setState({active:d.id});stores.resetWorkbench();
+ assert.equal(stores.executeGuideStep(d,step).ok,false);
+ stores.beginPreparation();stores.demonstratePreparation();const source=stores.currentSession().objects['reagent-diamine'];
+ stores.useChemStore.getState().setMixtures({[source]:chem.emptyMixture()});assert.equal(stores.executeGuideStep(d,step).ok,false);
+ stores.useInquiry.getState().put(d.id,{...stores.newAttempt(),prediction:'Saved prediction survives demonstration'});
+ stores.clearExperimentSession(d.id);stores.beginPreparation();stores.demonstratePreparation();
+ assert.equal(stores.useInquiry.getState().attempts[d.id].prediction,'Saved prediction survives demonstration');
+ stores.clearGuideCue();stores.resetWorkbench();
+});
+
+
+import {Object3D} from 'three';
+test('physical showcase lifts real stock before pouring, pauses quantities and restores its pose',()=>{
+ stores.resetWorkbench();stores.useInventoryStore.getState().reset();stores.useChemStore.getState().reset();
+ const def=stores.inquiryDefinitions.find(d=>d.id==='g10-nylon');stores.selectBenchExperiment(def.id,true);stores.demonstratePreparation();stores.useGameStore.setState({mode:'bench'});
+ const source=stores.currentSession().objects['reagent-diamine'],target=stores.currentSession().objects.interfacialBath,object=new Object3D();object.position.set(8,.915,-14.5);const original=object.position.clone();
+ stores.interactables.set(source,{id:source,object,enabled:true});const step=stores.guidedPlan(def.id)[0];stores.beginShowcase(def,step,'motion-test');
+ for(let i=0;i<20;i++)stores.tickShowcase(.1);
+ assert.ok(object.position.distanceTo(original)>.1);assert.equal(stores.useShowcase.getState().source,source);assert.ok(stores.useShowcase.getState().cap);assert.equal(stores.useShowcase.getState().delivered,0);assert.equal(stores.useGrade9Apparatus.getState().rigs[target].chambers[0].water,0);
+ for(let i=0;i<20;i++)stores.tickShowcase(.1);
+ const partial=stores.useShowcase.getState().delivered;assert.ok(partial>0&&partial<5);const stopped=object.position.clone();stores.pauseShowcase();for(let i=0;i<100;i++)stores.tickShowcase(.1);
+ assert.equal(stores.useShowcase.getState().delivered,partial);assert.ok(object.position.equals(stopped));
+ stores.beginShowcase(def,step,'motion-test');for(let i=0;i<40;i++)stores.tickShowcase(.1);
+ assert.equal(stores.useShowcase.getState().status,'done');assert.ok(Math.abs(stores.useShowcase.getState().delivered-5)<1e-9);assert.ok(object.position.equals(original));assert.ok(Math.abs(stores.useGrade9Apparatus.getState().rigs[target].chambers[0].water-5)<1e-9);
+ object.position.x+=.2;const takenOver=object.position.clone();stores.cancelShowcase();assert.ok(object.position.equals(takenOver));stores.interactables.delete(source);stores.resetWorkbench();
+});
+test('physical showcase cancellation returns a moving container and cannot deliver after leaving the bench',()=>{
+ stores.useInventoryStore.getState().reset();stores.useChemStore.getState().reset();const def=stores.inquiryDefinitions.find(d=>d.id==='g10-nylon');stores.selectBenchExperiment(def.id,true);stores.demonstratePreparation();stores.useGameStore.setState({mode:'bench'});
+ const source=stores.currentSession().objects['reagent-diamine'],object=new Object3D();object.position.set(8,.915,-14.5);const original=object.position.clone();stores.interactables.set(source,{id:source,object,enabled:true});stores.beginShowcase(def,stores.guidedPlan(def.id)[0],'cancel-motion');for(let i=0;i<15;i++)stores.tickShowcase(.1);
+ stores.useGameStore.setState({mode:'walk'});stores.tickShowcase(.1);assert.equal(stores.useShowcase.getState().status,'idle');assert.ok(object.position.equals(original));stores.interactables.delete(source);stores.cancelShowcase();stores.resetWorkbench();
+});
+test('full physical showcase includes reaction observation and collection rather than stopping after setup',()=>{
+ const nylon=stores.physicalShowcasePlan('g10-nylon');assert.ok(nylon.some(s=>s.type==='observe'&&(s.until?.timeout??stores.showcaseDuration(s))>=20));assert.ok(nylon.some(s=>s.type==='configure'&&s.change.operation==='draw'));assert.equal(nylon.at(-1).type,'finish');
+ const combustion=stores.physicalShowcasePlan('g10-combustion');assert.ok(combustion.some(s=>s.type==='configure'&&s.change.operation==='ignite'));
+ for(const def of stores.inquiryDefinitions.filter(d=>[7,10].includes(d.grade)&&d.labRig))for(const step of stores.physicalShowcasePlan(def.id)){if(step.type==='dose')assert.ok(def.supplies.includes(`reagent:${step.reagent}`),def.id);assert.ok(stores.showcaseDuration(step)>0);}
+});
+
+
+test('Grade 8 demo equipment is scoped to its own experiment and does not rewrite model activities',()=>{
+ stores.resetWorkbench();stores.useInventoryStore.getState().reset();const original=stores.inquiryDefinitions.find(d=>d.id==='reaction-timing');assert.equal(original.mode,'model');
+ stores.selectBenchExperiment(original.id,true);stores.demonstratePreparation();const def=stores.guideDefinition(original.id);stores.prepareShowcaseEquipment(def);const ids=Object.values(stores.currentSession().objects);assert.ok(ids.length>=3);assert.equal(stores.useLabStore.getState().active,original.id);assert.equal(original.mode,'model');
+ stores.clearExperimentSession(original.id);assert.ok(!stores.useInventoryStore.getState().worldItems.some(w=>ids.includes(w.id)));
+});
+
+
+test('Grade 8 ordinary-vessel demo transfers actual portions and Grade 9 precipitation makes real solid',()=>{
+ stores.resetWorkbench();stores.useInventoryStore.getState().reset();stores.useChemStore.getState().reset();
+ const def=stores.guideDefinition('elephant');stores.selectBenchExperiment(def.id,true);stores.demonstratePreparation();stores.prepareShowcaseEquipment(def);stores.useGameStore.setState({mode:'bench'});
+ const source=stores.currentSession().objects['reagent-h2o2'],target=stores.currentSession().objects.graduatedCylinder,object=new Object3D();object.position.set(8,.915,-14.5);stores.interactables.set(source,{id:source,object,enabled:true});stores.beginShowcase(def,stores.guidedPlan(def.id)[0],'grade8-ordinary');for(let i=0;i<75;i++)stores.tickShowcase(.1);
+ assert.equal(stores.useShowcase.getState().status,'done');assert.ok(Math.abs(chem.liquidMl(stores.useChemStore.getState().mixtures[target])-25)<1e-8);assert.ok(stores.useChemStore.getState().mixtures[target].aq.H2O2>0);assert.equal(stores.useLabStore.getState().active,'elephant');stores.cancelShowcase();stores.interactables.delete(source);
+ const ninth=stores.guideDefinition('g9-precipitation');stores.selectBenchExperiment(ninth.id,true);stores.demonstratePreparation();stores.prepareShowcaseEquipment(ninth);for(const step of stores.guidedPlan(ninth.id))assert.ok(stores.executeGuideStep(ninth,step).ok);
+ const sample=stores.currentSession().objects.watchGlass;assert.ok(stores.useChemStore.getState().mixtures[sample].s.CuOH2>0);assert.equal(stores.useLabStore.getState().active,'g9-precipitation');stores.resetWorkbench();
+});
+
+
+function advanceProtocolWorld(dt,speed=1){
+ const session=stores.currentSession();const entries=Object.entries(session.objects).filter(([key,id])=>!key.startsWith('reagent-')&&!id.startsWith('nacl-'));
+ stores.setProtocolClock(entries.map(([,id])=>id),speed);
+ for(const [kind,id] of entries){const rig=stores.useGrade9Apparatus.getState().rigs[id];if(rig){stores.useGrade9Apparatus.getState().tick(id,dt);continue;}
+  if(!stores.CATALOG[kind]?.capacityMl)continue;const m=stores.useChemStore.getState().mixtures[id];if(!m)continue;
+  const env={...stores.DEFAULT_ENV,glassJK:stores.CATALOG[kind].heatJK??100,lossWK:1.2+5*((stores.CATALOG[kind].capacityMl??50)/250)**(2/3),heatW:stores.heldHeat?.id===id?1300:0,stir:1};
+  stores.useChemStore.getState().setMixtures({[id]:stores.advanceChemistry(m,dt,env,speed).m});
+ }
+ stores.clearProtocolClock();
+}
+test('every complete demonstration reaches its measured final result without skipped stages',()=>{
+ const failures=[];
+ for(const id of Object.keys(stores.GUIDED_PLANS)){
+  stores.resetWorkbench();stores.useInventoryStore.getState().reset();stores.useChemStore.getState().reset();stores.clearProtocolClock();stores.beginProtocolResults(id);
+  const def=stores.guideDefinition(id);stores.selectBenchExperiment(id,true);stores.demonstratePreparation();stores.prepareShowcaseEquipment(def);
+  const plan=stores.physicalShowcasePlan(id);assert.equal(plan.at(-1).type,'finish',id);
+  for(const [index,stage] of plan.entries()){
+   stores.focusGuideStep(def,stage);
+   if(stage.type==='observe'&&stage.until){
+    let elapsed=0;while(elapsed<(stage.until.timeout??120)){
+     advanceProtocolWorld(.2,stage.until.speed??1);elapsed+=.2;
+     if(elapsed>=(stage.until.minimum??1)&&stores.endpointResult(def,stage,stage.until).ok)break;
+    }
+    const result=stores.endpointResult(def,stage,stage.until);if(result.ok)stores.settleEndpoint(def,stage,stage.until);if(!result.ok){failures.push(`${id} stage ${index} ${stage.label}: ${JSON.stringify(result.measurements)}`);break;}
+   }else{const result=stores.executeGuideStep(def,stage);if(!result.ok){failures.push(`${id} stage ${index}: ${result.message}`);break;}for(let t=0;t<stores.showcaseDuration(stage);t+=.2)advanceProtocolWorld(.2);}
+  }
+  if(!stores.useProtocolResults.getState().complete&&!failures.some(f=>f.startsWith(id+' ')))failures.push(id+' never finished');
+ }
+ assert.deepEqual(failures,[]);stores.resetWorkbench();stores.clearProtocolClock();
+});
+
+test('an unperformed experiment cannot report completion or reuse another experiment result',()=>{
+ stores.resetWorkbench();stores.useInventoryStore.getState().reset();stores.useChemStore.getState().reset();
+ const def=stores.guideDefinition('nacl');stores.selectBenchExperiment('nacl',true);stores.demonstratePreparation();stores.prepareShowcaseEquipment(def);stores.beginProtocolResults('nacl');
+ const final=stores.physicalShowcasePlan('nacl').at(-1);
+ assert.equal(stores.executeGuideStep(def,final).ok,false);
+ assert.equal(stores.useProtocolResults.getState().complete,false);
+ stores.beginProtocolResults('g10-nylon');stores.useProtocolResults.setState({records:[{label:'foreign',readings:[{label:'x',value:1,unit:''}]}]});
+ assert.equal(stores.executeGuideStep(def,{type:'finish',label:'wrong experiment',until:{label:'water',checks:[{metric:'water',min:0}]}}).ok,false);
+ stores.beginProtocolResults('nacl');
+ const impossible={type:'observe',label:'impossible',until:{label:'impossible',checks:[{metric:'solid',species:'NaCl',min:100,target:'watchGlass'}],timeout:.3}};
+ stores.useGameStore.setState({mode:'bench'});stores.focusGuideStep(def,impossible);stores.beginShowcase(def,impossible,'impossible');
+ for(let i=0;i<10;i++)stores.tickShowcase(.1);
+ assert.equal(stores.useShowcase.getState().status,'failed');assert.equal(stores.useProtocolResults.getState().complete,false);
+ stores.cancelShowcase();stores.resetWorkbench();
+});
+
+test('animated decanting delivers the final sub-0.005 ml portion without changing phase',()=>{
+ stores.resetWorkbench();stores.useInventoryStore.getState().reset();stores.useChemStore.getState().reset();
+ const def=stores.guideDefinition('nacl');stores.selectBenchExperiment('nacl',true);stores.demonstratePreparation();stores.prepareShowcaseEquipment(def);
+ const source=stores.currentSession().objects.erlenmeyer,target=stores.currentSession().objects.evaporatingDish;
+ stores.useChemStore.getState().setMixtures({[source]:chem.reagentMixture('water',3)});
+ let delivered=0;while(delivered<3-1e-8){const amount=Math.min(.007,3-delivered);assert.equal(stores.executeGuideStep(def,{type:'move',from:'erlenmeyer',to:'evaporatingDish',amount,label:'decant'}).ok,true);delivered+=amount;}
+ assert.ok(chem.liquidMl(stores.useChemStore.getState().mixtures[source])<1e-8);assert.ok(Math.abs(chem.liquidMl(stores.useChemStore.getState().mixtures[target])-3)<1e-6);stores.resetWorkbench();
+});
+
+test('all complete protocols also finish with incremental animated transfers',()=>{
+ const failures=[];
+ for(const id of Object.keys(stores.GUIDED_PLANS)){
+  stores.cancelShowcase();stores.resetWorkbench();stores.useInventoryStore.getState().reset();stores.useChemStore.getState().reset();stores.beginProtocolResults(id);
+  const def=stores.guideDefinition(id);stores.selectBenchExperiment(id,true);stores.demonstratePreparation();stores.prepareShowcaseEquipment(def);stores.useGameStore.setState({mode:'bench'});
+  const ids=Object.values(stores.currentSession().objects);for(const objectId of ids){const object=new Object3D();object.position.set(8,.915,-14.5);stores.interactables.set(objectId,{id:objectId,object,enabled:true});}
+  for(const [index,stage] of stores.physicalShowcasePlan(id).entries()){
+   stores.focusGuideStep(def,stage);stores.beginShowcase(def,stage,`${id}-${index}`);
+   for(let elapsed=0;elapsed<(stage.until?.timeout??120)+10&&stores.useShowcase.getState().status==='playing';elapsed+=.1){stores.tickShowcase(.1);advanceProtocolWorld(.1,stage.type==='observe'?(stage.until?.speed??1):1);}
+   if(stores.useShowcase.getState().status!=='done'){failures.push(`${id} stage ${index}: ${stores.useShowcase.getState().message}`);break;}
+  }
+  for(const objectId of ids)stores.interactables.delete(objectId);
+ }
+ stores.cancelShowcase();stores.resetWorkbench();assert.deepEqual(failures,[]);
+});
+
+
+test('observed liquid layers preserve loaded phase volumes and exclude miscible ethanol',()=>{
+ const water=chem.reagentMixture('water',10),ethanol=chem.reagentMixture('ethanol',5),oil=chem.reagentMixture('oil',5);
+ const miscible=stores.appearanceOf(chem.equilibrateHeat(water,ethanol,0).m);assert.equal(miscible.layered,false);
+ const m=chem.equilibrateHeat(water,oil,0).m,a=stores.appearanceOf(m);
+ assert.equal(a.layered,true);assert.ok(Math.abs(a.organicMl-5)<1e-8);assert.ok(Math.abs(a.aqueousMl-10)<1e-8);assert.ok(Math.abs(a.organicMl+a.aqueousMl-chem.liquidMl(m))<1e-8);
+ assert.equal(stores.appearanceOf(oil).layered,false);assert.equal(stores.appearanceOf(water).precipitateGrams,0);
+ const trace=chem.reagentMixture('water',10);trace.s.CuOH2=1e-10;trace.cloud=1;assert.equal(stores.appearanceOf(trace).visiblePrecipitate,false);
+});
+test('fresh copper hydroxide stays suspended before settling without invented gas',()=>{
+ let m=chem.equilibrateHeat(chem.reagentMixture('cuso4',5),chem.reagentMixture('naoh',5),20).m;
+ const before=stores.appearanceOf(m);assert.ok(before.precipitateGrams>0);assert.ok(before.suspension>.9);
+ for(let i=0;i<50;i++){const r=chem.step(m,.2,chem.DEFAULT_ENV);assert.equal(r.gas.CO2+r.gas.O2+r.gas.H2,0);m=r.m;}
+ const later=stores.appearanceOf(m);assert.ok(later.suspension>.5);assert.ok(later.suspension<before.suspension);assert.ok(Math.abs(later.precipitateGrams-before.precipitateGrams)<1e-8);
+});
+test('nylon visual combines two monomer feeds in one beaker without mutating the engine',()=>{
+ const r=loadPort(loadPort(stores.createRig('g10-nylon','interfacialBath'),0,'diamine',5),1,'sebacoyl',5);
+ const before=structuredClone(r),view=stores.chamberView(r,0);assert.deepEqual(r,before);assert.ok(chem.liquidMl(view.mixture)>9.9);assert.equal(stores.appearanceOf(view.mixture).layered,true);assert.equal(view.capacityMl,25);
+});
+
+
+test('pouring falls with gravity and viscosity/stock colours use the actual substance',()=>{
+ assert.deepEqual(stores.fallingPoint([0,1,0],[1,0,0],.5),[.5,.75,0]);assert.ok(Math.abs(stores.fallTime([0,.04905,0],[0,0,0])-.1)<1e-8);
+ assert.ok(stores.transferAppearance(chem.reagentMixture('oil',1)).viscosity>stores.transferAppearance(chem.reagentMixture('water',1)).viscosity);
+ assert.equal(stores.transferAppearance(chem.reagentMixture('phph',1)).color,'#e2f0fa');assert.equal(stores.transferAppearance(chem.reagentMixture('gas_o2',1)).phase,'gas');
+});
+test('a level gravity plane preserves volume through vessel tilts and adapts the pour angle to fill',()=>{
+ const p=stores.PROFILES.reagentBottle;
+ for(const angle of [0,.3,.8,1.3])for(const ml of [10,75,200]){const n=[-Math.sin(angle),Math.cos(angle),0],h=stores.liquidPlane(p,n,ml);assert.ok(Math.abs(stores.volumeBelow(p,n,h)-ml)<.001,`${angle} ${ml}`);}
+ assert.ok(stores.pourTilt(p,25)>stores.pourTilt(p,200));
+});
+test('measured tools reserve actual stock and cancellation returns only the unused sample',()=>{
+ stores.cancelShowcase();stores.resetWorkbench();stores.useInventoryStore.getState().reset();stores.useChemStore.getState().reset();
+ const d=stores.guideDefinition('g10-titration');stores.selectBenchExperiment(d.id,true);stores.demonstratePreparation();stores.prepareShowcaseEquipment(d);stores.useGameStore.setState({mode:'bench'});
+ const step=stores.GUIDED_PLANS[d.id].find(s=>s.type==='dose'&&s.reagent==='phph'),source=stores.currentSession().objects['reagent-phph'],target=stores.currentSession().objects.erlenmeyer,object=new Object3D();object.position.set(8,.915,-14.5);stores.interactables.set(source,{id:source,object,enabled:true});stores.useChemStore.getState().setMixtures({[source]:chem.reagentMixture('phph',5)});
+ stores.focusGuideStep(d,step);stores.beginShowcase(d,step,'reserve-test');for(let i=0;i<10;i++)stores.tickShowcase(.1);
+ assert.ok(Math.abs(chem.liquidMl(stores.useChemStore.getState().mixtures[source])-4.9)<1e-8);assert.equal(chem.liquidMl(stores.useChemStore.getState().mixtures[target]??chem.emptyMixture()),0);
+ stores.cancelShowcase();assert.ok(Math.abs(chem.liquidMl(stores.useChemStore.getState().mixtures[source])-5)<1e-8);
+ stores.focusGuideStep(d,step);stores.beginShowcase(d,step,'partial-reserve-test');for(let i=0;i<43;i++)stores.tickShowcase(.1);stores.cancelShowcase();
+ const held=chem.liquidMl(stores.useChemStore.getState().mixtures[source]),received=chem.liquidMl(stores.useChemStore.getState().mixtures[target]);assert.ok(received>0&&received<.1);assert.ok(Math.abs(held+received-5)<1e-8);assert.ok(!Object.keys(stores.useChemStore.getState().mixtures).some(id=>id.startsWith('showcase-carried-')));stores.interactables.delete(source);stores.resetWorkbench();
+});
+test('device actions distinguish leads, gas hoses, nylon winding and gentle mixing',()=>{
+ const start={type:'start',label:'start'};assert.equal(stores.operationFor('galvanicCell',start),'connect-electric');assert.equal(stores.operationFor('gasTrain',start),'connect-gas');assert.equal(stores.operationFor('interfacialBath',start),'measure');assert.equal(stores.operationFor('beaker',start),'stir');assert.equal(stores.operationFor('interfacialBath',{type:'configure',label:'draw',change:{operation:'draw'}}),'wind');
 });

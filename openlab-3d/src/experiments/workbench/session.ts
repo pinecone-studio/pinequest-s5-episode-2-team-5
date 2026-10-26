@@ -144,7 +144,7 @@ export function collectSupply(supply: BenchSupply, pickup = false): boolean {
       updateStationVisibility();
     } else if (supply.kind) {
       const occupied = [...new Set(Object.values(useWorkbench.getState().loose))].length;
-      const grade9=INVESTIGATIONS.find(x=>x.id===useLabStore.getState().active)?.grade===9;
+      const grade9=(INVESTIGATIONS.find(x=>x.id===useLabStore.getState().active)?.grade??8)!==8;
       const slot = grade9?Math.max(0,required.findIndex(s=>s.key===supply.key)):occupied % 24;
       id = useInventoryStore.getState().spawn(supply.kind, grade9?grade9SupplyPosition(slot):[7.56 + slot % 8 * .19, BENCH_HEIGHT + .015, -14.78 + Math.floor(slot / 8) * .22], 0, supply.reagent ? stock(supply.reagent) : undefined);
     }
@@ -239,7 +239,7 @@ function prepareSupplies(teacher: boolean) {
   const held=heldObjectId();
   if(held) {
     const slot=Math.max(0,suppliesFor(active).findIndex((s)=>matchesSupply(s,itemDescription(held))));
-    const at=INVESTIGATIONS.find(x=>x.id===active)?.grade===9?new Vector3(...grade9SupplyPosition(slot)):new Vector3(7.55+slot%8*.2,BENCH_HEIGHT+.015,-14.78+Math.floor(slot/8)*.22);
+    const at=(INVESTIGATIONS.find(x=>x.id===active)?.grade??8)!==8?new Vector3(...grade9SupplyPosition(slot)):new Vector3(7.55+slot%8*.2,BENCH_HEIGHT+.015,-14.78+Math.floor(slot/8)*.22);
     if(useInventoryStore.getState().held)useInventoryStore.getState().place([at.x,at.y,at.z],0);
     else {usePortableStore.getState().held?.move(at,0,0);usePortableStore.setState({held:null});useSandbox.setState({heldId:null});}
   }
