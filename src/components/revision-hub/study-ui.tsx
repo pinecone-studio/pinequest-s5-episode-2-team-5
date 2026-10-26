@@ -1,5 +1,5 @@
 import { router } from 'expo-router';
-import { useState, type ReactNode } from 'react';
+import type { ReactNode } from 'react';
 import { Pressable, ScrollView, StyleSheet, useWindowDimensions, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { AppText } from '@/components/ui/app-text';
@@ -25,30 +25,27 @@ export function openReference(reference: string) {
   router.push({ pathname: '/hub/g8-chem/[reference]', params: { reference } });
 }
 
-export function StudyPage({ title, subtitle, children, home = false }: { title: string; subtitle?: string; children: ReactNode; home?: boolean }) {
+export function StudyPage({ title, subtitle, children, home = false, showTopicLinks = true, onBack }: { title: string; subtitle?: string; children: ReactNode; home?: boolean; showTopicLinks?: boolean; onBack?: () => void }) {
   const { width } = useWindowDimensions();
   const insets = useSafeAreaInsets();
-  const [menu, setMenu] = useState<boolean | null>(null);
-  const [focus, setFocus] = useState(false);
   const { saved, error, retry, packId, contentSource } = useRevision();
-  const showRail = !focus && (menu ?? width >= 1100);
   return <LabBackground bubbles={0}>
-    {!focus && <ScreenHeader title={title} subtitle={subtitle} onBack={() => home ? router.replace('/lessons') : router.replace(packId === 'g7-chem' ? '/hub/g7-chem' : packId === 'g10-chem' ? '/hub/g10-chem' : packId === 'g9-chem' ? '/hub/g9-chem' : '/hub/g8-chem')}/>}
-    <View style={[ui.toolbar, focus && { paddingTop: insets.top + 8 }]}>
-      {!focus && <GameButton title={showRail ? 'Цэс хураах' : 'Сэдвийн цэс'} size="sm" variant="secondary" onPress={() => setMenu(!showRail)}/>}
-      <GameButton title={focus ? 'Бүтэн харагдац' : 'Төвлөрөх'} size="sm" variant="secondary" onPress={() => setFocus(!focus)}/>
+    <ScreenHeader title={title} subtitle={subtitle} onBack={onBack ?? (() => {
+      if (router.canGoBack()) router.back();
+      else router.replace(home ? '/lessons' : packId === 'g7-chem' ? '/hub/g7-chem' : packId === 'g10-chem' ? '/hub/g10-chem' : packId === 'g9-chem' ? '/hub/g9-chem' : '/hub/g8-chem');
+    })}/>
+    <View style={ui.toolbar}>
       <AppText variant="caption">Агуулга: {contentSource === 'supabase' ? 'Supabase' : 'төхөөрөмжийн нөөц'} · Явц: {error ? 'хадгалалт амжилтгүй' : saved ? 'төхөөрөмжид хадгалсан' : 'хадгалж байна…'}</AppText>
       {error && <GameButton title="Дахин хадгалах" size="sm" variant="danger" onPress={retry}/>}
     </View>
     <View style={{ flex: 1, flexDirection: width >= 1100 ? 'row' : 'column' }}>
-      {showRail && <ScrollView style={[ui.rail, width < 1100 && { maxHeight: 260, width: '100%' }]} contentContainerStyle={{ padding: 16, gap: 10 }}>
+      <ScrollView style={[ui.rail, width < 1100 && { maxHeight: 260, width: '100%' }]} contentContainerStyle={{ padding: 16, gap: 10 }}>
         <View style={ui.row}><GameButton title="7-р анги" size="sm" variant={packId==='g7-chem'?'primary':'secondary'} onPress={()=>router.replace('/hub/g7-chem/course')}/><GameButton title="8-р анги" size="sm" variant={packId==='g8-chem'?'primary':'secondary'} onPress={()=>router.replace('/hub/g8-chem/course')}/><GameButton title="9-р анги" size="sm" variant={packId==='g9-chem'?'primary':'secondary'} onPress={()=>router.replace('/hub/g9-chem/course')}/><GameButton title="10-р анги" size="sm" variant={packId==='g10-chem'?'primary':'secondary'} onPress={()=>router.replace('/hub/g10-chem/course')}/></View>
-        <StudyLink title="Сурах бичгийн зам" onPress={() => { setMenu(false); router.push(packId === 'g7-chem' ? '/hub/g7-chem/course' : packId === 'g10-chem' ? '/hub/g10-chem/course' : packId === 'g9-chem' ? '/hub/g9-chem/course' : '/hub/g8-chem/course'); }}/>
-        <StudyLink title="Судалгааны багажууд" onPress={() => { setMenu(false); router.push(packId === 'g7-chem' ? '/hub/g7-chem/investigations' : packId === 'g10-chem' ? '/hub/g10-chem/investigations' : packId === 'g9-chem' ? '/hub/g9-chem/investigations' : '/hub/g8-chem/investigations'); }}/>
-        <StudyLink title="Давтлагын нүүр" onPress={() => { setMenu(false); router.replace(packId === 'g7-chem' ? '/hub/g7-chem' : packId === 'g10-chem' ? '/hub/g10-chem' : packId === 'g9-chem' ? '/hub/g9-chem' : '/hub/g8-chem'); }}/>
-        {getPack(packId).topics.map((topic) => <StudyLink key={topic.id} title={`${topic.id} ${topic.title}`} onPress={() => { setMenu(false); openTopic(topic.id, 'notes', packId); }}/>) }
-        {packId === 'g8-chem' && <StudyLink title="Лавлах ба явц" onPress={() => { setMenu(false); openReference('progress'); }}/>}
-      </ScrollView>}
+        <StudyLink title="Сурах бичгийн зам" onPress={() => router.push(packId === 'g7-chem' ? '/hub/g7-chem/course' : packId === 'g10-chem' ? '/hub/g10-chem/course' : packId === 'g9-chem' ? '/hub/g9-chem/course' : '/hub/g8-chem/course')}/>
+        <StudyLink title="Судалгааны багажууд" onPress={() => router.push(packId === 'g7-chem' ? '/hub/g7-chem/investigations' : packId === 'g10-chem' ? '/hub/g10-chem/investigations' : packId === 'g9-chem' ? '/hub/g9-chem/investigations' : '/hub/g8-chem/investigations')}/>
+        {showTopicLinks && getPack(packId).topics.map((topic) => <StudyLink key={topic.id} title={`${topic.id} ${topic.title}`} onPress={() => openTopic(topic.id, 'notes', packId)}/>)}
+        {packId === 'g8-chem' && <StudyLink title="Лавлах ба явц" onPress={() => openReference('progress')}/>}
+      </ScrollView>
       <ScrollView key={title} style={{ flex: 1 }} keyboardShouldPersistTaps="handled" contentContainerStyle={[ui.content, { paddingBottom: insets.bottom + 32 }]}>
         {children}
         <AppText variant="caption">Давтлагын явц энэ төхөөрөмжид хадгалагдана.</AppText>

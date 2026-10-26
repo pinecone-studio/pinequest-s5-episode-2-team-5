@@ -128,7 +128,7 @@ export default function HubScreen() {
 }
 
 function Hub({ user }: { user: User }) {
-  const { signOut, updateRegion } = useSession();
+  const { signOut } = useSession();
   const { width, height } = useWindowDimensions();
   const mapZoom = width / WORLD.width;
   const mapOriginX = (WORLD.width / 2) * (1 - mapZoom);
@@ -322,7 +322,6 @@ function Hub({ user }: { user: User }) {
         user={user}
         visible={profileOpen}
         onClose={() => setProfileOpen(false)}
-        onUpdateRegion={updateRegion}
         onSignOut={() => {
           setProfileOpen(false);
           signOut();

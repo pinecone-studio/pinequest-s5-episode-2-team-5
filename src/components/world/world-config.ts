@@ -56,7 +56,7 @@ export const BUILDINGS: BuildingDef[] = [
     door: { x: 320, y: 434 },
   },
   {
-    id: 'study', sprite: 'house', label: 'Study Hub', route: '/study', icon: 'book-open-page-variant', color: '#FF5C7A',
+    id: 'study', sprite: 'house', label: 'Versus Hub', route: '/versus', icon: 'book-open-page-variant', color: '#FF5C7A',
     rect: { x: 10, y: 510, w: 210, h: 273 }, door: { x: 115, y: 795 },
   },
   {

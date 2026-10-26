@@ -1,4 +1,3 @@
-import { useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 
 import { PlayerPortrait } from '@/components/avatar/player-portrait';
@@ -7,45 +6,23 @@ import { BottomSheet } from '@/components/ui/bottom-sheet';
 import { ClassBadge } from '@/components/ui/class-badge';
 import { GameButton } from '@/components/ui/game-button';
 import { ProgressBar } from '@/components/ui/progress-bar';
-import { TextField } from '@/components/ui/text-field';
-import { RegionPicker, type RegionSelection } from '@/components/ranking/region-picker';
 import { StatTile } from '@/components/ui/stat-tile';
 import { Colors } from '@/constants/theme';
 import { CLASSES } from '@/data/classes';
 import { levelProgress } from '@/lib/progress';
-import type { RegionType, User } from '@/types';
+import type { User } from '@/types';
 
 interface ProfileSheetProps {
   user: User;
   visible: boolean;
   onClose: () => void;
   onSignOut: () => void;
-  onUpdateRegion: (regionType: RegionType, regionName: string, subregionName: string) => Promise<void>;
 }
 
-export function ProfileSheet({ user, visible, onClose, onSignOut, onUpdateRegion }: ProfileSheetProps) {
-  const [region, setRegion] = useState<RegionSelection | null>(
-    user.regionType && user.regionName ? { type: user.regionType, name: user.regionName } : null,
-  );
-  const [savingRegion, setSavingRegion] = useState(false);
-  const [regionError, setRegionError] = useState(false);
-  const [subregionName, setSubregionName] = useState(user.subregionName ?? '');
+export function ProfileSheet({ user, visible, onClose, onSignOut }: ProfileSheetProps) {
   const { level, into, needed, ratio } = levelProgress(user.xp);
-  const totalLessons = CLASSES.reduce((sum, c) => sum + c.lessons.length, 0);
+  const totalLessons = CLASSES.reduce((sum, chemClass) => sum + chemClass.lessons.length, 0);
   const done = Object.keys(user.completed).length;
-
-  const saveRegion = async () => {
-    if (!region) return;
-    setSavingRegion(true);
-    setRegionError(false);
-    try {
-      await onUpdateRegion(region.type, region.name, subregionName.trim());
-    } catch {
-      setRegionError(true);
-    } finally {
-      setSavingRegion(false);
-    }
-  };
 
   return (
     <BottomSheet visible={visible} onClose={onClose}>
@@ -66,28 +43,6 @@ export function ProfileSheet({ user, visible, onClose, onSignOut, onUpdateRegion
           {needed - into} XP to level {level + 1}
         </AppText>
       </View>
-      <View style={styles.regionSection}>
-        <AppText variant="label" color={Colors.cyan}>Чансааны байршил</AppText>
-        <RegionPicker value={region} onChange={(selection) => { setRegion(selection); setSubregionName(''); }} />
-        <TextField
-          label={region?.type === 'province' ? 'Сум' : 'Дүүрэг'}
-          icon="map-marker-outline"
-          placeholder={region?.type === 'province' ? 'Сумын нэр' : 'Дүүргийн нэр'}
-          value={subregionName}
-          onChangeText={setSubregionName}
-          maxLength={80}
-          autoCapitalize="words"
-        />
-        {regionError && <AppText variant="caption" color={Colors.danger}>Байршлыг хадгалж чадсангүй.</AppText>}
-        <GameButton
-          title="Байршил хадгалах"
-          icon="map-marker-check"
-          size="sm"
-          loading={savingRegion}
-          disabled={!region || !subregionName.trim() || (region.type === user.regionType && region.name === user.regionName && subregionName.trim() === (user.subregionName ?? ''))}
-          onPress={saveRegion}
-        />
-      </View>
       <GameButton title="Sign out" variant="danger" icon="logout" size="md" onPress={onSignOut} />
     </BottomSheet>
   );
@@ -97,5 +52,4 @@ const styles = StyleSheet.create({
   header: { alignItems: 'center', gap: 6 },
   stats: { flexDirection: 'row', gap: 10 },
   levelBox: { gap: 6 },
-  regionSection: { gap: 8 },
 });
