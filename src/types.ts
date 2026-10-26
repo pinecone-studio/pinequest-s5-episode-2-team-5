@@ -1,5 +1,6 @@
 import type { ComponentProps } from 'react';
 import type { MaterialCommunityIcons } from '@expo/vector-icons';
+import type { LocationProfile } from '@/data/location';
 
 export type IconName = ComponentProps<typeof MaterialCommunityIcons>['name'];
 
@@ -63,6 +64,9 @@ export interface User {
   xp: number;
   completed: Record<string, LessonResult>;
   createdAt: string;
+  location: LocationProfile | null;
+  /** Distinguishes an incomplete profile from a location query unavailable before migration. */
+  locationStatus: 'complete' | 'incomplete' | 'unavailable';
 }
 
 /** What other players can see about you (hub, ranking). */

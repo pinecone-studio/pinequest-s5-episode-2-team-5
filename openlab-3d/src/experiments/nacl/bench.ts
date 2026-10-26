@@ -28,7 +28,7 @@ export function enterBench(readId?: string): void {
   const game = useGameStore.getState();
   if (game.mode !== 'walk') return;
   beginPreparation();
-  useBenchView.setState(readId ? { selected: readId, level: 'detail' } : { level: 'table' });
+  useBenchView.setState(readId ? { selected: readId, viewMode: 'detail' } : { viewMode: 'table' });
   endHeldUse();
   game.setCursorFree(true);
   releaseLock();

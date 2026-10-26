@@ -317,7 +317,7 @@ export function selectBenchExperiment(id: string, fresh = false) {
   useLabStore.getState().setActive(id);
   beginPreparation();
   useSandbox.setState({ inspected: null, hovered: null });
-  useBenchView.setState({ selected: null, inspecting: false, level: 'table' });
+  useBenchView.setState({ selected: null, inspecting: false, viewMode: 'table' });
   useWorkbench.setState({ drawer: false });
   updateStationVisibility();
   if (useGameStore.getState().mode === 'bench') benchView.table();

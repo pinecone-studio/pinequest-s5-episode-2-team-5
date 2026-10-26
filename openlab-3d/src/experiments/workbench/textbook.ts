@@ -3,7 +3,7 @@ import {REAGENTS,type ReagentId} from '../../chemistry/reagents';
 import { INVESTIGATIONS } from '../../../../src/lib/textbook-investigations';
 import type { Experiment } from '../../lab/experiment-schema';
 export const TEXTBOOK_EXPERIMENTS: Experiment[] = INVESTIGATIONS.map((x) => ({
-  id:x.id,title:x.title,level:'Дунд',goal:x.prompt,
+  id:x.id,title:x.title,goal:x.prompt,
   materials:x.mode==='model'?['Виртуал судалгааны багаж · хялбаршуулсан загвар']:x.supplies.map(s=>s.startsWith('reagent:')?REAGENTS[s.slice(8) as ReagentId].name:CATALOG[s as EquipmentKind].name),
   safety:x.safety,
   steps:[

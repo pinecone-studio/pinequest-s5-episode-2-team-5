@@ -110,7 +110,7 @@ export function NaClStation() {
       const target = engine.benchTarget();
       const distance = fit ? Math.max(1.35, 0.85 / Math.max(0.25, camera.aspect)) : Math.max(1.2, 0.65 / Math.max(0.4, camera.aspect));
       move(target.clone().add(new Vector3(0, 0.42, 1).normalize().multiplyScalar(distance)), target);
-      useBenchView.setState({ level: 'table', selected: null });
+      useBenchView.setState({ viewMode: 'table', selected: null });
       useSandbox.setState({ inspected: null });
     };
     benchView.table = () => table(false);
@@ -138,7 +138,7 @@ export function NaClStation() {
       const size = box.getSize(new Vector3());
       const distance = Math.max(0.12, size.y / (2 * Math.tan(42 * Math.PI / 360)) * 1.3, size.x / (2 * Math.tan(42 * Math.PI / 360) * camera.aspect) * 1.2);
       move(target.clone().add(new Vector3(0, 0.06, 1).normalize().multiplyScalar(distance)), target, duration);
-      useBenchView.setState({ selected: id, level: 'detail' });
+      useBenchView.setState({ selected: id, viewMode: 'detail' });
       mixture(id);
       useSandbox.setState({ inspected: id, hovered: null });
       tablePointer.active = false;
@@ -345,7 +345,7 @@ export function NaClStation() {
       if (useLabStore.getState().active === 'nacl' && currentSession()?.ready && step.done && !progress.includes(`step-${i + 1}`)) emitLab({ key: `nacl:${step.letter}`, quiet: true });
     });
     const selected = useBenchView.getState().selected;
-    const markerKeys = (inBench && useBenchView.getState().level === 'detail' && selected ? [selected] : guide.recommended).map(partKey).filter((key): key is PartKey => !!key);
+    const markerKeys = (inBench && useBenchView.getState().viewMode === 'detail' && selected ? [selected] : guide.recommended).map(partKey).filter((key): key is PartKey => !!key);
     engine.guideMarkers(useLabStore.getState().active === 'nacl' && currentSession()?.ready ? markerKeys : []);
     engine.update(dt);
   });

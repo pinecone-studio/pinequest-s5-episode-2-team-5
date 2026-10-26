@@ -14,7 +14,6 @@ export interface ExperimentStep {
 export interface Experiment {
   id: string;
   title: string;
-  level: 'Эхлэл' | 'Дунд' | 'Ахисан';
   goal: string;
   materials: string[];
   safety: string;
@@ -59,14 +58,12 @@ function rule(value: unknown): CompletionRule {
 export function parseExperiment(value: unknown): Experiment {
   const data = object(value);
   if (JSON.stringify(data).length > 131072) throw new Error('Experiment is too large');
-  const level = data.level;
-  if (level !== 'Эхлэл' && level !== 'Дунд' && level !== 'Ахисан') throw new Error('Invalid experiment level');
   const steps = list(data.steps, 100).map((item) => {
     const step = object(item);
     return { id: id(step.id), text: text(step.text), hint: text(step.hint), completion: rule(step.completion) };
   });
   if (!steps.length || new Set(steps.map((step) => step.id)).size !== steps.length) throw new Error('Step ids must be unique');
-  return { id: id(data.id), title: text(data.title, 300), level, goal: text(data.goal), materials: list(data.materials, 64).map((v) => text(v)), safety: text(data.safety), steps, explain: text(data.explain) };
+  return { id: id(data.id), title: text(data.title, 300), goal: text(data.goal), materials: list(data.materials, 64).map((v) => text(v)), safety: text(data.safety), steps, explain: text(data.explain) };
 }
 
 export function parseExperimentRows(value: unknown): Experiment[] {

@@ -3,6 +3,8 @@ import { createContext, use, useEffect, useState, type ReactNode } from 'react';
 import { applyLessonResult, type CompletionResult } from '@/lib/progress';
 import * as auth from '@/services/auth';
 import type { Stars, User } from '@/types';
+import type { LocationDraft } from '@/data/location';
+import { saveLocationProfile } from '@/services/location';
 
 interface SessionContextValue {
   user: User | null;
@@ -11,6 +13,7 @@ interface SessionContextValue {
   signIn: (email: string, password: string) => Promise<void>;
   signOut: () => Promise<void>;
   completeLesson: (lessonId: string, stars: Stars) => Promise<CompletionResult>;
+  updateLocation: (draft: LocationDraft) => Promise<void>;
 }
 
 const SessionContext = createContext<SessionContextValue | null>(null);
@@ -40,6 +43,11 @@ export function SessionProvider({ children }: { children: ReactNode }) {
       const next = applyLessonResult(user, lessonId, stars);
       setUser(await auth.saveUser(next.user));
       return next.result;
+    },
+    updateLocation: async (draft) => {
+      if (!user) throw new Error('Not signed in');
+      const location = await saveLocationProfile(user.id, draft);
+      setUser({ ...user, location, locationStatus: 'complete' });
     },
   };
 

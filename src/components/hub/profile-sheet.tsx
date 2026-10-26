@@ -1,4 +1,5 @@
 import { StyleSheet, View } from 'react-native';
+import { router } from 'expo-router';
 
 import { PlayerPortrait } from '@/components/avatar/player-portrait';
 import { AppText } from '@/components/ui/app-text';
@@ -43,6 +44,21 @@ export function ProfileSheet({ user, visible, onClose, onSignOut }: ProfileSheet
           {needed - into} XP to level {level + 1}
         </AppText>
       </View>
+      {user.locationStatus === 'unavailable' && (
+        <AppText variant="caption" color={Colors.gold}>
+          Байршлын мэдээллийг одоогоор ачаалж чадсангүй. Та дараа дахин оролдож болно.
+        </AppText>
+      )}
+      <GameButton
+        title={user.locationStatus === 'complete' ? 'Байршил, сургуулиа засах' : 'Байршил, сургуулиа оруулах'}
+        variant="secondary"
+        icon="map-marker-outline"
+        size="md"
+        onPress={() => {
+          onClose();
+          router.push('/onboarding');
+        }}
+      />
       <GameButton title="Sign out" variant="danger" icon="logout" size="md" onPress={onSignOut} />
     </BottomSheet>
   );

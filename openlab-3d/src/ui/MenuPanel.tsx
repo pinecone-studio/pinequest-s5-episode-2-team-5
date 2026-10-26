@@ -88,7 +88,7 @@ function ExperimentsTab() {
                 <span className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl text-sm font-extrabold ${complete ? 'bg-emerald-600 text-white' : active === x.id ? 'bg-indigo-700 text-white' : 'bg-slate-100 text-slate-700'}`}>{complete ? '✓' : `${done.length}/${x.steps.length}`}</span>
                 <span className="flex-1">
                   <span className="block font-semibold leading-tight">{x.title}</span>
-                  <span className="block text-xs text-slate-600">{investigationById(x.id)?.grade??8}-р анги · {x.level} · {investigationById(x.id)?.mode==='model'?'Виртуал багаж · ':''}{x.steps.length} алхам</span>
+                  <span className="block text-xs text-slate-600">{investigationById(x.id)?.grade??8}-р анги · {investigationById(x.id)?.mode==='model'?'Виртуал багаж · ':''}{x.steps.length} алхам</span>
                   {active === x.id && <span className="mt-1 inline-flex rounded-full bg-indigo-100 px-2 py-0.5 text-[10px] font-bold text-indigo-900">Одоо сонгосон</span>}
                 </span>
                 <span className="text-xs text-slate-400">{expanded ? '▲' : '▼'}</span>

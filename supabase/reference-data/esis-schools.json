@@ -1,0 +1,5242 @@
+﻿{
+  "recordset": [
+  {
+    "InstitutionId":"40194",
+    "InstitutionName":"Нийслэлийн ерөнхий боловсролын оюуны эрин цогцолбор сургууль",
+    "ParentInstitutionId":"39984",
+    "ParentInstitutionName":"Багануур дүүрэг"
+  },
+  {
+    "InstitutionId":"40030",
+    "InstitutionName":"Нийслэлийн ерөнхий боловсролын лаборатори Боловсрол цогцолбор сургууль",
+    "ParentInstitutionId":"39984",
+    "ParentInstitutionName":"Багануур дүүрэг"
+  },
+  {
+    "InstitutionId":"40031",
+    "InstitutionName":"Нийслэлийн ерөнхий боловсролын гүн галуутай цогцолбор сургууль",
+    "ParentInstitutionId":"39984",
+    "ParentInstitutionName":"Багануур дүүрэг"
+  },
+  {
+    "InstitutionId":"40032",
+    "InstitutionName":"Ерөнхий боловсролын сод сургууль",
+    "ParentInstitutionId":"39984",
+    "ParentInstitutionName":"Багануур дүүрэг"
+  },
+  {
+    "InstitutionId":"40033",
+    "InstitutionName":"Нийслэлийн ерөнхий боловсролын арван гурав дугаар сургууль",
+    "ParentInstitutionId":"39985",
+    "ParentInstitutionName":"Баянгол дүүрэг"
+  },
+  {
+    "InstitutionId":"40362",
+    "InstitutionName":"Нийслэлийн ерөнхий боловсролын арван ес дүгээр сургууль",
+    "ParentInstitutionId":"39985",
+    "ParentInstitutionName":"Баянгол дүүрэг"
+  },
+  {
+    "InstitutionId":"40034",
+    "InstitutionName":"Нийслэлийн ерөнхий боловсролын лаборатори хорь дугаар сургууль",
+    "ParentInstitutionId":"39985",
+    "ParentInstitutionName":"Баянгол дүүрэг"
+  },
+  {
+    "InstitutionId":"40035",
+    "InstitutionName":"Нийслэлийн ерөнхий боловсролын лаборатори хорин найм дугаар сургууль",
+    "ParentInstitutionId":"39985",
+    "ParentInstitutionName":"Баянгол дүүрэг"
+  },
+  {
+    "InstitutionId":"40363",
+    "InstitutionName":"Нийслэлийн ерөнхий боловсролын гучин найм дугаар сургууль",
+    "ParentInstitutionId":"39985",
+    "ParentInstitutionName":"Баянгол дүүрэг"
+  },
+  {
+    "InstitutionId":"40036",
+    "InstitutionName":"Нийслэлийн ерөнхий боловсролын дөч дүгээр сургууль",
+    "ParentInstitutionId":"39985",
+    "ParentInstitutionName":"Баянгол дүүрэг"
+  },
+  {
+    "InstitutionId":"40037",
+    "InstitutionName":"Нийслэлийн ерөнхий боловсролын дөчин долдугаар сургууль",
+    "ParentInstitutionId":"39985",
+    "ParentInstitutionName":"Баянгол дүүрэг"
+  },
+  {
+    "InstitutionId":"40339",
+    "InstitutionName":"Нийслэлийн ерөнхий боловсролын тавин нэгдүгээр сургууль",
+    "ParentInstitutionId":"39985",
+    "ParentInstitutionName":"Баянгол дүүрэг"
+  },
+  {
+    "InstitutionId":"40039",
+    "InstitutionName":"Нийслэлийн ерөнхий боловсролын далан гуравдугаар сургууль",
+    "ParentInstitutionId":"39985",
+    "ParentInstitutionName":"Баянгол дүүрэг"
+  },
+  {
+    "InstitutionId":"40040",
+    "InstitutionName":"Нийслэлийн ерөнхий боловсролын лаборатори ерэн гурав дугаар сургууль",
+    "ParentInstitutionId":"39985",
+    "ParentInstitutionName":"Баянгол дүүрэг"
+  },
+  {
+    "InstitutionId":"40158",
+    "InstitutionName":"Нийслэлийн ерөнхий боловсролын зуун арван гуравдугаар сургууль",
+    "ParentInstitutionId":"39985",
+    "ParentInstitutionName":"Баянгол дүүрэг"
+  },
+  {
+    "InstitutionId":"40038",
+    "InstitutionName":"Нийслэлийн ерөнхий боловсролын дал дугаар сургууль",
+    "ParentInstitutionId":"39985",
+    "ParentInstitutionName":"Баянгол дүүрэг"
+  },
+  {
+    "InstitutionId":"40041",
+    "InstitutionName":"Монгени цогцолбор сургууль",
+    "ParentInstitutionId":"39985",
+    "ParentInstitutionName":"Баянгол дүүрэг"
+  },
+  {
+    "InstitutionId":"40043",
+    "InstitutionName":"Нийслэлийн ерөнхий боловсролын оюуны ундраа цогцолбор сургууль",
+    "ParentInstitutionId":"39985",
+    "ParentInstitutionName":"Баянгол дүүрэг"
+  },
+  {
+    "InstitutionId":"40042",
+    "InstitutionName":"Нийслэлийн ерөнхий боловсролын сэтгэмж цогцолбор сургууль",
+    "ParentInstitutionId":"39985",
+    "ParentInstitutionName":"Баянгол дүүрэг"
+  },
+  {
+    "InstitutionId":"40045",
+    "InstitutionName":"Нийслэлийн ерөнхий боловсролын эрдмийн ундраа цогцолбор сургууль",
+    "ParentInstitutionId":"39985",
+    "ParentInstitutionName":"Баянгол дүүрэг"
+  },
+  {
+    "InstitutionId":"40044",
+    "InstitutionName":"Нийслэлийн ерөнхий боловсролын лаборатори эрдмийн өргөө цогцолбор сургууль",
+    "ParentInstitutionId":"39985",
+    "ParentInstitutionName":"Баянгол дүүрэг"
+  },
+  {
+    "InstitutionId":"40062",
+    "InstitutionName":"Гэгээрэл ерөнхий боловсролын сургууль",
+    "ParentInstitutionId":"39985",
+    "ParentInstitutionName":"Баянгол дүүрэг"
+  },
+  {
+    "InstitutionId":"40049",
+    "InstitutionName":"Ерөнхий боловсролын Жаргалан сургууль",
+    "ParentInstitutionId":"39985",
+    "ParentInstitutionName":"Баянгол дүүрэг"
+  },
+  {
+    "InstitutionId":"40340",
+    "InstitutionName":"Ерөнхий боловсролын лидер дунд сургууль",
+    "ParentInstitutionId":"39985",
+    "ParentInstitutionName":"Баянгол дүүрэг"
+  },
+  {
+    "InstitutionId":"42303",
+    "InstitutionName":"Монгол коосэн технологийн коллеж",
+    "ParentInstitutionId":"39985",
+    "ParentInstitutionName":"Баянгол дүүрэг"
+  },
+  {
+    "InstitutionId":"42325",
+    "InstitutionName":"Монгол од бүрэн дунд сургууль",
+    "ParentInstitutionId":"39985",
+    "ParentInstitutionName":"Баянгол дүүрэг"
+  },
+  {
+    "InstitutionId":"43972",
+    "InstitutionName":"Ерөнхий боловсролын номт наран сургууль",
+    "ParentInstitutionId":"39985",
+    "ParentInstitutionName":"Баянгол дүүрэг"
+  },
+  {
+    "InstitutionId":"40309",
+    "InstitutionName":"Номун далай НД сургууль",
+    "ParentInstitutionId":"39985",
+    "ParentInstitutionName":"Баянгол дүүрэг"
+  },
+  {
+    "InstitutionId":"40051",
+    "InstitutionName":"Ерөнхий боловсролын Номч сургууль",
+    "ParentInstitutionId":"39985",
+    "ParentInstitutionName":"Баянгол дүүрэг"
+  },
+  {
+    "InstitutionId":"40057",
+    "InstitutionName":"Русская гимназия сургууль",
+    "ParentInstitutionId":"39985",
+    "ParentInstitutionName":"Баянгол дүүрэг"
+  },
+  {
+    "InstitutionId":"40059",
+    "InstitutionName":"Сэн лизэ бүрэн дунд сургууль",
+    "ParentInstitutionId":"39985",
+    "ParentInstitutionName":"Баянгол дүүрэг"
+  },
+  {
+    "InstitutionId":"40065",
+    "InstitutionName":"Ерөнхий боловсролын төгс билиг бага сургууль",
+    "ParentInstitutionId":"39985",
+    "ParentInstitutionName":"Баянгол дүүрэг"
+  },
+  {
+    "InstitutionId":"40364",
+    "InstitutionName":"Хүслийн өргөө ерөнхий боловсролын сургууль",
+    "ParentInstitutionId":"39985",
+    "ParentInstitutionName":"Баянгол дүүрэг"
+  },
+  {
+    "InstitutionId":"40064",
+    "InstitutionName":"Ерөнхий боловсролын эрдмийн ач сургууль",
+    "ParentInstitutionId":"39985",
+    "ParentInstitutionName":"Баянгол дүүрэг"
+  },
+  {
+    "InstitutionId":"40063",
+    "InstitutionName":"Эхлэл ерөнхий боловсролын сургууль",
+    "ParentInstitutionId":"39985",
+    "ParentInstitutionName":"Баянгол дүүрэг"
+  },
+  {
+    "InstitutionId":"40055",
+    "InstitutionName":"Нийслэлийн ерөнхий боловсролын Хүрээ тулга сургууль",
+    "ParentInstitutionId":"39985",
+    "ParentInstitutionName":"Баянгол дүүрэг"
+  },
+  {
+    "InstitutionId":"40292",
+    "InstitutionName":"Ерөнхий боловсролын соёмбо сургууль",
+    "ParentInstitutionId":"39985",
+    "ParentInstitutionName":"Баянгол дүүрэг"
+  },
+  {
+    "InstitutionId":"43969",
+    "InstitutionName":"Ерөнхий боловсролын эрдэм алтай сургууль",
+    "ParentInstitutionId":"39985",
+    "ParentInstitutionName":"Баянгол дүүрэг"
+  },
+  {
+    "InstitutionId":"44086",
+    "InstitutionName":"Эрхэт эрдэм бүрэн дунд сургууль",
+    "ParentInstitutionId":"39985",
+    "ParentInstitutionName":"Баянгол дүүрэг"
+  },
+  {
+    "InstitutionId":"40335",
+    "InstitutionName":"Ерөнхий боловсролын ес эрдэм сургууль",
+    "ParentInstitutionId":"39985",
+    "ParentInstitutionName":"Баянгол дүүрэг"
+  },
+  {
+    "InstitutionId":"44240",
+    "InstitutionName":"Нийслэлийн ерөнхий боловсролын лаборатори зуун дөчин нэгдүгээр сургууль",
+    "ParentInstitutionId":"39985",
+    "ParentInstitutionName":"Баянгол дүүрэг"
+  },
+  {
+    "InstitutionId":"44247",
+    "InstitutionName":"Нийслэлийн ерөнхий боловсролын эрдмийн хишиг сургууль",
+    "ParentInstitutionId":"39985",
+    "ParentInstitutionName":"Баянгол дүүрэг"
+  },
+  {
+    "InstitutionId":"44270",
+    "InstitutionName":"Ерөнхий боловсролын норовлин сургууль",
+    "ParentInstitutionId":"39985",
+    "ParentInstitutionName":"Баянгол дүүрэг"
+  },
+  {
+    "InstitutionId":"44321",
+    "InstitutionName":"Нийслэлийн ерөнхий боловсролын Эрин эверест интернэшнл сургууль",
+    "ParentInstitutionId":"39985",
+    "ParentInstitutionName":"Баянгол дүүрэг"
+  },
+  {
+    "InstitutionId":"44322",
+    "InstitutionName":"Мон-Алтиус дээд сургуулийн харьяа ерөнхий боловсролын Мон-Алтиус ахлах сургууль",
+    "ParentInstitutionId":"39985",
+    "ParentInstitutionName":"Баянгол дүүрэг"
+  },
+  {
+    "InstitutionId":"44495",
+    "InstitutionName":"Ерөнхий боловсролын мандах лицей ахлах сургууль  ",
+    "ParentInstitutionId":"39985",
+    "ParentInstitutionName":"Баянгол дүүрэг"
+  },
+  {
+    "InstitutionId":"40110",
+    "InstitutionName":"Оюуны тулга сургууль",
+    "ParentInstitutionId":"39985",
+    "ParentInstitutionName":"Баянгол дүүрэг"
+  },
+  {
+    "InstitutionId":"44089",
+    "InstitutionName":"Ерөнхий боловсролын Путонхуа сургууль",
+    "ParentInstitutionId":"39985",
+    "ParentInstitutionName":"Баянгол дүүрэг"
+  },
+  {
+    "InstitutionId":"44497",
+    "InstitutionName":"Нийслэлийн ерөнхий боловсролын зуун дөчин зургаа дугаар сургууль",
+    "ParentInstitutionId":"39985",
+    "ParentInstitutionName":"Баянгол дүүрэг"
+  },
+  {
+    "InstitutionId":"44548",
+    "InstitutionName":"Эвттайжууд ХХК",
+    "ParentInstitutionId":"39985",
+    "ParentInstitutionName":"Баянгол дүүрэг"
+  },
+  {
+    "InstitutionId":"39975",
+    "InstitutionName":"Ерөнхий боловсролын наран нэг сургууль",
+    "ParentInstitutionId":"39985",
+    "ParentInstitutionName":"Баянгол дүүрэг"
+  },
+  {
+    "InstitutionId":"44092",
+    "InstitutionName":"Оюут бага сургууль",
+    "ParentInstitutionId":"39985",
+    "ParentInstitutionName":"Баянгол дүүрэг"
+  },
+  {
+    "InstitutionId":"40365",
+    "InstitutionName":"Нийслэлийн ерөнхий боловсролын зуун ес дүгээр сургууль",
+    "ParentInstitutionId":"39986",
+    "ParentInstitutionName":"Налайх дүүрэг"
+  },
+  {
+    "InstitutionId":"40070",
+    "InstitutionName":"Нийслэлийн ерөнхий боловсролын лаборатори зуун арван ес дүгээр сургууль",
+    "ParentInstitutionId":"39986",
+    "ParentInstitutionName":"Налайх дүүрэг"
+  },
+  {
+    "InstitutionId":"40067",
+    "InstitutionName":"Нийслэлийн ерөнхий боловсролын голомт цогцолбор сургууль",
+    "ParentInstitutionId":"39986",
+    "ParentInstitutionName":"Налайх дүүрэг"
+  },
+  {
+    "InstitutionId":"40069",
+    "InstitutionName":"Нийслэлийн ерөнхий боловсролын зуун гуравдугаар сургууль",
+    "ParentInstitutionId":"39986",
+    "ParentInstitutionName":"Налайх дүүрэг"
+  },
+  {
+    "InstitutionId":"40068",
+    "InstitutionName":"Нийслэлийн ерөнхий боловсролын эрдмийн оргил цогцолбор сургууль",
+    "ParentInstitutionId":"39986",
+    "ParentInstitutionName":"Налайх дүүрэг"
+  },
+  {
+    "InstitutionId":"40285",
+    "InstitutionName":"Нийслэлийн ерөнхий боловсролын Чандмань эрдэнэ сургууль",
+    "ParentInstitutionId":"39986",
+    "ParentInstitutionName":"Налайх дүүрэг"
+  },
+  {
+    "InstitutionId":"40286",
+    "InstitutionName":"Ерөнхий боловсролын Хос Уянга сургууль",
+    "ParentInstitutionId":"39986",
+    "ParentInstitutionName":"Налайх дүүрэг"
+  },
+  {
+    "InstitutionId":"44085",
+    "InstitutionName":"Нийслэлийн ерөнхий боловсролын тэрэлж боардинг сургууль",
+    "ParentInstitutionId":"39986",
+    "ParentInstitutionName":"Налайх дүүрэг"
+  },
+  {
+    "InstitutionId":"44575",
+    "InstitutionName":"Нийслэлийн 160 дугаар сургууль",
+    "ParentInstitutionId":"39986",
+    "ParentInstitutionName":"Налайх дүүрэг"
+  },
+  {
+    "InstitutionId":"39867",
+    "InstitutionName":"Өмнөговь аймаг Даланзадгад сум ерөнхий боловсролын лаборатори нэгдүгээр сургууль",
+    "ParentInstitutionId":"40163",
+    "ParentInstitutionName":"Өмнөговь аймаг"
+  },
+  {
+    "InstitutionId":"40234",
+    "InstitutionName":"Өмнөговь аймгийн Даланзадгад сумын ерөнхий боловсролын гуравдугаар сургууль",
+    "ParentInstitutionId":"40163",
+    "ParentInstitutionName":"Өмнөговь аймаг"
+  },
+  {
+    "InstitutionId":"39869",
+    "InstitutionName":"Өмнөговь аймгийн Даланзадгад сумын ерөнхий боловсролын дөрөвдүгээр сургууль",
+    "ParentInstitutionId":"40163",
+    "ParentInstitutionName":"Өмнөговь аймаг"
+  },
+  {
+    "InstitutionId":"40239",
+    "InstitutionName":"Өмнөговь аймгийн Цогтцэций сумын ерөнхий боловсролын хоёрдугаар сургууль",
+    "ParentInstitutionId":"40163",
+    "ParentInstitutionName":"Өмнөговь аймаг"
+  },
+  {
+    "InstitutionId":"40235",
+    "InstitutionName":"Өмнөговь аймгийн Баян-Овоо сумын Ерөнхий боловсролын сургууль",
+    "ParentInstitutionId":"40163",
+    "ParentInstitutionName":"Өмнөговь аймаг"
+  },
+  {
+    "InstitutionId":"39870",
+    "InstitutionName":"Өмнөговь аймгийн Баяндалай сумын ерөнхий боловсролын сургууль",
+    "ParentInstitutionId":"40163",
+    "ParentInstitutionName":"Өмнөговь аймаг"
+  },
+  {
+    "InstitutionId":"39871",
+    "InstitutionName":"Өмнөговь аймгийн Булган сумын Ерөнхий боловсролын сургууль",
+    "ParentInstitutionId":"40163",
+    "ParentInstitutionName":"Өмнөговь аймаг"
+  },
+  {
+    "InstitutionId":"40307",
+    "InstitutionName":"Өмнөговь аймгийн Гурвантэс сумын Ерөнхий боловсролын сургууль",
+    "ParentInstitutionId":"40163",
+    "ParentInstitutionName":"Өмнөговь аймаг"
+  },
+  {
+    "InstitutionId":"40236",
+    "InstitutionName":"Өмнөговь аймгийн Мандал-Овоо сумын Ерөнхий боловсролын сургууль",
+    "ParentInstitutionId":"40163",
+    "ParentInstitutionName":"Өмнөговь аймаг"
+  },
+  {
+    "InstitutionId":"39872",
+    "InstitutionName":"Өмнөговь аймгийн Манлай сумын ерөнхий боловсролын сургууль",
+    "ParentInstitutionId":"40163",
+    "ParentInstitutionName":"Өмнөговь аймаг"
+  },
+  {
+    "InstitutionId":"39873",
+    "InstitutionName":"Өмнөговь аймгийн Номгон сумын ерөнхий боловсролын сургууль",
+    "ParentInstitutionId":"40163",
+    "ParentInstitutionName":"Өмнөговь аймаг"
+  },
+  {
+    "InstitutionId":"40237",
+    "InstitutionName":"Өмнөговь аймгийн Ноён сумын ерөнхий боловсролын сургууль",
+    "ParentInstitutionId":"40163",
+    "ParentInstitutionName":"Өмнөговь аймаг"
+  },
+  {
+    "InstitutionId":"40291",
+    "InstitutionName":"Өмнөговь аймгийн Сэврэй сумын Ерөнхий боловсролын сургууль",
+    "ParentInstitutionId":"40163",
+    "ParentInstitutionName":"Өмнөговь аймаг"
+  },
+  {
+    "InstitutionId":"39874",
+    "InstitutionName":"Өмнөговь аймгийн Ханбогд сумын ерөнхий боловсролын нэгдүгээр сургууль",
+    "ParentInstitutionId":"40163",
+    "ParentInstitutionName":"Өмнөговь аймаг"
+  },
+  {
+    "InstitutionId":"40238",
+    "InstitutionName":"Өмнөговь аймгийн Ханхонгор сумын ерөнхий боловсролын сургууль",
+    "ParentInstitutionId":"40163",
+    "ParentInstitutionName":"Өмнөговь аймаг"
+  },
+  {
+    "InstitutionId":"39875",
+    "InstitutionName":"Өмнөговь аймгийн Хүрмэн сумын Ерөнхий боловсролын сургууль",
+    "ParentInstitutionId":"40163",
+    "ParentInstitutionName":"Өмнөговь аймаг"
+  },
+  {
+    "InstitutionId":"39876",
+    "InstitutionName":"Өмнөговь аймгийн Цогт-Овоо сумын Ерөнхий боловсролын сургууль",
+    "ParentInstitutionId":"40163",
+    "ParentInstitutionName":"Өмнөговь аймаг"
+  },
+  {
+    "InstitutionId":"39877",
+    "InstitutionName":"Өмнөговь аймгийн Цогтцэций сумын ерөнхий боловсролын нэгдүгээр сургууль",
+    "ParentInstitutionId":"40163",
+    "ParentInstitutionName":"Өмнөговь аймаг"
+  },
+  {
+    "InstitutionId":"39868",
+    "InstitutionName":"Өмнөговь аймгийн Даланзадгад сумын ерөнхий боловсролын хоёрдугаар сургууль",
+    "ParentInstitutionId":"40163",
+    "ParentInstitutionName":"Өмнөговь аймаг"
+  },
+  {
+    "InstitutionId":"43973",
+    "InstitutionName":"Өмнөговь аймгийн Даланзадгад сумын ерөнхий боловсролын тавдугаар сургууль",
+    "ParentInstitutionId":"40163",
+    "ParentInstitutionName":"Өмнөговь аймаг"
+  },
+  {
+    "InstitutionId":"43959",
+    "InstitutionName":"Өмнөговь аймгийн Даланзадгад сумын ерөнхий боловсролын долоодугаар сургууль",
+    "ParentInstitutionId":"40163",
+    "ParentInstitutionName":"Өмнөговь аймаг"
+  },
+  {
+    "InstitutionId":"44278",
+    "InstitutionName":"Өмнөговь аймгийн Ханбогд сумын Ерөнхий боловсролын хоёрдугаар сургууль",
+    "ParentInstitutionId":"40163",
+    "ParentInstitutionName":"Өмнөговь аймаг"
+  },
+  {
+    "InstitutionId":"40354",
+    "InstitutionName":"Ховд аймгийн Булган сумын ерөнхий боловсролын нэг дүгээр сургууль",
+    "ParentInstitutionId":"40164",
+    "ParentInstitutionName":"Ховд аймаг"
+  },
+  {
+    "InstitutionId":"39804",
+    "InstitutionName":"Ховд аймгийн Жаргалант сумын ерөнхий боловсролын хоёр дугаар сургууль",
+    "ParentInstitutionId":"40164",
+    "ParentInstitutionName":"Ховд аймаг"
+  },
+  {
+    "InstitutionId":"40209",
+    "InstitutionName":"Ховд аймгийн Жаргалант сумын ерөнхий боловсролын гурав дугаар сургууль",
+    "ParentInstitutionId":"40164",
+    "ParentInstitutionName":"Ховд аймаг"
+  },
+  {
+    "InstitutionId":"40306",
+    "InstitutionName":"Ховд аймгийн Жаргалант сумын ерөнхий боловсролын зургаа дугаар сургууль",
+    "ParentInstitutionId":"40164",
+    "ParentInstitutionName":"Ховд аймаг"
+  },
+  {
+    "InstitutionId":"40210",
+    "InstitutionName":"Ховд аймгийн Жаргалант сумын ерөнхий боловсролын долоо дугаар сургууль",
+    "ParentInstitutionId":"40164",
+    "ParentInstitutionName":"Ховд аймаг"
+  },
+  {
+    "InstitutionId":"40208",
+    "InstitutionName":"Ховд аймгийн ерөнхий боловсролын лаборатори 1 дүгээр сургууль",
+    "ParentInstitutionId":"40164",
+    "ParentInstitutionName":"Ховд аймаг"
+  },
+  {
+    "InstitutionId":"39794",
+    "InstitutionName":"Ховд аймгийн Алтай сумын ерөнхий боловсролын сургууль",
+    "ParentInstitutionId":"40164",
+    "ParentInstitutionName":"Ховд аймаг"
+  },
+  {
+    "InstitutionId":"39796",
+    "InstitutionName":"Ховд аймгийн Буянт сумын ерөнхий боловсролын сургууль",
+    "ParentInstitutionId":"40164",
+    "ParentInstitutionName":"Ховд аймаг"
+  },
+  {
+    "InstitutionId":"40204",
+    "InstitutionName":"Ховд аймгийн Дарви сумын ерөнхий боловсролын сургууль",
+    "ParentInstitutionId":"40164",
+    "ParentInstitutionName":"Ховд аймаг"
+  },
+  {
+    "InstitutionId":"39798",
+    "InstitutionName":"Ховд аймгийн Дуут сумын ерөнхий боловсролын сургууль",
+    "ParentInstitutionId":"40164",
+    "ParentInstitutionName":"Ховд аймаг"
+  },
+  {
+    "InstitutionId":"39797",
+    "InstitutionName":"Ховд аймгийн Дөргөн сумын ерөнхий боловсролын сургууль",
+    "ParentInstitutionId":"40164",
+    "ParentInstitutionName":"Ховд аймаг"
+  },
+  {
+    "InstitutionId":"40205",
+    "InstitutionName":"Ховд аймгийн Зэрэг сумын ерөнхий боловсролын сургууль",
+    "ParentInstitutionId":"40164",
+    "ParentInstitutionName":"Ховд аймаг"
+  },
+  {
+    "InstitutionId":"40281",
+    "InstitutionName":"Ховд аймгийн Манхан сумын ерөнхий боловсролын сургууль",
+    "ParentInstitutionId":"40164",
+    "ParentInstitutionName":"Ховд аймаг"
+  },
+  {
+    "InstitutionId":"39795",
+    "InstitutionName":"Ховд аймгийн Булган сумын ерөнхий боловсролын Минжит булган цогцолбор сургууль",
+    "ParentInstitutionId":"40164",
+    "ParentInstitutionName":"Ховд аймаг"
+  },
+  {
+    "InstitutionId":"39799",
+    "InstitutionName":"Ховд аймгийн Мянгад сумын ерөнхий боловсролын сургууль",
+    "ParentInstitutionId":"40164",
+    "ParentInstitutionName":"Ховд аймаг"
+  },
+  {
+    "InstitutionId":"40325",
+    "InstitutionName":"Ховд аймгийн Мөнххайрхан сумын ерөнхий боловсролын сургууль",
+    "ParentInstitutionId":"40164",
+    "ParentInstitutionName":"Ховд аймаг"
+  },
+  {
+    "InstitutionId":"40206",
+    "InstitutionName":"Ховд аймгийн Мөст сумын ерөнхий боловсролын сургууль",
+    "ParentInstitutionId":"40164",
+    "ParentInstitutionName":"Ховд аймаг"
+  },
+  {
+    "InstitutionId":"39806",
+    "InstitutionName":"Ховд аймгийн Жаргалант сумын ерөнхий боловсролын Прогресс сургууль",
+    "ParentInstitutionId":"40164",
+    "ParentInstitutionName":"Ховд аймаг"
+  },
+  {
+    "InstitutionId":"39800",
+    "InstitutionName":"Ховд аймгийн Ховд сумын ерөнхий боловсролын сургууль",
+    "ParentInstitutionId":"40164",
+    "ParentInstitutionName":"Ховд аймаг"
+  },
+  {
+    "InstitutionId":"39805",
+    "InstitutionName":"Ховд аймгийн ерөнхий боловсролын Цаст алтай цогцолбор сургууль",
+    "ParentInstitutionId":"40164",
+    "ParentInstitutionName":"Ховд аймаг"
+  },
+  {
+    "InstitutionId":"39802",
+    "InstitutionName":"Ховд аймгийн Цэцэг сумын ерөнхий боловсролын сургууль",
+    "ParentInstitutionId":"40164",
+    "ParentInstitutionName":"Ховд аймаг"
+  },
+  {
+    "InstitutionId":"40207",
+    "InstitutionName":"Ховд аймгийн Чандмань сумын ерөнхий боловсролын сургууль",
+    "ParentInstitutionId":"40164",
+    "ParentInstitutionName":"Ховд аймаг"
+  },
+  {
+    "InstitutionId":"39803",
+    "InstitutionName":"Ховд аймгийн Эрдэнэбүрэн сумын ерөнхий боловсролын сургууль",
+    "ParentInstitutionId":"40164",
+    "ParentInstitutionName":"Ховд аймаг"
+  },
+  {
+    "InstitutionId":"39801",
+    "InstitutionName":"Ховд аймгийн Үенч сумын ерөнхий боловсролын сургууль",
+    "ParentInstitutionId":"40164",
+    "ParentInstitutionName":"Ховд аймаг"
+  },
+  {
+    "InstitutionId":"43974",
+    "InstitutionName":"Ховд их сургуулийн харьяа ерөнхий боловсролын ахлах сургууль",
+    "ParentInstitutionId":"40164",
+    "ParentInstitutionName":"Ховд аймаг"
+  },
+  {
+    "InstitutionId":"40091",
+    "InstitutionName":"Нийслэлийн ерөнхий боловсролын нэгдүгээр сургууль",
+    "ParentInstitutionId":"40253",
+    "ParentInstitutionName":"Сүхбаатар дүүрэг"
+  },
+  {
+    "InstitutionId":"40092",
+    "InstitutionName":"Нийслэлийн ерөнхий боловсролын хоёрдугаар сургууль",
+    "ParentInstitutionId":"40253",
+    "ParentInstitutionName":"Сүхбаатар дүүрэг"
+  },
+  {
+    "InstitutionId":"40311",
+    "InstitutionName":"Нийслэлийн ерөнхий боловсролын гуравдугаар сургууль",
+    "ParentInstitutionId":"40253",
+    "ParentInstitutionName":"Сүхбаатар дүүрэг"
+  },
+  {
+    "InstitutionId":"40093",
+    "InstitutionName":"Нийслэлийн ерөнхий боловсролын дөрөвдүгээр сургууль",
+    "ParentInstitutionId":"40253",
+    "ParentInstitutionName":"Сүхбаатар дүүрэг"
+  },
+  {
+    "InstitutionId":"40094",
+    "InstitutionName":"Нийслэлийн ерөнхий боловсролын зургаадугаар сургууль",
+    "ParentInstitutionId":"40253",
+    "ParentInstitutionName":"Сүхбаатар дүүрэг"
+  },
+  {
+    "InstitutionId":"40161",
+    "InstitutionName":"Нийслэлийн ерөнхий боловсролын арван нэгдүгээр сургууль",
+    "ParentInstitutionId":"40253",
+    "ParentInstitutionName":"Сүхбаатар дүүрэг"
+  },
+  {
+    "InstitutionId":"40095",
+    "InstitutionName":"Нийслэлийн ерөнхий боловсролын арван зургаадугаар сургууль",
+    "ParentInstitutionId":"40253",
+    "ParentInstitutionName":"Сүхбаатар дүүрэг"
+  },
+  {
+    "InstitutionId":"40096",
+    "InstitutionName":"Нийслэлийн ерөнхий боловсролын хорин тав дугаар сургууль",
+    "ParentInstitutionId":"40253",
+    "ParentInstitutionName":"Сүхбаатар дүүрэг"
+  },
+  {
+    "InstitutionId":"40100",
+    "InstitutionName":"Нийслэлийн ерөнхий боловсролын хорин ес дүгээр сургууль",
+    "ParentInstitutionId":"40253",
+    "ParentInstitutionName":"Сүхбаатар дүүрэг"
+  },
+  {
+    "InstitutionId":"40097",
+    "InstitutionName":"Нийслэлийн ерөнхий боловсролын гучин нэгдүгээр сургууль",
+    "ParentInstitutionId":"40253",
+    "ParentInstitutionName":"Сүхбаатар дүүрэг"
+  },
+  {
+    "InstitutionId":"40098",
+    "InstitutionName":"Нийслэлийн ерөнхий боловсролын гучин тав дугаар сургууль",
+    "ParentInstitutionId":"40253",
+    "ParentInstitutionName":"Сүхбаатар дүүрэг"
+  },
+  {
+    "InstitutionId":"40099",
+    "InstitutionName":"Нийслэлийн ерөнхий боловсролын Эрдмийн хөтөч цогцолбор сургууль",
+    "ParentInstitutionId":"40253",
+    "ParentInstitutionName":"Сүхбаатар дүүрэг"
+  },
+  {
+    "InstitutionId":"40366",
+    "InstitutionName":"Нийслэлийн ерөнхий боловсролын лаборатори далан нэгдүгээр сургууль",
+    "ParentInstitutionId":"40253",
+    "ParentInstitutionName":"Сүхбаатар дүүрэг"
+  },
+  {
+    "InstitutionId":"40162",
+    "InstitutionName":"Нийслэлийн ерөнхий боловсролын зуун арван зургаа дугаар сургууль",
+    "ParentInstitutionId":"40253",
+    "ParentInstitutionName":"Сүхбаатар дүүрэг"
+  },
+  {
+    "InstitutionId":"42667",
+    "InstitutionName":"Нийслэлийн ерөнхий боловсролын зуун гучин нэгдүгээр сургууль",
+    "ParentInstitutionId":"40253",
+    "ParentInstitutionName":"Сүхбаатар дүүрэг"
+  },
+  {
+    "InstitutionId":"40107",
+    "InstitutionName":"Нийслэлийн ерөнхий боловсролын ажилчин, залуучуудын ээлжийн сургууль",
+    "ParentInstitutionId":"40253",
+    "ParentInstitutionName":"Сүхбаатар дүүрэг"
+  },
+  {
+    "InstitutionId":"100000073494994",
+    "InstitutionName":"Анагаахын шинжлэх ухааны үндэсний их сургуулийн харьяа ерөнхий боловсролын ахлах сургууль",
+    "ParentInstitutionId":"40253",
+    "ParentInstitutionName":"Сүхбаатар дүүрэг"
+  },
+  {
+    "InstitutionId":"40105",
+    "InstitutionName":"Монгол улсын их сургуулийн дэргэдэх байгаль эх лицей ахлах сургууль, экологийн боловсролын төв",
+    "ParentInstitutionId":"40253",
+    "ParentInstitutionName":"Сүхбаатар дүүрэг"
+  },
+  {
+    "InstitutionId":"40101",
+    "InstitutionName":"Нийслэлийн ерөнхий боловсролын спортын төв сургууль",
+    "ParentInstitutionId":"40253",
+    "ParentInstitutionName":"Сүхбаатар дүүрэг"
+  },
+  {
+    "InstitutionId":"40341",
+    "InstitutionName":"Нийслэлийн ерөнхий боловсролын лаборатори дөчин тавдугаар сургууль",
+    "ParentInstitutionId":"40253",
+    "ParentInstitutionName":"Сүхбаатар дүүрэг"
+  },
+  {
+    "InstitutionId":"42557",
+    "InstitutionName":"Монгол улсын боловсролын их сургуулийн харьяа ерөнхий боловсролын сургууль",
+    "ParentInstitutionId":"40253",
+    "ParentInstitutionName":"Сүхбаатар дүүрэг"
+  },
+  {
+    "InstitutionId":"40102",
+    "InstitutionName":"Монгол Оросын хамтарсан дунд сургууль",
+    "ParentInstitutionId":"40253",
+    "ParentInstitutionName":"Сүхбаатар дүүрэг"
+  },
+  {
+    "InstitutionId":"40106",
+    "InstitutionName":"Монгол Улсын Консерватори",
+    "ParentInstitutionId":"40253",
+    "ParentInstitutionName":"Сүхбаатар дүүрэг"
+  },
+  {
+    "InstitutionId":"40104",
+    "InstitutionName":"Шинжлэх ухаан, технологийн их сургуулийн харьяа ерөнхий боловсролын ахлах сургууль",
+    "ParentInstitutionId":"40253",
+    "ParentInstitutionName":"Сүхбаатар дүүрэг"
+  },
+  {
+    "InstitutionId":"42321",
+    "InstitutionName":"ШУТИС-Коосэн Технологийн Коллеж",
+    "ParentInstitutionId":"40253",
+    "ParentInstitutionName":"Сүхбаатар дүүрэг"
+  },
+  {
+    "InstitutionId":"40103",
+    "InstitutionName":"Нийслэлийн ерөнхий боловсролын лаборатори өсвөрийн зохион бүтээгчдийн ахлах сургууль",
+    "ParentInstitutionId":"40253",
+    "ParentInstitutionName":"Сүхбаатар дүүрэг"
+  },
+  {
+    "InstitutionId":"39929",
+    "InstitutionName":"Ерөнхий боловсролын галакси сургууль",
+    "ParentInstitutionId":"40253",
+    "ParentInstitutionName":"Сүхбаатар дүүрэг"
+  },
+  {
+    "InstitutionId":"40111",
+    "InstitutionName":"Ерөнхий боловсролын ертөнц сургууль",
+    "ParentInstitutionId":"40253",
+    "ParentInstitutionName":"Сүхбаатар дүүрэг"
+  },
+  {
+    "InstitutionId":"39940",
+    "InstitutionName":"Ерөнхий боловсролын шинэ зууны удирдагч сургууль",
+    "ParentInstitutionId":"40253",
+    "ParentInstitutionName":"Сүхбаатар дүүрэг"
+  },
+  {
+    "InstitutionId":"40109",
+    "InstitutionName":"Ерөнхий боловсролын Кингс кидс сургууль",
+    "ParentInstitutionId":"40253",
+    "ParentInstitutionName":"Сүхбаатар дүүрэг"
+  },
+  {
+    "InstitutionId":"39935",
+    "InstitutionName":"Логарифм бүрэн дунд сургууль",
+    "ParentInstitutionId":"40253",
+    "ParentInstitutionName":"Сүхбаатар дүүрэг"
+  },
+  {
+    "InstitutionId":"40113",
+    "InstitutionName":"Ерөнхий боловсролын сант сургууль",
+    "ParentInstitutionId":"40253",
+    "ParentInstitutionName":"Сүхбаатар дүүрэг"
+  },
+  {
+    "InstitutionId":"40294",
+    "InstitutionName":"Ерөнхий боловсролын Шинэ үе сургууль",
+    "ParentInstitutionId":"40253",
+    "ParentInstitutionName":"Сүхбаатар дүүрэг"
+  },
+  {
+    "InstitutionId":"43971",
+    "InstitutionName":"Ерөнхий боловсролын элбэг сургууль",
+    "ParentInstitutionId":"40253",
+    "ParentInstitutionName":"Сүхбаатар дүүрэг"
+  },
+  {
+    "InstitutionId":"40342",
+    "InstitutionName":"Ерөнхий боловсролын Эрдэмтөгс сургууль",
+    "ParentInstitutionId":"40253",
+    "ParentInstitutionName":"Сүхбаатар дүүрэг"
+  },
+  {
+    "InstitutionId":"39928",
+    "InstitutionName":"Ерөнхий боловсролын үй цай сургууль",
+    "ParentInstitutionId":"40253",
+    "ParentInstitutionName":"Сүхбаатар дүүрэг"
+  },
+  {
+    "InstitutionId":"40334",
+    "InstitutionName":"Ерөнхий боловсролын Монгол Хятадын найрамдал сургууль",
+    "ParentInstitutionId":"40253",
+    "ParentInstitutionName":"Сүхбаатар дүүрэг"
+  },
+  {
+    "InstitutionId":"39939",
+    "InstitutionName":"Ерөнхий боловсролын Улаанбаатар элит олон улсын дунд сургууль",
+    "ParentInstitutionId":"40253",
+    "ParentInstitutionName":"Сүхбаатар дүүрэг"
+  },
+  {
+    "InstitutionId":"44087",
+    "InstitutionName":"Ерөнхий боловсролын Дойче шуле сургууль",
+    "ParentInstitutionId":"40253",
+    "ParentInstitutionName":"Сүхбаатар дүүрэг"
+  },
+  {
+    "InstitutionId":"44225",
+    "InstitutionName":"Эрдмийн уурхай бага сургууль",
+    "ParentInstitutionId":"40253",
+    "ParentInstitutionName":"Сүхбаатар дүүрэг"
+  },
+  {
+    "InstitutionId":"44266",
+    "InstitutionName":"Ерөнхий боловсролын хаан эрдэм сургууль",
+    "ParentInstitutionId":"40253",
+    "ParentInstitutionName":"Сүхбаатар дүүрэг"
+  },
+  {
+    "InstitutionId":"44391",
+    "InstitutionName":"Сэлбэ сургууль цэцэрлэг цогцолбор ",
+    "ParentInstitutionId":"40253",
+    "ParentInstitutionName":"Сүхбаатар дүүрэг"
+  },
+  {
+    "InstitutionId":"44392",
+    "InstitutionName":"Нийслэлийн Ерөнхий боловсролын Гэгээ сургууль",
+    "ParentInstitutionId":"40253",
+    "ParentInstitutionName":"Сүхбаатар дүүрэг"
+  },
+  {
+    "InstitutionId":"44407",
+    "InstitutionName":"Хөөрөх тавцан онцгой хүүхдүүдийн сургууль",
+    "ParentInstitutionId":"40253",
+    "ParentInstitutionName":"Сүхбаатар дүүрэг"
+  },
+  {
+    "InstitutionId":"44485",
+    "InstitutionName":"Хан монгол сургууль",
+    "ParentInstitutionId":"40253",
+    "ParentInstitutionName":"Сүхбаатар дүүрэг"
+  },
+  {
+    "InstitutionId":"44281",
+    "InstitutionName":"Ерөнхий боловсролын Нест эдүкейшн сургууль",
+    "ParentInstitutionId":"40253",
+    "ParentInstitutionName":"Сүхбаатар дүүрэг"
+  },
+  {
+    "InstitutionId":"44515",
+    "InstitutionName":"Нийслэлийн ерөнхий боловсролын нэг зуун тавин ес дугаар сургууль",
+    "ParentInstitutionId":"40253",
+    "ParentInstitutionName":"Сүхбаатар дүүрэг"
+  },
+  {
+    "InstitutionId":"44541",
+    "InstitutionName":"Жаргалан хоёр сургууль",
+    "ParentInstitutionId":"40253",
+    "ParentInstitutionName":"Сүхбаатар дүүрэг"
+  },
+  {
+    "InstitutionId":"44565",
+    "InstitutionName":"Нийслэлийн ерөнхий боловсролын Продиги сургууль",
+    "ParentInstitutionId":"40253",
+    "ParentInstitutionName":"Сүхбаатар дүүрэг"
+  },
+  {
+    "InstitutionId":"44100",
+    "InstitutionName":"Үндэсний биеийн тамирын дээд сургуулийн харьяа ерөнхий боловсролын ахлах сургууль",
+    "ParentInstitutionId":"40253",
+    "ParentInstitutionName":"Сүхбаатар дүүрэг"
+  },
+  {
+    "InstitutionId":"40048",
+    "InstitutionName":"Ерөнхий боловсролын гурван тамир сургууль",
+    "ParentInstitutionId":"40254",
+    "ParentInstitutionName":"Хан-Уул дүүрэг"
+  },
+  {
+    "InstitutionId":"39930",
+    "InstitutionName":"Ерөнхий боловсролын Хобби сургууль",
+    "ParentInstitutionId":"40254",
+    "ParentInstitutionName":"Хан-Уул дүүрэг"
+  },
+  {
+    "InstitutionId":"44267",
+    "InstitutionName":"Номын гялбаа сургууль",
+    "ParentInstitutionId":"40254",
+    "ParentInstitutionName":"Хан-Уул дүүрэг"
+  },
+  {
+    "InstitutionId":"40358",
+    "InstitutionName":"Нийслэлийн ерөнхий боловсролын аравдугаар сургууль",
+    "ParentInstitutionId":"40254",
+    "ParentInstitutionName":"Хан-Уул дүүрэг"
+  },
+  {
+    "InstitutionId":"39943",
+    "InstitutionName":"Нийслэлийн ерөнхий боловсролын арван тав дугаар сургууль",
+    "ParentInstitutionId":"40254",
+    "ParentInstitutionName":"Хан-Уул дүүрэг"
+  },
+  {
+    "InstitutionId":"39944",
+    "InstitutionName":"Нийслэлийн ерөнхий боловсролын арван найм дугаар сургууль",
+    "ParentInstitutionId":"40254",
+    "ParentInstitutionName":"Хан-Уул дүүрэг"
+  },
+  {
+    "InstitutionId":"39945",
+    "InstitutionName":"Нийслэлийн ерөнхий боловсролын хорин зургаадугаар сургууль",
+    "ParentInstitutionId":"40254",
+    "ParentInstitutionName":"Хан-Уул дүүрэг"
+  },
+  {
+    "InstitutionId":"39946",
+    "InstitutionName":"Нийслэлийн ерөнхий боловсролын гучин хоёрдугаар сургууль",
+    "ParentInstitutionId":"40254",
+    "ParentInstitutionName":"Хан-Уул дүүрэг"
+  },
+  {
+    "InstitutionId":"39947",
+    "InstitutionName":"Нийслэлийн ерөнхий боловсролын гучин дөрөвдүгээр сургууль",
+    "ParentInstitutionId":"40254",
+    "ParentInstitutionName":"Хан-Уул дүүрэг"
+  },
+  {
+    "InstitutionId":"39948",
+    "InstitutionName":"Нийслэлийн ерөнхий боловсролын дөчин нэгдүгээр сургууль",
+    "ParentInstitutionId":"40254",
+    "ParentInstitutionName":"Хан-Уул дүүрэг"
+  },
+  {
+    "InstitutionId":"39949",
+    "InstitutionName":"Нийслэлийн ерөнхий боловсролын тавин хоёр дугаар сургууль",
+    "ParentInstitutionId":"40254",
+    "ParentInstitutionName":"Хан-Уул дүүрэг"
+  },
+  {
+    "InstitutionId":"42645",
+    "InstitutionName":"Нийслэлийн ерөнхий боловсролын тавин есдүгээр сургууль",
+    "ParentInstitutionId":"40254",
+    "ParentInstitutionName":"Хан-Уул дүүрэг"
+  },
+  {
+    "InstitutionId":"39950",
+    "InstitutionName":"Нийслэлийн ерөнхий боловсролын жар дугаар сургууль",
+    "ParentInstitutionId":"40254",
+    "ParentInstitutionName":"Хан-Уул дүүрэг"
+  },
+  {
+    "InstitutionId":"39951",
+    "InstitutionName":"Нийслэлийн ерөнхий боловсролын жаран гурав дугаар сургууль",
+    "ParentInstitutionId":"40254",
+    "ParentInstitutionName":"Хан-Уул дүүрэг"
+  },
+  {
+    "InstitutionId":"39952",
+    "InstitutionName":"Нийслэлийн ерөнхий боловсролын далан тав дугаар сургууль",
+    "ParentInstitutionId":"40254",
+    "ParentInstitutionName":"Хан-Уул дүүрэг"
+  },
+  {
+    "InstitutionId":"40146",
+    "InstitutionName":"Нийслэлийн ерөнхий боловсролын зуун арван дөрөв дүгээр сургууль",
+    "ParentInstitutionId":"40254",
+    "ParentInstitutionName":"Хан-Уул дүүрэг"
+  },
+  {
+    "InstitutionId":"39953",
+    "InstitutionName":"Нийслэлийн ерөнхий боловсролын лаборатори нэг зуун арван тав дугаар сургууль",
+    "ParentInstitutionId":"40254",
+    "ParentInstitutionName":"Хан-Уул дүүрэг"
+  },
+  {
+    "InstitutionId":"40147",
+    "InstitutionName":"Нийслэлийн ерөнхий боловсролын нэг зуун арван найм дугаар сургууль",
+    "ParentInstitutionId":"40254",
+    "ParentInstitutionName":"Хан-Уул дүүрэг"
+  },
+  {
+    "InstitutionId":"100000086200129",
+    "InstitutionName":"Нийслэлийн ерөнхий боловсролын зуун гучдугаар сургууль",
+    "ParentInstitutionId":"40254",
+    "ParentInstitutionName":"Хан-Уул дүүрэг"
+  },
+  {
+    "InstitutionId":"100000097044747",
+    "InstitutionName":"Нийслэлийн ерөнхий боловсролын зуун гучин тав дугаар сургууль",
+    "ParentInstitutionId":"40254",
+    "ParentInstitutionName":"Хан-Уул дүүрэг"
+  },
+  {
+    "InstitutionId":"39957",
+    "InstitutionName":"Нийслэлийн ерөнхий боловсролын аварга ахлах сургууль",
+    "ParentInstitutionId":"40254",
+    "ParentInstitutionName":"Хан-Уул дүүрэг"
+  },
+  {
+    "InstitutionId":"39958",
+    "InstitutionName":"Улаанбаатар дахь Америк ерөнхий боловсролын сургууль",
+    "ParentInstitutionId":"40254",
+    "ParentInstitutionName":"Хан-Уул дүүрэг"
+  },
+  {
+    "InstitutionId":"43957",
+    "InstitutionName":"Монгол билиг оюун сургууль цэцэрлэгийн цогцолбор",
+    "ParentInstitutionId":"40254",
+    "ParentInstitutionName":"Хан-Уул дүүрэг"
+  },
+  {
+    "InstitutionId":"40047",
+    "InstitutionName":"Оргил сургууль",
+    "ParentInstitutionId":"40254",
+    "ParentInstitutionName":"Хан-Уул дүүрэг"
+  },
+  {
+    "InstitutionId":"39955",
+    "InstitutionName":"Ерөнхий боловсролын орхон хасү сургууль",
+    "ParentInstitutionId":"40254",
+    "ParentInstitutionName":"Хан-Уул дүүрэг"
+  },
+  {
+    "InstitutionId":"40108",
+    "InstitutionName":"Орчлон сургууль, цэцэрлэгийн цогцолбор",
+    "ParentInstitutionId":"40254",
+    "ParentInstitutionName":"Хан-Уул дүүрэг"
+  },
+  {
+    "InstitutionId":"39960",
+    "InstitutionName":"Сакура сургууль",
+    "ParentInstitutionId":"40254",
+    "ParentInstitutionName":"Хан-Уул дүүрэг"
+  },
+  {
+    "InstitutionId":"100000074309705",
+    "InstitutionName":"Ерөнхий боловсролын арвист хангай сургууль",
+    "ParentInstitutionId":"40254",
+    "ParentInstitutionName":"Хан-Уул дүүрэг"
+  },
+  {
+    "InstitutionId":"100000074309760",
+    "InstitutionName":"Ерөнхий боловсролын монгол бизнесийн сургууль",
+    "ParentInstitutionId":"40254",
+    "ParentInstitutionName":"Хан-Уул дүүрэг"
+  },
+  {
+    "InstitutionId":"39959",
+    "InstitutionName":"Ерөнхий боловсролын Бритиш сургууль",
+    "ParentInstitutionId":"40254",
+    "ParentInstitutionName":"Хан-Уул дүүрэг"
+  },
+  {
+    "InstitutionId":"43958",
+    "InstitutionName":"Ерөнхий боловсролын шинэ өнөөдөр сургууль",
+    "ParentInstitutionId":"40254",
+    "ParentInstitutionName":"Хан-Уул дүүрэг"
+  },
+  {
+    "InstitutionId":"100000074312012",
+    "InstitutionName":"Ерөнхий боловсролын оном сургууль",
+    "ParentInstitutionId":"40254",
+    "ParentInstitutionName":"Хан-Уул дүүрэг"
+  },
+  {
+    "InstitutionId":"44091",
+    "InstitutionName":"Солонго Эс Эф бүрэн дунд сургууль",
+    "ParentInstitutionId":"40254",
+    "ParentInstitutionName":"Хан-Уул дүүрэг"
+  },
+  {
+    "InstitutionId":"39938",
+    "InstitutionName":"Ерөнхий боловсролын этүгэн сургууль",
+    "ParentInstitutionId":"40254",
+    "ParentInstitutionName":"Хан-Уул дүүрэг"
+  },
+  {
+    "InstitutionId":"39976",
+    "InstitutionName":"Ерөнхий боловсролын Шинэ зуунбилэг сургууль",
+    "ParentInstitutionId":"40254",
+    "ParentInstitutionName":"Хан-Уул дүүрэг"
+  },
+  {
+    "InstitutionId":"44228",
+    "InstitutionName":"Ерөнхий боловсролын язгуур бага сургууль",
+    "ParentInstitutionId":"40254",
+    "ParentInstitutionName":"Хан-Уул дүүрэг"
+  },
+  {
+    "InstitutionId":"44241",
+    "InstitutionName":"Монгол улс дахь Франц ерөнхий боловсролын сургууль",
+    "ParentInstitutionId":"40254",
+    "ParentInstitutionName":"Хан-Уул дүүрэг"
+  },
+  {
+    "InstitutionId":"44265",
+    "InstitutionName":"Ерөнхий боловсролын шинэ монгол харүмафүжи сургууль",
+    "ParentInstitutionId":"40254",
+    "ParentInstitutionName":"Хан-Уул дүүрэг"
+  },
+  {
+    "InstitutionId":"44094",
+    "InstitutionName":"Алтан босго академи сургууль",
+    "ParentInstitutionId":"40254",
+    "ParentInstitutionName":"Хан-Уул дүүрэг"
+  },
+  {
+    "InstitutionId":"44284",
+    "InstitutionName":"Нийслэлийн ерөнхий боловсролын Жэт сургууль",
+    "ParentInstitutionId":"40254",
+    "ParentInstitutionName":"Хан-Уул дүүрэг"
+  },
+  {
+    "InstitutionId":"44443",
+    "InstitutionName":"Нийслэлийн ерөнхий боловсролын Жэт тэмүүлэл сургууль",
+    "ParentInstitutionId":"40254",
+    "ParentInstitutionName":"Хан-Уул дүүрэг"
+  },
+  {
+    "InstitutionId":"44445",
+    "InstitutionName":"Нийслэлийн ерөнхий боловсролын Смарт сургууль",
+    "ParentInstitutionId":"40254",
+    "ParentInstitutionName":"Хан-Уул дүүрэг"
+  },
+  {
+    "InstitutionId":"44448",
+    "InstitutionName":"Нийслэлийн ерөнхий боловсролын хүмүүн сургууль",
+    "ParentInstitutionId":"40254",
+    "ParentInstitutionName":"Хан-Уул дүүрэг"
+  },
+  {
+    "InstitutionId":"44280",
+    "InstitutionName":"Ерөнхий боловсролын Эрдмийн гүүр элит сургууль",
+    "ParentInstitutionId":"40254",
+    "ParentInstitutionName":"Хан-Уул дүүрэг"
+  },
+  {
+    "InstitutionId":"44476",
+    "InstitutionName":"Нийслэлийн ерөнхий боловсролын 7 дугаар сургууль",
+    "ParentInstitutionId":"40254",
+    "ParentInstitutionName":"Хан-Уул дүүрэг"
+  },
+  {
+    "InstitutionId":"44477",
+    "InstitutionName":"Нийслэлийн ерөнхий боловсролын 89 дүгээр сургууль",
+    "ParentInstitutionId":"40254",
+    "ParentInstitutionName":"Хан-Уул дүүрэг"
+  },
+  {
+    "InstitutionId":"44224",
+    "InstitutionName":"Ерөнхий боловсролын күнз сургууль",
+    "ParentInstitutionId":"40254",
+    "ParentInstitutionName":"Хан-Уул дүүрэг"
+  },
+  {
+    "InstitutionId":"44496",
+    "InstitutionName":"Нийслэлийн Монгол эрдэм алдар сургууль",
+    "ParentInstitutionId":"40254",
+    "ParentInstitutionName":"Хан-Уул дүүрэг"
+  },
+  {
+    "InstitutionId":"44447",
+    "InstitutionName":"Нийслэлийн ерөнхий боловсролын Цэлмэг технологи сургууль",
+    "ParentInstitutionId":"40254",
+    "ParentInstitutionName":"Хан-Уул дүүрэг"
+  },
+  {
+    "InstitutionId":"44512",
+    "InstitutionName":"Нийслэлийн ерөнхий боловсролын 156 дугаар сургууль ",
+    "ParentInstitutionId":"40254",
+    "ParentInstitutionName":"Хан-Уул дүүрэг"
+  },
+  {
+    "InstitutionId":"44537",
+    "InstitutionName":"Нийслэлийн ерөнхий боловсролын Дүүрэн эрдэм сургууль",
+    "ParentInstitutionId":"40254",
+    "ParentInstitutionName":"Хан-Уул дүүрэг"
+  },
+  {
+    "InstitutionId":"44539",
+    "InstitutionName":"Нийслэлийн ерөнхий боловсролын Монтэ роза шүлэ сургууль сургууль",
+    "ParentInstitutionId":"40254",
+    "ParentInstitutionName":"Хан-Уул дүүрэг"
+  },
+  {
+    "InstitutionId":"44549",
+    "InstitutionName":"Нийслэлийн ерөнхий боловсролын Хаппинесс сургууль",
+    "ParentInstitutionId":"40254",
+    "ParentInstitutionName":"Хан-Уул дүүрэг"
+  },
+  {
+    "InstitutionId":"44550",
+    "InstitutionName":"\"Цэнхэр гантиг\" ХХК",
+    "ParentInstitutionId":"40254",
+    "ParentInstitutionName":"Хан-Уул дүүрэг"
+  },
+  {
+    "InstitutionId":"44551",
+    "InstitutionName":"Томё сургууль цэцэрлэгийн цогцолбор",
+    "ParentInstitutionId":"40254",
+    "ParentInstitutionName":"Хан-Уул дүүрэг"
+  },
+  {
+    "InstitutionId":"44557",
+    "InstitutionName":"Нийслэлийн ерөнхий боловсролын Хүмүүн сургууль",
+    "ParentInstitutionId":"40254",
+    "ParentInstitutionName":"Хан-Уул дүүрэг"
+  },
+  {
+    "InstitutionId":"44559",
+    "InstitutionName":"Нийслэлийн ерөнхий боловсролын 161 дүгээр сургууль",
+    "ParentInstitutionId":"40254",
+    "ParentInstitutionName":"Хан-Уул дүүрэг"
+  },
+  {
+    "InstitutionId":"44562",
+    "InstitutionName":"Нийслэлийн ерөнхий боловсролын Ухааны орд Брекли сургууль",
+    "ParentInstitutionId":"40254",
+    "ParentInstitutionName":"Хан-Уул дүүрэг"
+  },
+  {
+    "InstitutionId":"44573",
+    "InstitutionName":"Нийслэлийн ерөнхий боловсролын 165 дугаар сургууль",
+    "ParentInstitutionId":"40254",
+    "ParentInstitutionName":"Хан-Уул дүүрэг"
+  },
+  {
+    "InstitutionId":"44574",
+    "InstitutionName":"Нийслэлийн ерөнхий боловсролын 163 дугаар сургууль",
+    "ParentInstitutionId":"40254",
+    "ParentInstitutionName":"Хан-Уул дүүрэг"
+  },
+  {
+    "InstitutionId":"39962",
+    "InstitutionName":"Нийслэлийн ерөнхий боловсролын тавдугаар сургууль",
+    "ParentInstitutionId":"40255",
+    "ParentInstitutionName":"Чингэлтэй дүүрэг"
+  },
+  {
+    "InstitutionId":"39963",
+    "InstitutionName":"Нийслэлийн ерөнхий боловсролын арван долоодугаар сургууль",
+    "ParentInstitutionId":"40255",
+    "ParentInstitutionName":"Чингэлтэй дүүрэг"
+  },
+  {
+    "InstitutionId":"39964",
+    "InstitutionName":"Нийслэлийн ерөнхий боловсролын лаборатори хорин гуравдугаар сургууль",
+    "ParentInstitutionId":"40255",
+    "ParentInstitutionName":"Чингэлтэй дүүрэг"
+  },
+  {
+    "InstitutionId":"39965",
+    "InstitutionName":"Нийслэлийн ерөнхий боловсролын хорин дөрөвдүгээр сургууль",
+    "ParentInstitutionId":"40255",
+    "ParentInstitutionName":"Чингэлтэй дүүрэг"
+  },
+  {
+    "InstitutionId":"39966",
+    "InstitutionName":"Нийслэлийн ерөнхий боловсролын гучин долоо дугаар сургууль",
+    "ParentInstitutionId":"40255",
+    "ParentInstitutionName":"Чингэлтэй дүүрэг"
+  },
+  {
+    "InstitutionId":"39967",
+    "InstitutionName":"Нийслэлийн ерөнхий боловсролын гучин есдүгээр сургууль",
+    "ParentInstitutionId":"40255",
+    "ParentInstitutionName":"Чингэлтэй дүүрэг"
+  },
+  {
+    "InstitutionId":"39968",
+    "InstitutionName":"Нийслэлийн ерөнхий боловсролын дөчин есдүгээр сургууль",
+    "ParentInstitutionId":"40255",
+    "ParentInstitutionName":"Чингэлтэй дүүрэг"
+  },
+  {
+    "InstitutionId":"39969",
+    "InstitutionName":"Нийслэлийн ерөнхий боловсролын тавьдугаар сургууль",
+    "ParentInstitutionId":"40255",
+    "ParentInstitutionName":"Чингэлтэй дүүрэг"
+  },
+  {
+    "InstitutionId":"39970",
+    "InstitutionName":"Нийслэлийн ерөнхий боловсролын тавин долдугаар сургууль",
+    "ParentInstitutionId":"40255",
+    "ParentInstitutionName":"Чингэлтэй дүүрэг"
+  },
+  {
+    "InstitutionId":"40336",
+    "InstitutionName":"Нийслэлийн ерөнхий боловсролын жаран нэгдүгээр сургууль",
+    "ParentInstitutionId":"40255",
+    "ParentInstitutionName":"Чингэлтэй дүүрэг"
+  },
+  {
+    "InstitutionId":"39971",
+    "InstitutionName":"Нийслэлийн ерөнхий боловсролын далан хоёр дугаар сургууль",
+    "ParentInstitutionId":"40255",
+    "ParentInstitutionName":"Чингэлтэй дүүрэг"
+  },
+  {
+    "InstitutionId":"39972",
+    "InstitutionName":"Нийслэлийн ерөнхий боловсролын зуун арван хоёрдугаар сурууль",
+    "ParentInstitutionId":"40255",
+    "ParentInstitutionName":"Чингэлтэй дүүрэг"
+  },
+  {
+    "InstitutionId":"39973",
+    "InstitutionName":"Нийслэлийн ерөнхий боловсролын зуун арван долдугаар сургууль",
+    "ParentInstitutionId":"40255",
+    "ParentInstitutionName":"Чингэлтэй дүүрэг"
+  },
+  {
+    "InstitutionId":"43964",
+    "InstitutionName":"Нийслэлийн ерөнхий боловсролын зуун гучин наймдугаар сургууль",
+    "ParentInstitutionId":"40255",
+    "ParentInstitutionName":"Чингэлтэй дүүрэг"
+  },
+  {
+    "InstitutionId":"43965",
+    "InstitutionName":"Нийслэлийн ерөнхйи боловсролын зуун гучин есдүгээр сургууль",
+    "ParentInstitutionId":"40255",
+    "ParentInstitutionName":"Чингэлтэй дүүрэг"
+  },
+  {
+    "InstitutionId":"43966",
+    "InstitutionName":"Нийслэлийн ерөнхий боловсролын зуун дөчдүгээр сургууль",
+    "ParentInstitutionId":"40255",
+    "ParentInstitutionName":"Чингэлтэй дүүрэг"
+  },
+  {
+    "InstitutionId":"40313",
+    "InstitutionName":"Ерөнхий боловсролын бадмаараг ахлах сургууль",
+    "ParentInstitutionId":"40255",
+    "ParentInstitutionName":"Чингэлтэй дүүрэг"
+  },
+  {
+    "InstitutionId":"39982",
+    "InstitutionName":"Ерөнхий боловсролын атланта сургууль",
+    "ParentInstitutionId":"40255",
+    "ParentInstitutionName":"Чингэлтэй дүүрэг"
+  },
+  {
+    "InstitutionId":"39974",
+    "InstitutionName":"Бэтүб сургууль",
+    "ParentInstitutionId":"40255",
+    "ParentInstitutionName":"Чингэлтэй дүүрэг"
+  },
+  {
+    "InstitutionId":"39979",
+    "InstitutionName":"Ерөнхий боловсролын тоолол сургууль",
+    "ParentInstitutionId":"40255",
+    "ParentInstitutionName":"Чингэлтэй дүүрэг"
+  },
+  {
+    "InstitutionId":"39980",
+    "InstitutionName":"Ерөнхий боловсролын тусгал сургууль",
+    "ParentInstitutionId":"40255",
+    "ParentInstitutionName":"Чингэлтэй дүүрэг"
+  },
+  {
+    "InstitutionId":"39981",
+    "InstitutionName":"Олонлог төв сургууль",
+    "ParentInstitutionId":"40255",
+    "ParentInstitutionName":"Чингэлтэй дүүрэг"
+  },
+  {
+    "InstitutionId":"44095",
+    "InstitutionName":"Олонлог эгзэ сургууль",
+    "ParentInstitutionId":"40255",
+    "ParentInstitutionName":"Чингэлтэй дүүрэг"
+  },
+  {
+    "InstitutionId":"44395",
+    "InstitutionName":"Нийслэлийн ерөнхий боловсролын нэг зуун дөчин ес дүгээр сургууль",
+    "ParentInstitutionId":"40255",
+    "ParentInstitutionName":"Чингэлтэй дүүрэг"
+  },
+  {
+    "InstitutionId":"44398",
+    "InstitutionName":"Улаанбаатар.Чингэлтэй.Ерөнхий боловсролын Ертөнц нэг сургууль",
+    "ParentInstitutionId":"40255",
+    "ParentInstitutionName":"Чингэлтэй дүүрэг"
+  },
+  {
+    "InstitutionId":"44505",
+    "InstitutionName":"Нийслэлийн ерөнхий боловсролын зуун дөчин тав дугаар сургууль",
+    "ParentInstitutionId":"40255",
+    "ParentInstitutionName":"Чингэлтэй дүүрэг"
+  },
+  {
+    "InstitutionId":"44563",
+    "InstitutionName":"Нийслэлийн ерөнхий боловсролын Ивээх эрдэм сургууль",
+    "ParentInstitutionId":"40255",
+    "ParentInstitutionName":"Чингэлтэй дүүрэг"
+  },
+  {
+    "InstitutionId":"44566",
+    "InstitutionName":"Эрдэм цогцлохуй бага сургууль",
+    "ParentInstitutionId":"40255",
+    "ParentInstitutionName":"Чингэлтэй дүүрэг"
+  },
+  {
+    "InstitutionId":"40179",
+    "InstitutionName":"Баян-Өлгий аймгийн Өлгий сумын ерөнхий боловсролын нэг дүгээр сургууль",
+    "ParentInstitutionId":"40256",
+    "ParentInstitutionName":"Баян-Өлгий аймаг"
+  },
+  {
+    "InstitutionId":"40181",
+    "InstitutionName":"Баян-Өлгий аймгийн Өлгий сумын ерөнхий боловсролын долоо дугаар сургууль",
+    "ParentInstitutionId":"40256",
+    "ParentInstitutionName":"Баян-Өлгий аймаг"
+  },
+  {
+    "InstitutionId":"39729",
+    "InstitutionName":"Баян-Өлгий аймгийн Өлгий сумын ерөнхий боловсролын лаборатори хоёрдугаар сургууль",
+    "ParentInstitutionId":"40256",
+    "ParentInstitutionName":"Баян-Өлгий аймаг"
+  },
+  {
+    "InstitutionId":"40350",
+    "InstitutionName":"Баян-Өлгий аймгийн Өлгий сумын ерөнхий боловсролын 9 дүгээр сургууль",
+    "ParentInstitutionId":"40256",
+    "ParentInstitutionName":"Баян-Өлгий аймаг"
+  },
+  {
+    "InstitutionId":"39730",
+    "InstitutionName":"Баян-Өлгий аймгийн ерөнхий боловсролын лаборатори гурав дугаар сургууль",
+    "ParentInstitutionId":"40256",
+    "ParentInstitutionName":"Баян-Өлгий аймаг"
+  },
+  {
+    "InstitutionId":"40180",
+    "InstitutionName":"Баян-Өлгий аймгийн Өлгий сумын ерөнхий боловсролын 4 дүгээр сургууль",
+    "ParentInstitutionId":"40256",
+    "ParentInstitutionName":"Баян-Өлгий аймаг"
+  },
+  {
+    "InstitutionId":"39731",
+    "InstitutionName":"Баян-Өлгий аймгийн Өлгий сумын Ерөнхий боловсролын 5 дугаар сургууль",
+    "ParentInstitutionId":"40256",
+    "ParentInstitutionName":"Баян-Өлгий аймаг"
+  },
+  {
+    "InstitutionId":"40321",
+    "InstitutionName":"Баян-Өлгий аймгийн Өлгий сумын ерөнхий боловсролын зургаадугаар сургууль",
+    "ParentInstitutionId":"40256",
+    "ParentInstitutionName":"Баян-Өлгий аймаг"
+  },
+  {
+    "InstitutionId":"39644",
+    "InstitutionName":"Баян-Өлгий аймгийн Алтай сумын ерөнхий боловсролын нэгдүгээр сургууль",
+    "ParentInstitutionId":"40256",
+    "ParentInstitutionName":"Баян-Өлгий аймаг"
+  },
+  {
+    "InstitutionId":"39646",
+    "InstitutionName":"Баян-Өлгий аймгийн Алтанцөгц сумын ерөнхий боловсролын сургууль",
+    "ParentInstitutionId":"40256",
+    "ParentInstitutionName":"Баян-Өлгий аймаг"
+  },
+  {
+    "InstitutionId":"39650",
+    "InstitutionName":"Баян-Өлгий аймгийн Баяннуур сумын ерөнхий боловсролын нэгдүгээр сургууль",
+    "ParentInstitutionId":"40256",
+    "ParentInstitutionName":"Баян-Өлгий аймаг"
+  },
+  {
+    "InstitutionId":"39653",
+    "InstitutionName":"Баян-Өлгий аймгийн Дэлүүн сумын ерөнхий боловсролын гуравдугаар сургууль",
+    "ParentInstitutionId":"40256",
+    "ParentInstitutionName":"Баян-Өлгий аймаг"
+  },
+  {
+    "InstitutionId":"40345",
+    "InstitutionName":"Баян-Өлгий аймгийн Бугат сумын ерөнхий боловсролын сургууль",
+    "ParentInstitutionId":"40256",
+    "ParentInstitutionName":"Баян-Өлгий аймаг"
+  },
+  {
+    "InstitutionId":"39648",
+    "InstitutionName":"Баян-Өлгий аймгийн Булган сумын ерөнхий боловсролын нэгдүгээр сургууль",
+    "ParentInstitutionId":"40256",
+    "ParentInstitutionName":"Баян-Өлгий аймаг"
+  },
+  {
+    "InstitutionId":"39647",
+    "InstitutionName":"Баян-Өлгий аймгийн Буянт сумын ерөнхий боловсролын сургууль",
+    "ParentInstitutionId":"40256",
+    "ParentInstitutionName":"Баян-Өлгий аймаг"
+  },
+  {
+    "InstitutionId":"39721",
+    "InstitutionName":"Баян-Өлгий аймгийн Сагсай сумын ерөнхий боловсролын хоёр дугаар сургууль",
+    "ParentInstitutionId":"40256",
+    "ParentInstitutionName":"Баян-Өлгий аймаг"
+  },
+  {
+    "InstitutionId":"39652",
+    "InstitutionName":"Баян-Өлгий аймгийн Дэлүүн сумын ерөнхий боловсролын нэгдүгээр сургууль",
+    "ParentInstitutionId":"40256",
+    "ParentInstitutionName":"Баян-Өлгий аймаг"
+  },
+  {
+    "InstitutionId":"39728",
+    "InstitutionName":"Баян-Өлгий аймгийн Цэнгэл сумын ерөнхий боловсролын гуравдугаар сургууль",
+    "ParentInstitutionId":"40256",
+    "ParentInstitutionName":"Баян-Өлгий аймаг"
+  },
+  {
+    "InstitutionId":"39722",
+    "InstitutionName":"Баян-Өлгий аймгийн Толбо сумын ерөнхий боловсролын сургууль",
+    "ParentInstitutionId":"40256",
+    "ParentInstitutionName":"Баян-Өлгий аймаг"
+  },
+  {
+    "InstitutionId":"39654",
+    "InstitutionName":"Баян-Өлгий аймгийн Ногооннуур сумын ерөнхий боловсролын нэг дүгээр сургууль",
+    "ParentInstitutionId":"40256",
+    "ParentInstitutionName":"Баян-Өлгий аймаг"
+  },
+  {
+    "InstitutionId":"39724",
+    "InstitutionName":"Баян-Өлгий аймгийн Улаанхус сумын ерөнхий боловсролын хоёрдугаар сургууль",
+    "ParentInstitutionId":"40256",
+    "ParentInstitutionName":"Баян-Өлгий аймаг"
+  },
+  {
+    "InstitutionId":"39720",
+    "InstitutionName":"Баян-Өлгий аймгийн Сагсай сумын ерөнхий боловсролын нэгдүгээр сургууль",
+    "ParentInstitutionId":"40256",
+    "ParentInstitutionName":"Баян-Өлгий аймаг"
+  },
+  {
+    "InstitutionId":"40121",
+    "InstitutionName":"Баян-Өлгий аймгийн Дэлүүн сумын ерөнхий боловсролын хоёр дугаар сургууль",
+    "ParentInstitutionId":"40256",
+    "ParentInstitutionName":"Баян-Өлгий аймаг"
+  },
+  {
+    "InstitutionId":"39727",
+    "InstitutionName":"Баян-Өлгий аймгийн Цэнгэл сумын ерөнхий боловсролын хоёр дугаар сургууль",
+    "ParentInstitutionId":"40256",
+    "ParentInstitutionName":"Баян-Өлгий аймаг"
+  },
+  {
+    "InstitutionId":"39645",
+    "InstitutionName":"Баян-Өлгий аймгийн Алтай сумын ерөнхий боловсролын хоёр дугаар сургууль",
+    "ParentInstitutionId":"40256",
+    "ParentInstitutionName":"Баян-Өлгий аймаг"
+  },
+  {
+    "InstitutionId":"39723",
+    "InstitutionName":"Баян-Өлгий аймгийн Улаанхус сумын ерөнхий боловсролын нэгдүгээр сургууль",
+    "ParentInstitutionId":"40256",
+    "ParentInstitutionName":"Баян-Өлгий аймаг"
+  },
+  {
+    "InstitutionId":"39656",
+    "InstitutionName":"Баян-Өлгий аймгийн Ногооннуур сумын ерөнхий боловсролын 4 дүгээр сургууль",
+    "ParentInstitutionId":"40256",
+    "ParentInstitutionName":"Баян-Өлгий аймаг"
+  },
+  {
+    "InstitutionId":"40122",
+    "InstitutionName":"Баян-Өлгий аймгийн Ногооннуур сумын ерөнхий боловсролын хоёр дугаар сургууль",
+    "ParentInstitutionId":"40256",
+    "ParentInstitutionName":"Баян-Өлгий аймаг"
+  },
+  {
+    "InstitutionId":"39732",
+    "InstitutionName":"Баян-Өлгий аймгийн Өлгий сумын ерөнхий боловсролын найм дугаар сургууль",
+    "ParentInstitutionId":"40256",
+    "ParentInstitutionName":"Баян-Өлгий аймаг"
+  },
+  {
+    "InstitutionId":"39725",
+    "InstitutionName":"Баян-Өлгий аймгийн Улаанхус сумын Ерөнхий боловсролын гурав дугаар сургууль",
+    "ParentInstitutionId":"40256",
+    "ParentInstitutionName":"Баян-Өлгий аймаг"
+  },
+  {
+    "InstitutionId":"39651",
+    "InstitutionName":"Баян-Өлгий аймгийн Баяннуур сумын Ерөнхий боловсролын хоёр дугаар сургууль",
+    "ParentInstitutionId":"40256",
+    "ParentInstitutionName":"Баян-Өлгий аймаг"
+  },
+  {
+    "InstitutionId":"39726",
+    "InstitutionName":"Баян-Өлгий аймгийн Цагааннуур тосгоны ерөнхий боловсролын сургууль",
+    "ParentInstitutionId":"40256",
+    "ParentInstitutionName":"Баян-Өлгий аймаг"
+  },
+  {
+    "InstitutionId":"40178",
+    "InstitutionName":"Баян-Өлгий аймгийн Цэнгэл сумын ерөнхий боловсролын нэгдүгээр сургууль",
+    "ParentInstitutionId":"40256",
+    "ParentInstitutionName":"Баян-Өлгий аймаг"
+  },
+  {
+    "InstitutionId":"40120",
+    "InstitutionName":"Баян-Өлгий аймгийн Баяннуур сумын ерөнхий боловсролын гурав дугаар сургууль",
+    "ParentInstitutionId":"40256",
+    "ParentInstitutionName":"Баян-Өлгий аймаг"
+  },
+  {
+    "InstitutionId":"39655",
+    "InstitutionName":"Баян-Өлгий аймгийн Ногооннуур сумын ерөнхий боловсролын гурав дугаар сургууль",
+    "ParentInstitutionId":"40256",
+    "ParentInstitutionName":"Баян-Өлгий аймаг"
+  },
+  {
+    "InstitutionId":"39649",
+    "InstitutionName":"Баян-Өлгий аймгийн Булган сумын Ерөнхий боловсролын гурав дугаар сургууль",
+    "ParentInstitutionId":"40256",
+    "ParentInstitutionName":"Баян-Өлгий аймаг"
+  },
+  {
+    "InstitutionId":"40316",
+    "InstitutionName":"Баян-Өлгий аймгийн Булган сумын ерөнхий боловсролын хоёрдугаар сургууль",
+    "ParentInstitutionId":"40256",
+    "ParentInstitutionName":"Баян-Өлгий аймаг"
+  },
+  {
+    "InstitutionId":"39736",
+    "InstitutionName":"Баян-Өлгий аймгийн ерөнхий боловсролын бастама сургууль",
+    "ParentInstitutionId":"40256",
+    "ParentInstitutionName":"Баян-Өлгий аймаг"
+  },
+  {
+    "InstitutionId":"39735",
+    "InstitutionName":"Баян-Өлгий аймгийн ерөнхий боловсролын Билге тегин сургууль",
+    "ParentInstitutionId":"40256",
+    "ParentInstitutionName":"Баян-Өлгий аймаг"
+  },
+  {
+    "InstitutionId":"39734",
+    "InstitutionName":"Баян-Өлгий аймгийн ерөнхий боловсролын Дарын цогцолбор сургууль",
+    "ParentInstitutionId":"40256",
+    "ParentInstitutionName":"Баян-Өлгий аймаг"
+  },
+  {
+    "InstitutionId":"39738",
+    "InstitutionName":"Баян-Өлгий аймгийн ерөнхий боловсролын Зайд сургууль",
+    "ParentInstitutionId":"40256",
+    "ParentInstitutionName":"Баян-Өлгий аймаг"
+  },
+  {
+    "InstitutionId":"39737",
+    "InstitutionName":"Баян-Өлгий аймгийн Цэнгэл сумын ерөнхий боловсролын 4 дүгээр сургууль",
+    "ParentInstitutionId":"40256",
+    "ParentInstitutionName":"Баян-Өлгий аймаг"
+  },
+  {
+    "InstitutionId":"39733",
+    "InstitutionName":"Ерөнхий боловсролын Баян өлгий эмпати сургууль",
+    "ParentInstitutionId":"40256",
+    "ParentInstitutionName":"Баян-Өлгий аймаг"
+  },
+  {
+    "InstitutionId":"44388",
+    "InstitutionName":"Баян-Өлгий.Өлгий.Ерөнхий боловсролын аравдугаар сургууль",
+    "ParentInstitutionId":"40256",
+    "ParentInstitutionName":"Баян-Өлгий аймаг"
+  },
+  {
+    "InstitutionId":"40322",
+    "InstitutionName":"Баянхонгор аймгийн Баацагаан сумын ерөнхий боловсролын сургууль",
+    "ParentInstitutionId":"40257",
+    "ParentInstitutionName":"Баянхонгор аймаг"
+  },
+  {
+    "InstitutionId":"40289",
+    "InstitutionName":"Баянхонгор аймгийн Баян-Овоо сумын ерөнхий боловсролын сургууль",
+    "ParentInstitutionId":"40257",
+    "ParentInstitutionName":"Баянхонгор аймаг"
+  },
+  {
+    "InstitutionId":"40126",
+    "InstitutionName":"Баянхонгор аймгийн Баянхонгор сумын сургууль цэцэрлэгийн цогцолбор",
+    "ParentInstitutionId":"40257",
+    "ParentInstitutionName":"Баянхонгор аймаг"
+  },
+  {
+    "InstitutionId":"40185",
+    "InstitutionName":"Баянхонгор аймгийн Баян-Өндөр сумын ерөнхий боловсролын сургууль",
+    "ParentInstitutionId":"40257",
+    "ParentInstitutionName":"Баянхонгор аймаг"
+  },
+  {
+    "InstitutionId":"39742",
+    "InstitutionName":"Баянхонгор аймгийн Баянбулаг сумын ерөнхий боловсролын сургууль",
+    "ParentInstitutionId":"40257",
+    "ParentInstitutionName":"Баянхонгор аймаг"
+  },
+  {
+    "InstitutionId":"39657",
+    "InstitutionName":"Баянхонгор аймгийн Бууцагаан сумын Баян бүрд багийн ерөнхий боловсролын сургууль",
+    "ParentInstitutionId":"40257",
+    "ParentInstitutionName":"Баянхонгор аймаг"
+  },
+  {
+    "InstitutionId":"40184",
+    "InstitutionName":"Баянхонгор аймгийн Баянговь сумын ерөнхий боловсролын сургууль",
+    "ParentInstitutionId":"40257",
+    "ParentInstitutionName":"Баянхонгор аймаг"
+  },
+  {
+    "InstitutionId":"39743",
+    "InstitutionName":"Баянхонгор аймгийн Баянлиг сумын ерөнхий боловсролын сургууль",
+    "ParentInstitutionId":"40257",
+    "ParentInstitutionName":"Баянхонгор аймаг"
+  },
+  {
+    "InstitutionId":"39659",
+    "InstitutionName":"Баянхонгор аймгийн Галуут сумын Мандал багийн ерөнхий боловсролын сургууль",
+    "ParentInstitutionId":"40257",
+    "ParentInstitutionName":"Баянхонгор аймаг"
+  },
+  {
+    "InstitutionId":"40351",
+    "InstitutionName":"Баянхонгор аймгийн Баянцагаан сумын ерөнхий боловсролын сургууль",
+    "ParentInstitutionId":"40257",
+    "ParentInstitutionName":"Баянхонгор аймаг"
+  },
+  {
+    "InstitutionId":"39744",
+    "InstitutionName":"Баянхонгор аймгийн Богд сумын ерөнхий боловсролын сургууль",
+    "ParentInstitutionId":"40257",
+    "ParentInstitutionName":"Баянхонгор аймаг"
+  },
+  {
+    "InstitutionId":"40123",
+    "InstitutionName":"Баянхонгор аймгийн Бууцагаан сумын ерөнхий боловсролын сургууль",
+    "ParentInstitutionId":"40257",
+    "ParentInstitutionName":"Баянхонгор аймаг"
+  },
+  {
+    "InstitutionId":"40186",
+    "InstitutionName":"Баянхонгор аймгийн Бөмбөгөр сумын ерөнхий боловсролын сургууль",
+    "ParentInstitutionId":"40257",
+    "ParentInstitutionName":"Баянхонгор аймаг"
+  },
+  {
+    "InstitutionId":"39658",
+    "InstitutionName":"Баянхонгор аймгийн Галуут сумын ерөнхий боловсролын сургууль",
+    "ParentInstitutionId":"40257",
+    "ParentInstitutionName":"Баянхонгор аймаг"
+  },
+  {
+    "InstitutionId":"39664",
+    "InstitutionName":"Баянхонгор аймгийн Баянлиг сумын Гашуун дэл багийн ерөнхий боловсролын сургууль",
+    "ParentInstitutionId":"40257",
+    "ParentInstitutionName":"Баянхонгор аймаг"
+  },
+  {
+    "InstitutionId":"40317",
+    "InstitutionName":"Баянхонгор аймгийн Гурванбулаг сумын ерөнхий боловсролын сургууль",
+    "ParentInstitutionId":"40257",
+    "ParentInstitutionName":"Баянхонгор аймаг"
+  },
+  {
+    "InstitutionId":"40124",
+    "InstitutionName":"Баянхонгор аймгийн Жаргалант сумын ерөнхий боловсролын сургууль",
+    "ParentInstitutionId":"40257",
+    "ParentInstitutionName":"Баянхонгор аймаг"
+  },
+  {
+    "InstitutionId":"39660",
+    "InstitutionName":"Баянхонгор аймгийн Жинст сумын ерөнхий боловсролын сургууль",
+    "ParentInstitutionId":"40257",
+    "ParentInstitutionName":"Баянхонгор аймаг"
+  },
+  {
+    "InstitutionId":"40280",
+    "InstitutionName":"Баянхонгор аймгийн Заг сумын ерөнхий боловсролын сургууль",
+    "ParentInstitutionId":"40257",
+    "ParentInstitutionName":"Баянхонгор аймаг"
+  },
+  {
+    "InstitutionId":"39739",
+    "InstitutionName":"Баянхонгор аймгийн Баянхонгор сумын ерөнхий боловсролын Номгон сургууль",
+    "ParentInstitutionId":"40257",
+    "ParentInstitutionName":"Баянхонгор аймаг"
+  },
+  {
+    "InstitutionId":"40182",
+    "InstitutionName":"Баянхонгор аймгийн ерөнхий боловсролын лаборатори номун далай цогцолбор сургууль",
+    "ParentInstitutionId":"40257",
+    "ParentInstitutionName":"Баянхонгор аймаг"
+  },
+  {
+    "InstitutionId":"39665",
+    "InstitutionName":"Баянхонгор аймгийн Баянхонгор сумын ерөнхий боловсролын Соого Сейкео сургууль",
+    "ParentInstitutionId":"40257",
+    "ParentInstitutionName":"Баянхонгор аймаг"
+  },
+  {
+    "InstitutionId":"39662",
+    "InstitutionName":"Баянхонгор аймгийн Хүрээмарал сумын ерөнхий боловсролын сургууль",
+    "ParentInstitutionId":"40257",
+    "ParentInstitutionName":"Баянхонгор аймаг"
+  },
+  {
+    "InstitutionId":"39661",
+    "InstitutionName":"Баянхонгор аймгийн Өлзийт сумын ерөнхий боловсролын сургууль",
+    "ParentInstitutionId":"40257",
+    "ParentInstitutionName":"Баянхонгор аймаг"
+  },
+  {
+    "InstitutionId":"39741",
+    "InstitutionName":"Баянхонгор аймгийн Баянхонгор сумын Шаргалжуут багийн ерөнхий боловсролын сургууль",
+    "ParentInstitutionId":"40257",
+    "ParentInstitutionName":"Баянхонгор аймаг"
+  },
+  {
+    "InstitutionId":"40125",
+    "InstitutionName":"Баянхонгор аймгийн Шинэжинст сумын ерөнхий боловсролын сургууль",
+    "ParentInstitutionId":"40257",
+    "ParentInstitutionName":"Баянхонгор аймаг"
+  },
+  {
+    "InstitutionId":"39740",
+    "InstitutionName":"Баянхонгор аймгийн Баянхонгор сумын ерөнхий боловсролын Эрдэм сургууль",
+    "ParentInstitutionId":"40257",
+    "ParentInstitutionName":"Баянхонгор аймаг"
+  },
+  {
+    "InstitutionId":"40183",
+    "InstitutionName":"Баянхонгор аймгийн Баянхонгор сумын ерөнхий боловсролын Эрдэнэмандал сургууль",
+    "ParentInstitutionId":"40257",
+    "ParentInstitutionName":"Баянхонгор аймаг"
+  },
+  {
+    "InstitutionId":"39663",
+    "InstitutionName":"Баянхонгор аймгийн Эрдэнэцогт сумын ерөнхий боловсролын сургууль",
+    "ParentInstitutionId":"40257",
+    "ParentInstitutionName":"Баянхонгор аймаг"
+  },
+  {
+    "InstitutionId":"44271",
+    "InstitutionName":"Баянхонгор бага сургууль",
+    "ParentInstitutionId":"40257",
+    "ParentInstitutionName":"Баянхонгор аймаг"
+  },
+  {
+    "InstitutionId":"44296",
+    "InstitutionName":"Баянхонгор аймгийн ерөнхий боловсролын төгс алгоритм сургууль",
+    "ParentInstitutionId":"40257",
+    "ParentInstitutionName":"Баянхонгор аймаг"
+  },
+  {
+    "InstitutionId":"44474",
+    "InstitutionName":"Гэгээн сумади сургууль, цэцэрлэгийн цогцолбор - Сургууль",
+    "ParentInstitutionId":"40257",
+    "ParentInstitutionName":"Баянхонгор аймаг"
+  },
+  {
+    "InstitutionId":"44475",
+    "InstitutionName":"Баянхонгор сумын ерөнхий боловсролын 5 дугаар сургууль",
+    "ParentInstitutionId":"40257",
+    "ParentInstitutionName":"Баянхонгор аймаг"
+  },
+  {
+    "InstitutionId":"39666",
+    "InstitutionName":"Булган аймгийн Баян-Агт сумын ерөнхий боловсролын сургууль",
+    "ParentInstitutionId":"40258",
+    "ParentInstitutionName":"Булган аймаг"
+  },
+  {
+    "InstitutionId":"40346",
+    "InstitutionName":"Булган аймгийн Баяннуур сумын Ерөнхий боловсролын сургууль",
+    "ParentInstitutionId":"40258",
+    "ParentInstitutionName":"Булган аймаг"
+  },
+  {
+    "InstitutionId":"39667",
+    "InstitutionName":"Булган аймгийн Бугат сумын ерөнхий боловсролын сургууль",
+    "ParentInstitutionId":"40258",
+    "ParentInstitutionName":"Булган аймаг"
+  },
+  {
+    "InstitutionId":"40318",
+    "InstitutionName":"Булган аймгийн Булган сумын Ерөнхий боловсролын 1 дүгээр сургууль",
+    "ParentInstitutionId":"40258",
+    "ParentInstitutionName":"Булган аймаг"
+  },
+  {
+    "InstitutionId":"39673",
+    "InstitutionName":"Булган аймгийн Бүрэгхангай сумын Ерөнхий боловсролын сургууль",
+    "ParentInstitutionId":"40258",
+    "ParentInstitutionName":"Булган аймаг"
+  },
+  {
+    "InstitutionId":"39675",
+    "InstitutionName":"Булган аймгийн Гурванбулаг сумын Ерөнхий боловсролын сургууль",
+    "ParentInstitutionId":"40258",
+    "ParentInstitutionName":"Булган аймаг"
+  },
+  {
+    "InstitutionId":"39674",
+    "InstitutionName":"Булган аймгийн Дашинчилэн сумын ерөнхий боловсролын сургууль",
+    "ParentInstitutionId":"40258",
+    "ParentInstitutionName":"Булган аймаг"
+  },
+  {
+    "InstitutionId":"39668",
+    "InstitutionName":"Булган аймгийн Могод сумын Ерөнхий боловсролын сургууль",
+    "ParentInstitutionId":"40258",
+    "ParentInstitutionName":"Булган аймаг"
+  },
+  {
+    "InstitutionId":"39669",
+    "InstitutionName":"Булган аймгийн Орхон сумын Ерөнхий боловсролын сургууль",
+    "ParentInstitutionId":"40258",
+    "ParentInstitutionName":"Булган аймаг"
+  },
+  {
+    "InstitutionId":"39676",
+    "InstitutionName":"Булган аймгийн Рашаант сумын ерөнхий боловсролын сургууль",
+    "ParentInstitutionId":"40258",
+    "ParentInstitutionName":"Булган аймаг"
+  },
+  {
+    "InstitutionId":"39670",
+    "InstitutionName":"Булган аймгийн Сайхан сумын Ерөнхий боловсролын сургууль",
+    "ParentInstitutionId":"40258",
+    "ParentInstitutionName":"Булган аймаг"
+  },
+  {
+    "InstitutionId":"39681",
+    "InstitutionName":"Булган аймгийн Булган сумын Спортын төрөлжсөн сургалттай Ерөнхий боловсролын сургууль",
+    "ParentInstitutionId":"40258",
+    "ParentInstitutionName":"Булган аймаг"
+  },
+  {
+    "InstitutionId":"39677",
+    "InstitutionName":"Булган аймгийн Сэлэнгэ сумын Ерөнхий боловсролын сургууль",
+    "ParentInstitutionId":"40258",
+    "ParentInstitutionName":"Булган аймаг"
+  },
+  {
+    "InstitutionId":"39671",
+    "InstitutionName":"Булган аймгийн Тэшиг сумын Ерөнхий боловсролын сургууль",
+    "ParentInstitutionId":"40258",
+    "ParentInstitutionName":"Булган аймаг"
+  },
+  {
+    "InstitutionId":"39684",
+    "InstitutionName":"Уньт  багийн  бага  сургууль",
+    "ParentInstitutionId":"40258",
+    "ParentInstitutionName":"Булган аймаг"
+  },
+  {
+    "InstitutionId":"39672",
+    "InstitutionName":"Булган аймгийн Хангал сумын Ерөнхий боловсролын сургууль",
+    "ParentInstitutionId":"40258",
+    "ParentInstitutionName":"Булган аймаг"
+  },
+  {
+    "InstitutionId":"39683",
+    "InstitutionName":"Хантай багийн бага сургууль",
+    "ParentInstitutionId":"40258",
+    "ParentInstitutionName":"Булган аймаг"
+  },
+  {
+    "InstitutionId":"39678",
+    "InstitutionName":"Булган аймгийн Хишиг-Өндөр сумын Ерөнхий боловсролын лаборатори сургууль",
+    "ParentInstitutionId":"40258",
+    "ParentInstitutionName":"Булган аймаг"
+  },
+  {
+    "InstitutionId":"39679",
+    "InstitutionName":"Булган аймгийн Хутаг-Өндөр сумын Ерөнхий боловсролын сургууль",
+    "ParentInstitutionId":"40258",
+    "ParentInstitutionName":"Булган аймаг"
+  },
+  {
+    "InstitutionId":"39680",
+    "InstitutionName":"Булган аймгийн Хангал сумын Хялганат тосгоны Ерөнхий боловсролын сургууль",
+    "ParentInstitutionId":"40258",
+    "ParentInstitutionName":"Булган аймаг"
+  },
+  {
+    "InstitutionId":"40348",
+    "InstitutionName":"Булган аймгийн Булган сумын Ерөнхий боловсролын лаборатори Эрдмийн өргөө цогцолбор сургууль",
+    "ParentInstitutionId":"40258",
+    "ParentInstitutionName":"Булган аймаг"
+  },
+  {
+    "InstitutionId":"44200",
+    "InstitutionName":"Булган аймгийн Булган сумын Ерөнхий боловсролын 3 дугаар сургууль",
+    "ParentInstitutionId":"40258",
+    "ParentInstitutionName":"Булган аймаг"
+  },
+  {
+    "InstitutionId":"39698",
+    "InstitutionName":"Говь-Алтай аймгийн Есөнбулаг сумын ерөнхий боловсролын хоёрдугаар сургууль",
+    "ParentInstitutionId":"40259",
+    "ParentInstitutionName":"Говь-Алтай аймаг"
+  },
+  {
+    "InstitutionId":"40349",
+    "InstitutionName":"Говь-Алтай аймгийн Есөнбулаг сумын ерөнхий боловсролын гуравдугаар сургууль",
+    "ParentInstitutionId":"40259",
+    "ParentInstitutionName":"Говь-Алтай аймаг"
+  },
+  {
+    "InstitutionId":"39685",
+    "InstitutionName":"Говь-Алтай аймгийн Алтай сумын ерөнхий боловсролын сургууль",
+    "ParentInstitutionId":"40259",
+    "ParentInstitutionName":"Говь-Алтай аймаг"
+  },
+  {
+    "InstitutionId":"40127",
+    "InstitutionName":"Говь-Алтай аймгийн Тонхил сумын Алтансоёмбын сургууль",
+    "ParentInstitutionId":"40259",
+    "ParentInstitutionName":"Говь-Алтай аймаг"
+  },
+  {
+    "InstitutionId":"40131",
+    "InstitutionName":"АШУҮИС-ийн Говь-Алтай аймаг дахь анагаах ухааны салбар сургууль",
+    "ParentInstitutionId":"40259",
+    "ParentInstitutionName":"Говь-Алтай аймаг"
+  },
+  {
+    "InstitutionId":"39686",
+    "InstitutionName":"Говь-Алтай аймгийн Баян-Уул сумын ерөнхий боловсролын сургууль",
+    "ParentInstitutionId":"40259",
+    "ParentInstitutionName":"Говь-Алтай аймаг"
+  },
+  {
+    "InstitutionId":"40129",
+    "InstitutionName":"Говь-Алтай аймгийн Цогт сумын Баянтоорой багийн ерөнхий боловсролын сургууль",
+    "ParentInstitutionId":"40259",
+    "ParentInstitutionName":"Говь-Алтай аймаг"
+  },
+  {
+    "InstitutionId":"40288",
+    "InstitutionName":"Говь-Алтай аймгийн Бигэр сумын ерөнхий боловсролын сургууль",
+    "ParentInstitutionId":"40259",
+    "ParentInstitutionName":"Говь-Алтай аймаг"
+  },
+  {
+    "InstitutionId":"40295",
+    "InstitutionName":"Говь-Алтай аймгийн Гуулин багийн ерөнхий боловсролын сургууль",
+    "ParentInstitutionId":"40259",
+    "ParentInstitutionName":"Говь-Алтай аймаг"
+  },
+  {
+    "InstitutionId":"39689",
+    "InstitutionName":"Говь-Алтай аймгийн Дарив сумын ерөнхий боловсролын сургууль",
+    "ParentInstitutionId":"40259",
+    "ParentInstitutionName":"Говь-Алтай аймаг"
+  },
+  {
+    "InstitutionId":"39832",
+    "InstitutionName":"Говь-Алтай аймгийн Дэлгэр сумын ерөнхий боловсролын сургууль",
+    "ParentInstitutionId":"40259",
+    "ParentInstitutionName":"Говь-Алтай аймаг"
+  },
+  {
+    "InstitutionId":"39690",
+    "InstitutionName":"Говь-Алтай аймгийн Жаргалан сумын ерөнхий боловсролын сургууль",
+    "ParentInstitutionId":"40259",
+    "ParentInstitutionName":"Говь-Алтай аймаг"
+  },
+  {
+    "InstitutionId":"40130",
+    "InstitutionName":"Говь-Алтай аймгийн ерөнхий боловсролын лаборатори нэгдүгээр сургууль",
+    "ParentInstitutionId":"40259",
+    "ParentInstitutionName":"Говь-Алтай аймаг"
+  },
+  {
+    "InstitutionId":"40128",
+    "InstitutionName":"Говь-Алтай аймгийн Олонбулаг багийн ерөнхий боловсролын сургууль",
+    "ParentInstitutionId":"40259",
+    "ParentInstitutionName":"Говь-Алтай аймаг"
+  },
+  {
+    "InstitutionId":"39691",
+    "InstitutionName":"Говь-Алтай аймгийн Тайшир сумын ерөнхий боловсролын сургууль",
+    "ParentInstitutionId":"40259",
+    "ParentInstitutionName":"Говь-Алтай аймаг"
+  },
+  {
+    "InstitutionId":"39688",
+    "InstitutionName":"Говь-Алтай аймгийн Тахийн тал багийн ерөнхий боловсролын сургууль",
+    "ParentInstitutionId":"40259",
+    "ParentInstitutionName":"Говь-Алтай аймаг"
+  },
+  {
+    "InstitutionId":"40319",
+    "InstitutionName":"Говь-Алтай аймгийн Тонхил сумын ерөнхий боловсролын сургууль",
+    "ParentInstitutionId":"40259",
+    "ParentInstitutionName":"Говь-Алтай аймаг"
+  },
+  {
+    "InstitutionId":"39833",
+    "InstitutionName":"Говь-Алтай аймгийн Төгрөг сумын ерөнхий боловсролын сургууль",
+    "ParentInstitutionId":"40259",
+    "ParentInstitutionName":"Говь-Алтай аймаг"
+  },
+  {
+    "InstitutionId":"39687",
+    "InstitutionName":"Говь-Алтай аймгийн Бугат сумын ерөнхий боловсролын сургууль",
+    "ParentInstitutionId":"40259",
+    "ParentInstitutionName":"Говь-Алтай аймаг"
+  },
+  {
+    "InstitutionId":"39692",
+    "InstitutionName":"Говь-Алтай аймгийн Халиун сумын ерөнхий боловсролын сургууль",
+    "ParentInstitutionId":"40259",
+    "ParentInstitutionName":"Говь-Алтай аймаг"
+  },
+  {
+    "InstitutionId":"39699",
+    "InstitutionName":"Говь-Алтай аймгийн ерөнхий боловсролын Хантайшир-эрдэм цогцолбор сургууль",
+    "ParentInstitutionId":"40259",
+    "ParentInstitutionName":"Говь-Алтай аймаг"
+  },
+  {
+    "InstitutionId":"40169",
+    "InstitutionName":"Говь-Алтай аймгийн Хөхморьт сумын ерөнхий боловсролын сургууль",
+    "ParentInstitutionId":"40259",
+    "ParentInstitutionName":"Говь-Алтай аймаг"
+  },
+  {
+    "InstitutionId":"39693",
+    "InstitutionName":"Говь-Алтай аймгийн Цогт сумын ерөнхий боловсролын сургууль",
+    "ParentInstitutionId":"40259",
+    "ParentInstitutionName":"Говь-Алтай аймаг"
+  },
+  {
+    "InstitutionId":"39694",
+    "InstitutionName":"Говь-Алтай аймгийн Цээл сумын ерөнхий боловсролын сургууль",
+    "ParentInstitutionId":"40259",
+    "ParentInstitutionName":"Говь-Алтай аймаг"
+  },
+  {
+    "InstitutionId":"39695",
+    "InstitutionName":"Говь-Алтай аймгийн Чандмань сумын ерөнхий боловсролын сургууль",
+    "ParentInstitutionId":"40259",
+    "ParentInstitutionName":"Говь-Алтай аймаг"
+  },
+  {
+    "InstitutionId":"39696",
+    "InstitutionName":"Говь-Алтай аймгийн Шарга сумын ерөнхий боловсролын сургууль",
+    "ParentInstitutionId":"40259",
+    "ParentInstitutionName":"Говь-Алтай аймаг"
+  },
+  {
+    "InstitutionId":"39697",
+    "InstitutionName":"Говь-Алтай аймгийн Эрдэнэ сумын ерөнхий боловсролын сургууль",
+    "ParentInstitutionId":"40259",
+    "ParentInstitutionName":"Говь-Алтай аймаг"
+  },
+  {
+    "InstitutionId":"44275",
+    "InstitutionName":"Говь-Алтай аймгийн Есөнбулаг сумын ерөнхий боловсролын дөрөвдүгээр сургууль",
+    "ParentInstitutionId":"40259",
+    "ParentInstitutionName":"Говь-Алтай аймаг"
+  },
+  {
+    "InstitutionId":"39703",
+    "InstitutionName":"Дархан-Уул аймгийн Дархан сумын Ерөнхий боловсролын нэг дүгээр сургууль",
+    "ParentInstitutionId":"40260",
+    "ParentInstitutionName":"Дархан-Уул аймаг"
+  },
+  {
+    "InstitutionId":"39704",
+    "InstitutionName":"Дархан-Уул аймгийн Шарын гол сумын ерөнхий боловсролын хоёр дугаар сургууль",
+    "ParentInstitutionId":"40260",
+    "ParentInstitutionName":"Дархан-Уул аймаг"
+  },
+  {
+    "InstitutionId":"39705",
+    "InstitutionName":"Дархан-Уул аймгийн Дархан сумын Ерөнхий боловсролын дөрөв дүгээр сургууль",
+    "ParentInstitutionId":"40260",
+    "ParentInstitutionName":"Дархан-Уул аймаг"
+  },
+  {
+    "InstitutionId":"39707",
+    "InstitutionName":"Дархан-Уул аймгийн Шарын гол сумын Ерөнхий боловсролын зургаа дугаар сургууль",
+    "ParentInstitutionId":"40260",
+    "ParentInstitutionName":"Дархан-Уул аймаг"
+  },
+  {
+    "InstitutionId":"39708",
+    "InstitutionName":"Дархан-Уул аймгийн Орхон сумын ерөнхий боловсролын сургууль",
+    "ParentInstitutionId":"40260",
+    "ParentInstitutionName":"Дархан-Уул аймаг"
+  },
+  {
+    "InstitutionId":"40175",
+    "InstitutionName":"Дархан-Уул аймгийн Дархан сумын Ерөнхий боловсролын 9 дүгээр сургууль",
+    "ParentInstitutionId":"40260",
+    "ParentInstitutionName":"Дархан-Уул аймаг"
+  },
+  {
+    "InstitutionId":"39709",
+    "InstitutionName":"Дархан-Уул аймгийн Хонгор сумын Ерөнхий боловсролын арван нэгдүгээр сургууль",
+    "ParentInstitutionId":"40260",
+    "ParentInstitutionName":"Дархан-Уул аймаг"
+  },
+  {
+    "InstitutionId":"40176",
+    "InstitutionName":"Дархан-Уул аймгийн Хонгор сумын Ерөнхий боловсролын арван дөрөв дүгээр сургууль",
+    "ParentInstitutionId":"40260",
+    "ParentInstitutionName":"Дархан-Уул аймаг"
+  },
+  {
+    "InstitutionId":"39711",
+    "InstitutionName":"Дархан-Уул аймгийн Дархан сумын Ерөнхий боловсролын арван тавдугаар сургууль",
+    "ParentInstitutionId":"40260",
+    "ParentInstitutionName":"Дархан-Уул аймаг"
+  },
+  {
+    "InstitutionId":"39712",
+    "InstitutionName":"Дархан-Уул аймгийн Дархан сумын ерөнхий боловсролын 18 дугаар сургууль",
+    "ParentInstitutionId":"40260",
+    "ParentInstitutionName":"Дархан-Уул аймаг"
+  },
+  {
+    "InstitutionId":"39907",
+    "InstitutionName":"Дархан-Уул аймгийн Дархан сумын Ерөнхий боловсролын гучдугаар сургууль",
+    "ParentInstitutionId":"40260",
+    "ParentInstitutionName":"Дархан-Уул аймаг"
+  },
+  {
+    "InstitutionId":"40177",
+    "InstitutionName":"Дархан-Уул аймгийн Дархан сумын Ерөнхий боловсролын 16 дугаар сургууль",
+    "ParentInstitutionId":"40260",
+    "ParentInstitutionName":"Дархан-Уул аймаг"
+  },
+  {
+    "InstitutionId":"40134",
+    "InstitutionName":"Дархан-Уул аймгийн Дархан сумын ерөнхий боловсролын Од цогцолбор сургууль",
+    "ParentInstitutionId":"40260",
+    "ParentInstitutionName":"Дархан-Уул аймаг"
+  },
+  {
+    "InstitutionId":"39706",
+    "InstitutionName":"Дархан-Уул аймгийн Ерөнхий боловсролын лаборатори Оюуны ирээдүй цогцолбор сургууль",
+    "ParentInstitutionId":"40260",
+    "ParentInstitutionName":"Дархан-Уул аймаг"
+  },
+  {
+    "InstitutionId":"39714",
+    "InstitutionName":"Шинжлэх ухаан, технологийн их сургуулийн Дархан-Уул аймаг дахь технологийн сургуулийн харъяа ерөнхий боловсролын ахлах сургууль",
+    "ParentInstitutionId":"40260",
+    "ParentInstitutionName":"Дархан-Уул аймаг"
+  },
+  {
+    "InstitutionId":"39713",
+    "InstitutionName":"Хөдөө аж ахуйн их сургуулийн харъяа ерөнхий боловсролын ахлах сургууль",
+    "ParentInstitutionId":"40260",
+    "ParentInstitutionName":"Дархан-Уул аймаг"
+  },
+  {
+    "InstitutionId":"39710",
+    "InstitutionName":"Дархан-Уул аймгийн Дархан сумын Ерөнхий боловсролын 12 дугаар сургууль",
+    "ParentInstitutionId":"40260",
+    "ParentInstitutionName":"Дархан-Уул аймаг"
+  },
+  {
+    "InstitutionId":"39715",
+    "InstitutionName":"Дархан-Уул аймгийн Дархан сумын ерөнхий боловсролын арван есдүгээр сургууль",
+    "ParentInstitutionId":"40260",
+    "ParentInstitutionName":"Дархан-Уул аймаг"
+  },
+  {
+    "InstitutionId":"39719",
+    "InstitutionName":"Дархан-Уул аймгийн Дархан сумын ерөнхий боловсролын хорин дөрөвдүгээр сургууль",
+    "ParentInstitutionId":"40260",
+    "ParentInstitutionName":"Дархан-Уул аймаг"
+  },
+  {
+    "InstitutionId":"39717",
+    "InstitutionName":"Дархан-Уул аймгийн дархан сумын 22 дугаар дунд сургууль",
+    "ParentInstitutionId":"40260",
+    "ParentInstitutionName":"Дархан-Уул аймаг"
+  },
+  {
+    "InstitutionId":"39908",
+    "InstitutionName":"Дархан-Уул аймгийн Дархан сумын Ерөнхий боловсролын Монгол-Оюу сургууль",
+    "ParentInstitutionId":"40260",
+    "ParentInstitutionName":"Дархан-Уул аймаг"
+  },
+  {
+    "InstitutionId":"39909",
+    "InstitutionName":"Дархан-Уул аймгийн Дархан сумын ерөнхий боловсролын Союз сургууль",
+    "ParentInstitutionId":"40260",
+    "ParentInstitutionName":"Дархан-Уул аймаг"
+  },
+  {
+    "InstitutionId":"39905",
+    "InstitutionName":"Дархан-Уул аймгийн Дархан сумын Ерөнхий боловсролын Цайхун сургууль",
+    "ParentInstitutionId":"40260",
+    "ParentInstitutionName":"Дархан-Уул аймаг"
+  },
+  {
+    "InstitutionId":"39716",
+    "InstitutionName":"Дархан-Уул аймгийн Дархан сумын ерөнхий боловсролын Дархан-Эмпати сургууль",
+    "ParentInstitutionId":"40260",
+    "ParentInstitutionName":"Дархан-Уул аймаг"
+  },
+  {
+    "InstitutionId":"44305",
+    "InstitutionName":"Дархан-Уул аймгийн ерөнхий боловсролын Шинэ алхам сургууль",
+    "ParentInstitutionId":"40260",
+    "ParentInstitutionName":"Дархан-Уул аймаг"
+  },
+  {
+    "InstitutionId":"39910",
+    "InstitutionName":"Дорноговь аймгийн Сайншанд сумын ерөнхий боловсролын 1 дүгээр сургууль",
+    "ParentInstitutionId":"40261",
+    "ParentInstitutionName":"Дорноговь аймаг"
+  },
+  {
+    "InstitutionId":"39911",
+    "InstitutionName":"Дорноговь аймгийн Сайншанд сумын ерөнхий боловсролын лаборатори хоёрдугаар сургууль",
+    "ParentInstitutionId":"40261",
+    "ParentInstitutionName":"Дорноговь аймаг"
+  },
+  {
+    "InstitutionId":"40136",
+    "InstitutionName":"Дорноговь аймгийн Сайншанд сумын ерөнхий боловсролын 3 дугаар сургууль",
+    "ParentInstitutionId":"40261",
+    "ParentInstitutionName":"Дорноговь аймаг"
+  },
+  {
+    "InstitutionId":"39912",
+    "InstitutionName":"Дорноговь аймгийн Сайншанд сумын ерөнхий боловсролын тавдугаар сургууль",
+    "ParentInstitutionId":"40261",
+    "ParentInstitutionName":"Дорноговь аймаг"
+  },
+  {
+    "InstitutionId":"39913",
+    "InstitutionName":"Дорноговь аймгийн Айраг сумын ерөнхий боловсролын сургууль",
+    "ParentInstitutionId":"40261",
+    "ParentInstitutionName":"Дорноговь аймаг"
+  },
+  {
+    "InstitutionId":"40333",
+    "InstitutionName":"Дорноговь аймгийн Алтанширээ сумын ерөнхий боловсролын сургууль",
+    "ParentInstitutionId":"40261",
+    "ParentInstitutionName":"Дорноговь аймаг"
+  },
+  {
+    "InstitutionId":"40139",
+    "InstitutionName":"Дорноговь аймгийн Даланжаргалан сумын ерөнхий боловсролын дунд сургууль",
+    "ParentInstitutionId":"40261",
+    "ParentInstitutionName":"Дорноговь аймаг"
+  },
+  {
+    "InstitutionId":"39915",
+    "InstitutionName":"Дорноговь аймгийн Дэлгэрэх сумын ерөнхий боловсролын сургууль",
+    "ParentInstitutionId":"40261",
+    "ParentInstitutionName":"Дорноговь аймаг"
+  },
+  {
+    "InstitutionId":"40137",
+    "InstitutionName":"Дорноговь аймгийн Замын-үүд сумын ерөнхий боловсролын лаборатори нэгдүгээр сургууль",
+    "ParentInstitutionId":"40261",
+    "ParentInstitutionName":"Дорноговь аймаг"
+  },
+  {
+    "InstitutionId":"39914",
+    "InstitutionName":"Дорноговь аймгийн Замын-үүд сумын ерөнхий боловсролын хоёрдугаар сургууль",
+    "ParentInstitutionId":"40261",
+    "ParentInstitutionName":"Дорноговь аймаг"
+  },
+  {
+    "InstitutionId":"40138",
+    "InstitutionName":"Дорноговь аймгийн Сайншанд сумын Зүүнбаянгийн ерөнхий боловсролын сургууль",
+    "ParentInstitutionId":"40261",
+    "ParentInstitutionName":"Дорноговь аймаг"
+  },
+  {
+    "InstitutionId":"40357",
+    "InstitutionName":"Дорноговь аймгийн Иххэт сумын ерөнхий боловсролын сургууль",
+    "ParentInstitutionId":"40261",
+    "ParentInstitutionName":"Дорноговь аймаг"
+  },
+  {
+    "InstitutionId":"39916",
+    "InstitutionName":"Дорноговь аймгийн Мандах сумын ерөнхий боловсролын сургууль",
+    "ParentInstitutionId":"40261",
+    "ParentInstitutionName":"Дорноговь аймаг"
+  },
+  {
+    "InstitutionId":"40141",
+    "InstitutionName":"Дорноговь аймгийн Сайхандулаан сумын ерөнхий боловсролын сургууль",
+    "ParentInstitutionId":"40261",
+    "ParentInstitutionName":"Дорноговь аймаг"
+  },
+  {
+    "InstitutionId":"39918",
+    "InstitutionName":"Дорноговь аймгийн Улаанбадрах сумын ерөнхий боловсролын сургууль",
+    "ParentInstitutionId":"40261",
+    "ParentInstitutionName":"Дорноговь аймаг"
+  },
+  {
+    "InstitutionId":"39919",
+    "InstitutionName":"Дорноговь аймгийн Хатанбулаг сумын ерөнхий боловсролын сургууль",
+    "ParentInstitutionId":"40261",
+    "ParentInstitutionName":"Дорноговь аймаг"
+  },
+  {
+    "InstitutionId":"39920",
+    "InstitutionName":"Дорноговь аймгийн Хөвсгөл сумын ерөнхий боловсролын сургууль",
+    "ParentInstitutionId":"40261",
+    "ParentInstitutionName":"Дорноговь аймаг"
+  },
+  {
+    "InstitutionId":"40142",
+    "InstitutionName":"Дорноговь аймгийн Эрдэнэ сумын ерөнхий боловсролын сургууль",
+    "ParentInstitutionId":"40261",
+    "ParentInstitutionName":"Дорноговь аймаг"
+  },
+  {
+    "InstitutionId":"40282",
+    "InstitutionName":"Дорноговь аймгийн Өргөн сумын ерөнхий боловсролын сургууль",
+    "ParentInstitutionId":"40261",
+    "ParentInstitutionName":"Дорноговь аймаг"
+  },
+  {
+    "InstitutionId":"39921",
+    "InstitutionName":"Үлэмжтэнгэр Ерөнхий боловсролын сургууль",
+    "ParentInstitutionId":"40261",
+    "ParentInstitutionName":"Дорноговь аймаг"
+  },
+  {
+    "InstitutionId":"43975",
+    "InstitutionName":"Дорноговь аймгийн Замын-үүд сумын Ерөнхий боловсролын гуравдугаар сургууль",
+    "ParentInstitutionId":"40261",
+    "ParentInstitutionName":"Дорноговь аймаг"
+  },
+  {
+    "InstitutionId":"44528",
+    "InstitutionName":"Дорноговь аймгийн Сайншанд сумын ерөнхий боловсролын зургаадугаар сургууль",
+    "ParentInstitutionId":"40261",
+    "ParentInstitutionName":"Дорноговь аймаг"
+  },
+  {
+    "InstitutionId":"39747",
+    "InstitutionName":"Дорнод аймгийн Баянтүмэн сумын ерөнхий боловсролын сургууль",
+    "ParentInstitutionId":"40262",
+    "ParentInstitutionName":"Дорнод аймаг"
+  },
+  {
+    "InstitutionId":"39922",
+    "InstitutionName":"Дорнод аймгийн Хэрлэн сумын ерөнхий боловсролын 1 дүгээр сургууль",
+    "ParentInstitutionId":"40262",
+    "ParentInstitutionName":"Дорнод аймаг"
+  },
+  {
+    "InstitutionId":"39923",
+    "InstitutionName":"Дорнод аймгийн Хэрлэн сумын ерөнхий боловсролын 2 дугаар сургууль",
+    "ParentInstitutionId":"40262",
+    "ParentInstitutionName":"Дорнод аймаг"
+  },
+  {
+    "InstitutionId":"40143",
+    "InstitutionName":"Дорнод аймгийн Хэрлэн сумын ерөнхий боловсролын5 дугаар сургууль",
+    "ParentInstitutionId":"40262",
+    "ParentInstitutionName":"Дорнод аймаг"
+  },
+  {
+    "InstitutionId":"40144",
+    "InstitutionName":"Дорнод аймгийн Хэрлэн сумын ерөнхий боловсролын 8 дугаар сургууль",
+    "ParentInstitutionId":"40262",
+    "ParentInstitutionName":"Дорнод аймаг"
+  },
+  {
+    "InstitutionId":"39925",
+    "InstitutionName":"Дорнод аймгийн Хэрлэн сумын ерөнхий боловсролын 11 дүгээр сургууль",
+    "ParentInstitutionId":"40262",
+    "ParentInstitutionName":"Дорнод аймаг"
+  },
+  {
+    "InstitutionId":"40145",
+    "InstitutionName":"Дорнод аймгийн Хэрлэн сумын ерөнхий боловсролын 12 дугаар сургууль",
+    "ParentInstitutionId":"40262",
+    "ParentInstitutionName":"Дорнод аймаг"
+  },
+  {
+    "InstitutionId":"39748",
+    "InstitutionName":"Дорнод аймгийн Баян-Уул сумын ерөнхий боловсролын сургууль",
+    "ParentInstitutionId":"40262",
+    "ParentInstitutionName":"Дорнод аймаг"
+  },
+  {
+    "InstitutionId":"39746",
+    "InstitutionName":"Дорнод аймгийн Баяндун сумын ерөнхий боловсролын сургууль",
+    "ParentInstitutionId":"40262",
+    "ParentInstitutionName":"Дорнод аймаг"
+  },
+  {
+    "InstitutionId":"39749",
+    "InstitutionName":"Дорнод аймгийн Булган сумын ерөнхий боловсролын сургууль",
+    "ParentInstitutionId":"40262",
+    "ParentInstitutionName":"Дорнод аймаг"
+  },
+  {
+    "InstitutionId":"40187",
+    "InstitutionName":"Дорнод аймгийн Гурванзагал сумын ерөнхий боловсролын сургууль",
+    "ParentInstitutionId":"40262",
+    "ParentInstitutionName":"Дорнод аймаг"
+  },
+  {
+    "InstitutionId":"39750",
+    "InstitutionName":"Дорнод аймгийн Дашбалбар сумын Ерөнхий боловсролын сургууль",
+    "ParentInstitutionId":"40262",
+    "ParentInstitutionName":"Дорнод аймаг"
+  },
+  {
+    "InstitutionId":"100000073486131",
+    "InstitutionName":"Дорнод их сургуулийн харьяа ерөнхий боловсролын Дорнод ахлах сургууль",
+    "ParentInstitutionId":"40262",
+    "ParentInstitutionName":"Дорнод аймаг"
+  },
+  {
+    "InstitutionId":"39751",
+    "InstitutionName":"Дорнод аймгийн Матад сумын ерөнхий боловсролын сургууль",
+    "ParentInstitutionId":"40262",
+    "ParentInstitutionName":"Дорнод аймаг"
+  },
+  {
+    "InstitutionId":"40189",
+    "InstitutionName":"Дорнод аймгийн Хөлөнбуйр сумын ерөнхий боловсролын сургууль",
+    "ParentInstitutionId":"40262",
+    "ParentInstitutionName":"Дорнод аймаг"
+  },
+  {
+    "InstitutionId":"39752",
+    "InstitutionName":"Дорнод аймгийн Сэргэлэн сумын ерөнхий боловсролын сургууль",
+    "ParentInstitutionId":"40262",
+    "ParentInstitutionName":"Дорнод аймаг"
+  },
+  {
+    "InstitutionId":"40188",
+    "InstitutionName":"Дорнод аймгийн Халхгол сумын ерөнхий боловсролын сургууль",
+    "ParentInstitutionId":"40262",
+    "ParentInstitutionName":"Дорнод аймаг"
+  },
+  {
+    "InstitutionId":"39926",
+    "InstitutionName":"Дорнод аймгийн Хэрлэн сумын Ерөнхий боловсролын Хан-Уул цогцолбор сургууль",
+    "ParentInstitutionId":"40262",
+    "ParentInstitutionName":"Дорнод аймаг"
+  },
+  {
+    "InstitutionId":"39754",
+    "InstitutionName":"Дорнод аймгийн Цагаан-Овоо сумын ерөнхий боловсролын сургууль",
+    "ParentInstitutionId":"40262",
+    "ParentInstitutionName":"Дорнод аймаг"
+  },
+  {
+    "InstitutionId":"39755",
+    "InstitutionName":"Дорнод аймгийн Чойбалсан сумын Ерөнхий боловсролын сургууль",
+    "ParentInstitutionId":"40262",
+    "ParentInstitutionName":"Дорнод аймаг"
+  },
+  {
+    "InstitutionId":"40190",
+    "InstitutionName":"Дорнод аймгийн Чулуунхороот сумын ерөнхий боловсролын сургууль",
+    "ParentInstitutionId":"40262",
+    "ParentInstitutionName":"Дорнод аймаг"
+  },
+  {
+    "InstitutionId":"39927",
+    "InstitutionName":"Дорнод аймгийн Хэрлэн сумын ерөнхий боловсролын шинэ хөгжил цогцолбор сургууль",
+    "ParentInstitutionId":"40262",
+    "ParentInstitutionName":"Дорнод аймаг"
+  },
+  {
+    "InstitutionId":"39753",
+    "InstitutionName":"Дорнод аймгийн Халхгол сумын Ялалт багийн Ерөнхий боловсролын сургууль",
+    "ParentInstitutionId":"40262",
+    "ParentInstitutionName":"Дорнод аймаг"
+  },
+  {
+    "InstitutionId":"39745",
+    "InstitutionName":"Дорнод аймгийн Хэрлэн сумын ерөнхий боловсролын фловер сургууль",
+    "ParentInstitutionId":"40262",
+    "ParentInstitutionName":"Дорнод аймаг"
+  },
+  {
+    "InstitutionId":"43960",
+    "InstitutionName":"Дорнод аймгийн Хэрлэн сумын ерөнхий боловсролын Түгээмэл оюун сургууль",
+    "ParentInstitutionId":"40262",
+    "ParentInstitutionName":"Дорнод аймаг"
+  },
+  {
+    "InstitutionId":"40165",
+    "InstitutionName":"Дорнод аймгийн Хэрлэн сумын ерөнхий боловсролын Дорно шинэ зуун сургууль",
+    "ParentInstitutionId":"40262",
+    "ParentInstitutionName":"Дорнод аймаг"
+  },
+  {
+    "InstitutionId":"44326",
+    "InstitutionName":"Хэрлэн сумын ерөнхий боловсролын Долоодой сургууль",
+    "ParentInstitutionId":"40262",
+    "ParentInstitutionName":"Дорнод аймаг"
+  },
+  {
+    "InstitutionId":"39765",
+    "InstitutionName":"Дундговь аймгийн ерөнхий боловсролын Хүмүүнлэг сургууль",
+    "ParentInstitutionId":"40263",
+    "ParentInstitutionName":"Дундговь аймаг"
+  },
+  {
+    "InstitutionId":"39813",
+    "InstitutionName":"Дундговь аймгийн Сайнцагаан сумын ерөнхий боловсролын Цэгц билиг сургууль",
+    "ParentInstitutionId":"40263",
+    "ParentInstitutionName":"Дундговь аймаг"
+  },
+  {
+    "InstitutionId":"39756",
+    "InstitutionName":"Дундговь аймгийн Адаацаг сумын ерөнхий боловсролын сургууль",
+    "ParentInstitutionId":"40263",
+    "ParentInstitutionName":"Дундговь аймаг"
+  },
+  {
+    "InstitutionId":"39757",
+    "InstitutionName":"Дундговь аймгийн Баянжаргалан сумын ерөнхий боловсролын сургууль",
+    "ParentInstitutionId":"40263",
+    "ParentInstitutionName":"Дундговь аймаг"
+  },
+  {
+    "InstitutionId":"39764",
+    "InstitutionName":"Дундговь аймгийн ерөнхий боловсролын Говийн ирээдүй цогцолбор сургууль",
+    "ParentInstitutionId":"40263",
+    "ParentInstitutionName":"Дундговь аймаг"
+  },
+  {
+    "InstitutionId":"40191",
+    "InstitutionName":"Дундговь аймгийн Говь угтаал сумын ерөнхий боловсролын сургууль",
+    "ParentInstitutionId":"40263",
+    "ParentInstitutionName":"Дундговь аймаг"
+  },
+  {
+    "InstitutionId":"39758",
+    "InstitutionName":"Дундговь аймгийн Гурвансайхан сумын ерөнхий боловсролын сургууль",
+    "ParentInstitutionId":"40263",
+    "ParentInstitutionName":"Дундговь аймаг"
+  },
+  {
+    "InstitutionId":"39759",
+    "InstitutionName":"Дэлгэрхангай сумын ерөнхий боловсролын сургууль",
+    "ParentInstitutionId":"40263",
+    "ParentInstitutionName":"Дундговь аймаг"
+  },
+  {
+    "InstitutionId":"40192",
+    "InstitutionName":"Дундговь аймгийн Дэлгэрцогт сумын ерөнхий боловсролын сургууль",
+    "ParentInstitutionId":"40263",
+    "ParentInstitutionName":"Дундговь аймаг"
+  },
+  {
+    "InstitutionId":"40323",
+    "InstitutionName":"Дундговь аймгийн Дэрэн сумын ерөнхий боловсролын сургууль",
+    "ParentInstitutionId":"40263",
+    "ParentInstitutionName":"Дундговь аймаг"
+  },
+  {
+    "InstitutionId":"39760",
+    "InstitutionName":"Дундговь аймгийн Луус сумын ерөнхий боловсролын сургууль",
+    "ParentInstitutionId":"40263",
+    "ParentInstitutionName":"Дундговь аймаг"
+  },
+  {
+    "InstitutionId":"42625",
+    "InstitutionName":"Дундговь аймгийн Сайнцагаан сумын ерөнхий боловсролын Мандал сургууль",
+    "ParentInstitutionId":"40263",
+    "ParentInstitutionName":"Дундговь аймаг"
+  },
+  {
+    "InstitutionId":"39761",
+    "InstitutionName":"Дундговь аймгийн Сайхан овоо сумын ерөнхий боловсролын сургууль",
+    "ParentInstitutionId":"40263",
+    "ParentInstitutionName":"Дундговь аймаг"
+  },
+  {
+    "InstitutionId":"39762",
+    "InstitutionName":"Дундговь аймгийн Хулд сумын ерөнхий боловсролын сургууль",
+    "ParentInstitutionId":"40263",
+    "ParentInstitutionName":"Дундговь аймаг"
+  },
+  {
+    "InstitutionId":"40195",
+    "InstitutionName":"Дундговь аймгийн Цагаандэлгэр сумын ерөнхий боловсролын сургууль",
+    "ParentInstitutionId":"40263",
+    "ParentInstitutionName":"Дундговь аймаг"
+  },
+  {
+    "InstitutionId":"40196",
+    "InstitutionName":"Дундговь аймгийн ерөнхий боловсролын лаборатори Эрдмийн далай цогцолбор сургууль",
+    "ParentInstitutionId":"40263",
+    "ParentInstitutionName":"Дундговь аймаг"
+  },
+  {
+    "InstitutionId":"40352",
+    "InstitutionName":"Дундговь аймгийн Эрдэнэдалай сумын ерөнхий боловсролын сургууль",
+    "ParentInstitutionId":"40263",
+    "ParentInstitutionName":"Дундговь аймаг"
+  },
+  {
+    "InstitutionId":"40193",
+    "InstitutionName":"Дундговь аймгийн Өлзийт сумын ерөнхий боловсролын сургууль",
+    "ParentInstitutionId":"40263",
+    "ParentInstitutionName":"Дундговь аймаг"
+  },
+  {
+    "InstitutionId":"39763",
+    "InstitutionName":"Өндөршил сумын ерөнхий боловсролын сургууль",
+    "ParentInstitutionId":"40263",
+    "ParentInstitutionName":"Дундговь аймаг"
+  },
+  {
+    "InstitutionId":"39831",
+    "InstitutionName":"Завхан аймгийн Улиастай сумын ерөнхий боловсролын 3 дугаар сургууль",
+    "ParentInstitutionId":"40264",
+    "ParentInstitutionName":"Завхан аймаг"
+  },
+  {
+    "InstitutionId":"40329",
+    "InstitutionName":"Завхан аймгийн Улиастай сумын ерөнхий боловсролын 4 дүгээр сургууль",
+    "ParentInstitutionId":"40264",
+    "ParentInstitutionName":"Завхан аймаг"
+  },
+  {
+    "InstitutionId":"39814",
+    "InstitutionName":"Завхан аймгийн алдархаан сумын ерөнхий боловсролын сургууль",
+    "ParentInstitutionId":"40264",
+    "ParentInstitutionName":"Завхан аймаг"
+  },
+  {
+    "InstitutionId":"39815",
+    "InstitutionName":"Завхан аймгийн Асгат сумын ерөнхий боловсролын сургууль",
+    "ParentInstitutionId":"40264",
+    "ParentInstitutionName":"Завхан аймаг"
+  },
+  {
+    "InstitutionId":"40212",
+    "InstitutionName":"Завхан аймгийн Баянтэс сумын ерөнхий боловсролын сургууль",
+    "ParentInstitutionId":"40264",
+    "ParentInstitutionName":"Завхан аймаг"
+  },
+  {
+    "InstitutionId":"40327",
+    "InstitutionName":"Завхан аймгийн Баянхайрхан сумын ерөнхий боловсролын сургууль",
+    "ParentInstitutionId":"40264",
+    "ParentInstitutionName":"Завхан аймаг"
+  },
+  {
+    "InstitutionId":"40219",
+    "InstitutionName":"Завхан аймгийн Улиастай сумын ерөнхий боловсролын Дэвшил сургууль",
+    "ParentInstitutionId":"40264",
+    "ParentInstitutionName":"Завхан аймаг"
+  },
+  {
+    "InstitutionId":"39816",
+    "InstitutionName":"Завхан аймгийн Дөрвөлжин сумын ерөнхий боловсролын сургууль",
+    "ParentInstitutionId":"40264",
+    "ParentInstitutionName":"Завхан аймаг"
+  },
+  {
+    "InstitutionId":"39830",
+    "InstitutionName":"Завхан аймгийн Улиастай сумын ерөнхий боловсролын Жавхлант цогцолбор сургууль",
+    "ParentInstitutionId":"40264",
+    "ParentInstitutionName":"Завхан аймаг"
+  },
+  {
+    "InstitutionId":"39822",
+    "InstitutionName":"Завхан аймгийн Тосонцэнгэл сумын ерөнхий боловсролын лаборатори нэг дүгээр сургууль",
+    "ParentInstitutionId":"40264",
+    "ParentInstitutionName":"Завхан аймаг"
+  },
+  {
+    "InstitutionId":"39823",
+    "InstitutionName":"Завхан аймгийн Тосонцэнгэл сумын ерөнхий боловсролын 2 дугаар сургууль",
+    "ParentInstitutionId":"40264",
+    "ParentInstitutionName":"Завхан аймаг"
+  },
+  {
+    "InstitutionId":"39817",
+    "InstitutionName":"Завхан аймгийн Завханмандал сумын ерөнхий боловсролын сургууль",
+    "ParentInstitutionId":"40264",
+    "ParentInstitutionName":"Завхан аймаг"
+  },
+  {
+    "InstitutionId":"39818",
+    "InstitutionName":"Завхан аймгийн Идэр сумын ерөнхий боловсролын сургууль",
+    "ParentInstitutionId":"40264",
+    "ParentInstitutionName":"Завхан аймаг"
+  },
+  {
+    "InstitutionId":"40213",
+    "InstitutionName":"Завхан аймгийн Их-Уул сумын ерөнхий боловсролын сургууль",
+    "ParentInstitutionId":"40264",
+    "ParentInstitutionName":"Завхан аймаг"
+  },
+  {
+    "InstitutionId":"39819",
+    "InstitutionName":"Завхан аймгийн Нөмрөг сумын ерөнхий боловсролын сургууль",
+    "ParentInstitutionId":"40264",
+    "ParentInstitutionName":"Завхан аймаг"
+  },
+  {
+    "InstitutionId":"39820",
+    "InstitutionName":"Завхан аймгийн Отгон сумын ерөнхий боловсролын сургууль",
+    "ParentInstitutionId":"40264",
+    "ParentInstitutionName":"Завхан аймаг"
+  },
+  {
+    "InstitutionId":"40214",
+    "InstitutionName":"Завхан аймгийн Сантмаргац сумын ерөнхий боловсролын сургууль",
+    "ParentInstitutionId":"40264",
+    "ParentInstitutionName":"Завхан аймаг"
+  },
+  {
+    "InstitutionId":"39821",
+    "InstitutionName":"Завхан аймгийн Сонгино сумын ерөнхий боловсролын сургууль",
+    "ParentInstitutionId":"40264",
+    "ParentInstitutionName":"Завхан аймаг"
+  },
+  {
+    "InstitutionId":"39824",
+    "InstitutionName":"Завхан аймгийн Тэлмэн сумын ерөнхий боловсролын сургууль",
+    "ParentInstitutionId":"40264",
+    "ParentInstitutionName":"Завхан аймаг"
+  },
+  {
+    "InstitutionId":"40328",
+    "InstitutionName":"Завхан аймгийн Тэс сумын ерөнхий боловсролын сургууль",
+    "ParentInstitutionId":"40264",
+    "ParentInstitutionName":"Завхан аймаг"
+  },
+  {
+    "InstitutionId":"40215",
+    "InstitutionName":"Завхан аймгийн Түдэвтэй сумын ерөнхий боловсролын сургууль",
+    "ParentInstitutionId":"40264",
+    "ParentInstitutionName":"Завхан аймаг"
+  },
+  {
+    "InstitutionId":"39825",
+    "InstitutionName":"Завхан аймгийн Ургамал сумын ерөнхий боловсролын сургууль",
+    "ParentInstitutionId":"40264",
+    "ParentInstitutionName":"Завхан аймаг"
+  },
+  {
+    "InstitutionId":"39834",
+    "InstitutionName":"Завхан аймгийн хөгжим бүжгийн коллеж",
+    "ParentInstitutionId":"40264",
+    "ParentInstitutionName":"Завхан аймаг"
+  },
+  {
+    "InstitutionId":"40216",
+    "InstitutionName":"Завхан аймгийн Цагаанхайрхан сумын ерөнхий боловсролын сургууль",
+    "ParentInstitutionId":"40264",
+    "ParentInstitutionName":"Завхан аймаг"
+  },
+  {
+    "InstitutionId":"39826",
+    "InstitutionName":"Завхан аймгийн Цагаанчулуут сумын ерөнхий боловсролын сургууль",
+    "ParentInstitutionId":"40264",
+    "ParentInstitutionName":"Завхан аймаг"
+  },
+  {
+    "InstitutionId":"39827",
+    "InstitutionName":"Завхан аймгийн Цэцэн-Уул сумын ерөнхий боловсролын сургууль",
+    "ParentInstitutionId":"40264",
+    "ParentInstitutionName":"Завхан аймаг"
+  },
+  {
+    "InstitutionId":"40218",
+    "InstitutionName":"Завхан аймгийн ерөнхий боловсролын лаборатори Чандмань-Эрдэнэ сургууль",
+    "ParentInstitutionId":"40264",
+    "ParentInstitutionName":"Завхан аймаг"
+  },
+  {
+    "InstitutionId":"40217",
+    "InstitutionName":"Завхан аймгийн Шилүүстэй сумын ерөнхий боловсролын сургууль",
+    "ParentInstitutionId":"40264",
+    "ParentInstitutionName":"Завхан аймаг"
+  },
+  {
+    "InstitutionId":"39828",
+    "InstitutionName":"Завхан аймгийн эрдэнэхайрхан сумын ерөнхий боловсролын сургууль",
+    "ParentInstitutionId":"40264",
+    "ParentInstitutionName":"Завхан аймаг"
+  },
+  {
+    "InstitutionId":"39829",
+    "InstitutionName":"Завхан аймгийн Яруу сумын ерөнхий боловсролын сургууль",
+    "ParentInstitutionId":"40264",
+    "ParentInstitutionName":"Завхан аймаг"
+  },
+  {
+    "InstitutionId":"39836",
+    "InstitutionName":"Орхон аймгийн Баян-Өндөр сумын ерөнхий боловсролын хоёр дугаар сургууль",
+    "ParentInstitutionId":"40265",
+    "ParentInstitutionName":"Орхон аймаг"
+  },
+  {
+    "InstitutionId":"39838",
+    "InstitutionName":"Орхон аймгийн Баян-Өндөр сумын ерөнхий боловсролын долоо дугаар сургууль",
+    "ParentInstitutionId":"40265",
+    "ParentInstitutionName":"Орхон аймаг"
+  },
+  {
+    "InstitutionId":"40221",
+    "InstitutionName":"Орхон аймгийн ерөнхий боловсролын лаборатори наймдугаар сургууль",
+    "ParentInstitutionId":"40265",
+    "ParentInstitutionName":"Орхон аймаг"
+  },
+  {
+    "InstitutionId":"39839",
+    "InstitutionName":"Орхон аймгийн Баян-Өндөр сумын ерөнхий боловсролын арван дөрөвдүгээр сургууль",
+    "ParentInstitutionId":"40265",
+    "ParentInstitutionName":"Орхон аймаг"
+  },
+  {
+    "InstitutionId":"40398",
+    "InstitutionName":"Орхон аймгийн Баян-Өндөр сумын ерөнхий боловсролын арван тавдугаар сургууль",
+    "ParentInstitutionId":"40265",
+    "ParentInstitutionName":"Орхон аймаг"
+  },
+  {
+    "InstitutionId":"39840",
+    "InstitutionName":"Орхон аймгийн Баян-Өндөр сумын ерөнхий боловсролын арван долоо дугаар сургууль",
+    "ParentInstitutionId":"40265",
+    "ParentInstitutionName":"Орхон аймаг"
+  },
+  {
+    "InstitutionId":"40222",
+    "InstitutionName":"Орхон аймгийн Баян-Өндөр сумын ерөнхий боловсролын арван наймдугаар сургууль",
+    "ParentInstitutionId":"40265",
+    "ParentInstitutionName":"Орхон аймаг"
+  },
+  {
+    "InstitutionId":"40220",
+    "InstitutionName":"Орхон аймгийн Баян-Өндөр сумын ерөнхий боловсролын 4 дүгээр сургууль",
+    "ParentInstitutionId":"40265",
+    "ParentInstitutionName":"Орхон аймаг"
+  },
+  {
+    "InstitutionId":"39841",
+    "InstitutionName":"Орхон аймгийн Жаргалант сумын ерөнхий боловсролын сургууль",
+    "ParentInstitutionId":"40265",
+    "ParentInstitutionName":"Орхон аймаг"
+  },
+  {
+    "InstitutionId":"40223",
+    "InstitutionName":"Орхон аймгийн Баян-Өндөр сумын ерөнхий боловсролын Ирээдүйн одод сургууль",
+    "ParentInstitutionId":"40265",
+    "ParentInstitutionName":"Орхон аймаг"
+  },
+  {
+    "InstitutionId":"39837",
+    "InstitutionName":"Орхон аймгийн Баян-Өндөр сумын ерөнхий боловсролын 3 дугаар сургууль",
+    "ParentInstitutionId":"40265",
+    "ParentInstitutionName":"Орхон аймаг"
+  },
+  {
+    "InstitutionId":"40330",
+    "InstitutionName":"Орхон аймгийн Баян-Өндөр сумын ерөнхий боловсролын 5 дугаар сургууль",
+    "ParentInstitutionId":"40265",
+    "ParentInstitutionName":"Орхон аймаг"
+  },
+  {
+    "InstitutionId":"39842",
+    "InstitutionName":"Эрдэнэт үйлдвэр ТӨҮГ-ын Эрдэнэт цогцолбор дээд сургуулийн харьяа Ерөнхий боловсролын Ахлах сургууль",
+    "ParentInstitutionId":"40265",
+    "ParentInstitutionName":"Орхон аймаг"
+  },
+  {
+    "InstitutionId":"40355",
+    "InstitutionName":"Орхон аймгийн Баян-Өндөр сумын ерөнхий боловсролын арван гурав дугаар сургууль",
+    "ParentInstitutionId":"40265",
+    "ParentInstitutionName":"Орхон аймаг"
+  },
+  {
+    "InstitutionId":"39835",
+    "InstitutionName":"Орхон аймгийн Баян-Өндөр сумын ерөнхий боловсролын нэг дүгээр сургууль",
+    "ParentInstitutionId":"40265",
+    "ParentInstitutionName":"Орхон аймаг"
+  },
+  {
+    "InstitutionId":"39844",
+    "InstitutionName":"Орхон аймгийн Баян-Өндөр сумын ерөнхий боловсролын Билигт Өргөө сургууль",
+    "ParentInstitutionId":"40265",
+    "ParentInstitutionName":"Орхон аймаг"
+  },
+  {
+    "InstitutionId":"39846",
+    "InstitutionName":"Орхон аймгийн Баян-Өндөр сумын ерөнхий боловсролын Маргад сургууль",
+    "ParentInstitutionId":"40265",
+    "ParentInstitutionName":"Орхон аймаг"
+  },
+  {
+    "InstitutionId":"100000077375635",
+    "InstitutionName":"Гэгээн билиг сургууль",
+    "ParentInstitutionId":"40265",
+    "ParentInstitutionName":"Орхон аймаг"
+  },
+  {
+    "InstitutionId":"39847",
+    "InstitutionName":"Орхон аймгийн Баян-Өндөр сумын ерөнхий боловсролын Цайхун гэгээ сургууль",
+    "ParentInstitutionId":"40265",
+    "ParentInstitutionName":"Орхон аймаг"
+  },
+  {
+    "InstitutionId":"39843",
+    "InstitutionName":"Орхон аймгийн Баян-Өндөр сумын ерөнхий боловсролын Эрдмийн сан сургууль",
+    "ParentInstitutionId":"40265",
+    "ParentInstitutionName":"Орхон аймаг"
+  },
+  {
+    "InstitutionId":"39845",
+    "InstitutionName":"Ерөнхий боловсролын Орхон эмпати сургууль",
+    "ParentInstitutionId":"40265",
+    "ParentInstitutionName":"Орхон аймаг"
+  },
+  {
+    "InstitutionId":"42327",
+    "InstitutionName":"Орхон аймгийн Баян-Өндөр сумын ерөнхий боловсролын арван ес дүгээр сургууль",
+    "ParentInstitutionId":"40265",
+    "ParentInstitutionName":"Орхон аймаг"
+  },
+  {
+    "InstitutionId":"44098",
+    "InstitutionName":"Орхон аймгийн Баян-Өндөр сумын ерөнхий боловсролын хорьдугаар сургууль",
+    "ParentInstitutionId":"40265",
+    "ParentInstitutionName":"Орхон аймаг"
+  },
+  {
+    "InstitutionId":"44099",
+    "InstitutionName":"Орхон аймгийн Баян-Өндөр сумын ерөнхий боловсролын арван зургаа дугаар сургууль",
+    "ParentInstitutionId":"40265",
+    "ParentInstitutionName":"Орхон аймаг"
+  },
+  {
+    "InstitutionId":"44503",
+    "InstitutionName":"Орхон аймгийн Баян-Өндөр сумын урлагийн төрөлжсөн сургалттай ерөнхий боловсролын уран эгшиг сургууль ",
+    "ParentInstitutionId":"40265",
+    "ParentInstitutionName":"Орхон аймаг"
+  },
+  {
+    "InstitutionId":"39848",
+    "InstitutionName":"Өвөрхангай аймгийн Арвайхээр сумын ерөнхий боловсролын хоёрдугаар сургууль",
+    "ParentInstitutionId":"40266",
+    "ParentInstitutionName":"Өвөрхангай аймаг"
+  },
+  {
+    "InstitutionId":"40225",
+    "InstitutionName":"Өвөрхангай аймгийн Арвайхээр сумын ерөнхий боловсролын дөрөвдүгээр сургууль",
+    "ParentInstitutionId":"40266",
+    "ParentInstitutionName":"Өвөрхангай аймаг"
+  },
+  {
+    "InstitutionId":"40224",
+    "InstitutionName":"Өвөрхангай аймгийн Арвайхээр сумын ерөнхий боловсролын нэгдүгээр сургууль",
+    "ParentInstitutionId":"40266",
+    "ParentInstitutionName":"Өвөрхангай аймаг"
+  },
+  {
+    "InstitutionId":"39865",
+    "InstitutionName":"Өвөрхангай аймгийн Баруунбаян-Улаан сумын ерөнхий боловсролын сургууль",
+    "ParentInstitutionId":"40266",
+    "ParentInstitutionName":"Өвөрхангай аймаг"
+  },
+  {
+    "InstitutionId":"39850",
+    "InstitutionName":"Өвөрхангай аймгийн Бат-Өлзий сумын ерөнхий боловсролын сургууль",
+    "ParentInstitutionId":"40266",
+    "ParentInstitutionName":"Өвөрхангай аймаг"
+  },
+  {
+    "InstitutionId":"39851",
+    "InstitutionName":"Өвөрхангай аймгийн Баян-Өндөр сумын ерөнхий боловсролынсургууль",
+    "ParentInstitutionId":"40266",
+    "ParentInstitutionName":"Өвөрхангай аймаг"
+  },
+  {
+    "InstitutionId":"40226",
+    "InstitutionName":"Өвөрхангай аймгийн Баянгол сумын ерөнхий боловсролын сургууль",
+    "ParentInstitutionId":"40266",
+    "ParentInstitutionName":"Өвөрхангай аймаг"
+  },
+  {
+    "InstitutionId":"40233",
+    "InstitutionName":"Өвөрхангай аймгийн Нарийнтээл сумын Баянтээг багийн ерөнхий боловсролын сургууль",
+    "ParentInstitutionId":"40266",
+    "ParentInstitutionName":"Өвөрхангай аймаг"
+  },
+  {
+    "InstitutionId":"39852",
+    "InstitutionName":"Өвөрхангай аймгийн Богд сумын ерөнхий боловсролын сургууль",
+    "ParentInstitutionId":"40266",
+    "ParentInstitutionName":"Өвөрхангай аймаг"
+  },
+  {
+    "InstitutionId":"40227",
+    "InstitutionName":"Өвөрхангай аймгийн Бүрд сумын ерөнхий боловсролын сургууль",
+    "ParentInstitutionId":"40266",
+    "ParentInstitutionName":"Өвөрхангай аймаг"
+  },
+  {
+    "InstitutionId":"39853",
+    "InstitutionName":"Өвөрхангай аймгийн Гучин-Ус сумын ерөнхий боловсролын сургууль",
+    "ParentInstitutionId":"40266",
+    "ParentInstitutionName":"Өвөрхангай аймаг"
+  },
+  {
+    "InstitutionId":"40228",
+    "InstitutionName":"Өвөрхангай аймгийн Есөнзүйл сумын ерөнхий боловсролын сургууль",
+    "ParentInstitutionId":"40266",
+    "ParentInstitutionName":"Өвөрхангай аймаг"
+  },
+  {
+    "InstitutionId":"39854",
+    "InstitutionName":"Өвөрхангай аймгийн Уянга сумын Жаргалант багийн ерөнхий боловсролын сургууль",
+    "ParentInstitutionId":"40266",
+    "ParentInstitutionName":"Өвөрхангай аймаг"
+  },
+  {
+    "InstitutionId":"39855",
+    "InstitutionName":"Өвөрхангай аймгийн Зүүнбаян-Улаан сумын ерөнхий боловсролын сургууль",
+    "ParentInstitutionId":"40266",
+    "ParentInstitutionName":"Өвөрхангай аймаг"
+  },
+  {
+    "InstitutionId":"40232",
+    "InstitutionName":"Өвөрхангай аймгийн Хархорин сумын ерөнхий боловсролын гүнзгий сургууль",
+    "ParentInstitutionId":"40266",
+    "ParentInstitutionName":"Өвөрхангай аймаг"
+  },
+  {
+    "InstitutionId":"40229",
+    "InstitutionName":"Өвөрхангай аймгийн ерөнхий боловсролын лаборатори Мэргэд сургууль",
+    "ParentInstitutionId":"40266",
+    "ParentInstitutionName":"Өвөрхангай аймаг"
+  },
+  {
+    "InstitutionId":"39856",
+    "InstitutionName":"Өвөрхангай аймгийн Нарийнтээл сумын ерөнхий боловсролын сургууль",
+    "ParentInstitutionId":"40266",
+    "ParentInstitutionName":"Өвөрхангай аймаг"
+  },
+  {
+    "InstitutionId":"39862",
+    "InstitutionName":"Өвөрхангай аймгийн Хархорин сумын ерөнхий боловсролын Орхон сургууль",
+    "ParentInstitutionId":"40266",
+    "ParentInstitutionName":"Өвөрхангай аймаг"
+  },
+  {
+    "InstitutionId":"40230",
+    "InstitutionName":"Өвөрхангай аймгийн Сант сумын ерөнхий боловсролын сургууль",
+    "ParentInstitutionId":"40266",
+    "ParentInstitutionName":"Өвөрхангай аймаг"
+  },
+  {
+    "InstitutionId":"39858",
+    "InstitutionName":"Өвөрхангай аймгийн Тарагт сумын ерөнхий боловсролын сургууль",
+    "ParentInstitutionId":"40266",
+    "ParentInstitutionName":"Өвөрхангай аймаг"
+  },
+  {
+    "InstitutionId":"39860",
+    "InstitutionName":"Өвөрхангай аймгийн Тарагт сумын Туяа багийн ерөнхий боловсролын сургууль",
+    "ParentInstitutionId":"40266",
+    "ParentInstitutionName":"Өвөрхангай аймаг"
+  },
+  {
+    "InstitutionId":"39859",
+    "InstitutionName":"Өвөрхангай аймгийн Төгрөг сумын ерөнхий боловсролын сургууль",
+    "ParentInstitutionId":"40266",
+    "ParentInstitutionName":"Өвөрхангай аймаг"
+  },
+  {
+    "InstitutionId":"100000073494981",
+    "InstitutionName":"Өвөрхангай аймгийн Уянга сумын ерөнхий боловсролын хоёрдугаар сургууль",
+    "ParentInstitutionId":"40266",
+    "ParentInstitutionName":"Өвөрхангай аймаг"
+  },
+  {
+    "InstitutionId":"39861",
+    "InstitutionName":"Өвөрхангай аймгийн Уянга сумын ерөнхий боловсролын нэгдүгээр сургууль",
+    "ParentInstitutionId":"40266",
+    "ParentInstitutionName":"Өвөрхангай аймаг"
+  },
+  {
+    "InstitutionId":"40231",
+    "InstitutionName":"Өвөрхангай аймгийн Хайрхандулаан сумын ерөнхий боловсролын сургууль",
+    "ParentInstitutionId":"40266",
+    "ParentInstitutionName":"Өвөрхангай аймаг"
+  },
+  {
+    "InstitutionId":"39863",
+    "InstitutionName":"Өвөрхангай аймгийн Хархорин сумын ерөнхий боловсролын 2 дугаар сургууль",
+    "ParentInstitutionId":"40266",
+    "ParentInstitutionName":"Өвөрхангай аймаг"
+  },
+  {
+    "InstitutionId":"39864",
+    "InstitutionName":"Өвөрхангай аймгийн Хужирт сумын ерөнхий боловсролын сургууль",
+    "ParentInstitutionId":"40266",
+    "ParentInstitutionName":"Өвөрхангай аймаг"
+  },
+  {
+    "InstitutionId":"39866",
+    "InstitutionName":"Өвөрхангай аймгийн Өлзийт сумын ерөнхий боловсролын сургууль",
+    "ParentInstitutionId":"40266",
+    "ParentInstitutionName":"Өвөрхангай аймаг"
+  },
+  {
+    "InstitutionId":"44329",
+    "InstitutionName":"Өвөрхангай аймгийн Арвайхээр сумын ерөнхий боловсролын тавдугаар сургууль",
+    "ParentInstitutionId":"40266",
+    "ParentInstitutionName":"Өвөрхангай аймаг"
+  },
+  {
+    "InstitutionId":"44330",
+    "InstitutionName":"Өвөрхангай аймгийн Арвайхээр сумын ерөнхий боловсролын Тэмүүлэл-Эрдэм сургууль",
+    "ParentInstitutionId":"40266",
+    "ParentInstitutionName":"Өвөрхангай аймаг"
+  },
+  {
+    "InstitutionId":"44516",
+    "InstitutionName":"Өвөрхангай аймгийн Хархорин сумын ерөнхий боловсролын Номын хүрдэн сургууль",
+    "ParentInstitutionId":"40266",
+    "ParentInstitutionName":"Өвөрхангай аймаг"
+  },
+  {
+    "InstitutionId":"44558",
+    "InstitutionName":"Өвөрхангай аймгийн Богд сумын ерөнхий боловсролын 2 дугаар сургууль",
+    "ParentInstitutionId":"40266",
+    "ParentInstitutionName":"Өвөрхангай аймаг"
+  },
+  {
+    "InstitutionId":"39884",
+    "InstitutionName":"Сүхбаатар аймгийн ерөнхий боловсролын лаборатори нэгдүгээр сургууль",
+    "ParentInstitutionId":"40267",
+    "ParentInstitutionName":"Сүхбаатар аймаг"
+  },
+  {
+    "InstitutionId":"40356",
+    "InstitutionName":"Сүхбаатар аймгийн Баруун-Урт сумын ерөнхий боловсролын хоёрдугаар сургууль",
+    "ParentInstitutionId":"40267",
+    "ParentInstitutionName":"Сүхбаатар аймаг"
+  },
+  {
+    "InstitutionId":"40243",
+    "InstitutionName":"Сүхбаатар аймгийн Баруун-Урт сумын ерөнхий боловсролын гуравдугаар сургууль",
+    "ParentInstitutionId":"40267",
+    "ParentInstitutionName":"Сүхбаатар аймаг"
+  },
+  {
+    "InstitutionId":"39885",
+    "InstitutionName":"Сүхбаатар аймгийн Баруун-Урт сумын ерөнхий боловсролын дөрөвдүгээр сургууль",
+    "ParentInstitutionId":"40267",
+    "ParentInstitutionName":"Сүхбаатар аймаг"
+  },
+  {
+    "InstitutionId":"39878",
+    "InstitutionName":"Сүхбаатар аймгийн Асгат сумын ерөнхий боловсролын сургууль",
+    "ParentInstitutionId":"40267",
+    "ParentInstitutionName":"Сүхбаатар аймаг"
+  },
+  {
+    "InstitutionId":"40240",
+    "InstitutionName":"Сүхбаатар аймгийн Баяндэлгэр сумын ерөнхий боловсролын сургууль",
+    "ParentInstitutionId":"40267",
+    "ParentInstitutionName":"Сүхбаатар аймаг"
+  },
+  {
+    "InstitutionId":"40331",
+    "InstitutionName":"Сүхбаатар аймгийн Дарьганга сумын ерөнхий боловсролын сургууль",
+    "ParentInstitutionId":"40267",
+    "ParentInstitutionName":"Сүхбаатар аймаг"
+  },
+  {
+    "InstitutionId":"39879",
+    "InstitutionName":"Сүхбаатар аймгийн Мөнххаан сумын ерөнхий боловсролын сургууль",
+    "ParentInstitutionId":"40267",
+    "ParentInstitutionName":"Сүхбаатар аймаг"
+  },
+  {
+    "InstitutionId":"40241",
+    "InstitutionName":"Сүхбаатар аймгийн Наран сумын ерөнхий боловсролын сургууль",
+    "ParentInstitutionId":"40267",
+    "ParentInstitutionName":"Сүхбаатар аймаг"
+  },
+  {
+    "InstitutionId":"39880",
+    "InstitutionName":"Сүхбаатар аймгийн Онгон сумын ерөнхий боловсролын сургууль",
+    "ParentInstitutionId":"40267",
+    "ParentInstitutionName":"Сүхбаатар аймаг"
+  },
+  {
+    "InstitutionId":"39886",
+    "InstitutionName":"Сүхбаатар аймгийн Сүхбаатар сумын ерөнхий боловсролын сургууль",
+    "ParentInstitutionId":"40267",
+    "ParentInstitutionName":"Сүхбаатар аймаг"
+  },
+  {
+    "InstitutionId":"40332",
+    "InstitutionName":"Сүхбаатар аймгийн Түвшинширээ сумын ерөнхий боловсролын сургууль",
+    "ParentInstitutionId":"40267",
+    "ParentInstitutionName":"Сүхбаатар аймаг"
+  },
+  {
+    "InstitutionId":"39881",
+    "InstitutionName":"Сүхбаатар аймгийн Түмэнцогт сумын ерөнхий боловсролын дунд сургууль",
+    "ParentInstitutionId":"40267",
+    "ParentInstitutionName":"Сүхбаатар аймаг"
+  },
+  {
+    "InstitutionId":"39882",
+    "InstitutionName":"Сүхбаатар аймгийн Уулбаян сумын ерөнхий боловсролын сургууль",
+    "ParentInstitutionId":"40267",
+    "ParentInstitutionName":"Сүхбаатар аймаг"
+  },
+  {
+    "InstitutionId":"39883",
+    "InstitutionName":"Сүхбаатар аймгийн Халзан сумын ерөнхий боловсролын сургууль",
+    "ParentInstitutionId":"40267",
+    "ParentInstitutionName":"Сүхбаатар аймаг"
+  },
+  {
+    "InstitutionId":"40242",
+    "InstitutionName":"Сүхбаатар аймгийн Эрдэнэцагаан сумын ерөнхий боловсролын сургууль",
+    "ParentInstitutionId":"40267",
+    "ParentInstitutionName":"Сүхбаатар аймаг"
+  },
+  {
+    "InstitutionId":"40245",
+    "InstitutionName":"Сэлэнгэ аймгийн Алтанбулаг сумын ерөнхий боловсролын сургууль",
+    "ParentInstitutionId":"40268",
+    "ParentInstitutionName":"Сэлэнгэ аймаг"
+  },
+  {
+    "InstitutionId":"39890",
+    "InstitutionName":"Сэлэнгэ аймгийн Баруунбүрэн сумын Ерөнхий боловсролын сургууль",
+    "ParentInstitutionId":"40268",
+    "ParentInstitutionName":"Сэлэнгэ аймаг"
+  },
+  {
+    "InstitutionId":"40246",
+    "InstitutionName":"Сэлэнгэ аймгийн Баянгол сумын ерөнхий боловсролын сургууль",
+    "ParentInstitutionId":"40268",
+    "ParentInstitutionName":"Сэлэнгэ аймаг"
+  },
+  {
+    "InstitutionId":"39892",
+    "InstitutionName":"Сэлэнгэ аймгийн Ерөө сумын Бугант тосгоны ерөнхий боловсролын сургууль",
+    "ParentInstitutionId":"40268",
+    "ParentInstitutionName":"Сэлэнгэ аймаг"
+  },
+  {
+    "InstitutionId":"39768",
+    "InstitutionName":"Сэлэнгэ аймгийн Шаамар сумын Дулаанхаан тосгоны ерөнхий боловсролын сургууль",
+    "ParentInstitutionId":"40268",
+    "ParentInstitutionName":"Сэлэнгэ аймаг"
+  },
+  {
+    "InstitutionId":"39891",
+    "InstitutionName":"Сэлэнгэ аймгийн Ерөө сумын ерөнхий боловсролын сургууль",
+    "ParentInstitutionId":"40268",
+    "ParentInstitutionName":"Сэлэнгэ аймаг"
+  },
+  {
+    "InstitutionId":"39903",
+    "InstitutionName":"Сэлэнгэ аймгийн Жавхлант сумын ерөнхий боловсролын сургууль",
+    "ParentInstitutionId":"40268",
+    "ParentInstitutionName":"Сэлэнгэ аймаг"
+  },
+  {
+    "InstitutionId":"40247",
+    "InstitutionName":"Сэлэнгэ аймгийн Зүүнбүрэн сумын ерөнхий боловсролын сургууль",
+    "ParentInstitutionId":"40268",
+    "ParentInstitutionName":"Сэлэнгэ аймаг"
+  },
+  {
+    "InstitutionId":"39893",
+    "InstitutionName":"Сэлэнгэ аймгийн Мандал сумын ерөнхий боловсролын нэгдүгээр сургууль",
+    "ParentInstitutionId":"40268",
+    "ParentInstitutionName":"Сэлэнгэ аймаг"
+  },
+  {
+    "InstitutionId":"39894",
+    "InstitutionName":"Сэлэнгэ аймгийн Мандал сумын ерөнхий боловсролын 2 дугаар сургууль",
+    "ParentInstitutionId":"40268",
+    "ParentInstitutionName":"Сэлэнгэ аймаг"
+  },
+  {
+    "InstitutionId":"40248",
+    "InstitutionName":"Сэлэнгэ аймгийн Мандал сумын ерөнхий боловсролын гуравдугаар сургууль",
+    "ParentInstitutionId":"40268",
+    "ParentInstitutionName":"Сэлэнгэ аймаг"
+  },
+  {
+    "InstitutionId":"40249",
+    "InstitutionName":"Сэлэнгэ аймгийн Орхон сумын Ерөнхий боловсролын сургууль",
+    "ParentInstitutionId":"40268",
+    "ParentInstitutionName":"Сэлэнгэ аймаг"
+  },
+  {
+    "InstitutionId":"39897",
+    "InstitutionName":"Сэлэнгэ аймгийн Орхонтуул сумын ерөнхий боловсролын сургууль",
+    "ParentInstitutionId":"40268",
+    "ParentInstitutionName":"Сэлэнгэ аймаг"
+  },
+  {
+    "InstitutionId":"39766",
+    "InstitutionName":"Сэлэнгэ аймгийн Орхонтуул сумын Рашаант тосгоны Ерөнхий боловсролын сургууль",
+    "ParentInstitutionId":"40268",
+    "ParentInstitutionName":"Сэлэнгэ аймаг"
+  },
+  {
+    "InstitutionId":"40250",
+    "InstitutionName":"Сэлэнгэ аймгийн Сайхан сумын Номгон тосгоны ерөнхий боловсролын сургууль",
+    "ParentInstitutionId":"40268",
+    "ParentInstitutionName":"Сэлэнгэ аймаг"
+  },
+  {
+    "InstitutionId":"39899",
+    "InstitutionName":"Сэлэнгэ аймгийн Сант сумын ерөнхий боловсролын сургууль",
+    "ParentInstitutionId":"40268",
+    "ParentInstitutionName":"Сэлэнгэ аймаг"
+  },
+  {
+    "InstitutionId":"39769",
+    "InstitutionName":"Сэлэнгэ аймгийн Сүхбаатар сумын ерөнхий боловсролын спортын сургууль",
+    "ParentInstitutionId":"40268",
+    "ParentInstitutionName":"Сэлэнгэ аймаг"
+  },
+  {
+    "InstitutionId":"40244",
+    "InstitutionName":"Сэлэнгэ аймгийн Сүхбаатар сумын ерөнхий боловсролын Нэгдүгээр сургууль",
+    "ParentInstitutionId":"40268",
+    "ParentInstitutionName":"Сэлэнгэ аймаг"
+  },
+  {
+    "InstitutionId":"39887",
+    "InstitutionName":"Сэлэнгэ аймгийн Сүхбаатар сумын ерөнхий боловсролын 2-р сургууль",
+    "ParentInstitutionId":"40268",
+    "ParentInstitutionName":"Сэлэнгэ аймаг"
+  },
+  {
+    "InstitutionId":"39888",
+    "InstitutionName":"Сэлэнгэ аймгийн Сүхбаатар сумын ерөнхий боловсролын 3-р сургууль",
+    "ParentInstitutionId":"40268",
+    "ParentInstitutionName":"Сэлэнгэ аймаг"
+  },
+  {
+    "InstitutionId":"39889",
+    "InstitutionName":"Сэлэнгэ аймгийн ерөнхий боловсролын лаборатори 4 дүгээр сургууль",
+    "ParentInstitutionId":"40268",
+    "ParentInstitutionName":"Сэлэнгэ аймаг"
+  },
+  {
+    "InstitutionId":"39902",
+    "InstitutionName":"Сэлэнгэ аймгийн Сүхбаатар сумын ерөнхий боловсролын 5 дугаар сургууль",
+    "ParentInstitutionId":"40268",
+    "ParentInstitutionName":"Сэлэнгэ аймаг"
+  },
+  {
+    "InstitutionId":"40135",
+    "InstitutionName":"Сэлэнгэ аймгийн Сүхбаатар сумын ерөнхий боловсролын зургаадугаар сургууль",
+    "ParentInstitutionId":"40268",
+    "ParentInstitutionName":"Сэлэнгэ аймаг"
+  },
+  {
+    "InstitutionId":"40197",
+    "InstitutionName":"Тарни сургууль, цэцэрлэгийн цогцолбор",
+    "ParentInstitutionId":"40268",
+    "ParentInstitutionName":"Сэлэнгэ аймаг"
+  },
+  {
+    "InstitutionId":"39895",
+    "InstitutionName":"Сэлэнгэ аймгийн Мандал сумын Түнхэл тосгоны ерөнхий боловсролын сургууль",
+    "ParentInstitutionId":"40268",
+    "ParentInstitutionName":"Сэлэнгэ аймаг"
+  },
+  {
+    "InstitutionId":"40251",
+    "InstitutionName":"Сэлэнгэ аймгийн Түшиг сумын ерөнхий боловсролын сургууль",
+    "ParentInstitutionId":"40268",
+    "ParentInstitutionName":"Сэлэнгэ аймаг"
+  },
+  {
+    "InstitutionId":"39767",
+    "InstitutionName":"Сэлэнгэ аймгийн Хушаат сумын ерөнхий боловсролын сургууль",
+    "ParentInstitutionId":"40268",
+    "ParentInstitutionName":"Сэлэнгэ аймаг"
+  },
+  {
+    "InstitutionId":"39896",
+    "InstitutionName":"Сэлэнгэ аймгийн Мандал сумын Хэрх тосгоны ерөнхий боловсролын сургууль",
+    "ParentInstitutionId":"40268",
+    "ParentInstitutionName":"Сэлэнгэ аймаг"
+  },
+  {
+    "InstitutionId":"39900",
+    "InstitutionName":"Сэлэнгэ аймгийн Хүдэр сумын ерөнхий боловсролын сургууль",
+    "ParentInstitutionId":"40268",
+    "ParentInstitutionName":"Сэлэнгэ аймаг"
+  },
+  {
+    "InstitutionId":"39898",
+    "InstitutionName":"Сэлэнгэ аймгийн Сайхан сумын ерөнхий боловсролын сургууль",
+    "ParentInstitutionId":"40268",
+    "ParentInstitutionName":"Сэлэнгэ аймаг"
+  },
+  {
+    "InstitutionId":"39901",
+    "InstitutionName":"Сэлэнгэ аймгийн Цагааннуур сумын ерөнхий боловсролын сургууль",
+    "ParentInstitutionId":"40268",
+    "ParentInstitutionName":"Сэлэнгэ аймаг"
+  },
+  {
+    "InstitutionId":"40252",
+    "InstitutionName":"Сэлэнгэ аймгийн Шаамар сумын ерөнхий боловсролын сургууль",
+    "ParentInstitutionId":"40268",
+    "ParentInstitutionName":"Сэлэнгэ аймаг"
+  },
+  {
+    "InstitutionId":"39770",
+    "InstitutionName":"Сэлэнгэ аймгийн Мандал сумын ерөнхий боловсролын тавдугаар сургууль",
+    "ParentInstitutionId":"40268",
+    "ParentInstitutionName":"Сэлэнгэ аймаг"
+  },
+  {
+    "InstitutionId":"44082",
+    "InstitutionName":"Сэлэнгэ аймгийн Мандал сумын ерөнхий боловсролын дөрөвдүгээр сургууль",
+    "ParentInstitutionId":"40268",
+    "ParentInstitutionName":"Сэлэнгэ аймаг"
+  },
+  {
+    "InstitutionId":"44343",
+    "InstitutionName":"Сэлэнгэ аймгийн Сайхан сумын ерөнхий боловсролын хоёрдугаар сургууль",
+    "ParentInstitutionId":"40268",
+    "ParentInstitutionName":"Сэлэнгэ аймаг"
+  },
+  {
+    "InstitutionId":"39999",
+    "InstitutionName":"Төв аймгийн Зуунмод сумын ерөнхий боловсролын 4 дүгээр сургууль",
+    "ParentInstitutionId":"40269",
+    "ParentInstitutionName":"Төв аймаг"
+  },
+  {
+    "InstitutionId":"40000",
+    "InstitutionName":"Төв аймгийн Зуунмод сумын ерөнхий боловсролын 5 дугаар сургууль",
+    "ParentInstitutionId":"40269",
+    "ParentInstitutionName":"Төв аймаг"
+  },
+  {
+    "InstitutionId":"40359",
+    "InstitutionName":"Төв аймгийн Алтанбулаг сумын ерөнхий боловсролын сургууль",
+    "ParentInstitutionId":"40269",
+    "ParentInstitutionName":"Төв аймаг"
+  },
+  {
+    "InstitutionId":"40001",
+    "InstitutionName":"Төв аймгийн Аргалант сумын ерөнхий боловсролын сургууль",
+    "ParentInstitutionId":"40269",
+    "ParentInstitutionName":"Төв аймаг"
+  },
+  {
+    "InstitutionId":"40002",
+    "InstitutionName":"Төв аймгийн Архуст сумын ерөнхий боловсролын сургууль",
+    "ParentInstitutionId":"40269",
+    "ParentInstitutionName":"Төв аймаг"
+  },
+  {
+    "InstitutionId":"40003",
+    "InstitutionName":"Төв аймгийн Батсүмбэр сумын ерөнхий боловсролын сургууль",
+    "ParentInstitutionId":"40269",
+    "ParentInstitutionName":"Төв аймаг"
+  },
+  {
+    "InstitutionId":"40004",
+    "InstitutionName":"Төв аймгийн Баян сумын ерөнхий боловсролын сургууль",
+    "ParentInstitutionId":"40269",
+    "ParentInstitutionName":"Төв аймаг"
+  },
+  {
+    "InstitutionId":"40006",
+    "InstitutionName":"Төв аймгийн Баян-Өнжүүл сумын ерөнхий боловсролын сургууль",
+    "ParentInstitutionId":"40269",
+    "ParentInstitutionName":"Төв аймаг"
+  },
+  {
+    "InstitutionId":"40170",
+    "InstitutionName":"Төв аймгийн Баяндэлгэр сумын ерөнхий боловсролын сургууль",
+    "ParentInstitutionId":"40269",
+    "ParentInstitutionName":"Төв аймаг"
+  },
+  {
+    "InstitutionId":"40005",
+    "InstitutionName":"Төв аймгийн Баянжаргалан сумын ерөнхий боловсролын сургууль",
+    "ParentInstitutionId":"40269",
+    "ParentInstitutionName":"Төв аймаг"
+  },
+  {
+    "InstitutionId":"39961",
+    "InstitutionName":"Төв аймгийн Баянхангай сумын ерөнхий боловсролын сургууль",
+    "ParentInstitutionId":"40269",
+    "ParentInstitutionName":"Төв аймаг"
+  },
+  {
+    "InstitutionId":"40171",
+    "InstitutionName":"Төв аймгийн Баянцагаан сумын ерөнхий боловсролын сургууль",
+    "ParentInstitutionId":"40269",
+    "ParentInstitutionName":"Төв аймаг"
+  },
+  {
+    "InstitutionId":"40007",
+    "InstitutionName":"Төв аймгийн Баянцогт сумын ерөнхий боловсрол сургууль",
+    "ParentInstitutionId":"40269",
+    "ParentInstitutionName":"Төв аймаг"
+  },
+  {
+    "InstitutionId":"40008",
+    "InstitutionName":"Төв аймгийн Баянчандмань сумын ерөнхий боловсролын сургууль",
+    "ParentInstitutionId":"40269",
+    "ParentInstitutionName":"Төв аймаг"
+  },
+  {
+    "InstitutionId":"40172",
+    "InstitutionName":"Төв аймгийн Борнуур сумын ерөнхий боловсролын сургууль",
+    "ParentInstitutionId":"40269",
+    "ParentInstitutionName":"Төв аймаг"
+  },
+  {
+    "InstitutionId":"40009",
+    "InstitutionName":"Төв аймгийн Бүрэн сумын ерөнхий боловсролын сургууль",
+    "ParentInstitutionId":"40269",
+    "ParentInstitutionName":"Төв аймаг"
+  },
+  {
+    "InstitutionId":"40360",
+    "InstitutionName":"Төв аймгийн Дэлгэрхаан сумын ерөнхий боловсролын сургууль",
+    "ParentInstitutionId":"40269",
+    "ParentInstitutionName":"Төв аймаг"
+  },
+  {
+    "InstitutionId":"40010",
+    "InstitutionName":"Төв аймгийн Жаргалант сумын ерөнхий боловсролын сургууль",
+    "ParentInstitutionId":"40269",
+    "ParentInstitutionName":"Төв аймаг"
+  },
+  {
+    "InstitutionId":"40173",
+    "InstitutionName":"Төв аймгийн Заамар сумын ерөнхий боловсролын 1 дүгээр сургууль",
+    "ParentInstitutionId":"40269",
+    "ParentInstitutionName":"Төв аймаг"
+  },
+  {
+    "InstitutionId":"40012",
+    "InstitutionName":"Төв аймгийн Лүн сумын ерөнхий боловсролын сургууль",
+    "ParentInstitutionId":"40269",
+    "ParentInstitutionName":"Төв аймаг"
+  },
+  {
+    "InstitutionId":"40013",
+    "InstitutionName":"Төв аймгийн Мөнгөнморьт сумын ерөнхий боловсролын сургууль",
+    "ParentInstitutionId":"40269",
+    "ParentInstitutionName":"Төв аймаг"
+  },
+  {
+    "InstitutionId":"40016",
+    "InstitutionName":"Төв аймгийн Сэргэлэн сумын ерөнхий боловсролын сургууль",
+    "ParentInstitutionId":"40269",
+    "ParentInstitutionName":"Төв аймаг"
+  },
+  {
+    "InstitutionId":"40015",
+    "InstitutionName":"Төв аймгийн Сүмбэр сумын ерөнхий боловсролын сургууль",
+    "ParentInstitutionId":"40269",
+    "ParentInstitutionName":"Төв аймаг"
+  },
+  {
+    "InstitutionId":"40017",
+    "InstitutionName":"Төв аймгийн Угтаал цайдам сумын ерөнхий боловсролын сургууль",
+    "ParentInstitutionId":"40269",
+    "ParentInstitutionName":"Төв аймаг"
+  },
+  {
+    "InstitutionId":"39998",
+    "InstitutionName":"Төв аймгийн ерөнхий боловсролын лаборатори хүмүүн цогцолбор сургууль",
+    "ParentInstitutionId":"40269",
+    "ParentInstitutionName":"Төв аймаг"
+  },
+  {
+    "InstitutionId":"40018",
+    "InstitutionName":"Төв аймгийн Цээл сумын ерөнхий боловсролын сургууль",
+    "ParentInstitutionId":"40269",
+    "ParentInstitutionName":"Төв аймаг"
+  },
+  {
+    "InstitutionId":"40011",
+    "InstitutionName":"Төв аймгийн Заамар сумын ерөнхий боловсролын хоёр дугаар сургууль",
+    "ParentInstitutionId":"40269",
+    "ParentInstitutionName":"Төв аймаг"
+  },
+  {
+    "InstitutionId":"40019",
+    "InstitutionName":"Төв аймгийн Эрдэнэ сумын ерөнхий боловсролын сургууль",
+    "ParentInstitutionId":"40269",
+    "ParentInstitutionName":"Төв аймаг"
+  },
+  {
+    "InstitutionId":"40361",
+    "InstitutionName":"Төв аймгийн Эрдэнэсант сумын ерөнхий боловсролын сургууль",
+    "ParentInstitutionId":"40269",
+    "ParentInstitutionName":"Төв аймаг"
+  },
+  {
+    "InstitutionId":"40014",
+    "InstitutionName":"Төв аймгийн Өндөрширээт сумын ерөнхий боловсролын сургууль",
+    "ParentInstitutionId":"40269",
+    "ParentInstitutionName":"Төв аймаг"
+  },
+  {
+    "InstitutionId":"40020",
+    "InstitutionName":"Зуун мод сейнт поул бага сургууль",
+    "ParentInstitutionId":"40269",
+    "ParentInstitutionName":"Төв аймаг"
+  },
+  {
+    "InstitutionId":"44540",
+    "InstitutionName":"Цонжин кибер сургууль ",
+    "ParentInstitutionId":"40269",
+    "ParentInstitutionName":"Төв аймаг"
+  },
+  {
+    "InstitutionId":"39787",
+    "InstitutionName":"Увс аймгийн Тэс сумын ерөнхий боловсролын хоёрдугаар сургууль",
+    "ParentInstitutionId":"40270",
+    "ParentInstitutionName":"Увс аймаг"
+  },
+  {
+    "InstitutionId":"39788",
+    "InstitutionName":"Увс аймгийн Тэс сумын ерөнхий боловсролын гуравдугаар сургууль",
+    "ParentInstitutionId":"40270",
+    "ParentInstitutionName":"Увс аймаг"
+  },
+  {
+    "InstitutionId":"40353",
+    "InstitutionName":"Увс аймгийн ерөнхий боловсролын хоёрдугаар цогцолбор сургууль",
+    "ParentInstitutionId":"40270",
+    "ParentInstitutionName":"Увс аймаг"
+  },
+  {
+    "InstitutionId":"40290",
+    "InstitutionName":"Увс аймгийн Улаангом сумын ерөнхий боловсролын гуравдугаар сургууль",
+    "ParentInstitutionId":"40270",
+    "ParentInstitutionName":"Увс аймаг"
+  },
+  {
+    "InstitutionId":"39774",
+    "InstitutionName":"Увс аймгийн Улаангом сумын ерөнхий боловсролын дөрөвдүгээр сургууль",
+    "ParentInstitutionId":"40270",
+    "ParentInstitutionName":"Увс аймаг"
+  },
+  {
+    "InstitutionId":"39775",
+    "InstitutionName":"Увс аймгийн Баруунтуруун сумын ерөнхий боловсролын сургууль",
+    "ParentInstitutionId":"40270",
+    "ParentInstitutionName":"Увс аймаг"
+  },
+  {
+    "InstitutionId":"39776",
+    "InstitutionName":"Увс аймгийн Бөхмөрөн сумын ерөнхий боловсролын сургууль",
+    "ParentInstitutionId":"40270",
+    "ParentInstitutionName":"Увс аймаг"
+  },
+  {
+    "InstitutionId":"40199",
+    "InstitutionName":"Увс аймгийн Давст сумын ерөнхий боловсролын сургууль",
+    "ParentInstitutionId":"40270",
+    "ParentInstitutionName":"Увс аймаг"
+  },
+  {
+    "InstitutionId":"39777",
+    "InstitutionName":"Увс аймгийн Завхан сумын ерөнхий боловсролын сургууль",
+    "ParentInstitutionId":"40270",
+    "ParentInstitutionName":"Увс аймаг"
+  },
+  {
+    "InstitutionId":"39778",
+    "InstitutionName":"Увс аймгийн Зүүнговь сумын ерөнхий боловсролын сургууль",
+    "ParentInstitutionId":"40270",
+    "ParentInstitutionName":"Увс аймаг"
+  },
+  {
+    "InstitutionId":"40200",
+    "InstitutionName":"Увс аймгийн Зүүнхангай сумын ерөнхий боловсролын сургууль",
+    "ParentInstitutionId":"40270",
+    "ParentInstitutionName":"Увс аймаг"
+  },
+  {
+    "InstitutionId":"39779",
+    "InstitutionName":"Увс аймгийн Малчин сумын ерөнхий боловсролын сургууль",
+    "ParentInstitutionId":"40270",
+    "ParentInstitutionName":"Увс аймаг"
+  },
+  {
+    "InstitutionId":"39780",
+    "InstitutionName":"Увс аймгийн Наранбулаг сумын ерөнхий боловсролын сургууль",
+    "ParentInstitutionId":"40270",
+    "ParentInstitutionName":"Увс аймаг"
+  },
+  {
+    "InstitutionId":"39782",
+    "InstitutionName":"Увс аймгийн Сагил сумын дунд сургууль",
+    "ParentInstitutionId":"40270",
+    "ParentInstitutionName":"Увс аймаг"
+  },
+  {
+    "InstitutionId":"39783",
+    "InstitutionName":"Увс аймгийн Тариалан сумын ерөнхий боловсролын нэгдүгээр сургууль",
+    "ParentInstitutionId":"40270",
+    "ParentInstitutionName":"Увс аймаг"
+  },
+  {
+    "InstitutionId":"40202",
+    "InstitutionName":"Увс аймгийн Тэс сумын ерөнхий боловсролын нэгдүгээр сургууль",
+    "ParentInstitutionId":"40270",
+    "ParentInstitutionName":"Увс аймаг"
+  },
+  {
+    "InstitutionId":"39784",
+    "InstitutionName":"Увс аймгийн Түргэн сумын ерөнхий боловсролын сургууль",
+    "ParentInstitutionId":"40270",
+    "ParentInstitutionName":"Увс аймаг"
+  },
+  {
+    "InstitutionId":"40198",
+    "InstitutionName":"Увс аймгийн Улаангом сумын ерөнхий боловсролын зургаадугаар сургууль",
+    "ParentInstitutionId":"40270",
+    "ParentInstitutionName":"Увс аймаг"
+  },
+  {
+    "InstitutionId":"39793",
+    "InstitutionName":"Увс аймгийн Тариалан сумын ерөнхий боловсролын хоёрдугаар сургууль",
+    "ParentInstitutionId":"40270",
+    "ParentInstitutionName":"Увс аймаг"
+  },
+  {
+    "InstitutionId":"39785",
+    "InstitutionName":"Увс аймгийн Ховд сумын ерөнхий боловсролын сургууль",
+    "ParentInstitutionId":"40270",
+    "ParentInstitutionName":"Увс аймаг"
+  },
+  {
+    "InstitutionId":"39786",
+    "InstitutionName":"Увс аймгийн Хяргас сумын ерөнхий боловсролын сургууль",
+    "ParentInstitutionId":"40270",
+    "ParentInstitutionName":"Увс аймаг"
+  },
+  {
+    "InstitutionId":"40203",
+    "InstitutionName":"Увс аймгийн Цагаанхайрхан сумын ерөнхий боловсролын сургууль",
+    "ParentInstitutionId":"40270",
+    "ParentInstitutionName":"Увс аймаг"
+  },
+  {
+    "InstitutionId":"39773",
+    "InstitutionName":"Увс аймгийн ерөнхий боловсролын лаборатори нэгдүгээр цогцолбор сургууль",
+    "ParentInstitutionId":"40270",
+    "ParentInstitutionName":"Увс аймаг"
+  },
+  {
+    "InstitutionId":"40324",
+    "InstitutionName":"Увс аймгийн Улаангом сумын ерөнхий боловсролын тавдугаар сургууль",
+    "ParentInstitutionId":"40270",
+    "ParentInstitutionName":"Увс аймаг"
+  },
+  {
+    "InstitutionId":"39781",
+    "InstitutionName":"Увс аймгийн Өлгий сумын ерөнхий боловсролын сургууль",
+    "ParentInstitutionId":"40270",
+    "ParentInstitutionName":"Увс аймаг"
+  },
+  {
+    "InstitutionId":"40166",
+    "InstitutionName":"Увс аймгийн Өмнөговь сумын ерөнхий боловсролын нэгдүгээр сургууль",
+    "ParentInstitutionId":"40270",
+    "ParentInstitutionName":"Увс аймаг"
+  },
+  {
+    "InstitutionId":"40201",
+    "InstitutionName":"Увс аймгийн Өндөрхангай сумын ерөнхий боловсролын сургууль",
+    "ParentInstitutionId":"40270",
+    "ParentInstitutionName":"Увс аймаг"
+  },
+  {
+    "InstitutionId":"39792",
+    "InstitutionName":"Дэвшил бага сургууль",
+    "ParentInstitutionId":"40270",
+    "ParentInstitutionName":"Увс аймаг"
+  },
+  {
+    "InstitutionId":"39791",
+    "InstitutionName":"Таван Тэс бага сургууль",
+    "ParentInstitutionId":"40270",
+    "ParentInstitutionName":"Увс аймаг"
+  },
+  {
+    "InstitutionId":"44418",
+    "InstitutionName":"Аймастэдү  ХХК",
+    "ParentInstitutionId":"40270",
+    "ParentInstitutionName":"Увс аймаг"
+  },
+  {
+    "InstitutionId":"39807",
+    "InstitutionName":"Хэнтий аймгийн Хэрлэн сумын ерөнхий боловсролын лаборатори нэгдүгээр сургууль",
+    "ParentInstitutionId":"40271",
+    "ParentInstitutionName":"Хэнтий аймаг"
+  },
+  {
+    "InstitutionId":"39988",
+    "InstitutionName":"Хэнтий аймгийн Батноров сумын ерөнхий боловсролын сургууль",
+    "ParentInstitutionId":"40271",
+    "ParentInstitutionName":"Хэнтий аймаг"
+  },
+  {
+    "InstitutionId":"39989",
+    "InstitutionName":"Хэнтий аймгийн Батширээт сумын ерөнхий боловсролын сургууль",
+    "ParentInstitutionId":"40271",
+    "ParentInstitutionName":"Хэнтий аймаг"
+  },
+  {
+    "InstitutionId":"39990",
+    "InstitutionName":"Хэнтий аймгийн Баян-Адарга сумын ерөнхий боловсролын сургууль",
+    "ParentInstitutionId":"40271",
+    "ParentInstitutionName":"Хэнтий аймаг"
+  },
+  {
+    "InstitutionId":"40150",
+    "InstitutionName":"Хэнтий аймгийн Баян-Овоо сумын ерөнхий боловсролын сургууль",
+    "ParentInstitutionId":"40271",
+    "ParentInstitutionName":"Хэнтий аймаг"
+  },
+  {
+    "InstitutionId":"40149",
+    "InstitutionName":"Хэнтий аймгийн Баянмөнх сумын ерөнхий боловсролын сургууль",
+    "ParentInstitutionId":"40271",
+    "ParentInstitutionName":"Хэнтий аймаг"
+  },
+  {
+    "InstitutionId":"40338",
+    "InstitutionName":"Хэнтий аймгийн Баянхутаг сумын ерөнхий боловсролын сургууль",
+    "ParentInstitutionId":"40271",
+    "ParentInstitutionName":"Хэнтий аймаг"
+  },
+  {
+    "InstitutionId":"40211",
+    "InstitutionName":"Хэнтий аймгийн Биндэр сумын ерөнхий боловсролын сургууль",
+    "ParentInstitutionId":"40271",
+    "ParentInstitutionName":"Хэнтий аймаг"
+  },
+  {
+    "InstitutionId":"39811",
+    "InstitutionName":"Хэнтий аймгийн Бор-Өндөр сумын ерөнхий боловсролын Бор-Өндөр цогцолбор сургууль",
+    "ParentInstitutionId":"40271",
+    "ParentInstitutionName":"Хэнтий аймаг"
+  },
+  {
+    "InstitutionId":"39812",
+    "InstitutionName":"Хэнтий аймгийн Батноров сумын Бэрх тосгоны ерөнхий боловсролын сургууль",
+    "ParentInstitutionId":"40271",
+    "ParentInstitutionName":"Хэнтий аймаг"
+  },
+  {
+    "InstitutionId":"39991",
+    "InstitutionName":"Хэнтий аймгийн Галшар сумын ерөнхий боловсролын сургууль",
+    "ParentInstitutionId":"40271",
+    "ParentInstitutionName":"Хэнтий аймаг"
+  },
+  {
+    "InstitutionId":"40151",
+    "InstitutionName":"Хэнтий аймгийн Өмнөдэлгэр сумын Гурванбаян тосгоны ерөнхий боловсролын сургууль",
+    "ParentInstitutionId":"40271",
+    "ParentInstitutionName":"Хэнтий аймаг"
+  },
+  {
+    "InstitutionId":"39992",
+    "InstitutionName":"Хэнтий аймгийн Дадал сумын ерөнхий боловсролын сургууль",
+    "ParentInstitutionId":"40271",
+    "ParentInstitutionName":"Хэнтий аймаг"
+  },
+  {
+    "InstitutionId":"39993",
+    "InstitutionName":"Хэнтий аймгийн Дархан сумын ерөнхий боловсролын сургууль",
+    "ParentInstitutionId":"40271",
+    "ParentInstitutionName":"Хэнтий аймаг"
+  },
+  {
+    "InstitutionId":"40152",
+    "InstitutionName":"Хэнтий аймгийн Дэлгэрхаан сумын ерөнхий боловсролын сургууль",
+    "ParentInstitutionId":"40271",
+    "ParentInstitutionName":"Хэнтий аймаг"
+  },
+  {
+    "InstitutionId":"39994",
+    "InstitutionName":"Хэнтий аймгийн Жаргалтхаан сумын ерөнхий боловсролын сургууль",
+    "ParentInstitutionId":"40271",
+    "ParentInstitutionName":"Хэнтий аймаг"
+  },
+  {
+    "InstitutionId":"40153",
+    "InstitutionName":"Хэнтий аймгийн Мөрөн сумын ерөнхий боловсролын сургууль",
+    "ParentInstitutionId":"40271",
+    "ParentInstitutionName":"Хэнтий аймаг"
+  },
+  {
+    "InstitutionId":"39995",
+    "InstitutionName":"Хэнтий аймгийн Норовлин сумын ерөнхий боловсролын сургууль",
+    "ParentInstitutionId":"40271",
+    "ParentInstitutionName":"Хэнтий аймаг"
+  },
+  {
+    "InstitutionId":"39809",
+    "InstitutionName":"Хэнтий аймгийн Хэрлэн сумын ерөнхий боловсролын Тэмүүжин цогцолбор сургууль",
+    "ParentInstitutionId":"40271",
+    "ParentInstitutionName":"Хэнтий аймаг"
+  },
+  {
+    "InstitutionId":"39808",
+    "InstitutionName":"Хэнтий аймгийн Хэрлэн сумын ерөнхий боловсролын Хан хэнтий цогцолбор сургууль",
+    "ParentInstitutionId":"40271",
+    "ParentInstitutionName":"Хэнтий аймаг"
+  },
+  {
+    "InstitutionId":"39810",
+    "InstitutionName":"Хэнтий аймгийн Хэрлэн сумын ерөнхий боловсролын дөрөвдүгээр сургууль",
+    "ParentInstitutionId":"40271",
+    "ParentInstitutionName":"Хэнтий аймаг"
+  },
+  {
+    "InstitutionId":"40154",
+    "InstitutionName":"Хэнтий аймгийн Дэлгэрхаан сумын Хэрлэнбаян улаан тосгоны ерөнхий боловсролын сургууль",
+    "ParentInstitutionId":"40271",
+    "ParentInstitutionName":"Хэнтий аймаг"
+  },
+  {
+    "InstitutionId":"39996",
+    "InstitutionName":"Хэнтий аймгийн Цэнхэрмандал сумын ерөнхий боловсролын сургууль",
+    "ParentInstitutionId":"40271",
+    "ParentInstitutionName":"Хэнтий аймаг"
+  },
+  {
+    "InstitutionId":"40148",
+    "InstitutionName":"Хэнтий аймгийн Хэрлэн сумын Өлзийт тосгоны ерөнхий боловсролын сургууль",
+    "ParentInstitutionId":"40271",
+    "ParentInstitutionName":"Хэнтий аймаг"
+  },
+  {
+    "InstitutionId":"39987",
+    "InstitutionName":"Хэнтий аймгийн Өмнөдэлгэр сумын ерөнхий боловсролын сургууль",
+    "ParentInstitutionId":"40271",
+    "ParentInstitutionName":"Хэнтий аймаг"
+  },
+  {
+    "InstitutionId":"39997",
+    "InstitutionName":"Хэнтий аймгийн Бор-Өндөр сумын их ирээдүй бага сургууль",
+    "ParentInstitutionId":"40271",
+    "ParentInstitutionName":"Хэнтий аймаг"
+  },
+  {
+    "InstitutionId":"44481",
+    "InstitutionName":"Хэнтий аймгийн Бэрх хотын ерөнхий боловсролын Бэрх сургууль",
+    "ParentInstitutionId":"40271",
+    "ParentInstitutionName":"Хэнтий аймаг"
+  },
+  {
+    "InstitutionId":"40413",
+    "InstitutionName":"Хөвсгөл аймгийн ерөнхий боловсролын Титэм сургууль",
+    "ParentInstitutionId":"40283",
+    "ParentInstitutionName":"Хөвсгөл аймаг"
+  },
+  {
+    "InstitutionId":"40399",
+    "InstitutionName":"Хөвсгөл аймгийн ерөнхий боловсролын Нутгийн аваргууд сургууль",
+    "ParentInstitutionId":"40283",
+    "ParentInstitutionName":"Хөвсгөл аймаг"
+  },
+  {
+    "InstitutionId":"40401",
+    "InstitutionName":"Хөвсгөл аймгийн Алаг-Эрдэнэ сумын ерөнхий боловсролын сургууль",
+    "ParentInstitutionId":"40283",
+    "ParentInstitutionName":"Хөвсгөл аймаг"
+  },
+  {
+    "InstitutionId":"40402",
+    "InstitutionName":"Хөвсгөл аймгийн Арбулаг сумын ерөнхий боловсролын  сургууль",
+    "ParentInstitutionId":"40283",
+    "ParentInstitutionName":"Хөвсгөл аймаг"
+  },
+  {
+    "InstitutionId":"40403",
+    "InstitutionName":"Хөвсгөл аймгийн Баянзүрх сумын ерөнхий боловсролын сургууль",
+    "ParentInstitutionId":"40283",
+    "ParentInstitutionName":"Хөвсгөл аймаг"
+  },
+  {
+    "InstitutionId":"40404",
+    "InstitutionName":"Хөвсгөл аймгийн Бүрэнтогтох сумын ерөнхий боловсролын сургууль",
+    "ParentInstitutionId":"40283",
+    "ParentInstitutionName":"Хөвсгөл аймаг"
+  },
+  {
+    "InstitutionId":"40427",
+    "InstitutionName":"Хөвсгөл аймгийн Бүрэнтогтох сумын цэцэрлэг, бага сургуулийн цогцолбор",
+    "ParentInstitutionId":"40283",
+    "ParentInstitutionName":"Хөвсгөл аймаг"
+  },
+  {
+    "InstitutionId":"40279",
+    "InstitutionName":"Хөвсгөл аймгийн Галт сумын ерөнхий боловсролын сургууль",
+    "ParentInstitutionId":"40283",
+    "ParentInstitutionName":"Хөвсгөл аймаг"
+  },
+  {
+    "InstitutionId":"40411",
+    "InstitutionName":"Хөвсгөл аймгийн ерөнхий боловсролын Мөрөн гурван эрдэнэ сургууль",
+    "ParentInstitutionId":"40283",
+    "ParentInstitutionName":"Хөвсгөл аймаг"
+  },
+  {
+    "InstitutionId":"40406",
+    "InstitutionName":"Хөвсгөл аймгийн дэлгэр мөрөн цогцолбор сургууль",
+    "ParentInstitutionId":"40283",
+    "ParentInstitutionName":"Хөвсгөл аймаг"
+  },
+  {
+    "InstitutionId":"40407",
+    "InstitutionName":"Хөвсгөл аймгийн Жаргалант сумын ерөнхий боловсролын сургууль",
+    "ParentInstitutionId":"40283",
+    "ParentInstitutionName":"Хөвсгөл аймаг"
+  },
+  {
+    "InstitutionId":"40408",
+    "InstitutionName":"Хөвсгөл аймгийн Галт сумын зүрх бага сургууль",
+    "ParentInstitutionId":"40283",
+    "ParentInstitutionName":"Хөвсгөл аймаг"
+  },
+  {
+    "InstitutionId":"40409",
+    "InstitutionName":"Хөвсгөл аймгийн Мөрөн сумын ерөнхий боловсролын Ирээдүй хорин нэгдүгээр зуун сургууль",
+    "ParentInstitutionId":"40283",
+    "ParentInstitutionName":"Хөвсгөл аймаг"
+  },
+  {
+    "InstitutionId":"40410",
+    "InstitutionName":"Хөвсгөл аймгийн Их-Уул сумын ерөнхий боловсролын сургууль",
+    "ParentInstitutionId":"40283",
+    "ParentInstitutionName":"Хөвсгөл аймаг"
+  },
+  {
+    "InstitutionId":"40412",
+    "InstitutionName":"Хөвсгөл аймгийн Цэцэрэг сумын могойн бага сургууль",
+    "ParentInstitutionId":"40283",
+    "ParentInstitutionName":"Хөвсгөл аймаг"
+  },
+  {
+    "InstitutionId":"40347",
+    "InstitutionName":"Хөвсгөл аймгийн Рашаант сумын ерөнхий боловсролын сургууль",
+    "ParentInstitutionId":"40283",
+    "ParentInstitutionName":"Хөвсгөл аймаг"
+  },
+  {
+    "InstitutionId":"40414",
+    "InstitutionName":"Хөвсгөл аймгийн Рэнчинлхүмбэ сумын ерөнхий боловсролын сургууль",
+    "ParentInstitutionId":"40283",
+    "ParentInstitutionName":"Хөвсгөл аймаг"
+  },
+  {
+    "InstitutionId":"40415",
+    "InstitutionName":"Хөвсгөл аймгийн Тариалан сумын ерөнхий боловсролын сургууль",
+    "ParentInstitutionId":"40283",
+    "ParentInstitutionName":"Хөвсгөл аймаг"
+  },
+  {
+    "InstitutionId":"40275",
+    "InstitutionName":"Хөвсгөл аймгийн Тосонцэнгэл сумын ерөнхий боловсролын сургууль",
+    "ParentInstitutionId":"40283",
+    "ParentInstitutionName":"Хөвсгөл аймаг"
+  },
+  {
+    "InstitutionId":"40417",
+    "InstitutionName":"Хөвсгөл аймгийн Түнэл сумын ерөнхий боловсролын сургууль",
+    "ParentInstitutionId":"40283",
+    "ParentInstitutionName":"Хөвсгөл аймаг"
+  },
+  {
+    "InstitutionId":"40416",
+    "InstitutionName":"Хөвсгөл аймгийн Төмөрбулаг сумын ерөнхий боловсролын сургууль",
+    "ParentInstitutionId":"40283",
+    "ParentInstitutionName":"Хөвсгөл аймаг"
+  },
+  {
+    "InstitutionId":"40400",
+    "InstitutionName":"Хөвсгөл аймгийн Мөрөн сумын Авьяас ерөнхий боловсролын сургууль",
+    "ParentInstitutionId":"40283",
+    "ParentInstitutionName":"Хөвсгөл аймаг"
+  },
+  {
+    "InstitutionId":"40276",
+    "InstitutionName":"Хөвсгөл аймгийн Улаан-Уул сумын ерөнхий боловсролын сургууль",
+    "ParentInstitutionId":"40283",
+    "ParentInstitutionName":"Хөвсгөл аймаг"
+  },
+  {
+    "InstitutionId":"40418",
+    "InstitutionName":"Хөвсгөл аймгийн Ханх сумын ерөнхий боловсролын сургууль",
+    "ParentInstitutionId":"40283",
+    "ParentInstitutionName":"Хөвсгөл аймаг"
+  },
+  {
+    "InstitutionId":"40419",
+    "InstitutionName":"Хөвсгөл аймгийн Хатгал сумын ерөнхий боловсролын сургууль",
+    "ParentInstitutionId":"40283",
+    "ParentInstitutionName":"Хөвсгөл аймаг"
+  },
+  {
+    "InstitutionId":"100000085421733",
+    "InstitutionName":"Хөвсгөл аймгийн Мөрөн сумын ерөнхий боловсролын Сод эрдэм сургууль",
+    "ParentInstitutionId":"40283",
+    "ParentInstitutionName":"Хөвсгөл аймаг"
+  },
+  {
+    "InstitutionId":"40277",
+    "InstitutionName":"Хөвсгөл аймгийн Цагаан-Уул сумын ерөнхий боловсролын сургууль",
+    "ParentInstitutionId":"40283",
+    "ParentInstitutionName":"Хөвсгөл аймаг"
+  },
+  {
+    "InstitutionId":"40421",
+    "InstitutionName":"Хөвсгөл аймгийн Цагаан-Үүр сумын ерөнхий боловсролын сургууль",
+    "ParentInstitutionId":"40283",
+    "ParentInstitutionName":"Хөвсгөл аймаг"
+  },
+  {
+    "InstitutionId":"40420",
+    "InstitutionName":"Хөвсгөл аймгийн Цагааннуур сумын ерөнхий боловсролын сургууль",
+    "ParentInstitutionId":"40283",
+    "ParentInstitutionName":"Хөвсгөл аймаг"
+  },
+  {
+    "InstitutionId":"40422",
+    "InstitutionName":"Хөвсгөл аймгийн Цэцэрлэг сумын ерөнхий боловсролын сургууль",
+    "ParentInstitutionId":"40283",
+    "ParentInstitutionName":"Хөвсгөл аймаг"
+  },
+  {
+    "InstitutionId":"40423",
+    "InstitutionName":"Хөвсгөл аймгийн Чандмань-Өндөр сумын ерөнхий боловсролын сургууль",
+    "ParentInstitutionId":"40283",
+    "ParentInstitutionName":"Хөвсгөл аймаг"
+  },
+  {
+    "InstitutionId":"40278",
+    "InstitutionName":"Хөвсгөл аймгийн Шинэ-Идэр сумын ерөнхий боловсролын сургууль",
+    "ParentInstitutionId":"40283",
+    "ParentInstitutionName":"Хөвсгөл аймаг"
+  },
+  {
+    "InstitutionId":"40424",
+    "InstitutionName":"Хөвсгөл аймгийн ерөнхий боловсролын лаборатори Эрдмийн далай цогцолбор сургууль",
+    "ParentInstitutionId":"40283",
+    "ParentInstitutionName":"Хөвсгөл аймаг"
+  },
+  {
+    "InstitutionId":"40425",
+    "InstitutionName":"Хөвсгөл аймгийн Эрдэнэбулган сумын ерөнхий боловсролын сургууль",
+    "ParentInstitutionId":"40283",
+    "ParentInstitutionName":"Хөвсгөл аймаг"
+  },
+  {
+    "InstitutionId":"40426",
+    "InstitutionName":"Далай ван дээд сургуулийн харъяа ерөнхий боловсролын сургууль",
+    "ParentInstitutionId":"40283",
+    "ParentInstitutionName":"Хөвсгөл аймаг"
+  },
+  {
+    "InstitutionId":"40054",
+    "InstitutionName":"Оюуны нахиа ерөнхий боловсролын сургууль",
+    "ParentInstitutionId":"40284",
+    "ParentInstitutionName":"Баянзүрх дүүрэг"
+  },
+  {
+    "InstitutionId":"40300",
+    "InstitutionName":"Нийслэлийн ерөнхий боловсролын лаборатори арван дөрөвдүгээр сургууль",
+    "ParentInstitutionId":"40284",
+    "ParentInstitutionName":"Баянзүрх дүүрэг"
+  },
+  {
+    "InstitutionId":"40301",
+    "InstitutionName":"Нийслэлийн ерөнхий боловсролын хорин нэгдүгээр сургууль",
+    "ParentInstitutionId":"40284",
+    "ParentInstitutionName":"Баянзүрх дүүрэг"
+  },
+  {
+    "InstitutionId":"40302",
+    "InstitutionName":"Нийслэлийн ерөнхий боловсролын лаборатори гучин гуравдугаар сургууль",
+    "ParentInstitutionId":"40284",
+    "ParentInstitutionName":"Баянзүрх дүүрэг"
+  },
+  {
+    "InstitutionId":"40303",
+    "InstitutionName":"Нийслэлийн ерөнхий боловсролын лаборатори дөчин дөрөв дүгээр сургууль",
+    "ParentInstitutionId":"40284",
+    "ParentInstitutionName":"Баянзүрх дүүрэг"
+  },
+  {
+    "InstitutionId":"40304",
+    "InstitutionName":"Нийслэлийн ерөнхий боловсролын дөчин найм дугаар сургууль",
+    "ParentInstitutionId":"40284",
+    "ParentInstitutionName":"Баянзүрх дүүрэг"
+  },
+  {
+    "InstitutionId":"40367",
+    "InstitutionName":"Нийслэлийн ерөнхий боловсролын тавин тав дугаар сургууль",
+    "ParentInstitutionId":"40284",
+    "ParentInstitutionName":"Баянзүрх дүүрэг"
+  },
+  {
+    "InstitutionId":"40368",
+    "InstitutionName":"Нийслэлийн ерөнхий боловсролын далан есдүгээр сургууль",
+    "ParentInstitutionId":"40284",
+    "ParentInstitutionName":"Баянзүрх дүүрэг"
+  },
+  {
+    "InstitutionId":"40369",
+    "InstitutionName":"Нийслэлийн ерөнхий боловсролын наян дөрөвдүгээр сургууль",
+    "ParentInstitutionId":"40284",
+    "ParentInstitutionName":"Баянзүрх дүүрэг"
+  },
+  {
+    "InstitutionId":"40370",
+    "InstitutionName":"Нийслэлийн ерөнхий боловсролын наян тав дугаар сургууль",
+    "ParentInstitutionId":"40284",
+    "ParentInstitutionName":"Баянзүрх дүүрэг"
+  },
+  {
+    "InstitutionId":"40371",
+    "InstitutionName":"Нийслэлийн ерөнхий боловсролын наян долоо дугаар сургууль",
+    "ParentInstitutionId":"40284",
+    "ParentInstitutionName":"Баянзүрх дүүрэг"
+  },
+  {
+    "InstitutionId":"40372",
+    "InstitutionName":"Нийслэлийн ерөнхий боловсролын наян найм дугаар сургууль",
+    "ParentInstitutionId":"40284",
+    "ParentInstitutionName":"Баянзүрх дүүрэг"
+  },
+  {
+    "InstitutionId":"40373",
+    "InstitutionName":"Нийслэлийн ерөнхий боловсролын ерэн хоёрдугаар сургууль",
+    "ParentInstitutionId":"40284",
+    "ParentInstitutionName":"Баянзүрх дүүрэг"
+  },
+  {
+    "InstitutionId":"40374",
+    "InstitutionName":"Нийслэлийн ерөнхий боловсролын ерэн долоодугаар сургууль",
+    "ParentInstitutionId":"40284",
+    "ParentInstitutionName":"Баянзүрх дүүрэг"
+  },
+  {
+    "InstitutionId":"40375",
+    "InstitutionName":"Нийслэлийн ерөнхий боловсролын нэгзуун хоёрдугаар сургууль",
+    "ParentInstitutionId":"40284",
+    "ParentInstitutionName":"Баянзүрх дүүрэг"
+  },
+  {
+    "InstitutionId":"39956",
+    "InstitutionName":"Нийслэлийн ерөнхий боловсролын зуун арав дугаар сургууль",
+    "ParentInstitutionId":"40284",
+    "ParentInstitutionName":"Баянзүрх дүүрэг"
+  },
+  {
+    "InstitutionId":"40376",
+    "InstitutionName":"Нийслэлийн ерөнхий боловсролын нэг зуун арван нэгдүгээр сургууль",
+    "ParentInstitutionId":"40284",
+    "ParentInstitutionName":"Баянзүрх дүүрэг"
+  },
+  {
+    "InstitutionId":"40377",
+    "InstitutionName":"Нийслэлийн ерөнхий боловсролын зуун хорь дугаар сургууль",
+    "ParentInstitutionId":"40284",
+    "ParentInstitutionName":"Баянзүрх дүүрэг"
+  },
+  {
+    "InstitutionId":"43961",
+    "InstitutionName":"Нийслэлийн ерөнхий боловсролын зуун гучин хоёрдугаар сургууль",
+    "ParentInstitutionId":"40284",
+    "ParentInstitutionName":"Баянзүрх дүүрэг"
+  },
+  {
+    "InstitutionId":"43963",
+    "InstitutionName":"Нийслэлийн ерөнхий боловсролын зуун гучин долоо дугаар сургууль",
+    "ParentInstitutionId":"40284",
+    "ParentInstitutionName":"Баянзүрх дүүрэг"
+  },
+  {
+    "InstitutionId":"40297",
+    "InstitutionName":"Нийслэлийн ерөнхий боловсролын амгалан цогцолбор сургууль",
+    "ParentInstitutionId":"40284",
+    "ParentInstitutionName":"Баянзүрх дүүрэг"
+  },
+  {
+    "InstitutionId":"40298",
+    "InstitutionName":"Нийслэлийн ерөнхий боловсролын баянзүрх цогцолбор сургууль",
+    "ParentInstitutionId":"40284",
+    "ParentInstitutionName":"Баянзүрх дүүрэг"
+  },
+  {
+    "InstitutionId":"40378",
+    "InstitutionName":" Нийслэлийн ерөнхий боловсролын Тэмүүжин өрлөг сургууль",
+    "ParentInstitutionId":"40284",
+    "ParentInstitutionName":"Баянзүрх дүүрэг"
+  },
+  {
+    "InstitutionId":"40305",
+    "InstitutionName":"Нийслэлийн ерөнхий боловсролын тавин гурав дугаар сургууль",
+    "ParentInstitutionId":"40284",
+    "ParentInstitutionName":"Баянзүрх дүүрэг"
+  },
+  {
+    "InstitutionId":"40379",
+    "InstitutionName":"Ерөнхий боловсролын арвис сургууль",
+    "ParentInstitutionId":"40284",
+    "ParentInstitutionName":"Баянзүрх дүүрэг"
+  },
+  {
+    "InstitutionId":"40380",
+    "InstitutionName":"Билгүүн номч бүрэн дунд сургууль",
+    "ParentInstitutionId":"40284",
+    "ParentInstitutionName":"Баянзүрх дүүрэг"
+  },
+  {
+    "InstitutionId":"40395",
+    "InstitutionName":"И Эс Эм олон улсын дунд сургууль",
+    "ParentInstitutionId":"40284",
+    "ParentInstitutionName":"Баянзүрх дүүрэг"
+  },
+  {
+    "InstitutionId":"40382",
+    "InstitutionName":"Ерөнхий боловсролын их засаг лицей сургууль",
+    "ParentInstitutionId":"40284",
+    "ParentInstitutionName":"Баянзүрх дүүрэг"
+  },
+  {
+    "InstitutionId":"40386",
+    "InstitutionName":"Ерөнхий боловсролын Оюунлаг сургууль",
+    "ParentInstitutionId":"40284",
+    "ParentInstitutionName":"Баянзүрх дүүрэг"
+  },
+  {
+    "InstitutionId":"40385",
+    "InstitutionName":"Оюуны оньс сургууль",
+    "ParentInstitutionId":"40284",
+    "ParentInstitutionName":"Баянзүрх дүүрэг"
+  },
+  {
+    "InstitutionId":"40388",
+    "InstitutionName":"Ерөнхий боловсролын төгс дэлгэрэх сургууль",
+    "ParentInstitutionId":"40284",
+    "ParentInstitutionName":"Баянзүрх дүүрэг"
+  },
+  {
+    "InstitutionId":"40391",
+    "InstitutionName":"Ерөнхий боловсролын хишиг сургууль",
+    "ParentInstitutionId":"40284",
+    "ParentInstitutionName":"Баянзүрх дүүрэг"
+  },
+  {
+    "InstitutionId":"40393",
+    "InstitutionName":"Ерөнхий боловсролын хөвгүүд сургууль",
+    "ParentInstitutionId":"40284",
+    "ParentInstitutionName":"Баянзүрх дүүрэг"
+  },
+  {
+    "InstitutionId":"42249",
+    "InstitutionName":"Ерөнхий боловсролын шилдэг сургууль",
+    "ParentInstitutionId":"40284",
+    "ParentInstitutionName":"Баянзүрх дүүрэг"
+  },
+  {
+    "InstitutionId":"40396",
+    "InstitutionName":"Ерөнхий боловсролын эрхэм баян эрдэм сургууль",
+    "ParentInstitutionId":"40284",
+    "ParentInstitutionName":"Баянзүрх дүүрэг"
+  },
+  {
+    "InstitutionId":"40384",
+    "InstitutionName":"Кириллица бага сургууль",
+    "ParentInstitutionId":"40284",
+    "ParentInstitutionName":"Баянзүрх дүүрэг"
+  },
+  {
+    "InstitutionId":"40381",
+    "InstitutionName":"Монгол оросын русский лицей ерөнхий боловсролын сургууль",
+    "ParentInstitutionId":"40284",
+    "ParentInstitutionName":"Баянзүрх дүүрэг"
+  },
+  {
+    "InstitutionId":"40392",
+    "InstitutionName":"Ерөнхий боловсролын шинэ монгол сургууль",
+    "ParentInstitutionId":"40284",
+    "ParentInstitutionName":"Баянзүрх дүүрэг"
+  },
+  {
+    "InstitutionId":"40383",
+    "InstitutionName":"Нийслэлийн ерөнхий боловсролын Эм Ай Ю сургууль",
+    "ParentInstitutionId":"40284",
+    "ParentInstitutionName":"Баянзүрх дүүрэг"
+  },
+  {
+    "InstitutionId":"40394",
+    "InstitutionName":"Ерөнхий боловсролын Улаанбаатар эмпати сургууль",
+    "ParentInstitutionId":"40284",
+    "ParentInstitutionName":"Баянзүрх дүүрэг"
+  },
+  {
+    "InstitutionId":"40390",
+    "InstitutionName":"Г.В.Плехановын нэрэмжит Оросын Эдийн засгийн их сургуулийн Улаанбаатар хотын салбар",
+    "ParentInstitutionId":"40284",
+    "ParentInstitutionName":"Баянзүрх дүүрэг"
+  },
+  {
+    "InstitutionId":"40389",
+    "InstitutionName":"Нийслэлийн ерөнхий боловсролын Улаанбаатар сургууль",
+    "ParentInstitutionId":"40284",
+    "ParentInstitutionName":"Баянзүрх дүүрэг"
+  },
+  {
+    "InstitutionId":"43976",
+    "InstitutionName":"Шинэ монгол технологийн коллеж",
+    "ParentInstitutionId":"40284",
+    "ParentInstitutionName":"Баянзүрх дүүрэг"
+  },
+  {
+    "InstitutionId":"43977",
+    "InstitutionName":"Нийслэлийн ерөнхий боловсролын нэг зуун хорин долдугаар сургууль",
+    "ParentInstitutionId":"40284",
+    "ParentInstitutionName":"Баянзүрх дүүрэг"
+  },
+  {
+    "InstitutionId":"44081",
+    "InstitutionName":"Ерөнхий боловсролын олонлог академи бүрэн дунд сургууль",
+    "ParentInstitutionId":"40284",
+    "ParentInstitutionName":"Баянзүрх дүүрэг"
+  },
+  {
+    "InstitutionId":"44084",
+    "InstitutionName":"Нийслэлийн ерөнхий боловсролын зуун гучин гуравдугаар сургууль",
+    "ParentInstitutionId":"40284",
+    "ParentInstitutionName":"Баянзүрх дүүрэг"
+  },
+  {
+    "InstitutionId":"44093",
+    "InstitutionName":"Ерөнхий боловсролын Глобал иннова сургууль",
+    "ParentInstitutionId":"40284",
+    "ParentInstitutionName":"Баянзүрх дүүрэг"
+  },
+  {
+    "InstitutionId":"44096",
+    "InstitutionName":"Ерөнхий боловсролын нэг зуун хорин зургаа дугаар сургууль",
+    "ParentInstitutionId":"40284",
+    "ParentInstitutionName":"Баянзүрх дүүрэг"
+  },
+  {
+    "InstitutionId":"40112",
+    "InstitutionName":"Нийслэлийн ерөнхий боловсролын Гёте сургууль",
+    "ParentInstitutionId":"40284",
+    "ParentInstitutionName":"Баянзүрх дүүрэг"
+  },
+  {
+    "InstitutionId":"44242",
+    "InstitutionName":"Нийслэлийн ерөнхий боловсролын лаборатори зуун дөчин хоёр дугаар сургууль",
+    "ParentInstitutionId":"40284",
+    "ParentInstitutionName":"Баянзүрх дүүрэг"
+  },
+  {
+    "InstitutionId":"44243",
+    "InstitutionName":"Дотоод хэргийн их сургуулийн харьяа Ерөнхий боловсролын ахлах сургууль",
+    "ParentInstitutionId":"40284",
+    "ParentInstitutionName":"Баянзүрх дүүрэг"
+  },
+  {
+    "InstitutionId":"44246",
+    "InstitutionName":"Сингапур скүүл оф монголиа",
+    "ParentInstitutionId":"40284",
+    "ParentInstitutionName":"Баянзүрх дүүрэг"
+  },
+  {
+    "InstitutionId":"44282",
+    "InstitutionName":"Ерөнхий боловсролын Монтэ роза сургууль",
+    "ParentInstitutionId":"40284",
+    "ParentInstitutionName":"Баянзүрх дүүрэг"
+  },
+  {
+    "InstitutionId":"44283",
+    "InstitutionName":"Ерөнхий боловсролын уудам монгол эдүкэйшн сургууль",
+    "ParentInstitutionId":"40284",
+    "ParentInstitutionName":"Баянзүрх дүүрэг"
+  },
+  {
+    "InstitutionId":"44319",
+    "InstitutionName":"Нийслэлийн ерөнхий боловсролын Амжилт кибер сургууль",
+    "ParentInstitutionId":"40284",
+    "ParentInstitutionName":"Баянзүрх дүүрэг"
+  },
+  {
+    "InstitutionId":"44386",
+    "InstitutionName":"Ерөнхий боловсролын нэг зуун дөчин долоо дугаар сургууль",
+    "ParentInstitutionId":"40284",
+    "ParentInstitutionName":"Баянзүрх дүүрэг"
+  },
+  {
+    "InstitutionId":"44390",
+    "InstitutionName":"Улаанбаатар.Баянзүрх.Ерөнхий боловсролын Нэг зуун дөчин наймдугаар сургууль",
+    "ParentInstitutionId":"40284",
+    "ParentInstitutionName":"Баянзүрх дүүрэг"
+  },
+  {
+    "InstitutionId":"44444",
+    "InstitutionName":"Нийслэлийн ерөнхий боловсролын Томүжин алтернатив скүүлс сургууль",
+    "ParentInstitutionId":"40284",
+    "ParentInstitutionName":"Баянзүрх дүүрэг"
+  },
+  {
+    "InstitutionId":"40053",
+    "InstitutionName":"Оюуны төв сургууль",
+    "ParentInstitutionId":"40284",
+    "ParentInstitutionName":"Баянзүрх дүүрэг"
+  },
+  {
+    "InstitutionId":"44458",
+    "InstitutionName":"Нийслэлийн ерөнхий боловсролын гучдугаар сургууль",
+    "ParentInstitutionId":"40284",
+    "ParentInstitutionName":"Баянзүрх дүүрэг"
+  },
+  {
+    "InstitutionId":"44459",
+    "InstitutionName":"Нийслэлийн ерөнхий боловсролын жаран ес дүгээр сургууль",
+    "ParentInstitutionId":"40284",
+    "ParentInstitutionName":"Баянзүрх дүүрэг"
+  },
+  {
+    "InstitutionId":"44463",
+    "InstitutionName":"нийслэлийн ерөнхий боловсролын 155 дугаар сургууль",
+    "ParentInstitutionId":"40284",
+    "ParentInstitutionName":"Баянзүрх дүүрэг"
+  },
+  {
+    "InstitutionId":"44482",
+    "InstitutionName":"Нийслэлийн ерөнхий боловсролын нэг зуун тавин найм дугаар сургууль",
+    "ParentInstitutionId":"40284",
+    "ParentInstitutionName":"Баянзүрх дүүрэг"
+  },
+  {
+    "InstitutionId":"43956",
+    "InstitutionName":"Нийслэлийн ерөнхий боловсролын абсолют элит ахлах сургууль",
+    "ParentInstitutionId":"40284",
+    "ParentInstitutionName":"Баянзүрх дүүрэг"
+  },
+  {
+    "InstitutionId":"44446",
+    "InstitutionName":"Нийслэлийн ерөнхий боловсролын Мон содон ухаан сургууль",
+    "ParentInstitutionId":"40284",
+    "ParentInstitutionName":"Баянзүрх дүүрэг"
+  },
+  {
+    "InstitutionId":"44526",
+    "InstitutionName":"Хан монгол глобал сургууль",
+    "ParentInstitutionId":"40284",
+    "ParentInstitutionName":"Баянзүрх дүүрэг"
+  },
+  {
+    "InstitutionId":"44569",
+    "InstitutionName":"Жаргалан грийн сургууль",
+    "ParentInstitutionId":"40284",
+    "ParentInstitutionName":"Баянзүрх дүүрэг"
+  },
+  {
+    "InstitutionId":"40272",
+    "InstitutionName":"Архангай аймгийн Эрдэнэбулган сумын ерөнхий боловсролын лаборатори 1 дүгээр сургууль",
+    "ParentInstitutionId":"40296",
+    "ParentInstitutionName":"Архангай аймаг"
+  },
+  {
+    "InstitutionId":"39629",
+    "InstitutionName":"Архангай аймгийн Эрдэнэбулган сумын ерөнхий боловсролын хоёрдугаар сургууль",
+    "ParentInstitutionId":"40296",
+    "ParentInstitutionName":"Архангай аймаг"
+  },
+  {
+    "InstitutionId":"39623",
+    "InstitutionName":"Архангай аймгийн Эрдэнэбулган сумын ерөнхий боловсролын гуравдугаар сургууль",
+    "ParentInstitutionId":"40296",
+    "ParentInstitutionName":"Архангай аймаг"
+  },
+  {
+    "InstitutionId":"40118",
+    "InstitutionName":"Архангай аймгийн Эрдэнэбулган сумын ерөнхий боловсролын дөрөвдүгээр сургууль",
+    "ParentInstitutionId":"40296",
+    "ParentInstitutionName":"Архангай аймаг"
+  },
+  {
+    "InstitutionId":"100000073500264",
+    "InstitutionName":"Архангай аймгийн Эрдэнэбулган сумын ерөнхий боловсролын тав дугаар сургууль",
+    "ParentInstitutionId":"40296",
+    "ParentInstitutionName":"Архангай аймаг"
+  },
+  {
+    "InstitutionId":"39630",
+    "InstitutionName":"Архангай аймгийн Батцэнгэл сумын ерөнхий боловсролын сургууль",
+    "ParentInstitutionId":"40296",
+    "ParentInstitutionName":"Архангай аймаг"
+  },
+  {
+    "InstitutionId":"39631",
+    "InstitutionName":"Архангай аймгийн Булган сумын ерөнхий боловсролын сургууль",
+    "ParentInstitutionId":"40296",
+    "ParentInstitutionName":"Архангай аймаг"
+  },
+  {
+    "InstitutionId":"39633",
+    "InstitutionName":"Архангай аймгийн Жаргалант сумын ерөнхий боловсролын сургууль",
+    "ParentInstitutionId":"40296",
+    "ParentInstitutionName":"Архангай аймаг"
+  },
+  {
+    "InstitutionId":"40343",
+    "InstitutionName":"Архангай аймгийн Эрдэнэбулган сумын Ирээдүй цогцолбор сургууль",
+    "ParentInstitutionId":"40296",
+    "ParentInstitutionName":"Архангай аймаг"
+  },
+  {
+    "InstitutionId":"39632",
+    "InstitutionName":"Архангай аймгийн Ихтамир сумын ерөнхий боловсролын сургууль",
+    "ParentInstitutionId":"40296",
+    "ParentInstitutionName":"Архангай аймаг"
+  },
+  {
+    "InstitutionId":"40274",
+    "InstitutionName":"Архангай аймгийн Тариат сумын 8-н жилийн дунд сургууль",
+    "ParentInstitutionId":"40296",
+    "ParentInstitutionName":"Архангай аймаг"
+  },
+  {
+    "InstitutionId":"40116",
+    "InstitutionName":"Архангай аймгийн Тариат сумын ерөнхий боловсролын сургууль",
+    "ParentInstitutionId":"40296",
+    "ParentInstitutionName":"Архангай аймаг"
+  },
+  {
+    "InstitutionId":"40273",
+    "InstitutionName":"Архангай аймгийн Төвшрүүлэх сумын ерөнхий боловсролын сургууль",
+    "ParentInstitutionId":"40296",
+    "ParentInstitutionName":"Архангай аймаг"
+  },
+  {
+    "InstitutionId":"39641",
+    "InstitutionName":"Архангай аймгийн Хайрхан сумын ерөнхий боловсролын сургууль",
+    "ParentInstitutionId":"40296",
+    "ParentInstitutionName":"Архангай аймаг"
+  },
+  {
+    "InstitutionId":"40115",
+    "InstitutionName":"Архангай аймгийн Чулуут сум бага сургууль",
+    "ParentInstitutionId":"40296",
+    "ParentInstitutionName":"Архангай аймаг"
+  },
+  {
+    "InstitutionId":"39642",
+    "InstitutionName":"Архангай аймгийн Хангай сумын ерөнхий боловсролын сургууль",
+    "ParentInstitutionId":"40296",
+    "ParentInstitutionName":"Архангай аймаг"
+  },
+  {
+    "InstitutionId":"39643",
+    "InstitutionName":"Архангай аймгийн Өндөр-улаан сумын хануй багийн бага сургууль",
+    "ParentInstitutionId":"40296",
+    "ParentInstitutionName":"Архангай аймаг"
+  },
+  {
+    "InstitutionId":"39628",
+    "InstitutionName":"Архангай аймгийн Хашаат сумын ерөнхий боловсролын сургууль",
+    "ParentInstitutionId":"40296",
+    "ParentInstitutionName":"Архангай аймаг"
+  },
+  {
+    "InstitutionId":"40119",
+    "InstitutionName":"Архангай аймгийн Жаргалант сумын Бага сургууль",
+    "ParentInstitutionId":"40296",
+    "ParentInstitutionName":"Архангай аймаг"
+  },
+  {
+    "InstitutionId":"39639",
+    "InstitutionName":"Архангай аймгийн Эрдэнэбулган сумын хоршооллын бага сургууль",
+    "ParentInstitutionId":"40296",
+    "ParentInstitutionName":"Архангай аймаг"
+  },
+  {
+    "InstitutionId":"39637",
+    "InstitutionName":"Архангай аймгийн Хотонт сумын ерөнхий боловсролын сургууль",
+    "ParentInstitutionId":"40296",
+    "ParentInstitutionName":"Архангай аймаг"
+  },
+  {
+    "InstitutionId":"39638",
+    "InstitutionName":"Архангай аймгийн Цахир сумын ерөнхий боловсролын сургууль",
+    "ParentInstitutionId":"40296",
+    "ParentInstitutionName":"Архангай аймаг"
+  },
+  {
+    "InstitutionId":"40344",
+    "InstitutionName":"Архангай аймгийн Цэнхэр сумын ерөнхий боловсролын сургууль",
+    "ParentInstitutionId":"40296",
+    "ParentInstitutionName":"Архангай аймаг"
+  },
+  {
+    "InstitutionId":"39627",
+    "InstitutionName":"Архангай аймгийн Цэцэрлэг сумын ерөнхий боловсролын сургууль",
+    "ParentInstitutionId":"40296",
+    "ParentInstitutionName":"Архангай аймаг"
+  },
+  {
+    "InstitutionId":"39636",
+    "InstitutionName":"Архангай аймгийн чулуут сумын ерөнхий боловсролын сургууль",
+    "ParentInstitutionId":"40296",
+    "ParentInstitutionName":"Архангай аймаг"
+  },
+  {
+    "InstitutionId":"39626",
+    "InstitutionName":"Архангай аймгийн Эрдэнэмандал сумын ерөнхий боловсролын сургууль",
+    "ParentInstitutionId":"40296",
+    "ParentInstitutionName":"Архангай аймаг"
+  },
+  {
+    "InstitutionId":"40117",
+    "InstitutionName":"Архангай аймгийн Өгийнуур сумын ерөнхий боловсролын сургууль",
+    "ParentInstitutionId":"40296",
+    "ParentInstitutionName":"Архангай аймаг"
+  },
+  {
+    "InstitutionId":"39635",
+    "InstitutionName":"Архангай аймгийн Өлзийт сумын ерөнхий боловсролын сургууль",
+    "ParentInstitutionId":"40296",
+    "ParentInstitutionName":"Архангай аймаг"
+  },
+  {
+    "InstitutionId":"40315",
+    "InstitutionName":"Архангай аймгийн Өндөр-Улаан сумын Ерөнхий боловсролын сургууль",
+    "ParentInstitutionId":"40296",
+    "ParentInstitutionName":"Архангай аймаг"
+  },
+  {
+    "InstitutionId":"39634",
+    "InstitutionName":"Архангай аймгийн хотонт сумын өндөрсант багийн ерөнхий боловсролын дунд сургууль",
+    "ParentInstitutionId":"40296",
+    "ParentInstitutionName":"Архангай аймаг"
+  },
+  {
+    "InstitutionId":"100000078935990",
+    "InstitutionName":"Шинжлэх ухаан технологийн Эрдэм ахлах сургууль",
+    "ParentInstitutionId":"40296",
+    "ParentInstitutionName":"Архангай аймаг"
+  },
+  {
+    "InstitutionId":"39625",
+    "InstitutionName":"Архангай аймгийн Гурван тамир коллеж",
+    "ParentInstitutionId":"40296",
+    "ParentInstitutionName":"Архангай аймаг"
+  },
+  {
+    "InstitutionId":"39701",
+    "InstitutionName":"Говьсүмбэр аймгийн Сүмбэр сумын ерөнхий боловсролын 1 дүгээр сургууль",
+    "ParentInstitutionId":"40314",
+    "ParentInstitutionName":"Говь-Сүмбэр аймаг"
+  },
+  {
+    "InstitutionId":"39702",
+    "InstitutionName":"Говьсүмбэр аймгийн Сүмбэр сумын ерөнхий боловсролын 2 дугаар сургууль",
+    "ParentInstitutionId":"40314",
+    "ParentInstitutionName":"Говь-Сүмбэр аймаг"
+  },
+  {
+    "InstitutionId":"40133",
+    "InstitutionName":"Говьсүмбэр аймгийн ерөнхий боловсролын лаборатори тав дугаар сургууль",
+    "ParentInstitutionId":"40314",
+    "ParentInstitutionName":"Говь-Сүмбэр аймаг"
+  },
+  {
+    "InstitutionId":"40320",
+    "InstitutionName":"Говьсүмбэр аймгийн Баянтал сумын ерөнхий боловсролын сургууль",
+    "ParentInstitutionId":"40314",
+    "ParentInstitutionName":"Говь-Сүмбэр аймаг"
+  },
+  {
+    "InstitutionId":"40132",
+    "InstitutionName":"Говьсүмбэр аймгийн Шивээговь сумын ерөнхий боловсролын сургууль",
+    "ParentInstitutionId":"40314",
+    "ParentInstitutionName":"Говь-Сүмбэр аймаг"
+  },
+  {
+    "InstitutionId":"44320",
+    "InstitutionName":"Нийслэлийн ерөнхий боловсролын Жишиг эрдэм сургууль",
+    "ParentInstitutionId":"40337",
+    "ParentInstitutionName":"Сонгинохайрхан дүүрэг"
+  },
+  {
+    "InstitutionId":"40071",
+    "InstitutionName":"Нийслэлийн ерөнхий боловсролын есдүгээр сургууль",
+    "ParentInstitutionId":"40337",
+    "ParentInstitutionName":"Сонгинохайрхан дүүрэг"
+  },
+  {
+    "InstitutionId":"40072",
+    "InstitutionName":"Нийслэлийн ерөнхий боловсролын лаборатори арван хоёр дугаар сургууль",
+    "ParentInstitutionId":"40337",
+    "ParentInstitutionName":"Сонгинохайрхан дүүрэг"
+  },
+  {
+    "InstitutionId":"40073",
+    "InstitutionName":"Нийслэлийн ерөнхий боловсролын дөчин хоёр дугаар сургууль",
+    "ParentInstitutionId":"40337",
+    "ParentInstitutionName":"Сонгинохайрхан дүүрэг"
+  },
+  {
+    "InstitutionId":"40074",
+    "InstitutionName":"Нийслэлийн ерөнхий боловсролын жаран хоёрдугаар сургууль",
+    "ParentInstitutionId":"40337",
+    "ParentInstitutionName":"Сонгинохайрхан дүүрэг"
+  },
+  {
+    "InstitutionId":"40075",
+    "InstitutionName":"Нийслэлийн ерөнхий боловсролын жаран тав дугаар сургууль",
+    "ParentInstitutionId":"40337",
+    "ParentInstitutionName":"Сонгинохайрхан дүүрэг"
+  },
+  {
+    "InstitutionId":"40076",
+    "InstitutionName":"Нийслэлийн ерөнхий боловсролын жаран долдугаар сургууль",
+    "ParentInstitutionId":"40337",
+    "ParentInstitutionName":"Сонгинохайрхан дүүрэг"
+  },
+  {
+    "InstitutionId":"40077",
+    "InstitutionName":"Нийслэлийн ерөнхий боловсролын далан дөрөвдүгээр сургууль",
+    "ParentInstitutionId":"40337",
+    "ParentInstitutionName":"Сонгинохайрхан дүүрэг"
+  },
+  {
+    "InstitutionId":"40078",
+    "InstitutionName":"Нийслэлийн ерөнхий боловсролын далан зургаа дугаар сургууль",
+    "ParentInstitutionId":"40337",
+    "ParentInstitutionName":"Сонгинохайрхан дүүрэг"
+  },
+  {
+    "InstitutionId":"40079",
+    "InstitutionName":"Нийслэлийн ерөнхий боловсролын нэг зуун дөрөв дүгээр сургууль",
+    "ParentInstitutionId":"40337",
+    "ParentInstitutionName":"Сонгинохайрхан дүүрэг"
+  },
+  {
+    "InstitutionId":"40080",
+    "InstitutionName":"Нийслэлийн ерөнхий боловсролын нэг зуун тавдугаар сургууль",
+    "ParentInstitutionId":"40337",
+    "ParentInstitutionName":"Сонгинохайрхан дүүрэг"
+  },
+  {
+    "InstitutionId":"40081",
+    "InstitutionName":"Нийслэлийн ерөнхий боловсролын зуун зургаа дугаар сургууль",
+    "ParentInstitutionId":"40337",
+    "ParentInstitutionName":"Сонгинохайрхан дүүрэг"
+  },
+  {
+    "InstitutionId":"40160",
+    "InstitutionName":"Нийслэлийн ерөнхий боловсролын зуун долоо дугаар сургууль",
+    "ParentInstitutionId":"40337",
+    "ParentInstitutionName":"Сонгинохайрхан дүүрэг"
+  },
+  {
+    "InstitutionId":"40082",
+    "InstitutionName":"Нийслэлийн ерөнхий боловсролын зуун хорин хоёр дугаар сургууль",
+    "ParentInstitutionId":"40337",
+    "ParentInstitutionName":"Сонгинохайрхан дүүрэг"
+  },
+  {
+    "InstitutionId":"40083",
+    "InstitutionName":"Нийслэлийн ерөнхий боловсролын зуун хорин гурав дугаар сургууль",
+    "ParentInstitutionId":"40337",
+    "ParentInstitutionName":"Сонгинохайрхан дүүрэг"
+  },
+  {
+    "InstitutionId":"100000085421537",
+    "InstitutionName":"Нийслэлийн ерөнхий боловсролын нэг зуун хорин дөрөвдүгээр сургууль",
+    "ParentInstitutionId":"40337",
+    "ParentInstitutionName":"Сонгинохайрхан дүүрэг"
+  },
+  {
+    "InstitutionId":"43967",
+    "InstitutionName":"Нийслэлийн ерөнхий боловсролын зуун гучин дөрөв дүгээр сургууль",
+    "ParentInstitutionId":"40337",
+    "ParentInstitutionName":"Сонгинохайрхан дүүрэг"
+  },
+  {
+    "InstitutionId":"40293",
+    "InstitutionName":"Нийслэлийн ерөнхий боловсролын лаборатори ирээдүй цогцолбор сургууль",
+    "ParentInstitutionId":"40337",
+    "ParentInstitutionName":"Сонгинохайрхан дүүрэг"
+  },
+  {
+    "InstitutionId":"40310",
+    "InstitutionName":"Нийслэлийн ерөнхий боловсролын нэг зуун хорин нэг дүгээр сургууль",
+    "ParentInstitutionId":"40337",
+    "ParentInstitutionName":"Сонгинохайрхан дүүрэг"
+  },
+  {
+    "InstitutionId":"100000097006934",
+    "InstitutionName":"Нийслэлийн ерөнхий боловсролын зуун хорин ес дүгээр сургууль",
+    "ParentInstitutionId":"40337",
+    "ParentInstitutionName":"Сонгинохайрхан дүүрэг"
+  },
+  {
+    "InstitutionId":"40089",
+    "InstitutionName":"Ерөнхий боловсролын номуун сургууль",
+    "ParentInstitutionId":"40337",
+    "ParentInstitutionName":"Сонгинохайрхан дүүрэг"
+  },
+  {
+    "InstitutionId":"40090",
+    "InstitutionName":"Ромашка дунд сургууль",
+    "ParentInstitutionId":"40337",
+    "ParentInstitutionName":"Сонгинохайрхан дүүрэг"
+  },
+  {
+    "InstitutionId":"40088",
+    "InstitutionName":"Тольт сургууль",
+    "ParentInstitutionId":"40337",
+    "ParentInstitutionName":"Сонгинохайрхан дүүрэг"
+  },
+  {
+    "InstitutionId":"40086",
+    "InstitutionName":"Ерөнхий боловсролын чандмань сургууль",
+    "ParentInstitutionId":"40337",
+    "ParentInstitutionName":"Сонгинохайрхан дүүрэг"
+  },
+  {
+    "InstitutionId":"40085",
+    "InstitutionName":"Гэрэлт ирээдүй глобал боловсрол",
+    "ParentInstitutionId":"40337",
+    "ParentInstitutionName":"Сонгинохайрхан дүүрэг"
+  },
+  {
+    "InstitutionId":"42301",
+    "InstitutionName":"Номын ёс бага сургууль",
+    "ParentInstitutionId":"40337",
+    "ParentInstitutionName":"Сонгинохайрхан дүүрэг"
+  },
+  {
+    "InstitutionId":"44298",
+    "InstitutionName":"Нийслэлийн Ерөнхий боловсролын зуун дөчин гурав дугаар сургууль",
+    "ParentInstitutionId":"40337",
+    "ParentInstitutionName":"Сонгинохайрхан дүүрэг"
+  },
+  {
+    "InstitutionId":"44351",
+    "InstitutionName":"Нийслэлийн ерөнхий боловсролын хөгжил цогцолбор сургууль",
+    "ParentInstitutionId":"40337",
+    "ParentInstitutionName":"Сонгинохайрхан дүүрэг"
+  },
+  {
+    "InstitutionId":"44352",
+    "InstitutionName":"Нийслэлийн ерөнхий боловсролын өнөр цогцолбор сургууль",
+    "ParentInstitutionId":"40337",
+    "ParentInstitutionName":"Сонгинохайрхан дүүрэг"
+  },
+  {
+    "InstitutionId":"44389",
+    "InstitutionName":"Нийслэлийн ерөнхий боловсролын нэг зуун тавин гуравдугаар сургууль",
+    "ParentInstitutionId":"40337",
+    "ParentInstitutionName":"Сонгинохайрхан дүүрэг"
+  },
+  {
+    "InstitutionId":"44394",
+    "InstitutionName":"Шинэ анагаах ухаан их сургууль",
+    "ParentInstitutionId":"40337",
+    "ParentInstitutionName":"Сонгинохайрхан дүүрэг"
+  },
+  {
+    "InstitutionId":"44408",
+    "InstitutionName":"Нийслэлийн Ерөнхий боловсролын лаборатори нэг зуун тавин нэг дүгээр сургууль",
+    "ParentInstitutionId":"40337",
+    "ParentInstitutionName":"Сонгинохайрхан дүүрэг"
+  },
+  {
+    "InstitutionId":"44483",
+    "InstitutionName":"Нийслэлийн ерөнхий боловсролын нэг зуун тавин хоёр дугаар сургууль ",
+    "ParentInstitutionId":"40337",
+    "ParentInstitutionName":"Сонгинохайрхан дүүрэг"
+  },
+  {
+    "InstitutionId":"44493",
+    "InstitutionName":"Нийслэлийн ерөнхий боловсролын 154 дүгээр сургууль ",
+    "ParentInstitutionId":"40337",
+    "ParentInstitutionName":"Сонгинохайрхан дүүрэг"
+  },
+  {
+    "InstitutionId":"44534",
+    "InstitutionName":"Нийслэлийн ерөнхий боловсролын 162 дугаар сургууль",
+    "ParentInstitutionId":"40337",
+    "ParentInstitutionName":"Сонгинохайрхан дүүрэг"
+  },
+  {
+    "InstitutionId":"40287",
+    "InstitutionName":"Нийслэлийн ерөнхий боловсролын хангай цогцолбор сургууль",
+    "ParentInstitutionId":"44276",
+    "ParentInstitutionName":"Багахангай дүүрэг"
+  },
+  {
+    "InstitutionId":"39954",
+    "InstitutionName":"Нийслэлийн ерөнхий боловсролын монгол тэмүүлэл сургууль",
+    "ParentInstitutionId":"44524",
+    "ParentInstitutionName":"Бусад"
+  },
+  {
+    "InstitutionId":"40159",
+    "InstitutionName":"Нийслэлийн ерөнхий боловсролын Шинэ эрин сургууль",
+    "ParentInstitutionId":"44524",
+    "ParentInstitutionName":"Бусад"
+  },
+  {
+    "InstitutionId":"40046",
+    "InstitutionName":"Нийслэлийн ерөнхий боловсролын Шинэ эхлэл сургууль",
+    "ParentInstitutionId":"44524",
+    "ParentInstitutionName":"Бусад"
+  },
+  {
+    "InstitutionId":"42001",
+    "InstitutionName":"Солонгос дахь Монгол дунд сургууль",
+    "ParentInstitutionId":"44524",
+    "ParentInstitutionName":"Бусад"
+  },
+  {
+    "InstitutionId":"100000097010859",
+    "InstitutionName":"Оросын элчин сайдын яамны сургууль",
+    "ParentInstitutionId":"44524",
+    "ParentInstitutionName":"Бусад"
+  }
+  ]
+}
