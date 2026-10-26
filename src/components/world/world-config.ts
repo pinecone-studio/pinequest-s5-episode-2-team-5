@@ -57,11 +57,11 @@ export const BUILDINGS: BuildingDef[] = [
   },
   {
     id: 'study', sprite: 'house', label: 'Study Hub', route: '/study', icon: 'book-open-page-variant', color: '#FF5C7A',
-    rect: { x: 10, y: 510, w: 200, h: 260 }, door: { x: 110, y: 782 },
+    rect: { x: 10, y: 510, w: 210, h: 273 }, door: { x: 115, y: 795 },
   },
   {
     id: 'lessons', sprite: 'house', label: 'Lesson Hall', route: '/lessons', icon: 'book-open-variant', color: '#7C4DFF',
-    rect: { x: 430, y: 820, w: 200, h: 260 }, door: { x: 530, y: 1080 },
+    rect: { x: 470, y: 390, w: 160, h: 208 }, door: { x: 550, y: 610 },
   },
 ];
 
@@ -82,6 +82,11 @@ export const PATHS: Point[][] = [
     { x: 300, y: 750 },
   ],
   [
+    { x: 400, y: 700 },
+    { x: 470, y: 655 },
+    { x: 550, y: 610 },
+  ],
+  [
     { x: 300, y: 754 },
     { x: 335, y: 850 },
     { x: 345, y: 960 },
@@ -91,15 +96,6 @@ export const PATHS: Point[][] = [
     { x: 208, y: 680 },
     { x: 165, y: 710 },
     { x: 110, y: 782 },
-  ],
-  [
-    { x: 345, y: 960 },
-    { x: 385, y: 988 },
-    { x: 415, y: 1025 },
-    { x: 410, y: 1060 },
-    { x: 414, y: 1088 },
-    { x: 465, y: 1092 },
-    { x: 530, y: 1084 },
   ],
 ];
 
@@ -152,8 +148,6 @@ export const BENCHES: Point[] = [
   { x: 214, y: 830 },
 ];
 
-export const SIGNPOST: Point = { x: 404, y: 900 };
-
 export const FLOWER_BEDS = [
   { x: 248, y: 462, rx: 34, ry: 14 },
   { x: 394, y: 462, rx: 34, ry: 14 },
@@ -175,7 +169,6 @@ export function worldObstacles(): Obstacle[] {
     })),
     ...LAMPS.map((l) => ({ kind: 'ellipse' as const, x: l.x, y: l.y - 4, rx: 5, ry: 5 })),
     ...BENCHES.map((b) => ({ kind: 'rect' as const, x: b.x - 22, y: b.y - 16, w: 44, h: 16 })),
-    { kind: 'rect', x: SIGNPOST.x - 6, y: SIGNPOST.y - 10, w: 12, h: 10 },
     // Decorative strip behind the Lessons Hall.
     { kind: 'rect', x: 0, y: 0, w: WORLD.width, h: TOP_STRIP },
   ];

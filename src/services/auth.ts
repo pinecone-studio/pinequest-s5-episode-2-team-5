@@ -5,7 +5,7 @@
  * The rest of the app only talks to this file and `leaderboard.ts`.
  */
 import { supabase } from '@/lib/supabase';
-import type { ClassId, LessonResult, PublicPlayer, User } from '@/types';
+import type { ClassId, LessonResult, PublicPlayer, RegionType, User } from '@/types';
 
 export type AuthField = 'email' | 'password' | 'nickname';
 
@@ -24,6 +24,8 @@ export interface SignUpInput {
   password: string;
   nickname: string;
   classId: ClassId;
+  regionType: RegionType;
+  regionName: string;
 }
 
 interface ProfileRow {
@@ -31,6 +33,8 @@ interface ProfileRow {
   email: string;
   nickname: string;
   class_id: ClassId;
+  region_type: RegionType | null;
+  region_name: string | null;
   xp: number;
   completed: Record<string, LessonResult>;
   created_at: string;
@@ -41,6 +45,8 @@ const toUser = (row: ProfileRow): User => ({
   email: row.email,
   nickname: row.nickname,
   classId: row.class_id,
+  regionType: row.region_type,
+  regionName: row.region_name,
   xp: row.xp,
   completed: row.completed ?? {},
   createdAt: row.created_at,
@@ -80,7 +86,14 @@ export async function signUp(input: SignUpInput): Promise<User> {
   const { data, error } = await supabase.auth.signUp({
     email,
     password: input.password,
-    options: { data: { nickname, class_id: input.classId } },
+    options: {
+      data: {
+        nickname,
+        class_id: input.classId,
+        region_type: input.regionType,
+        region_name: input.regionName,
+      },
+    },
   });
   if (error) {
     if (/already registered/i.test(error.message)) {
@@ -131,14 +144,25 @@ export async function saveUser(user: User): Promise<User> {
   return user;
 }
 
+export async function updateUserRegion(user: User, regionType: RegionType, regionName: string): Promise<User> {
+  const { error } = await supabase
+    .from('profiles')
+    .update({ region_type: regionType, region_name: regionName })
+    .eq('id', user.id);
+  if (error) throw new AuthError('Could not update your location');
+  return { ...user, regionType, regionName };
+}
+
 /** Everyone with an account, as other players see them. */
 export async function listPlayers(): Promise<PublicPlayer[]> {
-  const { data, error } = await supabase.from('profiles').select('id, nickname, class_id, xp');
+  const { data, error } = await supabase.from('profiles').select('id, nickname, class_id, xp, region_type, region_name');
   if (error || !data) return [];
   return data.map((row) => ({
     id: row.id,
     nickname: row.nickname,
     classId: row.class_id as ClassId,
+    regionType: row.region_type as RegionType | null,
+    regionName: row.region_name as string | null,
     xp: row.xp,
   }));
 }

@@ -7,12 +7,14 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { PlayerPortrait } from '@/components/avatar/player-portrait';
 import { Podium } from '@/components/ranking/podium';
 import { RankRow } from '@/components/ranking/rank-row';
+import { RegionPicker, type RegionSelection } from '@/components/ranking/region-picker';
 import { AppText } from '@/components/ui/app-text';
 import { LabBackground } from '@/components/ui/lab-background';
 import { ScreenHeader } from '@/components/ui/screen-header';
 import { Colors, Fonts, Radius } from '@/constants/theme';
 import { useSession } from '@/context/session';
 import { CLASSES, getClass } from '@/data/classes';
+import { CITY_REGIONS } from '@/data/regions';
 import { haptics } from '@/lib/haptics';
 import { fetchLeaderboard, rankPlayers } from '@/services/leaderboard';
 import type { ClassId, PublicPlayer, User } from '@/types';
@@ -28,6 +30,11 @@ function Ranking({ user }: { user: User }) {
   const insets = useSafeAreaInsets();
   const [players, setPlayers] = useState<PublicPlayer[] | null>(null);
   const [filter, setFilter] = useState<Filter>('all');
+  const [region, setRegion] = useState<RegionSelection>(() =>
+    user.regionType && user.regionName
+      ? { type: user.regionType, name: user.regionName }
+      : { type: 'city', name: CITY_REGIONS[0] },
+  );
   const [refreshing, setRefreshing] = useState(false);
 
   useFocusEffect(
@@ -42,12 +49,18 @@ function Ranking({ user }: { user: User }) {
     setRefreshing(false);
   };
 
-  const ranked = players ? rankPlayers(players, filter) : [];
+  const ranked = players
+    ? rankPlayers(
+        players.filter((player) => player.regionType === region.type && player.regionName === region.name),
+        filter,
+      )
+    : [];
   const me = ranked.find((p) => p.id === user.id);
 
   return (
     <LabBackground bubbles={5}>
       <ScreenHeader title="Global Ranking" subtitle="Hall of Fame" />
+      <RegionPicker value={region} onChange={setRegion} />
       <FilterTabs value={filter} onChange={setFilter} />
       {players === null ? (
         <ActivityIndicator color={Colors.gold} size="large" style={styles.loading} />
@@ -61,7 +74,7 @@ function Ranking({ user }: { user: User }) {
           ListEmptyComponent={
             ranked.length === 0 ? (
               <AppText variant="body" align="center">
-                No one in this class yet.
+                Энэ байршилд чансаанд орсон тоглогч одоогоор алга.
               </AppText>
             ) : undefined
           }
@@ -71,7 +84,7 @@ function Ranking({ user }: { user: User }) {
           showsVerticalScrollIndicator={false}
         />
       )}
-      <MyRank user={user} rank={me?.rank ?? null} filter={filter} />
+      <MyRank user={user} rank={me?.rank ?? null} filter={filter} region={region} />
     </LabBackground>
   );
 }
@@ -103,7 +116,17 @@ function FilterTabs({ value, onChange }: { value: Filter; onChange: (f: Filter) 
   );
 }
 
-function MyRank({ user, rank, filter }: { user: User; rank: number | null; filter: Filter }) {
+function MyRank({
+  user,
+  rank,
+  filter,
+  region,
+}: {
+  user: User;
+  rank: number | null;
+  filter: Filter;
+  region: RegionSelection;
+}) {
   const insets = useSafeAreaInsets();
   return (
     <View style={[styles.myRank, { paddingBottom: insets.bottom + 12 }]}>
@@ -115,8 +138,12 @@ function MyRank({ user, rank, filter }: { user: User; rank: number | null; filte
           </AppText>
           <AppText variant="bodyStrong" numberOfLines={1}>
             {rank !== null
-              ? `#${rank} ${filter === 'all' ? 'worldwide' : `in ${getClass(filter).name}`}`
-              : `You're in ${getClass(user.classId).name}`}
+              ? `#${rank} · ${region.name} · ${filter === 'all' ? 'бүх түвшин' : getClass(filter).name}`
+              : !user.regionType || !user.regionName
+                ? 'Профайлдаа байршлаа сонгоно уу'
+                : user.regionType !== region.type || user.regionName !== region.name
+                  ? 'Өөр байршлын чансаа'
+                  : `${region.name} · ${filter === 'all' ? 'бүх түвшин' : getClass(filter).name}`}
           </AppText>
         </View>
         <View style={styles.myXp}>

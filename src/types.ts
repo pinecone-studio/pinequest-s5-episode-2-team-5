@@ -4,6 +4,7 @@ import type { MaterialCommunityIcons } from '@expo/vector-icons';
 export type IconName = ComponentProps<typeof MaterialCommunityIcons>['name'];
 
 export type ClassId = 'beginner' | 'medium' | 'hard';
+export type RegionType = 'city' | 'province';
 
 export type LessonStep =
   | { type: 'info'; title: string; body: string; icon: IconName }
@@ -60,6 +61,8 @@ export interface User {
   nickname: string;
   /** Highest unlocked class. Starts as the class picked at sign-up. */
   classId: ClassId;
+  regionType?: RegionType | null;
+  regionName?: string | null;
   xp: number;
   completed: Record<string, LessonResult>;
   createdAt: string;
@@ -70,5 +73,7 @@ export interface PublicPlayer {
   id: string;
   nickname: string;
   classId: ClassId;
+  regionType?: RegionType | null;
+  regionName?: string | null;
   xp: number;
 }
