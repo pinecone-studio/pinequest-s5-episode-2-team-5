@@ -1,4 +1,3 @@
-import { interactionGroups } from '@react-three/rapier';
 
 /** Player body (rapier capsule) and camera. All values in meters / seconds. */
 export const CAPSULE_RADIUS = 0.3;
@@ -27,13 +26,6 @@ export const INTERACT_RANGE = 2.5;
 export const WALL_HEIGHT = 3.2;
 export const WALL_THICKNESS = 0.2;
 export const BENCH_HEIGHT = 0.9;
-
-/** Collision groups: 0 = static world, 1 = player, 2 = pickable items. */
-export const GROUP_WORLD = 0;
-export const GROUP_PLAYER = 1;
-export const GROUP_PICKABLE = 2;
-export const PLAYER_COLLISION = interactionGroups(GROUP_PLAYER, [GROUP_WORLD]);
-export const PICKABLE_COLLISION = interactionGroups(GROUP_PICKABLE, [GROUP_WORLD, GROUP_PICKABLE]);
 
 /** Shared palette for the lab. */
 export const PALETTE = {

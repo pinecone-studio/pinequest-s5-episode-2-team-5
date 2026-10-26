@@ -1,40 +1,12 @@
 import { useEffect } from 'react';
 import { playerState, useGameStore } from '../store/useGameStore';
-import { useSettingsStore } from '../store/useSettingsStore';
 import { PITCH_LIMIT } from '../utils/constants';
+import { useSettingsStore } from '../store/useSettingsStore';
 import { dragState } from '../interaction/heldApi';
 import { interactables } from '../interaction/registry';
+import { consumeExpectedUnlock, isPointerLocked, releaseLock, requestLock, setPointerTarget } from './pointerLock';
 
-let target: HTMLElement | null = null;
-let expectingUnlock = false;
-
-export function setPointerTarget(el: HTMLElement | null): void {
-  target = el;
-}
-
-export function isPointerLocked(): boolean {
-  return !!target && document.pointerLockElement === target;
-}
-
-/** Ask for pointer lock (must run inside a user gesture). No-op in keyboard-turn mode. */
-export function requestLock(): void {
-  if (!target || useSettingsStore.getState().lookMode !== 'mouse') return;
-  if (document.pointerLockElement === target) return;
-  try {
-    const result = target.requestPointerLock() as unknown;
-    if (result instanceof Promise) result.catch(() => undefined);
-  } catch {
-    // Browsers throttle re-locking right after Esc; the "click to look" hint covers it.
-  }
-}
-
-/** Release the pointer on purpose (opening a panel or view), without triggering pause. */
-export function releaseLock(): void {
-  if (document.pointerLockElement) {
-    expectingUnlock = true;
-    document.exitPointerLock();
-  }
-}
+export { isPointerLocked, releaseLock, requestLock, setPointerTarget };
 
 /** Mouse-look for the first-person camera; also routes hold-to-drag input to interactables. */
 function applyLook(dx: number, dy: number): void {
@@ -64,8 +36,7 @@ export function usePointerLockSync(): void {
       game.setPointerLocked(locked);
       if (locked) game.setCursorFree(false);
       if (!locked) {
-        if (expectingUnlock) {
-          expectingUnlock = false;
+        if (consumeExpectedUnlock()) {
         } else if (game.mode === 'walk') {
           game.setMode('paused');
         }

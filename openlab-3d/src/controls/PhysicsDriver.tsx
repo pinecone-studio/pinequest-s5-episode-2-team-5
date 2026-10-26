@@ -6,11 +6,10 @@
  */
 import { useFrame } from '@react-three/fiber';
 import { useRapier } from '@react-three/rapier';
+import { preStepHooks } from '../physics/stepHooks';
 
 const MAX_STEP = 1 / 60;
 const MAX_FRAME = 0.1;
-
-export const preStepHooks = new Set<(dt: number) => void>();
 
 export function PhysicsDriver() {
   const { step } = useRapier();
