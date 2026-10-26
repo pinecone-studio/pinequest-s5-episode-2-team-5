@@ -55,6 +55,7 @@
     "locations:sql": "node scripts/generate-location-sql.mjs",
     "grade8:sql": "node scripts/generate-grade8-hub-sql.mjs",
     "test:experiments": "node --experimental-strip-types --test scripts/experiment-catalog.test.mjs",
+    "test:auth": "node --experimental-strip-types --test scripts/auth-profile-fallback.test.mjs",
     "test:hub": "node --experimental-strip-types --test scripts/revision-hub.test.mjs scripts/revision-study.test.mjs scripts/catalyst-journey.test.mjs scripts/periodic-learning.test.mjs scripts/grade9-content.test.mjs"
   },
   "private": true

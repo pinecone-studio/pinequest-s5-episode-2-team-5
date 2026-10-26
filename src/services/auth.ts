@@ -5,6 +5,7 @@
  * The rest of the app only talks to this file and `leaderboard.ts`.
  */
 import { supabase } from '@/lib/supabase';
+import { fallbackUser } from '@/lib/auth-profile-fallback';
 import { fetchLocationProfile } from '@/services/location';
 import type { ClassId, LessonResult, PublicPlayer, User } from '@/types';
 
@@ -46,16 +47,35 @@ const toUser = (row: ProfileRow): User => ({
   completed: row.completed ?? {},
   createdAt: row.created_at,
   location: null,
+  locationStatus: 'unavailable',
 });
 
-async function fetchProfile(id: string): Promise<User> {
-  const { data, error } = await supabase.from('profiles').select('*').eq('id', id).single();
-  if (error || !data) throw new AuthError('Профайлыг ачаалж чадсангүй. Дахин оролдоно уу');
-  const [user, location] = await Promise.all([
-    Promise.resolve(toUser(data as ProfileRow)),
-    fetchLocationProfile(id),
-  ]);
-  return { ...user, location };
+async function fetchProfile(
+  id: string,
+  authUser?: { email?: string; user_metadata?: Record<string, unknown>; created_at?: string },
+): Promise<User> {
+  // Keep this projection compatible with the pre-location schema; never require
+  // location columns or the student_profiles table to sign in.
+  const { data, error } = await supabase
+    .from('profiles')
+    .select('id,email,nickname,class_id,xp,completed,created_at')
+    .eq('id', id)
+    .single();
+  if (error || !data) {
+    if (authUser) {
+      return fallbackUser(id, authUser.email ?? '', authUser.user_metadata ?? {}, authUser.created_at);
+    }
+    throw new AuthError('Профайлыг ачаалж чадсангүй. Дахин оролдоно уу');
+  }
+  const user = toUser(data as ProfileRow);
+  try {
+    const location = await fetchLocationProfile(id);
+    return { ...user, location, locationStatus: location ? 'complete' : 'incomplete' };
+  } catch {
+    // The location migration may not be applied yet. Auth remains usable and the gate
+    // fails open; the user can retry location setup later from their profile.
+    return { ...user, location: null, locationStatus: 'unavailable' };
+  }
 }
 
 /** Supabase answers in English; the sign-in and sign-up screens show Mongolian. */
@@ -101,7 +121,7 @@ export async function signUp(input: SignUpInput): Promise<User> {
   if (!data.user || !data.session) {
     throw new AuthError('Имэйлээ шалгаж бүртгэлээ баталгаажуулаад нэвтэрнэ үү');
   }
-  return fetchProfile(data.user.id);
+  return fetchProfile(data.user.id, data.user);
 }
 
 export async function signIn(emailInput: string, password: string): Promise<User> {
@@ -111,7 +131,7 @@ export async function signIn(emailInput: string, password: string): Promise<User
   });
   // Wrong credentials are the common case; network or unconfirmed-email problems get their own message.
   if (error || !data.user) throw translate(error?.message ?? '', 'Имэйл эсвэл нууц үг буруу байна');
-  return fetchProfile(data.user.id);
+  return fetchProfile(data.user.id, data.user);
 }
 
 export async function signOut(): Promise<void> {
@@ -122,7 +142,7 @@ export async function restoreSession(): Promise<User | null> {
   const { data } = await supabase.auth.getSession();
   if (!data.session) return null;
   try {
-    return await fetchProfile(data.session.user.id);
+    return await fetchProfile(data.session.user.id, data.session.user);
   } catch {
     return null;
   }

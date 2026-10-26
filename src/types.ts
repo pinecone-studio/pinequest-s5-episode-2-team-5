@@ -65,6 +65,8 @@ export interface User {
   completed: Record<string, LessonResult>;
   createdAt: string;
   location: LocationProfile | null;
+  /** Distinguishes an incomplete profile from a location query unavailable before migration. */
+  locationStatus: 'complete' | 'incomplete' | 'unavailable';
 }
 
 /** What other players can see about you (hub, ranking). */

@@ -47,7 +47,7 @@ export function SessionProvider({ children }: { children: ReactNode }) {
     updateLocation: async (draft) => {
       if (!user) throw new Error('Not signed in');
       const location = await saveLocationProfile(user.id, draft);
-      setUser({ ...user, location });
+      setUser({ ...user, location, locationStatus: 'complete' });
     },
   };
 
