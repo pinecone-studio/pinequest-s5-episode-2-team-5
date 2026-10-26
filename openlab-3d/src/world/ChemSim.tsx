@@ -1,3 +1,6 @@
+import {useShowcase} from '../experiments/workbench/guidance/showcase';
+import {advanceChemistry} from '../chemistry/advance';
+import {protocolSpeed} from '../experiments/workbench/guidance/clock';
 import {isGrade9Rig} from '../experiments/grade9/kinds';
 /**
  * The lab's simulation loop (inside the canvas):
@@ -12,7 +15,7 @@ import { useFrame } from '@react-three/fiber';
 import { interactables } from '../interaction/registry';
 import { CATALOG, isContainer, type EquipmentKind } from '../equipment/equipmentCatalog';
 import { liquidMl, takeLiquid, type Mixture } from '../chemistry/mixture';
-import { DEFAULT_ENV, step } from '../chemistry/kinetics';
+import { DEFAULT_ENV } from '../chemistry/kinetics';
 import { mixtureOf, seedMixture, useChemStore } from '../store/useChemStore';
 import { useExperimentStore } from '../store/useExperimentStore';
 import { useInventoryStore } from '../store/useInventoryStore';
@@ -106,7 +109,7 @@ function simulate(dt: number): void {
     };
     if (heatW > 0) note(id, 'heat:start', 20000);
     if(isGrade9Rig(kind))continue;
-    const r = step(before, dt, env);
+    const r = advanceChemistry(before, dt, env,protocolSpeed(id));
     for (const reaction of stepObservations(before, r, dt)) publishReaction(id, reaction);
     const m = r.m;
     const fizz = r.gas.CO2 + r.gas.H2 + r.gas.O2;
@@ -139,7 +142,7 @@ function simulate(dt: number): void {
   // Knocked-over vessels spill; a loose test tube cannot hold liquid at all.
   const spills: Record<string, Mixture> = {};
   for (const w of inv.worldItems) {
-    if (isBenchPaused(w.id)) continue;
+    if (isBenchPaused(w.id) || useShowcase.getState().source === w.id) continue;
     const def = CATALOG[w.kind];
     if(isGrade9Rig(w.kind))continue; // Sealed compartments are managed by the apparatus engine.
     if (!def.upright && w.kind !== 'testTube') continue;
@@ -157,7 +160,7 @@ function simulate(dt: number): void {
 
   // Burette: drops fall into the vessel under the tip.
   for (const w of inv.worldItems) {
-    if (isBenchPaused(w.id)) continue;
+    if (isBenchPaused(w.id) || useShowcase.getState().source === w.id) continue;
     if (w.kind !== 'burette') continue;
     const tool = useChemStore.getState().tools[w.id];
     const flow = tool?.flow ?? 0;

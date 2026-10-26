@@ -5,7 +5,7 @@ import {isGrade9Rig} from './kinds';
 import {useGrade9Apparatus} from './store';
 import {useLabStore} from '../../store/useLabStore';
 import {mixtureOf,useChemStore} from '../../store/useChemStore';
-import {liquidMl,solidMassG,takeLiquid,takeSolid} from '../../chemistry/mixture';
+import {gasMl,liquidMl,solidMassG,takeLiquid,takeSolid} from '../../chemistry/mixture';
 import {recordTransfer} from '../../lab/measurements';
 import type {EquipmentKind} from '../../equipment/equipmentCatalog';
 import type {ItemVariant} from '../../world/itemsLayout';
@@ -17,7 +17,7 @@ export function transferToGrade9(src:Vessel,dst:Vessel,amount:number):{moved:num
  const store=useGrade9Apparatus.getState();store.ensure(dst.id,useLabStore.getState().active??'',dst.kind);
  const sourceRig=store.rigs[src.id];
  const sm=sourceRig?.chambers[sourceRig.port]??mixtureOf(src.id,src.variant),r=useGrade9Apparatus.getState().rigs[dst.id];
- const liquid=liquidMl(sm)>.005,available=liquid?liquidMl(sm):solidMassG(sm),room=Math.max(0,500-liquidMl(r.chambers[r.port])-solidMassG(r.chambers[r.port]));
+ const liquid=liquidMl(sm)>.005||gasMl(sm)>.001,available=liquid?(liquidMl(sm)||gasMl(sm)):solidMassG(sm),room=Math.max(0,500-liquidMl(r.chambers[r.port])-solidMassG(r.chambers[r.port]));
  const moved=Math.min(Math.max(0,amount),available,room);if(moved<=1e-6)return {moved:0,overflow:room<=0};
  const {taken,rest}=liquid?takeLiquid(sm,moved):takeSolid(sm,moved);
  if(sourceRig)store.change(src.id,{chambers:sourceRig.chambers.map((m,i)=>i===sourceRig.port?rest:m)});

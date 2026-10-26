@@ -17,8 +17,8 @@ export const STUDY_TABS = [
   ['questions', 'Асуулт'], ['prac', 'Практик'],
 ] as const;
 export type StudyTab = typeof STUDY_TABS[number][0];
-export function openTopic(topicId: string, tab: StudyTab = 'notes', packId: 'g8-chem' | 'g9-chem' = 'g8-chem') {
-  router.push({ pathname: packId === 'g9-chem' ? '/hub/g9-chem/topic/[topicId]/[tab]' : '/hub/g8-chem/topic/[topicId]/[tab]', params: { topicId, tab } });
+export function openTopic(topicId: string, tab: StudyTab = 'notes', packId: 'g7-chem' | 'g8-chem' | 'g9-chem' | 'g10-chem' = 'g8-chem') {
+  router.push({ pathname: packId === 'g7-chem' ? '/hub/g7-chem/topic/[topicId]/[tab]' : packId === 'g10-chem' ? '/hub/g10-chem/topic/[topicId]/[tab]' : packId === 'g9-chem' ? '/hub/g9-chem/topic/[topicId]/[tab]' : '/hub/g8-chem/topic/[topicId]/[tab]', params: { topicId, tab } });
 }
 export function openReference(reference: string) {
   if (reference === 'periodic') { router.push('/periodic'); return; }
@@ -33,7 +33,7 @@ export function StudyPage({ title, subtitle, children, home = false }: { title: 
   const { saved, error, retry, packId, contentSource } = useRevision();
   const showRail = !focus && (menu ?? width >= 1100);
   return <LabBackground bubbles={0}>
-    {!focus && <ScreenHeader title={title} subtitle={subtitle} onBack={() => home ? router.replace('/lessons') : router.replace(packId === 'g9-chem' ? '/hub/g9-chem' : '/hub/g8-chem')}/>}
+    {!focus && <ScreenHeader title={title} subtitle={subtitle} onBack={() => home ? router.replace('/lessons') : router.replace(packId === 'g7-chem' ? '/hub/g7-chem' : packId === 'g10-chem' ? '/hub/g10-chem' : packId === 'g9-chem' ? '/hub/g9-chem' : '/hub/g8-chem')}/>}
     <View style={[ui.toolbar, focus && { paddingTop: insets.top + 8 }]}>
       {!focus && <GameButton title={showRail ? 'Цэс хураах' : 'Сэдвийн цэс'} size="sm" variant="secondary" onPress={() => setMenu(!showRail)}/>}
       <GameButton title={focus ? 'Бүтэн харагдац' : 'Төвлөрөх'} size="sm" variant="secondary" onPress={() => setFocus(!focus)}/>
@@ -42,10 +42,10 @@ export function StudyPage({ title, subtitle, children, home = false }: { title: 
     </View>
     <View style={{ flex: 1, flexDirection: width >= 1100 ? 'row' : 'column' }}>
       {showRail && <ScrollView style={[ui.rail, width < 1100 && { maxHeight: 260, width: '100%' }]} contentContainerStyle={{ padding: 16, gap: 10 }}>
-        <View style={ui.row}><GameButton title="8-р анги" size="sm" variant={packId==='g8-chem'?'primary':'secondary'} onPress={()=>router.replace('/hub/g8-chem/course')}/><GameButton title="9-р анги" size="sm" variant={packId==='g9-chem'?'primary':'secondary'} onPress={()=>router.replace('/hub/g9-chem/course')}/></View>
-        <StudyLink title="Сурах бичгийн зам" onPress={() => { setMenu(false); router.push(packId === 'g9-chem' ? '/hub/g9-chem/course' : '/hub/g8-chem/course'); }}/>
-        <StudyLink title="Судалгааны багажууд" onPress={() => { setMenu(false); router.push(packId === 'g9-chem' ? '/hub/g9-chem/investigations' : '/hub/g8-chem/investigations'); }}/>
-        <StudyLink title="Давтлагын нүүр" onPress={() => { setMenu(false); router.replace(packId === 'g9-chem' ? '/hub/g9-chem' : '/hub/g8-chem'); }}/>
+        <View style={ui.row}><GameButton title="7-р анги" size="sm" variant={packId==='g7-chem'?'primary':'secondary'} onPress={()=>router.replace('/hub/g7-chem/course')}/><GameButton title="8-р анги" size="sm" variant={packId==='g8-chem'?'primary':'secondary'} onPress={()=>router.replace('/hub/g8-chem/course')}/><GameButton title="9-р анги" size="sm" variant={packId==='g9-chem'?'primary':'secondary'} onPress={()=>router.replace('/hub/g9-chem/course')}/><GameButton title="10-р анги" size="sm" variant={packId==='g10-chem'?'primary':'secondary'} onPress={()=>router.replace('/hub/g10-chem/course')}/></View>
+        <StudyLink title="Сурах бичгийн зам" onPress={() => { setMenu(false); router.push(packId === 'g7-chem' ? '/hub/g7-chem/course' : packId === 'g10-chem' ? '/hub/g10-chem/course' : packId === 'g9-chem' ? '/hub/g9-chem/course' : '/hub/g8-chem/course'); }}/>
+        <StudyLink title="Судалгааны багажууд" onPress={() => { setMenu(false); router.push(packId === 'g7-chem' ? '/hub/g7-chem/investigations' : packId === 'g10-chem' ? '/hub/g10-chem/investigations' : packId === 'g9-chem' ? '/hub/g9-chem/investigations' : '/hub/g8-chem/investigations'); }}/>
+        <StudyLink title="Давтлагын нүүр" onPress={() => { setMenu(false); router.replace(packId === 'g7-chem' ? '/hub/g7-chem' : packId === 'g10-chem' ? '/hub/g10-chem' : packId === 'g9-chem' ? '/hub/g9-chem' : '/hub/g8-chem'); }}/>
         {getPack(packId).topics.map((topic) => <StudyLink key={topic.id} title={`${topic.id} ${topic.title}`} onPress={() => { setMenu(false); openTopic(topic.id, 'notes', packId); }}/>) }
         {packId === 'g8-chem' && <StudyLink title="Лавлах ба явц" onPress={() => { setMenu(false); openReference('progress'); }}/>}
       </ScrollView>}

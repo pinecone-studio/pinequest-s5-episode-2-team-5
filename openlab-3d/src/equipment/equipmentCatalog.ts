@@ -4,7 +4,7 @@
  * fast it pours, whether it is glass (breaks) and whether it spills when tipped.
  */
 import { RIG_NAMES, type RigKind } from '../experiments/grade9/kinds';
-export type EquipmentKind = RigKind | 'paperStrip' |
+export type EquipmentKind = RigKind | 'gasCylinder' | 'paperStrip' |
    'beaker'
   | 'erlenmeyer'
   | 'testTube'
@@ -89,10 +89,11 @@ const TRIPOD_LEGS = [0, 1, 2].map((i) => {
 });
 
 const GRADE9_CATALOG=Object.fromEntries(Object.entries(RIG_NAMES).map(([kind,name])=>[kind,{
- kind,name,category:'Багаж',description:'IX ангийн туршилтын зориулалтын угсралт. Бодисоо авч цутгана. Сонгоод багажийн удирдлага, хэмжилтийг нээнэ.',safety:'Хамгаалах шил хэрэглэ. Хийн угсралтыг бөглөж даралт бүү үүсгэ.',size:[.22,.28,.16],collider:box(.22,.28,.16),pickable:true,spawnable:true,massKg:.65,capacityMl:500,pourRate:15,heatJK:100,upright:true,
+ kind,name,category:'Багаж',description:'Сурах бичгийн туршилтын зориулалтын угсралт. Бодисоо авч цутгана. Сонгоод багажийн удирдлага, хэмжилтийг нээнэ.',safety:'Хамгаалах шил хэрэглэ. Хийн угсралтыг бөглөж даралт бүү үүсгэ.',size:[.22,.28,.16],collider:box(.22,.28,.16),pickable:true,spawnable:true,massKg:.65,capacityMl:500,pourRate:15,heatJK:100,upright:true,
 }])) as Record<RigKind,CatalogEntry>;
 export const CATALOG: Record<EquipmentKind, CatalogEntry> = {
  ...GRADE9_CATALOG,
+ gasCylinder:{kind:'gasCylinder',name:'Хийн баллон ба хаалт',category:'Урвалжийн сав',description:'Шошготой хий. мл-ээр хэмжиж угсралтад дамжуулна.',safety:'Хийг битүү угсралтад дамжуул. Галын эх үүсвэрээс хол байлга.',size:[.06,.18,.06],collider:cyl(.03,.18),pickable:true,spawnable:false,massKg:1,capacityMl:2000,pourRate:20},
  paperStrip:{kind:'paperStrip',name:'Шүүлтүүрийн цаас / хроматографийн зурвас',category:'Багаж',description:'Шүүлтүүрийн целлюлоз цаас. Хроматографийн камерын цаасны үүрэнд байрлуулна.',safety:'Хуурай цэвэр цаас хэрэглэ.',size:[.03,.001,.2],collider:box(.03,.002,.2),pickable:true,spawnable:false,massKg:.001,capacityMl:1,pourRate:.2},
   beaker: {
     kind: 'beaker',
@@ -540,4 +541,4 @@ export const isContainer = (kind: EquipmentKind): boolean => CATALOG[kind].capac
 export const SPAWNABLE_KINDS: EquipmentKind[] = (Object.keys(CATALOG) as EquipmentKind[]).filter((k) => CATALOG[k].spawnable);
 
 /** Containers that are sources only: nothing may be poured back into them. */
-export const STOCK_KINDS: EquipmentKind[] = ['reagentBottle', 'dropperBottle', 'reagentJar'];
+export const STOCK_KINDS: EquipmentKind[] = ['gasCylinder', 'reagentBottle', 'dropperBottle', 'reagentJar'];

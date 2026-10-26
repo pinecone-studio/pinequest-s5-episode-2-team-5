@@ -20,16 +20,16 @@ const bottleGeometry = lazy(() => {
   return new LatheGeometry(pts, 32);
 });
 
-export function ReagentBottle({ modelUrl, look, decorative, label = '?', name, stripe = '#f59e0b', ...props }: ModelProps & { look?: MixtureLook; decorative?: boolean; label?: string; name?: string; stripe?: string }) {
+export function ReagentBottle({ modelUrl, open=false, look, itemId, decorative, label = '?', name, stripe = '#f59e0b', ...props }: ModelProps & { open?:boolean; itemId?:string; look?: MixtureLook; decorative?: boolean; label?: string; name?: string; stripe?: string }) {
   const labelMat = useMemo(() => new MeshStandardMaterial({ map: labelTexture(label, stripe, name, CATALOG.reagentBottle.capacityMl), roughness: 0.7 }), [label, name, stripe]);
   const glass = useGlass('#f4fbfd');
   return (
     <ModelOr modelUrl={modelUrl} {...props}>
       <mesh geometry={bottleGeometry()} material={decorative ? decorGlass('#f4fbfd') : glass} renderOrder={1} castShadow />
-      {look?.liquid && <VesselContents profile={PROFILES.reagentBottle} look={look} />}
-      <mesh material={plasticBlack} position={[0, 0.137, 0]} castShadow>
+      {look?.liquid && <VesselContents profile={PROFILES.reagentBottle} look={look} itemId={itemId} />}
+      {!open&&<mesh material={plasticBlack} position={[0, 0.137, 0]} castShadow>
         <cylinderGeometry args={[0.016, 0.016, 0.022, 20]} />
-      </mesh>
+      </mesh>}
       <mesh material={labelMat} renderOrder={4} userData={{ noOutline: true, noBatch: true }} position={[0, 0.055, 0]} rotation={[0, Math.PI, 0]}>
         <cylinderGeometry args={[0.0328, 0.0328, 0.05, 24, 1, true, Math.PI * 0.6, Math.PI * 0.8]} />
       </mesh>

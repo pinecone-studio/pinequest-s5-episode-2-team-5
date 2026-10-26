@@ -1,3 +1,10 @@
+import {HydrostaticLiquid} from './HydrostaticLiquid';
+import {useShowcase} from '../experiments/workbench/guidance/showcase';
+import {useGuideCue} from '../experiments/workbench/guidance/runtime';
+import {actionVisual} from '../interaction/actions';
+import {appearanceOf} from '../chemistry/appearance';
+import {useChemStore} from '../store/useChemStore';
+import {ReactionCloud} from '../visuals/ReactionCloud';
 /**
  * What is inside a vessel, drawn from its inner profile: the liquid (color, cloudiness),
  * settled sediment or dry crystals, and — for live items — rising bubbles, steam, foam
@@ -181,11 +188,19 @@ export interface VesselContentsProps {
 }
 
 export function VesselContents({ profile, look, itemId }: VesselContentsProps) {
+  const pouring=useShowcase(s=>!!itemId&&s.source===itemId&&s.tool==='pour'&&['playing','paused'].includes(s.status));
+  const stirring=useShowcase(s=>s.targetId===itemId&&s.operation==='stir'&&s.status==='playing');
+  const flow=useShowcase(s=>s.flow),receiving=useGuideCue(s=>s.target===itemId);
+  const agitated=!!itemId&&(stirring||receiving&&flow||actionVisual.targetId===itemId&&actionVisual.strength>0);
+  const mixture=useChemStore(s=>itemId?s.mixtures[itemId]:undefined);
+  const phases=useMemo(()=>mixture?appearanceOf(mixture):null,[mixture]);
   const rim = rimHeight(profile);
   const bottom = profile.wall[0][1];
   const sedimentTop = look.sedimentMl > 0.005 ? heightForVolume(profile, look.sedimentMl * (look.liquid ? 1 : 1.4)) : bottom;
   const liquidTop = look.liquid ? heightForVolume(profile, look.sedimentMl + look.liquidMl) : sedimentTop;
   const liquidMat = useLiquidMaterial(look.liquid ?? '#cfe6f5', look.turbidity);
+  const organicMat=useLiquidMaterial(phases?.organicColor??'#eff2e9',0);
+  const boundary=phases?.layered?heightForVolume(profile,look.sedimentMl+phases.aqueousMl):liquidTop;
   const solidMat = useSolidMaterial(look.solidColor ?? '#ffffff', look.solidMetal);
   const rimR = radiusAt(profile, rim);
   const foamH = look.foamMl > 2 ? Math.min(0.12, (look.foamMl * 1e-6) / (Math.PI * rimR * rimR) + 0.003) : 0;
@@ -195,7 +210,11 @@ export function VesselContents({ profile, look, itemId }: VesselContentsProps) {
   return (
     <group userData={{ noBatch: true }}>
       {showSediment && <mesh geometry={bandGeometry(profile, bottom, sedimentTop, 0.97)} material={solidMat} userData={{ noOutline: true, noBatch: true }} />}
-      {showLiquid && <mesh geometry={bandGeometry(profile, sedimentTop, liquidTop)} material={liquidMat} userData={{ noOutline: true, noBatch: true }} />}
+      {showLiquid && !pouring && <mesh geometry={bandGeometry(profile, sedimentTop, boundary)} material={liquidMat} userData={{ noOutline: true, noBatch: true }} />}
+      {pouring&&showLiquid&&<HydrostaticLiquid profile={profile} ml={look.liquidMl} color={look.liquid??'#e2f0fa'}/>}
+      {showLiquid&&!pouring&&phases?.layered&&<mesh geometry={bandGeometry(profile,boundary,liquidTop)} material={organicMat} userData={{noOutline:true,noBatch:true}}/>}
+      {showLiquid&&itemId&&phases?.colored&&!phases.layered&&!phases.visiblePrecipitate&&<ReactionCloud radius={Math.min(radiusAt(profile,liquidTop),radiusAt(profile,sedimentTop+.001))*.85} bottom={sedimentTop+.0005} top={boundary} color={look.liquid??'#edf5f7'} strength={agitated?.35:0} spread={.8} agitated={agitated} fromTop/>}
+      {showLiquid&&phases?.visiblePrecipitate&&(phases.suspension??0)>.01&&<ReactionCloud radius={Math.min(radiusAt(profile,liquidTop),radiusAt(profile,sedimentTop+.001))*.85} bottom={sedimentTop+.0005} top={boundary} color={phases?.precipitateColor??'#eee'} strength={phases!.suspension} spread={phases!.suspension}/>}
       {foamH > 0 && (
         <group userData={{ noOutline: true, noBatch: true }}>
           <mesh geometry={bandGeometry(profile, foamFrom, Math.min(rim, foamFrom + foamH), 0.99)} material={foamMaterial()} />

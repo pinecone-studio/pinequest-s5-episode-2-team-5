@@ -1,3 +1,4 @@
+import { GASES, type GasId } from '../experiments/curriculum/materials';
 /**
  * What a vessel holds: water and ethanol volumes, dissolved species and solids in moles,
  * temperature and a few physical flags. Mixtures are plain objects so they can live in
@@ -7,6 +8,8 @@ import { AQ, SOLIDS, type AqId, type SolidId } from './species';
 import { REAGENTS, type ReagentId } from './reagents';
 
 export interface Mixture {
+  /** Gases in mol; transferred through cylinders and apparatus ports. */
+  g?: Partial<Record<GasId,number>>;
   /** Liquid water, mL. */
   water: number;
   /** Liquid ethanol, mL (miscible with water). */
@@ -37,7 +40,7 @@ export function emptyMixture(temp = ROOM_T): Mixture {
 }
 
 export function liquidMl(m: Mixture): number {
-  return m.water + m.ethanol;
+  return m.water + m.ethanol + Object.entries(m.aq).reduce((v,[id,n])=>{const d=AQ[id as AqId];return v+(d.density?(n??0)*d.molarMass/d.density:0);},0);
 }
 
 export function solidMassG(m: Mixture): number {
@@ -61,16 +64,16 @@ export function dissolvedMassG(m: Mixture): number {
 
 /** Everything in the vessel, in grams (for the balance). */
 export function contentMassG(m: Mixture): number {
-  return m.water + m.ethanol * 0.789 + dissolvedMassG(m) + solidMassG(m);
+  return m.water + m.ethanol * 0.789 + dissolvedMassG(m) + solidMassG(m) + Object.entries(m.g??{}).reduce((s,[id,n])=>s+(n??0)*GASES[id as GasId].molarMass,0);
 }
 
 /** J/K of the contents (glass is added by the caller). */
 export function heatCapacity(m: Mixture): number {
-  return 4.18 * m.water + 1.93 * m.ethanol + 0.8 * solidMassG(m) + 1.3*(m.s.ice??0)*18.015;
+  return 4.18 * m.water + 1.93 * m.ethanol + 0.8 * solidMassG(m) + 2 * Object.entries(m.aq).reduce((s,[id,n])=>s+(AQ[id as AqId].density?(n??0)*AQ[id as AqId].molarMass:0),0) + 1.3*(m.s.ice??0)*18.015;
 }
 
 export function isEmptyMixture(m: Mixture | undefined): boolean {
-  return !m || (liquidMl(m) < 0.01 && solidMassG(m) < 0.002);
+  return !m || (liquidMl(m) < 0.01 && solidMassG(m) < 0.002 && gasMl(m) < .001);
 }
 
 export function hasSolids(m: Mixture): boolean {
@@ -82,6 +85,9 @@ export function reagentMixture(id: ReagentId, amount: number): Mixture {
   const r = REAGENTS[id];
   const m = emptyMixture(r.temperature);
   m.from = [id];
+  if(r.gas||r.gasBlend){m.g=r.gas?{[r.gas]:amount/24000}:Object.fromEntries(Object.entries(r.gasBlend??{}).map(([id,f])=>[id,amount*(f??0)/24000]));return m;}
+  if(r.blend&&r.container==='reagentJar'){for(const [id,f] of Object.entries(r.blend))m.s[id as SolidId]=amount*(f??0)/SOLIDS[id as SolidId].molarMass;return m;}
+  if(r.liquid||r.liquidBlend){for(const [id,f] of Object.entries(r.liquid?{[r.liquid]:1}:r.liquidBlend??{})){const d=AQ[id as AqId];m.aq[id as AqId]=amount*(f??0)*(d.density??1)/d.molarMass;}return m;}
   if (r.solid) {
     m.s[r.solid] = amount / SOLIDS[r.solid].molarMass;
     return m;
@@ -90,6 +96,9 @@ export function reagentMixture(id: ReagentId, amount: number): Mixture {
   m.ethanol = amount * (sol.ethanol ?? 0);
   m.water = amount - m.ethanol;
   for (const [k, c] of Object.entries(sol.solutes) as [AqId, number][]) m.aq[k] = (c * amount) / 1000;
+  if(r.solvent){m.water=0;const d=AQ[r.solvent];m.aq[r.solvent]=amount*(d.density??1)/d.molarMass;}
+  if(r.blend&&r.container!=='reagentJar')for(const [id,f] of Object.entries(r.blend))m.s[id as SolidId]=amount*(f??0)/1000/SOLIDS[id as SolidId].molarMass;
+  if(id==='water'||id==='cold_water'||id==='hot_water')m.aq.dissolvedO2=amount*2.6e-7;
   if(id==='tomato')m.s.paper=amount*.02/162.14;
   return m;
 }
@@ -106,7 +115,7 @@ export function clean(m: Mixture): Mixture {
   for (const [id, n] of Object.entries(m.s) as [SolidId, number][]) if (n > TINY) s[id] = n;
   const water = m.water > 1e-6 ? m.water : 0;
   const ethanol = m.ethanol > 1e-6 ? m.ethanol : 0;
-  return { ...m, water, ethanol, aq, s, burning: m.burning && ethanol > 0.05, foam: m.foam > 0.5 ? m.foam : 0, cloud: Math.min(1, Math.max(0, m.cloud)) };
+  return { ...m, g:Object.fromEntries(Object.entries(m.g??{}).filter(([,n])=>(n??0)>1e-12)), water, ethanol, aq, s, burning: m.burning && ethanol > 0.05, foam: m.foam > 0.5 ? m.foam : 0, cloud: Math.min(1, Math.max(0, m.cloud)) };
 }
 
 export function scaleMixture(m: Mixture, k: number): Mixture {
@@ -114,7 +123,7 @@ export function scaleMixture(m: Mixture, k: number): Mixture {
   addInto(aq, m.aq, k);
   const s: Partial<Record<SolidId, number>> = {};
   addInto(s, m.s, k);
-  return { ...m, water: m.water * k, ethanol: m.ethanol * k, aq, s, foam: m.foam * k, from: [...m.from] };
+  return { ...m, water: m.water * k, ethanol: m.ethanol * k, aq, s, g:Object.fromEntries(Object.entries(m.g??{}).map(([id,n])=>[id,(n??0)*k])), foam: m.foam * k, from: [...m.from] };
 }
 
 /** Pours `b` into `a`: amounts add, temperature mixes by heat capacity. */
@@ -130,6 +139,7 @@ export function merge(a: Mixture, b: Mixture): Mixture {
   const sa = solidMassG(a);
   const sb = solidMassG(b);
   return clean({
+    g:mergeGases(a.g,b.g),
     water: a.water + b.water,
     ethanol: a.ethanol + b.ethanol,
     aq,
@@ -150,7 +160,10 @@ export function merge(a: Mixture, b: Mixture): Mixture {
  */
 export function takeLiquid(m: Mixture, ml: number): { taken: Mixture; rest: Mixture } {
   const total = liquidMl(m);
-  if (total <= 1e-6) return takeSolid(m, ml);
+  if (total <= 1e-6) {
+    const gas=gasMl(m);if(gas>1e-9){const f=Math.min(1,ml/gas),taken=emptyMixture(m.temp);taken.g=Object.fromEntries(Object.entries(m.g??{}).map(([id,n])=>[id,(n??0)*f]));taken.from=[...m.from];return {taken,rest:clean({...m,g:Object.fromEntries(Object.entries(m.g??{}).map(([id,n])=>[id,(n??0)*(1-f)]))})};}
+    return takeSolid(m, ml);
+  }
   const f = Math.min(1, ml / total);
   const solidShare = f > 0.97 ? 1 : f * Math.max(0.15, m.cloud);
   const taken = emptyMixture(m.temp);
@@ -202,3 +215,6 @@ export function mainSolid(m: Mixture): SolidId | null {
   }
   return best;
 }
+
+export function gasMl(m:Mixture):number {return Object.values(m.g??{}).reduce<number>((sum,n)=>sum+(n??0),0)*24000;}
+function mergeGases(a:Mixture['g'],b:Mixture['g']):Mixture['g']{const result={...a};for(const [id,n] of Object.entries(b??{}))result[id as GasId]=(result[id as GasId]??0)+(n??0);return result;}

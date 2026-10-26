@@ -39,14 +39,14 @@ function strongCharge(m: Mixture): number {
   let b = 0;
   for (const id of CATIONS) b += AQ[id].charge * amount(m, id);
   for (const id of ANIONS) b += AQ[id].charge * amount(m, id);
-  return b;
+  return b - 2 * amount(m,'sulfuricNeat');
 }
 
 function sysOf(m: Mixture): Sys {
   return {
     V: liquidMl(m) / 1000,
     B: strongCharge(m),
-    ac: amount(m, 'Ac'),
+    ac: amount(m, 'Ac') + amount(m,'aceticNeat'),
     cit: amount(m,'Cit'),
     nh3: amount(m, 'NH3'),
     co3: amount(m, 'CO3'),
@@ -110,8 +110,9 @@ function solve(s: Sys): Solved {
   return { logH, ammine };
 }
 
-/** pH of the liquid, or null for a dry vessel. */
+/** Aqueous pH; neat organic solvents and dry vessels have no water-based pH reading. */
 export function phOf(m: Mixture): number | null {
+  if(m.water<.001)return null;
   const s = sysOf(m);
   if (s.V < 1e-6) return null;
   return Math.min(14, Math.max(0, -solve(s).logH));
@@ -221,11 +222,20 @@ export const PRECIPITATES: SolidId[] = [...new Set([...SALTS.map((s) => s.solid)
 /** Brings the mixture to equilibrium and reports which precipitates newly appeared. */
 export function equilibrate(input: Mixture): { m: Mixture; formed: SolidId[]; dissolved: SolidId[] } {
   const before = input.s;
+  // Recover the free-Al pool before re-equilibrating an acidified aluminate sample.
+  if((input.aq.AlOH4??0)>0&&phOf(input)!==null&&(phOf(input)??14)<9){input={...input,aq:{...input.aq,Al:(input.aq.Al??0)+(input.aq.AlOH4??0),AlOH4:0}};}
+
   let m = input;
   if (liquidMl(m) < 0.001) return { m, formed: [], dissolved: [] };
   for (let pass = 0; pass < 2; pass++) {
     for (const salt of SALTS) m = settleSalt(m, salt);
     for (const h of HYDROXIDES) m = settleHydroxide(m, h);
+  }
+  if((m.s.AlOH3??0)>0&&(phOf(m)??0)>11){const dn=Math.min(m.s.AlOH3??0,Math.max(0,-acidityToNeutral(m)));m={...m,aq:{...m.aq,AlOH4:(m.aq.AlOH4??0)+dn},s:{...m.s,AlOH3:(m.s.AlOH3??0)-dn}};}
+  if((m.aq.Fe3??0)+(m.aq.FeSCN??0)>0&&(m.aq.SCN??0)+(m.aq.FeSCN??0)>0){
+    const a=(m.aq.Fe3??0)+(m.aq.FeSCN??0),b=(m.aq.SCN??0)+(m.aq.FeSCN??0),v=liquidMl(m)/1000;
+    let lo=0,hi=Math.min(a,b);for(let i=0;i<45;i++){const x=(lo+hi)/2;if(1000*(a-x)*(b-x)>x*v)lo=x;else hi=x;}
+    const x=(lo+hi)/2;m={...m,aq:{...m.aq,Fe3:a-x,SCN:b-x,FeSCN:x}};
   }
   m = clean(m);
   const formed: SolidId[] = [];

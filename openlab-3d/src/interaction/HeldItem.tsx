@@ -1,3 +1,5 @@
+import {portLayout} from '../experiments/grade9/port-layout';
+import {useGrade9Apparatus} from '../experiments/grade9/store';
 /**
  * The carried item at the lower right of the view (with the tongs or holder gripping it),
  * a translucent ghost where Q will put it down (bench top under the crosshair, a raised
@@ -231,7 +233,9 @@ export function HeldItem() {
         tilt.current.localToWorld(spout);
         entry.object.getWorldPosition(end);
         const targetKind = useInventoryStore.getState().worldItems.find((w) => w.id === actionVisual.targetId)?.kind;
-        end.y += targetKind ? Math.min(0.08, CATALOG[targetKind].size[1] * 0.6) : 0.05;
+        const rig=actionVisual.targetId?useGrade9Apparatus.getState().rigs[actionVisual.targetId]:undefined;
+        if(rig)entry.object.localToWorld(end.set(...portLayout(rig.kind,rig.port).mouth));
+        else end.y += targetKind ? Math.min(0.08, CATALOG[targetKind].size[1] * 0.6) : 0.05;
         mid.copy(end).sub(spout);
         const len = mid.length();
         s.position.copy(spout).addScaledVector(mid, 0.5);

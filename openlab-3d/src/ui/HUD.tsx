@@ -1,3 +1,4 @@
+import {useGuideCue} from '../experiments/workbench/guidance/runtime';
 import { LabLaunch } from '../experiments/workbench/LabLaunch';
 import { InquiryPanel } from '../experiments/workbench/InquiryPanel';
 import { ExperimentSuccess } from './ExperimentSuccess';
@@ -33,6 +34,7 @@ import { ReactionLens } from '../experiments/workbench/ReactionLens';
 
 export function HUD() {
   const mode = useGameStore((s) => s.mode);
+  const equipmentGuide=useGuideCue(s=>!!s.target);
   const showFps = useSettingsStore((s) => s.showFps);
   const inGame = mode !== 'loading' && mode !== 'start' && mode !== 'ended';
   const bench = mode === 'bench';
@@ -71,7 +73,7 @@ export function HUD() {
       <PauseMenu />
       <PreparationLabels />
       <InspectMode />
-      {inGame && <ReactionLens />}
+      {inGame && !equipmentGuide && <ReactionLens />}
       <MoleculeViewerPanel />
       <LabLaunch />
       <InquiryPanel />

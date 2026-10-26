@@ -1,3 +1,4 @@
+import { PhysicalShowcase } from '../experiments/workbench/guidance/PhysicalShowcase';
 import { useEffect } from 'react';
 import { Physics } from '@react-three/rapier';
 import { Player } from '../controls/Player';
@@ -37,6 +38,7 @@ export default function LabScene({ onDpr }: { onDpr: (dpr: number) => void }) {
         <HeldItem />
         <ChemSim />
         <WorkbenchRuntime />
+        <PhysicalShowcase />
         <LabFx />
         <ReactionEffects />
       </Physics>

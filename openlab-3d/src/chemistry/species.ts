@@ -1,3 +1,4 @@
+import { EXTRA_AQ, EXTRA_SOLIDS, type ExtraAqId, type ExtraSolidId } from '../experiments/curriculum/materials';
 /**
  * Everything that can be inside a vessel, tracked in moles:
  *  - strong ions (fully dissociated; H⁺ / OH⁻ are implicit, see equilibrium.ts),
@@ -8,13 +9,13 @@
  * mixture's color follows Beer–Lambert: T = color^(c / cRef), multiplied over species.
  */
 
-export type Cation = 'Al' | 'Co' | 'Na' | 'K' | 'Li' | 'Ca' | 'Ba' | 'Mg' | 'Zn' | 'Cu' | 'Fe2' | 'Fe3' | 'Ag' | 'Pb' | 'Mn';
-export type Anion = 'Br' | 'Cr2O7' | 'Cl' | 'I' | 'NO3' | 'SO4' | 'SCN' | 'MnO4';
+export type Cation = 'Ni' | 'Cr3' | 'FeSCN' | 'Al' | 'Co' | 'Na' | 'K' | 'Li' | 'Ca' | 'Ba' | 'Mg' | 'Zn' | 'Cu' | 'Fe2' | 'Fe3' | 'Ag' | 'Pb' | 'Mn';
+export type Anion = 'CrO4' | 'S2O3' | 'AlOH4' | 'Br' | 'Cr2O7' | 'Cl' | 'I' | 'NO3' | 'SO4' | 'SCN' | 'MnO4';
 export type WeakId = 'Cit' | 'Ac' | 'NH3' | 'CO3';
 export type MoleculeId = 'Cl2' | 'Br2' | 'H2O2' | 'I2' | 'starch' | 'sucrose' | 'soap' | 'phph' | 'btb' | 'mo' | 'ui' | 'dyeR' | 'dyeY' | 'dyeG' | 'dyeB';
-export type AqId = Cation | Anion | WeakId | MoleculeId;
+export type AqId = ExtraAqId | Cation | Anion | WeakId | MoleculeId;
 
-export type SolidId = 'ice' | 'Al' | 'P' | 'S' | 'Si' | 'graphite' | 'iodine' | 'Fe2O3' | 'PbO2' | 'ZnO' | 'gelatin' | 'paper' | 'sand' | 'citric' | 'litmus_red' | 'litmus_blue' | 'CoCl2' | 'CoCl2_6' | 'plastic' |
+export type SolidId = ExtraSolidId | 'ice' | 'Al' | 'P' | 'S' | 'Si' | 'graphite' | 'iodine' | 'Fe2O3' | 'PbO2' | 'ZnO' | 'gelatin' | 'paper' | 'sand' | 'citric' | 'litmus_red' | 'litmus_blue' | 'CoCl2' | 'CoCl2_6' | 'plastic' |
    'KCl'
   | 'ZnSO4'
   | 'NaCl'
@@ -64,12 +65,15 @@ export interface AqDef {
   /** Transmitted color at `cRef`; omitted for colorless species. */
   color?: string;
   cRef?: number;
+  density?: number;
+  boiling?: number;
 }
 
-export const CATIONS: Cation[] = ['Al','Co','Na', 'K', 'Li', 'Ca', 'Ba', 'Mg', 'Zn', 'Cu', 'Fe2', 'Fe3', 'Ag', 'Pb', 'Mn'];
-export const ANIONS: Anion[] = ['Br','Cr2O7','Cl', 'I', 'NO3', 'SO4', 'SCN', 'MnO4'];
+export const CATIONS: Cation[] = ['Ni','Cr3','FeSCN','Al','Co','Na', 'K', 'Li', 'Ca', 'Ba', 'Mg', 'Zn', 'Cu', 'Fe2', 'Fe3', 'Ag', 'Pb', 'Mn'];
+export const ANIONS: Anion[] = ['CrO4','S2O3','AlOH4','Br','Cr2O7','Cl', 'I', 'NO3', 'SO4', 'SCN', 'MnO4'];
 
 export const AQ: Record<AqId, AqDef> = {
+ ...EXTRA_AQ,
  Al:{name:'Хөнгөнцагааны ион',formula:'Al³⁺',charge:3,molarMass:26.98},
  Cit:{name:'Цитрийн хүчил / цитратын нийт',formula:'C₆H₈O₇ / Cit',charge:0,molarMass:189.1},
  Co:{name:'Кобальт (II)',formula:'Co²⁺',charge:2,molarMass:58.93,color:'#e69ec0',cRef:.1},
@@ -130,6 +134,7 @@ export interface SolidDef {
 }
 
 export const SOLIDS: Record<SolidId, SolidDef> = {
+ ...EXTRA_SOLIDS,
  ice:{name:'Мөс',formula:'H₂O(s)',color:'#e0f5ff',molarMass:18.015},
  Al:{name:'Хөнгөнцагаан',formula:'Al',color:'#bfcbd2',molarMass:26.98},
  P:{name:'Улаан фосфор',formula:'P',color:'#9c4134',molarMass:30.97},
@@ -175,7 +180,7 @@ export const SOLIDS: Record<SolidId, SolidDef> = {
   PbI2: { name: 'Хар тугалганы (II) иодид', formula: 'PbI₂', color: '#ffd21c', molarMass: 461 },
   PbSO4: { name: 'Хар тугалганы (II) сульфат', formula: 'PbSO₄', color: '#f2f2ee', molarMass: 303.3 },
   PbCl2: { name: 'Хар тугалганы (II) хлорид', formula: 'PbCl₂', color: '#f4f4f0', molarMass: 278.1 },
-  CuOH2: { name: 'Зэсийн (II) гидроксид', formula: 'Cu(OH)₂', color: '#4f9fe6', molarMass: 97.56 },
+  CuOH2: { name: 'Зэсийн (II) гидроксид', formula: 'Cu(OH)₂', color: '#85b9df', molarMass: 97.56 },
   FeOH3: { name: 'Төмрийн (III) гидроксид', formula: 'Fe(OH)₃', color: '#a24f1d', molarMass: 106.9 },
   FeOH2: { name: 'Төмрийн (II) гидроксид', formula: 'Fe(OH)₂', color: '#6d8c4c', molarMass: 89.86 },
   MgOH2: { name: 'Магнийн гидроксид', formula: 'Mg(OH)₂', color: '#f4f5f5', molarMass: 58.32 },
@@ -193,6 +198,8 @@ export const SOLIDS: Record<SolidId, SolidDef> = {
 
 /** Metal hydroxides that precipitate from basic solution (Ksp, OH⁻ per metal ion). */
 export const HYDROXIDES: { ion: Cation; solid: SolidId; n: number; ksp: number }[] = [
+  { ion: 'Al', solid: 'AlOH3', n: 3, ksp: 1e-33 },
+  { ion: 'Ni', solid: 'NiOH2', n: 2, ksp: 5.5e-16 },
   { ion: 'Fe3', solid: 'FeOH3', n: 3, ksp: 1e-36 },
   { ion: 'Cu', solid: 'CuOH2', n: 2, ksp: 2.2e-20 },
   { ion: 'Pb', solid: 'PbOH2', n: 2, ksp: 1.4e-20 },
@@ -223,6 +230,7 @@ export const ACTIVITY: { solid: SolidId; ion: Cation; charge: number; acidRate: 
   { solid: 'Mg', ion: 'Mg', charge: 2, acidRate: 1.4, dH: -467 },
   { solid: 'Zn', ion: 'Zn', charge: 2, acidRate: 0.14, dH: -153 },
   { solid: 'Fe', ion: 'Fe2', charge: 2, acidRate: 0.035, dH: -87 },
+  { solid: 'Ni', ion: 'Ni', charge: 2, acidRate: .02, dH: -50 },
   { solid: 'Cu', ion: 'Cu', charge: 2, acidRate: 0, dH: 0 },
   { solid: 'Ag', ion: 'Ag', charge: 1, acidRate: 0, dH: 0 },
 ];

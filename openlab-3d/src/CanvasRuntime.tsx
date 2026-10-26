@@ -34,7 +34,8 @@ export function CanvasRuntime({
   const frozen = FROZEN.includes(mode) && !(mode === 'ui' && panel === 'tools');
   usePointerLockSync();
   useGameKeys(canvas);
-  const onCreated = useCallback(({ gl }: { gl: { domElement: HTMLCanvasElement } }) => {
+  const onCreated = useCallback(({ gl }: { gl: { domElement: HTMLCanvasElement; localClippingEnabled: boolean } }) => {
+    gl.localClippingEnabled = true;
     setPointerTarget(gl.domElement);
     setCanvas(gl.domElement);
     onReady();

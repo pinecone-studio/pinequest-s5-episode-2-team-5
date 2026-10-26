@@ -13,5 +13,7 @@ export default defineConfig({
   build: {
     target: 'es2020',
     chunkSizeWarningLimit: 2500,
+    // Let Rollup preserve dependency initialization order. Forcing interdependent
+    // React/Three/Rapier modules into vendor chunks can crash before React loads.
   },
 });

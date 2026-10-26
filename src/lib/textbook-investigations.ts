@@ -1,11 +1,16 @@
+import grade7 from '../data/g7-investigations.json';
+import { grade7Model } from './grade7-models';
+import grade10 from '../data/g10-investigations.json';
+import { grade10Model } from './grade10-models';
+import { matchesContentShape } from './learning-content';
 import data from '../data/textbook-investigations.json';
 import grade9 from '../data/g9-investigations.json';
 import { grade9Model } from './grade9-models';
 export interface InvestigationControl { id: string; label: string; min?: number; max?: number; step?: number; value?: number; options?: { value: number; label: string }[] }
-export interface InvestigationDefinition { id: string; grade?: 8 | 9; labRig?: string | null; topicId?: string; method?: string[]; textbookExperiment?: boolean; title: string; bookPages: string; mode: 'model' | 'bench'; model: string; practicalIds: string[]; prompt: string; variables: string; controls: InvestigationControl[]; supplies: string[]; safety: string }
+export interface InvestigationDefinition { id: string; grade?: 7 | 8 | 9 | 10; labRig?: string | null; topicId?: string; method?: string[]; textbookExperiment?: boolean; title: string; bookPages: string; mode: 'model' | 'bench'; model: string; practicalIds: string[]; prompt: string; variables: string; controls: InvestigationControl[]; supplies: string[]; safety: string }
 export interface Trial { parameters: Record<string, number>; readings: { label: string; value: number; unit: string }[]; observation: string; source: 'model' | 'bench' | 'manual'; at: number }
 export interface InvestigationAttempt { prediction: string; observation: string; conclusion: string; trials: Trial[]; revealed: boolean }
-export const INVESTIGATIONS = [...data.map((x) => ({...x, grade: 8})), ...grade9] as InvestigationDefinition[];
+export const INVESTIGATIONS = [...data.map((x) => ({...x, grade: 8})), ...grade9, ...grade10, ...grade7] as InvestigationDefinition[];
 export const newAttempt = (): InvestigationAttempt => ({ prediction: '', observation: '', conclusion: '', trials: [], revealed: false });
 export const investigationById = (id: string) => INVESTIGATIONS.find((x) => x.id === id);
 export function parameterValues(definition: InvestigationDefinition, input: Record<string, number> = {}) {
@@ -25,6 +30,8 @@ export function runModel(definition: InvestigationDefinition, input: Record<stri
   const p = parameterValues(definition, input), readings: Trial['readings'] = [];
   const add = (label: string, value: number, unit: string) => readings.push({ label, value: Math.round(value * 1000) / 1000, unit });
   let observation = '';
+  if (definition.model.startsWith('g7-')) return {parameters:p,...grade7Model(definition,p),source:'model',at};
+  if (definition.model.startsWith('g10-')) return {parameters:p,...grade10Model(definition,p),source:'model',at};
   if (definition.model.startsWith('g9-')) return {parameters:p,...grade9Model(definition,p),source:'model',at};
   switch (definition.model) {
     case 'atom': {
@@ -103,4 +110,25 @@ export function measurementSeries(trials:Trial[],key?:string){
   const selected=options.some(([id])=>id===key)?key:options[0]?.[0];
   const points=trials.flatMap((t,i)=>{const r=t.readings.find((r)=>`${r.label}|${r.unit}`===selected);return r?[{trial:i+1,value:r.value}]:[];});
   return {options,selected,points};
+}
+
+/** Accept editorial updates while preserving executable identities and stock lists. */
+export function applyInvestigations(rows: { id: string; content: unknown }[]): boolean {
+  const changes: { target: InvestigationDefinition; content: InvestigationDefinition }[] = [];
+  for (const row of rows) {
+    const target = investigationById(row.id);
+    if (!target || !matchesContentShape(row.content, target)) return false;
+    const content = row.content as InvestigationDefinition;
+    for (const field of ['id', 'grade', 'mode', 'model', 'labRig', 'supplies', 'controls', 'practicalIds'] as const) {
+      if (JSON.stringify(content[field]) !== JSON.stringify(target[field])) return false;
+    }
+    changes.push({ target, content });
+  }
+  for (const { target, content } of changes) Object.assign(target, structuredClone(content));
+  return true;
+}
+
+/** Preserve legacy Grade 8 guide events while requiring bench evidence in new packs. */
+export function requiresBenchEvidence(definition: Pick<InvestigationDefinition, 'grade' | 'mode'>): boolean {
+  return definition.mode === 'bench' && definition.grade !== undefined && definition.grade !== 8;
 }

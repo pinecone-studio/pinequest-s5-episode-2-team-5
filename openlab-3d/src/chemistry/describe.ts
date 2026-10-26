@@ -1,3 +1,4 @@
+import { GASES, type GasId } from '../experiments/curriculum/materials';
 /**
  * Words for mixtures: short names for prompts, composition lists for the inspect card,
  * and "observation flags" whose appearance is announced as a lab event (with the
@@ -6,7 +7,7 @@
 import { AQ, SOLIDS, type AqId, type SolidId } from './species';
 import { REAGENTS } from './reagents';
 import { cuAmmine, phOf, PRECIPITATES } from './equilibrium';
-import { liquidMl, mainSolid, solidMassG, type Mixture } from './mixture';
+import { gasMl, liquidMl, mainSolid, solidMassG, type Mixture } from './mixture';
 
 export function fmtMl(ml: number): string {
   if (ml >= 10) return `${Math.round(ml)} мл`;
@@ -25,6 +26,7 @@ export function summarize(m: Mixture | undefined): string {
   if (!m) return '';
   const ml = liquidMl(m);
   const g = solidMassG(m);
+  if (ml < .01 && g < .002 && gasMl(m) > .001) return Object.entries(m.g??{}).map(([id,n])=>`${GASES[id as GasId].formula} ${fmtMl((n??0)*24000)}`).join(' · ');
   if (ml < 0.01 && g < 0.002) return '';
   if (ml < 0.01) {
     const main = mainSolid(m);
@@ -66,6 +68,7 @@ export function composition(m: Mixture): { dissolved: CompositionRow[]; solids: 
     if (g < 0.0005) continue;
     solids.push({ name: SOLIDS[id].name, formula: SOLIDS[id].formula, value: fmtG(g) });
   }
+  for(const [id,n] of Object.entries(m.g??{}))if((n??0)>1e-12)dissolved.push({name:GASES[id as GasId].name,formula:GASES[id as GasId].formula+'(х)',value:fmtMl((n??0)*24000)});
   return { dissolved, solids };
 }
 

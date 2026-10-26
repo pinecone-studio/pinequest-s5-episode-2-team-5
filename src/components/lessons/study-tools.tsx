@@ -7,6 +7,8 @@ import { Colors, Radius } from '@/constants/theme';
 import { haptics } from '@/lib/haptics';
 
 const tools = [
+  { title: 'Хими 7 · Сурах бичгийн зам', description: 'Бодис, өөрчлөлт, хөрс ба анхны туршилтууд.', detail: '11 сэдэв · 32 судалгаа · тусдаа явц', icon: 'book-open-page-variant-outline', color: Colors.cyan, route: '/hub/g7-chem/course' },
+  { title: 'Хими 10 · Сурах бичгийн зам', description: 'Тооцоо, урвал, цахилгаан ба органик хими.', detail: '16 сэдэв · 45 судалгаа · тусдаа явц', icon: 'book-open-page-variant-outline', color: Colors.cyan, route: '/hub/g10-chem/course' },
   { title: 'Хими 8 · Сурах бичгийн зам', description: 'Ойлголтоос өөрийн судалгаа руу.', detail: '11 сэдэв · хэмжилт · туршилт', icon: 'book-open-page-variant-outline', color: Colors.cyan, route: '/hub/g8-chem/course' },
   { title: 'Хими 9 · Сурах бичгийн зам', description: 'Бүтэц, урвал, органик химиэ судалъя.', detail: '17 сэдэв · 32 судалгаа · тусдаа явц', icon: 'book-open-page-variant-outline', color: Colors.cyan, route: '/hub/g9-chem/course' },
   { title: 'Хими 8 · Давтлагын төв', description: 'Нэг сэдэв сонгоод, мэдлэгээ бататгая.', detail: 'Тэмдэглэл · Карт · Тест', icon: 'book-open-variant', color: Colors.lime, route: '/hub/g8-chem' },

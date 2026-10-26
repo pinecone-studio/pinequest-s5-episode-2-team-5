@@ -1,3 +1,6 @@
+import {useMemo} from 'react';
+import {guideDefinition} from './guidance/definitions';
+import {guidedPlan} from './guidance/plans';
 import {ProcedureGuide} from './ProcedureGuide';
 import {investigationById} from '../../../../src/lib/textbook-investigations';
 import { ELEPHANT_AMOUNTS, amountFeedback } from '../../lab/quantity-guidance';
@@ -16,11 +19,12 @@ const PLANS: Record<string, string> = {
 };
 export function MeasurementGuide({ experiment, target, step }: { experiment: string; target: string | null; step?: string }) {
   const transfers = useMeasurements((s) => s.transfers);
-  const definition=investigationById(experiment);
+  const definition=useMemo(()=>guideDefinition(experiment)??investigationById(experiment),[experiment]);
   const session = currentSession();
   const cylinder = session?.objects.graduatedCylinder;
   const measuredTarget = target && transfers.some((r) => r.target === target) ? target : transfers[transfers.length - 1]?.target;
   const rows = transfers.filter((r) => r.target === measuredTarget);
+  if(definition&&guidedPlan(experiment))return <ProcedureGuide definition={definition}/>;
   return <section className="mt-2 rounded-lg border border-slate-200 bg-slate-50 p-2 text-[11px]" aria-label="Хэмжилтийн тэмдэглэл">
     <p className="font-bold">Хэмжиж нэм · 1 мл = 1 см³</p>
     {experiment === 'elephant' ? <div className="mt-1 space-y-1" aria-label="Тунгийн төлөвлөгөө">

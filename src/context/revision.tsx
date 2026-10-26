@@ -9,7 +9,7 @@ import { applyRemotePack } from '@/data/revision-hub';
 import { supabase } from '@/lib/supabase';
 
 interface RevisionContext {
-  packId: 'g8-chem' | 'g9-chem';
+  packId: 'g7-chem' | 'g8-chem' | 'g9-chem' | 'g10-chem';
   progress: RevisionProgress;
   update: (change: (current: RevisionProgress) => RevisionProgress) => void;
   saved: boolean;
@@ -20,8 +20,8 @@ interface RevisionContext {
 const Context = createContext<RevisionContext | null>(null);
 const queues = new Map<string, Promise<void>>();
 
-export function RevisionProvider({ userId, children, packId = 'g8-chem' }: { userId: string; children: ReactNode; packId?: 'g8-chem' | 'g9-chem' }) {
-  const key = `chemquest.revision.${packId === 'g9-chem' ? 'g9' : 'g8'}.v1.${userId}`;
+export function RevisionProvider({ userId, children, packId = 'g8-chem' }: { userId: string; children: ReactNode; packId?: 'g7-chem' | 'g8-chem' | 'g9-chem' | 'g10-chem' }) {
+  const key = `chemquest.revision.${packId.slice(0, -5)}.v1.${userId}`;
   const current = useRef(emptyRevision());
   const [progress, setProgress] = useState(emptyRevision);
   const [ready, setReady] = useState(false);
@@ -48,6 +48,10 @@ export function RevisionProvider({ userId, children, packId = 'g8-chem' }: { use
 
   useEffect(() => {
     let active = true;
+    if (packId !== 'g8-chem' && packId !== 'g9-chem') {
+      void Promise.resolve().then(() => { if (active) setContentSource('bundled'); });
+      return () => { active = false; };
+    }
     const packKey = packId === 'g9-chem' ? 'g9-chem' : 'mn-g8-chemistry';
     void supabase.rpc('get_revision_content_pack', { requested_pack_id: packKey })
       .then(({ data, error: loadContentError }) => {

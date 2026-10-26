@@ -1,9 +1,12 @@
+import { curriculumObservations } from '../curriculum/observations';
+import { isCurriculumRig } from '../curriculum/kinds';
 import {ACTIVITY} from '../../chemistry/species';
 import {atom,ion,solid,physicalMixing,type ReactionObservation,type MoleculeSpec} from '../../chemistry/reaction-view';
 import {merge} from '../../chemistry/mixture';
 import type {RigState} from './process';
 /** Molecular views follow measured changes in the apparatus, never a selected recipe alone. */
 export function rigObservations(before:RigState,after:RigState,dt:number):ReactionObservation[]{
+ if(isCurriculumRig(after.kind))return curriculumObservations(before,after);
  const gas=(after.gas-before.gas)/24000/Math.max(dt,.001),a=before.chambers[0],b=after.chambers[0];
  const W=(n=1)=>atom('H2O','Ус','H₂O','#f16d70',n);
  const O=(n=1)=>atom('O2','Хүчилтөрөгч','O₂','#f25460',n,'gas');

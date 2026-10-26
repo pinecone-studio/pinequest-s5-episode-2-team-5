@@ -1,10 +1,11 @@
+import { EXTRA_REAGENTS, type ExtraReagentId, type GasId } from '../experiments/curriculum/materials';
 /**
  * Every substance the lab stocks: liquid solutions in reagent or dropper bottles and
  * solids in wide-mouth jars. Concentrations follow a typical school lab.
  */
 import type { AqId, SolidId } from './species';
 
-export type ReagentId = 's_ice' | 's_al' | 's_p' | 's_s' | 's_si' | 's_graphite' | 's_iodine' | 's_fe2o3' | 's_pbo2' | 's_zno' | 's_gelatin' | 's_paper' | 's_sand' | 's_citric' | 's_litmus_red' | 's_litmus_blue' | 's_cocl2anh' | 's_caoh2' | 's_cuo' | 's_na2co3' | 'plastic' | 'hot_water' | 'cold_water' | 'chlorine' | 'bromine' | 'kbr' | 'dichromate' | 'cocl2' | 'cucl2' | 'inkA' | 'inkB' | 'lemon' | 'wine' | 'soda' | 'cola' | 'tomato' | 'oil' | 'paint' |
+export type ReagentId = ExtraReagentId | 's_ice' | 's_al' | 's_p' | 's_s' | 's_si' | 's_graphite' | 's_iodine' | 's_fe2o3' | 's_pbo2' | 's_zno' | 's_gelatin' | 's_paper' | 's_sand' | 's_citric' | 's_litmus_red' | 's_litmus_blue' | 's_cocl2anh' | 's_caoh2' | 's_cuo' | 's_na2co3' | 'plastic' | 'hot_water' | 'cold_water' | 'chlorine' | 'bromine' | 'kbr' | 'dichromate' | 'cocl2' | 'cucl2' | 'inkA' | 'inkB' | 'lemon' | 'wine' | 'soda' | 'cola' | 'tomato' | 'oil' | 'paint' |
    'hcl'
   | 'h2so4'
   | 'acetic'
@@ -61,7 +62,7 @@ export type ReagentId = 's_ice' | 's_al' | 's_p' | 's_s' | 's_si' | 's_graphite'
 
 export type ReagentCategory = 'acid' | 'base' | 'salt' | 'indicator' | 'special' | 'solid' | 'other';
 export type Hazard = 'corrosive' | 'toxic' | 'flammable' | 'oxidizer' | 'irritant' | 'env';
-export type ReagentContainer = 'reagentBottle' | 'dropperBottle' | 'reagentJar' | 'paperStrip';
+export type ReagentContainer = 'gasCylinder' | 'reagentBottle' | 'dropperBottle' | 'reagentJar' | 'paperStrip';
 
 export interface Reagent {
   id: ReagentId;
@@ -77,6 +78,12 @@ export interface Reagent {
   solution?: { solutes: Partial<Record<AqId, number>>; ethanol?: number };
   /** Solids: what the jar holds. */
   solid?: SolidId;
+  gas?: GasId;
+  gasBlend?: Partial<Record<GasId, number>>;
+  blend?: Partial<Record<SolidId, number>>;
+  liquid?: AqId;
+  liquidBlend?: Partial<Record<AqId, number>>;
+  solvent?: AqId;
   hazards: Hazard[];
   note: string;
   stripe: string;
@@ -141,6 +148,7 @@ const S = (id: ReagentId, name: string, label: string, solid: SolidId, opts: { h
 });
 
 const LIST: Reagent[] = [
+  ...EXTRA_REAGENTS,
   // Acids.
   L('hcl', 'Давсны хүчил (1 М)', 'HCl', 'acid', { Cl: 1 }, { hazards: ['corrosive'], note: 'Хүчтэй хүчил. Металл, карбонаттай урвалд орж хий ялгаруулна.', stripe: '#dc2626' }),
   L('h2so4', 'Хүхрийн хүчил (0.5 М)', 'H₂SO₄', 'acid', { SO4: 0.5 }, { hazards: ['corrosive'], note: 'Хоёр протонт хүчтэй хүчил. Барийн ионтой цагаан тунадас өгнө.', stripe: '#b91c1c' }),
@@ -243,5 +251,6 @@ const LIST: Reagent[] = [
   S('s_sugar', 'Элсэн чихэр', 'C₁₂H₂₂O₁₁', 'sucrose', { note: 'Халаахад хайлж карамель, цаашлаад нүүрс болно.', stripe: '#d6d3d1' }),
 ];
 
+const oilStock=LIST.find(r=>r.id==='oil');if(oilStock){oilStock.liquid='oilFluid';oilStock.solution={solutes:{}};}
 export const REAGENTS: Record<ReagentId, Reagent> = Object.fromEntries(LIST.map((r) => [r.id, r])) as Record<ReagentId, Reagent>;
 export const REAGENT_LIST: Reagent[] = LIST;
