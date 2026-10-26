@@ -189,8 +189,12 @@ function OpenLabNative() {
         style={styles.webView}
       />
       {failed && <View style={styles.webError}><AppText>OpenLab веб хаягт холбогдож чадсангүй. Сервер болон сүлжээгээ шалгана уу.</AppText></View>}
-      <View style={[styles.back, { top: insets.top + 8, left: insets.left + 8 }]} pointerEvents="box-none">
+      {/* Дээд голд: OpenLab-ийн E, F, Q, R товчнууд энэ товчны хоёр талд (2 + 2) байрлана. */}
+      <View style={[styles.back, { top: insets.top + 12 }]} pointerEvents="box-none">
         <IconButton icon="chevron-left" accessibilityLabel="ChemQuest руу буцах" size={38} onPress={goBack} />
+        <AppText variant="caption" color={Colors.text} style={styles.backLabel}>
+          ChemQuest
+        </AppText>
       </View>
     </View>
   );

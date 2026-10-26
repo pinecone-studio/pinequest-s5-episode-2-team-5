@@ -43,6 +43,8 @@ export function TouchControls() {
     const onStart = (e: TouchEvent) => {
       for (let i = 0; i < e.changedTouches.length; i++) {
         const t = e.changedTouches[i];
+        // Товч дарсан хүрэлтийг joystick/харах хөдөлгөөн гэж үзэхгүй (E, F товчнууд зүүн хагаст байна).
+        if (t.target instanceof Element && t.target.closest('button')) continue;
         if (t.clientX < window.innerWidth / 2 && stickId.current === null) {
           stickId.current = t.identifier;
           stickOrigin.current = { x: t.clientX, y: t.clientY };
@@ -139,9 +141,21 @@ export function TouchControls() {
     }
   }
 
+  // E: ойр байгаа зүйлийг авах/ашиглах. Дэлгэц товших үйлдэлтэй ижил дүрэмтэй.
+  function pressE() {
+    const focus = useGameStore.getState().focus;
+    if (focus && !focus.canUse && focus.canGrab) interactItem(focus.id, true);
+    else interactWithFocus();
+  }
+
+  // Q: барьж буй зүйлээ тавих.
+  function pressQ() {
+    if (useInventoryStore.getState().held || usePortableStore.getState().held) dropHeld();
+  }
+
   if (mode !== 'walk') return null;
 
-  const btn = 'pointer-events-auto flex h-14 w-14 items-center justify-center rounded-full bg-black/45 text-base font-bold text-white backdrop-blur active:scale-95 active:bg-black/60';
+  const btn = 'pointer-events-auto flex h-11 w-11 items-center justify-center rounded-full bg-black/45 text-base font-bold text-white backdrop-blur active:scale-95 active:bg-black/60';
   return (
     <div ref={root} className="fixed inset-0 z-10 touch-none">
       {stick && (
@@ -150,10 +164,24 @@ export function TouchControls() {
           <div ref={knob} className="absolute left-8 top-8 h-12 w-12 rounded-full bg-white/70" style={{ transform: `translate3d(${stick.x - stick.ox}px, ${stick.y - stick.oy}px, 0)` }} />
         </div>
       )}
-      <div className="pointer-events-none fixed bottom-[36%] right-12 grid grid-cols-2 gap-3" onTouchStart={(e) => e.stopPropagation()}>
+      {/* Дээд эгнээ: [E][F] — голд ChemQuest товчны зай — [Q][R]. Голын зайг ChemQuest-ийн native товч эзэлнэ. */}
+      <div className="pointer-events-none fixed inset-x-0 top-3 flex items-center justify-center gap-2" onTouchStart={(e) => e.stopPropagation()}>
+        <button className={btn} onClick={pressE} aria-label="Ашиглах">
+          E
+        </button>
         <button className={btn} onClick={inspectFocusOrHeld} aria-label="Ойроос харах">
           F
         </button>
+        <div className="w-36 shrink-0" aria-hidden />
+        <button className={btn} onClick={pressQ} aria-label="Тавих">
+          Q
+        </button>
+        <button className={btn} onTouchStart={() => beginHeldUse()} onTouchEnd={endHeldUse} onTouchCancel={endHeldUse} aria-label="Ашиглах (асгах, хэмжих)">
+          R
+        </button>
+      </div>
+      {/* Гүйх горим (⇧) баруун талд хэвээр; газрын зурагтай давхцахгүйн тулд хамгийн багадаа 148px өндөрт. */}
+      <div className="pointer-events-none fixed bottom-[max(36%,148px)] right-12" onTouchStart={(e) => e.stopPropagation()}>
         <button className={`${btn} ${sprint ? '!bg-lab-yellow' : ''}`} onClick={() => setSprint((s) => !s)} aria-label="Гүйх горим" aria-pressed={sprint}>
           ⇧
         </button>
