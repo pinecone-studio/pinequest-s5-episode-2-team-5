@@ -16,14 +16,12 @@ import { AvatarPreview } from '@/components/auth/avatar-preview';
 import { FormError, FormSection } from '@/components/auth/form-section';
 import { RegionPicker, type RegionSelection } from '@/components/ranking/region-picker';
 import { AppText } from '@/components/ui/app-text';
-import { ClassCard } from '@/components/ui/class-card';
 import { GameButton } from '@/components/ui/game-button';
 import { LabBackground } from '@/components/ui/lab-background';
 import { ScreenHeader } from '@/components/ui/screen-header';
 import { TextField } from '@/components/ui/text-field';
 import { Colors, Fonts } from '@/constants/theme';
 import { useSession } from '@/context/session';
-import { CLASSES } from '@/data/classes';
 import { haptics } from '@/lib/haptics';
 import {
   NICKNAME_MAX,
@@ -34,8 +32,9 @@ import {
 } from '@/lib/validation';
 import { AuthError, isNicknameAvailable, type AuthField } from '@/services/auth';
 import type { ClassId } from '@/types';
+import { SchoolPicker } from '@/components/auth/school-picker';
 
-type Field = AuthField | 'classId' | 'region';
+type Field = AuthField | 'region' | 'school';
 
 const STRENGTH = [
   { label: '', color: Colors.border },
@@ -54,8 +53,9 @@ export default function SignUpScreen() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [nickname, setNickname] = useState('');
-  const [classId, setClassId] = useState<ClassId | null>(null);
+  const classId: ClassId = 'beginner';
   const [region, setRegion] = useState<RegionSelection | null>(null);
+  const [schoolId, setSchoolId] = useState<string | null>(null);
   const [touched, setTouched] = useState<Partial<Record<Field, boolean>>>({});
   const [submitted, setSubmitted] = useState(false);
   const [submitting, setSubmitting] = useState(false);
@@ -65,8 +65,8 @@ export default function SignUpScreen() {
     email: validateEmail(email),
     password: validatePassword(password),
     nickname: validateNickname(nickname),
-    classId: classId ? null : 'Эхлэх түвшнээ сонгоно уу',
     region: region ? null : 'Хот эсвэл аймгаа сонгоно уу',
+    school: schoolId ? null : 'Сургуулиа сонгоно уу',
   };
 
   const errorFor = (field: Field) => {
@@ -88,16 +88,15 @@ export default function SignUpScreen() {
 
   const submit = async () => {
     setSubmitted(true);
-    if (!classId || !region || Object.values(errors).some(Boolean)) {
+    if (!region || !schoolId || Object.values(errors).some(Boolean)) {
       haptics.error();
-      // The class picker sits right above the button; field errors are further up.
       if (errors.email || errors.password || errors.nickname) scrollRef.current?.scrollTo({ y: 0, animated: true });
       return;
     }
     setSubmitting(true);
     setServerError(null);
     try {
-      await signUp({ email, password, nickname, classId, regionType: region.type, regionName: region.name });
+      await signUp({ email, password, nickname, classId, regionType: region.type, regionName: region.name, schoolId });
       haptics.success();
       // The auth guard swaps this screen for the hub once the session exists.
     } catch (error) {
@@ -212,6 +211,7 @@ export default function SignUpScreen() {
               value={region}
               onChange={(selection) => {
                 setRegion(selection);
+                setSchoolId(null);
                 touch('region');
               }}
             />
@@ -220,29 +220,16 @@ export default function SignUpScreen() {
                 {errorFor('region')}
               </AppText>
             )}
-          </FormSection>
-
-          <FormSection title="Эхлэх түвшин" icon="school-outline">
-            <AppText variant="caption">
-              Хаанаас эхлэхээ сонго. Доод түвшний хичээлүүд нээлттэй хэвээр байх тул үндсээ хэзээ ч давтаж болно.
-            </AppText>
-            <View style={styles.classes} accessibilityRole="radiogroup">
-              {CLASSES.map((c) => (
-                <ClassCard
-                  key={c.id}
-                  chemClass={c}
-                  selected={classId === c.id}
-                  onSelect={() => {
-                    setClassId(c.id);
-                    touch('classId');
-                  }}
-                />
-              ))}
-            </View>
-            {errorFor('classId') && (
-              <AppText variant="caption" color={Colors.danger}>
-                {errorFor('classId')}
-              </AppText>
+            <SchoolPicker
+              region={region}
+              value={schoolId}
+              onChange={(id) => {
+                setSchoolId(id);
+                touch('school');
+              }}
+            />
+            {errorFor('school') && (
+              <AppText variant="caption" color={Colors.danger}>{errorFor('school')}</AppText>
             )}
           </FormSection>
 
@@ -277,7 +264,6 @@ const styles = StyleSheet.create({
   strengthRow: { flexDirection: 'row', alignItems: 'center', gap: 6 },
   strengthBar: { flex: 1, height: 6, borderRadius: 3 },
   strengthLabel: { width: 60, textAlign: 'right' },
-  classes: { gap: 12 },
   switchRow: { flexDirection: 'row', justifyContent: 'center', alignItems: 'center', gap: 6 },
   link: { fontFamily: Fonts.bold },
 });
