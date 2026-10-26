@@ -14,7 +14,8 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { AvatarPreview } from '@/components/auth/avatar-preview';
 import { FormError, FormSection } from '@/components/auth/form-section';
-import { RegionPicker, type RegionSelection } from '@/components/ranking/region-picker';
+import { LocationSchoolPicker } from '@/components/auth/location-school-picker';
+import type { RegionSelection } from '@/components/ranking/region-picker';
 import { AppText } from '@/components/ui/app-text';
 import { GameButton } from '@/components/ui/game-button';
 import { LabBackground } from '@/components/ui/lab-background';
@@ -32,7 +33,6 @@ import {
 } from '@/lib/validation';
 import { AuthError, isNicknameAvailable, type AuthField } from '@/services/auth';
 import type { ClassId } from '@/types';
-import { SchoolPicker } from '@/components/auth/school-picker';
 
 type Field = AuthField | 'region' | 'school';
 
@@ -206,31 +206,21 @@ export default function SignUpScreen() {
           </FormSection>
 
           <FormSection title="Байршил" icon="map-marker">
-            <AppText variant="caption">Чансааг хот, аймгаар ангилахад ашиглана.</AppText>
-            <RegionPicker
-              value={region}
-              onChange={(selection) => {
+            <LocationSchoolPicker
+              region={region}
+              schoolId={schoolId}
+              onRegionChange={(selection) => {
                 setRegion(selection);
                 setSchoolId(null);
                 touch('region');
               }}
-            />
-            {errorFor('region') && (
-              <AppText variant="caption" color={Colors.danger}>
-                {errorFor('region')}
-              </AppText>
-            )}
-            <SchoolPicker
-              region={region}
-              value={schoolId}
-              onChange={(id) => {
+              onSchoolChange={(id) => {
                 setSchoolId(id);
                 touch('school');
               }}
+              regionError={errorFor('region')}
+              schoolError={errorFor('school')}
             />
-            {errorFor('school') && (
-              <AppText variant="caption" color={Colors.danger}>{errorFor('school')}</AppText>
-            )}
           </FormSection>
 
           {serverError && !serverError.field && <FormError message={serverError.message} />}

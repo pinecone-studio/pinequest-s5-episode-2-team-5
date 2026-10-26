@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react';
-import { Modal, Pressable, StyleSheet, View } from 'react-native';
+import { KeyboardAvoidingView, Modal, Platform, Pressable, StyleSheet, View } from 'react-native';
 import Animated, { SlideInDown } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -17,12 +17,15 @@ export function BottomSheet({ visible, onClose, children }: BottomSheetProps) {
     <Modal visible={visible} transparent animationType="fade" onRequestClose={onClose} statusBarTranslucent>
       <View style={styles.root}>
         <Pressable style={StyleSheet.absoluteFill} onPress={onClose} accessibilityLabel="Close" />
-        <Animated.View
-          entering={SlideInDown.springify().damping(18)}
-          style={[styles.sheet, { paddingBottom: insets.bottom + 20 }]}>
-          <View style={styles.handle} />
-          {children}
-        </Animated.View>
+        {/* Lifts the sheet above the iOS keyboard (Android resizes the window itself). */}
+        <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+          <Animated.View
+            entering={SlideInDown.springify().damping(18)}
+            style={[styles.sheet, { paddingBottom: insets.bottom + 20 }]}>
+            <View style={styles.handle} />
+            {children}
+          </Animated.View>
+        </KeyboardAvoidingView>
       </View>
     </Modal>
   );
