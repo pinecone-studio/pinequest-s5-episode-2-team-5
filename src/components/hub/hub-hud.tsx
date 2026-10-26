@@ -1,14 +1,11 @@
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { router } from 'expo-router';
-import { useEffect } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
 import Animated, {
   FadeInDown,
   FadeOutDown,
   useAnimatedStyle,
   useSharedValue,
-  withRepeat,
-  withTiming,
 } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -16,6 +13,7 @@ import { PlayerPortrait } from '@/components/avatar/player-portrait';
 import { AppText } from '@/components/ui/app-text';
 import { ProgressBar } from '@/components/ui/progress-bar';
 import { Colors, Fonts, Radius } from '@/constants/theme';
+import { useScreenLoop } from '@/hooks/use-screen-loop';
 import { levelProgress } from '@/lib/progress';
 import type { User } from '@/types';
 
@@ -84,9 +82,7 @@ export function HudTop({
 
 function OnlinePill({ count }: { count: number }) {
   const pulse = useSharedValue(0);
-  useEffect(() => {
-    pulse.set(withRepeat(withTiming(1, { duration: 1100 }), -1, true));
-  }, [pulse]);
+  useScreenLoop(pulse, { duration: 1100, easing: 'quad', reverse: true });
   const dotStyle = useAnimatedStyle(() => ({ opacity: 0.45 + pulse.get() * 0.55 }));
   return (
     <View style={styles.pill} accessibilityLabel={`${count} players online`}>

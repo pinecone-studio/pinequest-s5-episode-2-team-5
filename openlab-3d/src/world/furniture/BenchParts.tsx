@@ -5,6 +5,7 @@
  * <BenchParts> so hundreds of fronts cost only a handful of draw calls.
  */
 import type { ReactNode } from 'react';
+import { create } from 'zustand';
 import { createInstances } from '@react-three/drei';
 import { BoxGeometry, BufferGeometry, Color, CylinderGeometry, Float32BufferAttribute, MeshStandardMaterial, PlaneGeometry } from 'three';
 import { STORAGE_INFO, type StorageCategory } from '../../interaction/holders';
@@ -53,7 +54,7 @@ function LabelProviders({ children, limit }: { children: ReactNode; limit: numbe
   return LABEL_CATEGORIES.reduce<ReactNode>((inner, c) => {
     const Provider = LABEL_SETS[c][0];
     return (
-      <Provider key={c} limit={limit} geometry={labelGeometry()} material={labelMaterial(c)} frustumCulled={false}>
+      <Provider key={c} limit={limit} frames={SYNC_FRAMES} geometry={labelGeometry()} material={labelMaterial(c)} frustumCulled={false}>
         {inner}
       </Provider>
     );
@@ -103,14 +104,36 @@ export const WHITE = new Color(1, 1, 1);
 /** Focused fronts brighten slightly with a cool tint (not a white flash). */
 export const HIGHLIGHT = new Color(1.22, 1.3, 1.45);
 
+/**
+ * drei's providers recompute and re-upload every instance matrix each frame by default.
+ * Here they sync for a couple of frames after each render, and BenchParts re-renders only
+ * when something asks for it (a drawer or door moving, a front's tint changing).
+ */
+const SYNC_FRAMES = 2;
+export const useBenchSync = create<{ version: number }>()(() => ({ version: 0 }));
+let syncQueued = false;
+
+/** Re-sync the bench instances on the next frames (cheap to call every frame while moving). */
+export function syncBenchParts(): void {
+  if (syncQueued) return;
+  syncQueued = true;
+  queueMicrotask(() => {
+    syncQueued = false;
+    useBenchSync.setState((s) => ({ version: s.version + 1 }));
+  });
+}
+
 export function BenchParts({ children, limit = 400 }: { children: ReactNode; limit?: number }) {
+  // Subscribing re-renders the providers, which restarts their sync frames.
+  useBenchSync((s) => s.version);
+  const f = SYNC_FRAMES;
   return (
-    <FrontInstances limit={limit} geometry={unitBox()} material={benchFront} castShadow receiveShadow frustumCulled={false}>
-      <HandleInstances limit={limit} geometry={handleGeometry()} material={metalChrome} frustumCulled={false}>
-        <BoxInstances limit={Math.round(limit / 2)} geometry={drawerBoxGeometry()} material={plasticLightGray} frustumCulled={false}>
-          <PanelInstances limit={limit} geometry={unitBox()} material={panelMaterial} castShadow receiveShadow frustumCulled={false}>
-            <LinerInstances limit={Math.round(limit / 2)} geometry={unitBox()} material={linerMaterial} receiveShadow frustumCulled={false}>
-              <HolderInstances limit={limit} geometry={unitBox()} material={metalBrushed} frustumCulled={false}>
+    <FrontInstances limit={limit} frames={f} geometry={unitBox()} material={benchFront} castShadow receiveShadow frustumCulled={false}>
+      <HandleInstances limit={limit} frames={f} geometry={handleGeometry()} material={metalChrome} frustumCulled={false}>
+        <BoxInstances limit={Math.round(limit / 2)} frames={f} geometry={drawerBoxGeometry()} material={plasticLightGray} frustumCulled={false}>
+          <PanelInstances limit={limit} frames={f} geometry={unitBox()} material={panelMaterial} castShadow receiveShadow frustumCulled={false}>
+            <LinerInstances limit={Math.round(limit / 2)} frames={f} geometry={unitBox()} material={linerMaterial} receiveShadow frustumCulled={false}>
+              <HolderInstances limit={limit} frames={f} geometry={unitBox()} material={metalBrushed} frustumCulled={false}>
                 <LabelProviders limit={64}>{children}</LabelProviders>
               </HolderInstances>
             </LinerInstances>

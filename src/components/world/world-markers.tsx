@@ -5,12 +5,12 @@ import Animated, {
   Easing,
   useAnimatedStyle,
   useSharedValue,
-  withRepeat,
   withTiming,
 } from 'react-native-reanimated';
 
 import { AppText } from '@/components/ui/app-text';
 import { Colors, Fonts } from '@/constants/theme';
+import { useScreenLoop } from '@/hooks/use-screen-loop';
 
 import type { BuildingDef } from './world-config';
 
@@ -19,9 +19,7 @@ export const PLATE_OFFSET = 42;
 /** Floating sign above a building. */
 export function NamePlate({ building, scale = 1 }: { building: BuildingDef; scale?: number }) {
   const bob = useSharedValue(0);
-  useEffect(() => {
-    bob.set(withRepeat(withTiming(1, { duration: 1500, easing: Easing.inOut(Easing.sin) }), -1, true));
-  }, [bob]);
+  useScreenLoop(bob, { duration: 1500, easing: 'sine', reverse: true });
   const style = useAnimatedStyle(() => ({ transform: [{ translateY: -bob.get() * 4 * scale }] }));
 
   const { rect } = building;

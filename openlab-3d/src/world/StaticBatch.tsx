@@ -4,7 +4,8 @@
  * the originals are hidden. Subtrees that must stay live are skipped:
  *  - anything inside an Interactable (they animate, outline and raycast individually)
  *  - objects flagged `userData.dynamic` or `userData.noBatch`
- *  - instanced meshes, LODs, troika text, and transparent / transmissive materials
+ *  - instanced meshes (their children are still batched), LODs, troika text, and
+ *    transparent / transmissive materials
  * The batch is undone on unmount, so hot reloads and room remounts stay correct.
  */
 import { useEffect, useRef, type ReactNode } from 'react';
@@ -17,6 +18,8 @@ const KEEP = new Set(['position', 'normal', 'uv']);
 function isTroikaText(o: Object3D): boolean {
   return typeof (o as unknown as { sync?: unknown }).sync === 'function' && 'text' in o;
 }
+
+const skipMatrixUpdate = () => {};
 
 function batchable(material: Material | Material[]): material is Material {
   if (Array.isArray(material)) return false;
@@ -56,8 +59,10 @@ export function StaticBatch({ children, delayFrames = 2 }: { children: ReactNode
       const visit = (o: Object3D) => {
         const data = o.userData as { interactableId?: string; dynamic?: boolean; noBatch?: boolean };
         if (o !== r && (data.interactableId || data.dynamic || data.noBatch)) return;
-        if (o instanceof InstancedMesh || o instanceof LOD || isTroikaText(o) || !o.visible) return;
-        if (o instanceof Mesh && batchable(o.material)) {
+        if (o instanceof LOD || isTroikaText(o) || !o.visible) return;
+        // An instanced mesh is left alone, but its children are not: drei's <Instances>
+        // providers (bench fronts) nest the whole bench tree inside them.
+        if (o instanceof Mesh && !(o instanceof InstancedMesh) && batchable(o.material)) {
           local.multiplyMatrices(inverse, o.matrixWorld);
           const g = prepare(o.geometry as BufferGeometry, local);
           if (g) {
@@ -91,6 +96,9 @@ export function StaticBatch({ children, delayFrames = 2 }: { children: ReactNode
         merged.push(mesh);
         for (const m of entry.meshes) {
           m.visible = false;
+          // Hidden originals never move: skip their per-frame matrix update (three.js
+          // otherwise recomputes every object's world matrix each frame).
+          if (m.children.length === 0) m.updateMatrixWorld = skipMatrixUpdate;
           hidden.push(m);
         }
       }
@@ -111,7 +119,10 @@ export function StaticBatch({ children, delayFrames = 2 }: { children: ReactNode
         r.remove(m);
         m.geometry.dispose();
       }
-      for (const m of hidden) m.visible = true;
+      for (const m of hidden) {
+        m.visible = true;
+        if (m.updateMatrixWorld === skipMatrixUpdate) Reflect.deleteProperty(m, 'updateMatrixWorld');
+      }
     };
   }, [delayFrames, gl]);
 

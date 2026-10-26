@@ -1,17 +1,15 @@
 import { MaterialCommunityIcons } from '@expo/vector-icons';
-import { useEffect, type ReactNode } from 'react';
+import { type ReactNode } from 'react';
 import { StyleSheet, View } from 'react-native';
 import Animated, {
-  Easing,
   useAnimatedStyle,
   useSharedValue,
-  withRepeat,
-  withTiming,
   type SharedValue,
 } from 'react-native-reanimated';
 import Svg, { Circle, Defs, Ellipse, G, Path, RadialGradient, Rect, Stop } from 'react-native-svg';
 
 import { FOUNTAIN, type TreeKind } from './world-config';
+import { useScreenLoop } from '@/hooks/use-screen-loop';
 
 const LEAF_OUTLINE = '#24451F';
 const WOOD_OUTLINE = '#4A3018';
@@ -171,9 +169,7 @@ const BASIN = { x: 70, y: 100 };
 
 export function Fountain({ spriteScale = 1 }: { spriteScale?: number }) {
   const clock = useSharedValue(0);
-  useEffect(() => {
-    clock.set(withRepeat(withTiming(1, { duration: 1600, easing: Easing.linear }), -1, false));
-  }, [clock]);
+  useScreenLoop(clock, { duration: 1600 });
 
   return (
     <Anchored

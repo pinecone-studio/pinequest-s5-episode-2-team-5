@@ -1,5 +1,6 @@
 /**
- * Post-processing (Medium/High presets): subtle N8AO ambient occlusion, Bloom that only
+ * Post-processing (Medium/High presets): subtle N8AO ambient occlusion (half resolution on
+ * Medium), Bloom that only
  * catches HDR emissives (LEDs, lamps, screens; threshold 1.0), ACES tone mapping and SMAA.
  */
 import { useEffect, useRef } from 'react';
@@ -23,7 +24,7 @@ export function Effects() {
   if (!preset.postprocessing) return null;
   return (
     <EffectComposer ref={composer} multisampling={0} frameBufferType={HalfFloatType} enableNormalPass={false}>
-      {preset.ao ? <N8AO aoRadius={0.45} distanceFalloff={0.6} intensity={quality === 'high' ? 1.6 : 1.3} quality={quality === 'high' ? 'medium' : 'performance'} halfRes={false} /> : <></>}
+      {preset.ao ? <N8AO aoRadius={0.45} distanceFalloff={0.6} intensity={quality === 'high' ? 1.6 : 1.3} quality={quality === 'high' ? 'medium' : 'performance'} halfRes={preset.aoHalfRes} /> : <></>}
       <Bloom luminanceThreshold={1.0} luminanceSmoothing={0.15} intensity={0.75} mipmapBlur radius={0.6} />
       <ToneMapping mode={ToneMappingMode.ACES_FILMIC} />
       <SMAA />

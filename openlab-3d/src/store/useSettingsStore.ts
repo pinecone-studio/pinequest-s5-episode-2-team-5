@@ -14,9 +14,14 @@ export type Quality = 'low' | 'medium' | 'high';
 export interface QualityPreset {
   dpr: [number, number];
   shadows: boolean;
+  /** PCF soft shadows (more texture samples per pixel) instead of plain PCF. */
+  softShadows: boolean;
   shadowMapSize: number;
   postprocessing: boolean;
   ao: boolean;
+  /** Ambient occlusion at half resolution (about a quarter of the cost). */
+  aoHalfRes: boolean;
+  /** Refracting glass: three.js redraws every opaque object into a texture whenever it is on screen. */
   transmission: boolean;
   contactShadows: boolean;
   antialias: boolean;
@@ -27,6 +32,14 @@ export const QUALITY_PRESETS: Record<Quality, QualityPreset> = {
   medium: { dpr: [0.75, 1.5], shadows: true, shadowMapSize: 1024, postprocessing: true, ao: true, transmission: true, contactShadows: true, antialias: false },
   high: { dpr: [1, 2], shadows: true, shadowMapSize: 2048, postprocessing: true, ao: true, transmission: true, contactShadows: true, antialias: false },
 };
+
+/** Phones, tablets and machines with few cores or little memory start on Low; Auto raises it if they keep up. */
+export function defaultQuality(): Quality {
+  if (typeof navigator === 'undefined') return 'medium';
+  const memory = (navigator as Navigator & { deviceMemory?: number }).deviceMemory;
+  const weak = isTouchDevice() || (navigator.hardwareConcurrency ?? 8) <= 4 || (memory !== undefined && memory <= 4);
+  return weak ? 'low' : 'medium';
+}
 
 export interface SettingsState {
   sensitivity: number;

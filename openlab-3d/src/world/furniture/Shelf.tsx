@@ -4,14 +4,15 @@
  *    cardboard boxes, bins and glassware, all instanced across every unit.
  *  - <ReagentShelf>: 2-tier island-top rack (2.4 m × 0.6 m × 0.28 m) holding reagent bottles.
  */
-import { useLayoutEffect, useMemo, useRef } from 'react';
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { CuboidCollider } from '@react-three/rapier';
-import { BoxGeometry, Color, CylinderGeometry, InstancedMesh, LatheGeometry, Object3D, Vector2, type BufferGeometry, type Material } from 'three';
+import { BoxGeometry, Color, CylinderGeometry, InstancedMesh, LatheGeometry, Matrix4, MeshBasicMaterial, Object3D, Vector2, type BufferGeometry, type Material } from 'three';
 import { metalPainted, metalAluminum } from '../../materials/metal';
 import { plastic } from '../../materials/plastic';
 import { decorGlass } from '../../materials/glass';
 import { lazy } from '../../utils/lazy';
 import { Interactable } from '../../interaction/Interactable';
+import { usePortableStore } from '../../interaction/portable';
 import { useMixture } from '../../store/useChemStore';
 import { liquidMl } from '../../chemistry/mixture';
 import { mixtureLook } from '../../chemistry/color';
@@ -69,20 +70,24 @@ function seeded(seed: number): () => number {
   };
 }
 
-function Instanced({ geometry, material, items, castShadow = false }: { geometry: BufferGeometry; material: Material; items: InstanceSpec[]; castShadow?: boolean }) {
+const NO_HIDDEN: ReadonlySet<number> = new Set();
+const ZERO = new Matrix4().makeScale(0, 0, 0);
+
+/** One draw call for many copies; `hidden` instances collapse to nothing. */
+function Instanced({ geometry, material, items, hidden = NO_HIDDEN, castShadow = false }: { geometry: BufferGeometry; material: Material; items: InstanceSpec[]; hidden?: ReadonlySet<number>; castShadow?: boolean }) {
   const ref = useRef<InstancedMesh>(null);
   useLayoutEffect(() => {
     const mesh = ref.current;
     if (!mesh) return;
     items.forEach((it, i) => {
       it.matrix.updateMatrix();
-      mesh.setMatrixAt(i, it.matrix.matrix);
+      mesh.setMatrixAt(i, hidden.has(i) ? ZERO : it.matrix.matrix);
       if (it.color) mesh.setColorAt(i, it.color);
     });
     mesh.instanceMatrix.needsUpdate = true;
     if (mesh.instanceColor) mesh.instanceColor.needsUpdate = true;
     mesh.computeBoundingSphere();
-  }, [items]);
+  }, [items, hidden]);
   if (items.length === 0) return null;
   return <instancedMesh ref={ref} args={[geometry, material, items.length]} castShadow={castShadow} receiveShadow userData={{ noOutline: true }} />;
 }
@@ -188,18 +193,43 @@ export function ReagentShelf({ position, rotY = 0, width = 2.2, seed = 3 }: { po
     caps.forEach((c, i) => c.matrix.position.copy(bottles[i].matrix.position));
     return { frame, bottles, caps };
   }, [position, rotY, width, seed]);
+  // Bottles and caps are drawn as two instanced meshes (two draw calls instead of two per
+  // bottle). A bottle that has been carried switches to its own meshes so it can move.
+  const [carried, setCarried] = useState<ReadonlySet<number>>(NO_HIDDEN);
+  const markCarried = useCallback((i: number) => setCarried((c) => (c.has(i) ? c : new Set(c).add(i))), []);
   return (
     <group>
       <Instanced geometry={unit()} material={metalAluminum} items={data.frame} castShadow />
-      {data.bottles.map(({ matrix: m, color }, i) => (
-        <Interactable key={i} id={`stock-${seed}-bottle-${i}`} label="Тавиурын урвалжийн шил (хоосон)" movable inspectKind="reagentBottle">
-          <group position={m.position} rotation={m.rotation} scale={m.scale}>
-            <mesh geometry={bottleGeo()} material={plastic(`#${color?.getHexString() ?? 'ffffff'}`, 0.25)} castShadow />
-            <mesh geometry={capGeo()} material={plastic(`#${data.caps[i].color?.getHexString() ?? '111111'}`, 0.5)} />
-            <StockFill id={`stock-${seed}-bottle-${i}`} capacity={100} radius={0.026} height={0.1} />
-          </group>
-        </Interactable>
+      <Instanced geometry={bottleGeo()} material={plastic('#ffffff', 0.25)} items={data.bottles} hidden={carried} castShadow />
+      <Instanced geometry={capGeo()} material={plastic('#ffffff', 0.5)} items={data.caps} hidden={carried} />
+      {data.bottles.map(({ matrix, color }, i) => (
+        <StockBottle key={i} id={`stock-${seed}-bottle-${i}`} index={i} matrix={matrix} color={color} capColor={data.caps[i].color} drawn={carried.has(i)} onCarry={markCarried} />
       ))}
     </group>
+  );
+}
+
+/** Never drawn, but still hit by the focus ray: the bottle's stand-in while it is instanced. */
+const proxyMaterial = new MeshBasicMaterial({ visible: false });
+
+function StockBottle({ id, index, matrix: m, color, capColor, drawn, onCarry }: { id: string; index: number; matrix: Object3D; color?: Color; capColor?: Color; drawn: boolean; onCarry: (index: number) => void }) {
+  const carrying = usePortableStore((s) => s.held?.id === id);
+  useEffect(() => {
+    if (carrying) onCarry(index);
+  }, [carrying, index, onCarry]);
+  return (
+    <Interactable id={id} label="Тавиурын урвалжийн шил (хоосон)" movable inspectKind="reagentBottle">
+      <group position={m.position} rotation={m.rotation} scale={m.scale}>
+        {drawn ? (
+          <>
+            <mesh geometry={bottleGeo()} material={plastic(`#${color?.getHexString() ?? 'ffffff'}`, 0.25)} castShadow />
+            <mesh geometry={capGeo()} material={plastic(`#${capColor?.getHexString() ?? '111111'}`, 0.5)} />
+          </>
+        ) : (
+          <mesh geometry={bottleGeo()} material={proxyMaterial} />
+        )}
+        <StockFill id={id} capacity={100} radius={0.026} height={0.1} />
+      </group>
+    </Interactable>
   );
 }

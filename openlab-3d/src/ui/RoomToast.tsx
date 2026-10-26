@@ -49,7 +49,9 @@ export function ClickToLookHint() {
   ) : null;
 }
 
-/** Optional frames-per-second readout (Settings → Show FPS). */
+const QUALITY_SHORT = { low: 'Бага', medium: 'Дунд', high: 'Өндөр' } as const;
+
+/** Optional frames-per-second readout (Settings → Show FPS), with the governor's quality tier and resolution scale. */
 export function FpsCounter() {
   const [fps, setFps] = useState(0);
   useEffect(() => {
@@ -68,5 +70,12 @@ export function FpsCounter() {
     raf = requestAnimationFrame(tick);
     return () => cancelAnimationFrame(raf);
   }, []);
-  return <div className="pointer-events-none fixed left-20 top-5 z-30 rounded-md bg-black/55 px-2 py-1 font-mono text-xs text-white tabular-nums">{fps} fps</div>;
+  const quality = useSettingsStore((st) => st.quality);
+  const auto = useSettingsStore((st) => st.autoQuality);
+  const dpr = usePerfStore((st) => st.dpr);
+  return (
+    <div className="pointer-events-none fixed left-20 top-5 z-30 rounded-md bg-black/55 px-2 py-1 font-mono text-xs text-white tabular-nums">
+      {fps} fps · {auto ? 'A·' : ''}{QUALITY_SHORT[quality]} · {dpr.toFixed(2).replace(/\.?0+$/, '')}×
+    </div>
+  );
 }

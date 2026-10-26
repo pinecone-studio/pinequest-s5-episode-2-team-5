@@ -4,12 +4,13 @@
  * arms. Rendered in its own small transparent canvas with idle bob, blinking and a wave.
  * Clicking it opens a speech bubble with a contextual hint; it reacts to bench skills.
  */
-import { useEffect, useMemo, useRef, useState, type FormEvent } from 'react';
-import { Canvas, useFrame } from '@react-three/fiber';
+import { useEffect, useRef, useState, type FormEvent } from 'react';
+import { Canvas, useFrame, useThree } from '@react-three/fiber';
 import { Environment, Lightformer } from '@react-three/drei';
 import { AnimatePresence, motion } from 'framer-motion';
 import { CapsuleGeometry, MeshPhysicalMaterial, MeshStandardMaterial, SphereGeometry, TorusGeometry, type Group } from 'three';
 import { useGameStore } from '../store/useGameStore';
+import { useSettingsStore } from '../store/useSettingsStore';
 import { SKILLS, useExperimentStore, type SkillId } from '../store/useExperimentStore';
 import { useInventoryStore } from '../store/useInventoryStore';
 import { CATALOG } from '../equipment/equipmentCatalog';
@@ -30,6 +31,19 @@ const visorGeo = new SphereGeometry(0.405, 40, 24, Math.PI * 0.14, Math.PI * 0.7
 const bodyGeo = new CapsuleGeometry(0.3, 0.22, 10, 28);
 const armGeo = new CapsuleGeometry(0.075, 0.16, 6, 16);
 const eyeGeo = new TorusGeometry(0.07, 0.018, 10, 28, Math.PI);
+
+/**
+ * The robot is a second WebGL canvas: redraw it at a modest rate instead of every display
+ * frame, since its idle bob does not need 60 fps and each frame competes with the lab.
+ */
+function Ticker({ fps }: { fps: number }) {
+  const invalidate = useThree((s) => s.invalidate);
+  useEffect(() => {
+    const id = window.setInterval(() => invalidate(), 1000 / fps);
+    return () => window.clearInterval(id);
+  }, [invalidate, fps]);
+  return null;
+}
 
 function RobotModel() {
   const root = useRef<Group>(null);
@@ -237,7 +251,8 @@ export function RobotAssistant({ hidden }: { hidden: boolean }) {
     setMessages((items) => [...items, { role: 'model', text: answer ?? 'Pip-тэй холбогдож чадсангүй. Нэвтэрсэн эсэх болон Gemini тохиргоогоо шалгаарай.' }]);
     setWaiting(false);
   };
-  const glPixel = useMemo(() => Math.min(2, window.devicePixelRatio || 1), []);
+  const lowQuality = useSettingsStore((st) => st.quality === 'low');
+  const glPixel = Math.min(lowQuality ? 1 : 1.5, window.devicePixelRatio || 1);
   const onClick = () => {
     if (robot.open) {
       setOpen(false);
@@ -249,7 +264,7 @@ export function RobotAssistant({ hidden }: { hidden: boolean }) {
   return (
     <div className={`fixed bottom-2 left-2 z-30 flex items-end ${hidden ? 'hidden' : ''}`}>
       <button type="button" aria-label="Лабораторийн туслах роботоос зөвлөгөө авах" onClick={onClick} className="focus-ring pointer-events-auto h-[82px] w-[72px] rounded-3xl sm:h-[150px] sm:w-[130px]">
-        <Canvas frameloop={hidden ? 'never' : 'always'} dpr={glPixel} gl={{ alpha: true, antialias: true }} camera={{ position: [0, 0.05, 3.6], fov: 30 }} style={{ pointerEvents: 'none' }}>
+        <Canvas frameloop={hidden ? 'never' : 'demand'} dpr={glPixel} gl={{ alpha: true, antialias: true }} camera={{ position: [0, 0.05, 3.6], fov: 30 }} style={{ pointerEvents: 'none' }}>
           <ambientLight intensity={0.6} />
           <directionalLight position={[2, 3, 3]} intensity={1.8} />
           <Environment resolution={32} frames={1}>
@@ -257,6 +272,7 @@ export function RobotAssistant({ hidden }: { hidden: boolean }) {
             <Lightformer form="rect" intensity={1} color="#bde9ff" position={[-3, 0, 1]} rotation={[0, Math.PI / 2, 0]} scale={[3, 3, 1]} />
           </Environment>
           <RobotModel />
+          <Ticker fps={lowQuality ? 15 : 30} />
           <mesh position={[0, -1.12, 0]} rotation={[-Math.PI / 2, 0, 0]}>
             <circleGeometry args={[0.36, 32]} />
             <meshBasicMaterial color="#000000" transparent opacity={0.12} />
