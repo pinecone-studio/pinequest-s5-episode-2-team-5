@@ -1,6 +1,7 @@
 import {supabase} from '@/lib/supabase';
 import {applyLessonPack} from '@/data/revision-hub';
 import {applyInvestigations} from '@/lib/textbook-investigations';
+import {restoreSnapshot,type RevisionSnapshot} from '@/lib/revision-sync';
 export type PackId='g7-chem'|'g8-chem'|'g9-chem'|'g10-chem';
 /** The API returns published teaching content only; credentials never enter the lab iframe. */
 export async function fetchLearningContent(packId:PackId,signal:AbortSignal){
@@ -16,12 +17,11 @@ export async function loadLearningContent(packId:PackId){
  try{const data=await fetchLearningContent(packId,controller.signal);if(data.pack)applyLessonPack(packId,data.pack);applyInvestigations(data.investigations);return data;}finally{clearTimeout(timeout);}
 }
 
-export async function syncRevision(userId:string,packId:PackId,value:import('@/lib/revision-sync').RevisionSnapshot){
+export async function syncRevision(userId:string,packId:PackId,value:RevisionSnapshot){
  const controller=new AbortController(),timeout=setTimeout(()=>controller.abort(),6000);
  let response;try{response=await supabase.rpc('sync_revision_progress',{p_pack:packId,p_state:value.state,p_clocks:value.clocks,p_user:userId}).abortSignal(controller.signal);}finally{clearTimeout(timeout);}
  const {data,error}=response;
  if(error)throw new Error('Revision progress could not sync');
- const {restoreSnapshot}=await import('@/lib/revision-sync');
  if(data?.state?.version!==1||!data?.clocks)throw new Error('Invalid revision progress');
  return restoreSnapshot(data);
 }

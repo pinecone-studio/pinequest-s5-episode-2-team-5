@@ -32,3 +32,23 @@ test('only changed ratings receive a new timestamp',()=>{
 test('import includes both grades and preserves existing dashboard edits',async()=>{
  const sql=await readFile('supabase/learning-content.sql','utf8');assert.match(sql,/g9-citric-endotherm/);assert.match(sql,/g8-chem/);assert.match(sql,/on conflict\(id\) do nothing/);assert.doesNotMatch(sql,/service_role_key|EXPO_PUBLIC_SUPABASE_ANON_KEY/);
 });
+test('a wrong answer fixed on one device stays fixed after merging a stale device',()=>{
+ const before=lib.snapshot();before.state.wrong=['q1','q2'];
+ const fixed=lib.changedRevision(before,{...before.state,wrong:['q2']},300);assert.equal(fixed.clocks['wrong.q1'],300);
+ const stale=lib.snapshot();stale.state.wrong=['q1','q3'];
+ const merged=lib.mergeRevision(stale,fixed);assert.deepEqual([...merged.state.wrong].sort(),['q2','q3']);
+ assert.deepEqual([...lib.mergeRevision(fixed,stale).state.wrong].sort(),['q2','q3']);
+ const again=lib.changedRevision(merged,{...merged.state,wrong:[...merged.state.wrong,'q1']},400);
+ assert.ok(lib.mergeRevision(fixed,again).state.wrong.includes('q1'));
+});
+test('workbook scores merge as maxima and legacy stored progress is upgraded',()=>{
+ const a=lib.snapshot();a.state.labBest.p=2;const b=lib.snapshot();b.state.labBest.p=3;
+ assert.equal(lib.mergeRevision(a,b).state.labBest.p,3);assert.equal(lib.mergeRevision(b,a).state.labBest.p,3);
+ const legacy={version:1,notes:['n'],cards:{},quizBest:{},wrong:[],questionBest:{},practicals:[],ratings:{}};
+ const restored=lib.restoreStored(legacy);assert.deepEqual(restored.state.notes,['n']);assert.deepEqual(restored.state.labBest,{});assert.deepEqual(restored.clocks,{});
+ assert.deepEqual(lib.restoreStored(JSON.parse(JSON.stringify(restored))),restored);
+});
+test('the progress merge migration keeps own-user checks and adds clocked wrong answers',async()=>{
+ const sql=await readFile('supabase/migrations/202610270001_revision_progress_merge.sql','utf8');
+ assert.match(sql,/uid is distinct from p_user/);assert.match(sql,/for update/);assert.match(sql,/'wrong\.%'/);assert.match(sql,/'labBest'/);assert.match(sql,/revoke all .* from public,anon/);
+});

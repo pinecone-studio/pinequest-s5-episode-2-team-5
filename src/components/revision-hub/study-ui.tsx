@@ -7,11 +7,15 @@ import { GameButton } from '@/components/ui/game-button';
 import { LabBackground } from '@/components/ui/lab-background';
 import { ScreenHeader } from '@/components/ui/screen-header';
 import { Colors, Radius } from '@/constants/theme';
-import { useRevision } from '@/context/revision';
+import { useRevision, type CloudStatus } from '@/context/revision';
 import { getPack } from '@/data/revision-hub';
 import { chemistryText } from '@/lib/chemistry-text';
 import { RichText } from './rich-text';
 
+const CLOUD_LABELS: Record<CloudStatus, string> = {
+  local: 'төхөөрөмжид хадгалсан', syncing: 'бүртгэлд илгээж байна…',
+  synced: 'бүртгэлд хадгалсан ✓', offline: 'төхөөрөмжид хадгалсан · бүртгэлд илгээгдээгүй',
+};
 export const STUDY_TABS = [
   ['notes', 'Тэмдэглэл'], ['cards', 'Флэшкарт'], ['quiz', 'Тест'],
   ['questions', 'Асуулт'], ['prac', 'Практик'],
@@ -28,15 +32,15 @@ export function openReference(reference: string) {
 export function StudyPage({ title, subtitle, children, home = false, showTopicLinks = true, onBack }: { title: string; subtitle?: string; children: ReactNode; home?: boolean; showTopicLinks?: boolean; onBack?: () => void }) {
   const { width } = useWindowDimensions();
   const insets = useSafeAreaInsets();
-  const { saved, error, retry, packId, contentSource } = useRevision();
+  const { saved, error, cloud, retry, packId, contentSource } = useRevision();
   return <LabBackground bubbles={0}>
     <ScreenHeader title={title} subtitle={subtitle} onBack={onBack ?? (() => {
       if (router.canGoBack()) router.back();
       else router.replace(home ? '/lessons' : packId === 'g7-chem' ? '/hub/g7-chem' : packId === 'g10-chem' ? '/hub/g10-chem' : packId === 'g9-chem' ? '/hub/g9-chem' : '/hub/g8-chem');
     })}/>
     <View style={ui.toolbar}>
-      <AppText variant="caption">Агуулга: {contentSource === 'supabase' ? 'Supabase' : 'төхөөрөмжийн нөөц'} · Явц: {error ? 'хадгалалт амжилтгүй' : saved ? 'төхөөрөмжид хадгалсан' : 'хадгалж байна…'}</AppText>
-      {error && <GameButton title="Дахин хадгалах" size="sm" variant="danger" onPress={retry}/>}
+      <AppText variant="caption">Агуулга: {contentSource === 'supabase' ? 'Supabase' : 'төхөөрөмжийн нөөц'} · Явц: {error ? 'хадгалалт амжилтгүй' : !saved ? 'хадгалж байна…' : CLOUD_LABELS[cloud]}</AppText>
+      {(error || cloud === 'offline') && <GameButton title={error ? 'Дахин хадгалах' : 'Дахин илгээх'} size="sm" variant={error ? 'danger' : 'secondary'} onPress={retry}/>}
     </View>
     <View style={{ flex: 1, flexDirection: width >= 1100 ? 'row' : 'column' }}>
       <ScrollView style={[ui.rail, width < 1100 && { maxHeight: 260, width: '100%' }]} contentContainerStyle={{ padding: 16, gap: 10 }}>
@@ -48,7 +52,7 @@ export function StudyPage({ title, subtitle, children, home = false, showTopicLi
       </ScrollView>
       <ScrollView key={title} style={{ flex: 1 }} keyboardShouldPersistTaps="handled" contentContainerStyle={[ui.content, { paddingBottom: insets.bottom + 32 }]}>
         {children}
-        <AppText variant="caption">Давтлагын явц энэ төхөөрөмжид хадгалагдана.</AppText>
+        <AppText variant="caption">Давтлагын явц төхөөрөмжид хадгалагдаж, бүртгэлтэй тань нийлүүлэгдэнэ. Интернэтгүй үед хийсэн ажил дараа нь илгээгдэнэ.</AppText>
       </ScrollView>
     </View>
   </LabBackground>;
