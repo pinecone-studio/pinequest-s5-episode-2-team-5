@@ -15,16 +15,33 @@ export const SHOW_TEXTBOOK_PROCEDURE: boolean = true;
  */
 export const SHOW_LAB_STEPS_IN_CARD: boolean = false;
 
+/**
+ * Лаб өөрөө ширээн дээрх хэрэгслийг хянадаггүй туршилтын «Бэлтгэлээ хийе» жагсаалт.
+ * Сурах бичгийн JSON-ийн бодис, хэрэгслээс авна (хянадаг туршилтад null).
+ */
+export interface TextbookPrep {
+  substances: string[];
+  equipment: string[];
+  safety: string;
+}
+
 interface LaunchedProcedureState {
   /** Алхмууд аль лабын туршилтад хамаарахыг заана. Лабын заавартай холбоогүй туршилтад null */
   labId: string | null;
   /** Цэснээс сонгосон сурах бичгийн туршилтын нэр (картын гарчигт харуулна) */
   title: string;
   steps: string[];
+  /** Бэлтгэлийн жагсаалт. null бол лабын өөрийн (3D) бэлтгэл ажиллана эсвэл бэлтгэл дууссан */
+  prep: TextbookPrep | null;
+  /** Бэлтгэлийн жагсаалтад сурагчийн тэмдэглэсэн зүйлс */
+  checked: string[];
   /** Лабын заавартай холбоотой туршилт эхлүүлэхэд */
-  show: (labId: string, steps: string[], title?: string) => void;
+  show: (labId: string, steps: string[], title?: string, prep?: TextbookPrep | null) => void;
   /** Лабын заавартай холбоогүй туршилт эхлүүлэхэд (labId байхгүй, карт нэр + алхмаараа гарна) */
-  showUnlinked: (title: string, steps: string[]) => void;
+  showUnlinked: (title: string, steps: string[], prep?: TextbookPrep | null) => void;
+  toggleChecked: (item: string) => void;
+  /** Бэлтгэл дууссан: карт «Туршилт» болж алхмаа харуулна */
+  finishPrep: () => void;
   clear: () => void;
 }
 
@@ -32,9 +49,13 @@ export const useLaunchedProcedure = create<LaunchedProcedureState>()((set) => ({
   labId: null,
   title: '',
   steps: [],
-  show: (labId, steps, title = '') => set({ labId, steps, title }),
-  showUnlinked: (title, steps) => set({ labId: null, steps, title }),
-  clear: () => set({ labId: null, steps: [], title: '' }),
+  prep: null,
+  checked: [],
+  show: (labId, steps, title = '', prep = null) => set({ labId, steps, title, prep, checked: [] }),
+  showUnlinked: (title, steps, prep = null) => set({ labId: null, steps, title, prep, checked: [] }),
+  toggleChecked: (item) => set((s) => ({ checked: s.checked.includes(item) ? s.checked.filter((c) => c !== item) : [...s.checked, item] })),
+  finishPrep: () => set({ prep: null, checked: [] }),
+  clear: () => set({ labId: null, steps: [], title: '', prep: null, checked: [] }),
 }));
 
 /** Тухайн лабын туршилтад харуулах алхмууд. Өөр туршилтынх эсвэл флаг унтраалттай бол хоосон */
