@@ -14,6 +14,9 @@ import {guidedPlan,physicalShowcasePlan} from './plans';
 import {useShowcase,beginShowcase,pauseShowcase,cancelShowcase} from './showcase';
 import {focusGuideStep,executeGuideStep,clearGuideCue,useGuideCue,stepLabel,portName,rigName,doseUnit} from './runtime';
 
+/** false бол ширээний заавар самбарт «Бүтэн төлөвлөгөө ба харьцуулах арга»-аас дээших бүх хэсэг (алхамын карт, товчнууд г.м) харагдахгүй; код хэвээр, true болгоход буцаж гарна */
+export const SHOW_GUIDE_STEP_BLOCKS: boolean = false;
+
 export function GuidedProcedure({definition:def}:{definition:InvestigationDefinition}){
  const card=useRef<HTMLElement>(null);
  const launchRequest=useShowcaseLaunch();
@@ -62,6 +65,7 @@ export function GuidedProcedure({definition:def}:{definition:InvestigationDefini
   <div className="flex gap-2"><button className={`${button} flex-1 bg-amber-50`} onClick={pause}>Авто үзүүлбэрийг түр зогсоох</button><button className={button} onClick={()=>{pause();cancelShowcase();setDemonstrating(false);clearGuideCue();}}>Өөрөө хийх</button></div>
  </section>;
  return <section ref={card} className="mt-2 space-y-2 text-xs" aria-label="Тодорхой тунтай алхамчилсан заавар">
+  {SHOW_GUIDE_STEP_BLOCKS&&<>
   {protocol.experiment===def.id&&protocol.complete&&<div className="rounded-xl border border-emerald-400 bg-emerald-50 p-3" role="status" aria-label="Туршилтын баталгаажсан үр дүн"><b>✓ Туршилт бүрэн дууслаа</b><p>Эцсийн төлөвийг бодит хэмжилтээр шалгалаа.</p><details><summary className="min-h-10 py-2">Үе шат бүрийн хэмжилт ({protocol.records.length})</summary>{protocol.records.map((r,i)=><div key={i} className="mb-2 border-t pt-2"><b>{r.label}</b>{r.readings.map((v,j)=><p key={j}>{v.label}: {v.value.toPrecision(4)} {v.unit}</p>)}</div>)}</details></div>}
   <ObservationReadout/>
   <ApparatusKey rig={rig} id={target}/>
@@ -82,6 +86,7 @@ export function GuidedProcedure({definition:def}:{definition:InvestigationDefini
   {message&&!last&&<p className="rounded bg-amber-50 p-2 leading-relaxed" role="status">{message}</p>}
   <div className="flex gap-2"><button className={button} disabled={automatic||animating||index===0} onClick={()=>{pause();setMessage('');setIndex(i=>i-1);}}>← Өмнөх</button><button className={`${button} flex-1 bg-sky-700 text-white`} disabled={automatic||animating} onClick={()=>{pause();setMessage('');if(last){const result=executeGuideStep(def,step);setMessage(result.message);if(result.ok){cancelShowcase();setDemonstrating(false);clearGuideCue();}}else if(step.type==='record'){const result=executeGuideStep(def,step);setMessage(result.message);if(result.ok)setIndex(i=>i+1);}else setIndex(i=>i+1);}}>{last?'Эцсийн үр дүнг шалгах':completed.includes(index)?'Дараах алхам →':'Өөрөө хийсэн · Дараах →'}</button></div>
   {!automatic&&demonstrating?<div className="flex gap-2">{!last&&<button className={`${button} flex-1`} onClick={()=>setAutomatic(true)}>Авто үргэлжлүүлэх</button>}<button className={button} onClick={()=>{pause();cancelShowcase();setDemonstrating(false);clearGuideCue();setMessage('Багаж, бодис хэвээр үлдлээ. Одоо өөрөө үргэлжлүүл.');}}>Өөрөө үргэлжлүүлэх</button></div>:null}
+  </>}
   <details><summary className="min-h-10 cursor-pointer py-2 text-slate-600">Бүтэн төлөвлөгөө ба харьцуулах арга</summary><p className="mb-2">Энэ нь аппын эхний жишээ туршилтын тун. Номын тогтмол тун гэж үзэхгүй; дараа нь нэг нөхцөл өөрчилж харьцуул.</p><ol className="list-decimal space-y-2 pl-5">{plan.map((s,i)=><li key={i}><button className="text-left" disabled={automatic} onClick={()=>{setIndex(i);setMessage('');}}>{stepLabel(s,def.labRig!)}</button></li>)}</ol><div className="mt-3 border-t pt-2">{def.method?.map((text,i)=><p key={i} className="mt-2">{text}</p>)}</div></details>
  </section>;
 }
