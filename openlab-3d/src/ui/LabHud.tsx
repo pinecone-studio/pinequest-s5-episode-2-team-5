@@ -3,7 +3,7 @@
  * bar, the safety-gear badges (with a faint goggles frame on screen while they are
  * worn) and the card of the active experiment with its next step.
  */
-import { useEffect, useState } from 'react';
+import { useEffect, useState, type ReactNode } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { useActionHud } from '../interaction/actions';
 import { throwCharge } from '../interaction/heldApi';
@@ -18,6 +18,7 @@ import { sounds } from '../utils/sounds';
 import { isTouchDevice } from '../utils/device';
 import { mobileizeControlHint } from '../controls/mobileInteraction';
 import { ProcedureBlock, ProcedureList } from '../menu/ProcedureBlock';
+import { TextbookPreparation } from '../menu/TextbookPreparation';
 import { SHOW_LAB_STEPS_IN_CARD, cardTitle, groupsToShow, unlinkedCard, useLaunchedProcedure } from '../menu/launchedProcedure';
 import { procedureGroupsForLab } from '../menu/labProcedureData';
 
@@ -107,8 +108,25 @@ export function ExperimentCard() {
   const touch = isTouchDevice();
   const [prepCollapsed, setPrepCollapsed] = useState(touch);
   const x = active ? experiments.find((experiment) => experiment.id === active) : undefined;
+  // «Туршилтын бэлтгэл» самбар: туршилтын нэр + «Бэлтгэлээ хийе» хэсэг. Бүх туршилтад ижил хүрээтэй гарна.
+  const prepCard = (title: string, body: ReactNode) => {
+    const closed = touch ? prepCollapsed : collapsed;
+    const toggle = () => (touch ? setPrepCollapsed((c) => !c) : setCollapsed((c) => !c));
+    // Утас: зүүн талд Pip робот ба «Pip чат» (192px хүртэл), баруун талд газрын зураг (124px) байна.
+    const box = touch
+      ? 'pointer-events-auto fixed bottom-2 left-[192px] right-[124px] z-30 rounded-xl bg-white/95 p-2 text-lab-ink shadow-hud'
+      : 'pointer-events-auto fixed left-3 top-[68px] z-30 w-[min(320px,calc(100vw-24px))] rounded-xl bg-white/95 p-3 text-lab-ink shadow-hud sm:left-4 sm:top-[76px] sm:w-[min(320px,calc(100vw-80px))]';
+    return <div className={box}>
+      <button type="button" className="focus-ring flex w-full items-center justify-between gap-2 text-left" onClick={toggle} aria-expanded={!closed}>
+        <span><span className="block text-[10px] font-bold uppercase tracking-wider text-amber-700">Туршилтын бэлтгэл</span><b className="block text-xs">{title}</b></span>
+        <span className="shrink-0 rounded-full bg-amber-100 px-2 py-1 text-[11px] font-semibold text-amber-900">{closed ? 'Нээх +' : 'Хураах −'}</span>
+      </button>
+      {!closed && <div className={`mt-2 overflow-y-auto overscroll-contain ${touch ? 'max-h-[45dvh]' : 'max-h-[40dvh]'}`}>{body}</div>}
+    </div>;
+  };
   if (!x) {
-    // Лабын заавартай холбоогүй туршилтыг цэснээс сонгосон бол нэр, алхмыг нь "Туршилт" картаар харуулна
+    // Лабын заавартай холбоогүй туршилтыг цэснээс сонгосон бол эхлээд бэлтгэл, дараа нь нэр, алхмыг нь "Туршилт" картаар харуулна
+    if (launched.labId === null && launched.prep) return prepCard(launched.title, <TextbookPreparation />);
     const picked = unlinkedCard(launched);
     if (!picked) return null;
     return (
@@ -129,21 +147,9 @@ export function ExperimentCard() {
   const heading = cardTitle(x.id, launched, x.title);
   const done = progress[x.id] ?? [];
   const next = x.steps.find((s) => !done.includes(s.id));
-  if (!currentSession()?.ready) {
-    const closed = touch ? prepCollapsed : collapsed;
-    const toggle = () => (touch ? setPrepCollapsed((c) => !c) : setCollapsed((c) => !c));
-    // Утас: зүүн талд Pip робот ба «Pip чат» (192px хүртэл), баруун талд газрын зураг (124px) байна.
-    const box = touch
-      ? 'pointer-events-auto fixed bottom-2 left-[192px] right-[124px] z-30 rounded-xl bg-white/95 p-2 text-lab-ink shadow-hud'
-      : 'pointer-events-auto fixed left-3 top-[68px] z-30 w-[min(320px,calc(100vw-24px))] rounded-xl bg-white/95 p-3 text-lab-ink shadow-hud sm:left-4 sm:top-[76px] sm:w-[min(320px,calc(100vw-80px))]';
-    return <div className={box}>
-      <button type="button" className="focus-ring flex w-full items-center justify-between gap-2 text-left" onClick={toggle} aria-expanded={!closed}>
-        <span><span className="block text-[10px] font-bold uppercase tracking-wider text-amber-700">Туршилтын бэлтгэл</span><b className="block text-xs">{heading}</b></span>
-        <span className="shrink-0 rounded-full bg-amber-100 px-2 py-1 text-[11px] font-semibold text-amber-900">{closed ? 'Нээх +' : 'Хураах −'}</span>
-      </button>
-      {!closed && <div className={`mt-2 overflow-y-auto overscroll-contain ${touch ? 'max-h-[45dvh]' : 'max-h-[40dvh]'}`}><PreparationChecklist /></div>}
-    </div>;
-  }
+  if (!currentSession()?.ready) return prepCard(heading, <PreparationChecklist />);
+  // Лаб ширээн дээрх хэрэгслийг хянадаггүй туршилт: сурах бичгийн бодис, хэрэгслийн жагсаалтаар бэлтгэнэ
+  if (launched.labId === x.id && launched.prep) return prepCard(heading, <TextbookPreparation />);
   // Сурах бичгийн "Хэрхэн хийх" алхамтай бол картыг цэвэр «Туршилт» болгоно (лабын ерөнхий 3 алхам, 0/3, зөвлөгөөг нууна)
   const groups = groupsToShow(x.id, launched, procedureGroupsForLab(x.id));
   const clean = !SHOW_LAB_STEPS_IN_CARD && groups.length > 0;
