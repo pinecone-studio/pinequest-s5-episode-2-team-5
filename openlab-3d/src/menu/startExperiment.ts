@@ -25,14 +25,16 @@ export function startTextbookExperiment(experiment: TextbookExperiment): void {
   if (!lab) {
     // Алхамчилсан заавар байхгүй: өмнөх туршилтын карт үлдэхгүйн тулд сонголтыг цэвэрлэж, чөлөөт лабт үргэлжлүүлнэ
     useLabStore.getState().setActive(null);
-    useLaunchedProcedure.getState().clear();
+    // Лабын "Туршилт" картад сонгосон туршилтын нэр, алхмыг харуулна (алхамгүй бол карт гарахгүй)
+    if (experiment.procedure.length) useLaunchedProcedure.getState().showUnlinked(experiment.title, experiment.procedure);
+    else useLaunchedProcedure.getState().clear();
     sounds.play('ui', 0.5);
     resumeWalk();
     useGameStore.getState().say(unguidedMessage(experiment), 'wave');
     return;
   }
   // Лабын "Туршилт" самбар дээр сурах бичгийн "Хэрхэн хийх" алхмыг харуулахын тулд хадгална
-  useLaunchedProcedure.getState().show(lab.id, experiment.procedure);
+  useLaunchedProcedure.getState().show(lab.id, experiment.procedure, experiment.title);
   // Шинэ эхлэл (өмнө нь хийж эхлээгүй) бол цэвэр эхлүүлнэ, хийж байсан бол үргэлжлүүлнэ
   selectBenchExperiment(lab.id, !useWorkbench.getState().sessions[lab.id]);
   sounds.play('success', 0.5);

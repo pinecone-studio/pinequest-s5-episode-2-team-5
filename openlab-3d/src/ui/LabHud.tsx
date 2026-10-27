@@ -17,7 +17,9 @@ import { PreparationChecklist } from '../experiments/workbench/PreparationHints'
 import { sounds } from '../utils/sounds';
 import { isTouchDevice } from '../utils/device';
 import { mobileizeControlHint } from '../controls/mobileInteraction';
-import { ProcedureBlock } from '../menu/ProcedureBlock';
+import { ProcedureBlock, ProcedureList } from '../menu/ProcedureBlock';
+import { SHOW_LAB_STEPS_IN_CARD, cardTitle, groupsToShow, unlinkedCard, useLaunchedProcedure } from '../menu/launchedProcedure';
+import { procedureGroupsForLab } from '../menu/labProcedureData';
 
 export function ActionGauge() {
   const { label, detail, visible } = useActionHud();
@@ -99,12 +101,32 @@ export function ExperimentCard() {
   const active = useLabStore((s) => s.active);
   const progress = useLabStore((s) => s.progress);
   useWorkbench((s) => s.sessions);
+  const launched = useLaunchedProcedure();
   const [collapsed, setCollapsed] = useState(false);
   // Утсан дээр «Туршилтын бэлтгэл» доод эгнээнд, анх хураасан байдалтай гарна.
   const touch = isTouchDevice();
   const [prepCollapsed, setPrepCollapsed] = useState(touch);
   const x = active ? experiments.find((experiment) => experiment.id === active) : undefined;
-  if (!x) return null;
+  if (!x) {
+    // Лабын заавартай холбоогүй туршилтыг цэснээс сонгосон бол нэр, алхмыг нь "Туршилт" картаар харуулна
+    const picked = unlinkedCard(launched);
+    if (!picked) return null;
+    return (
+      <div className="pointer-events-auto fixed left-4 top-[76px] z-30 w-[min(300px,calc(100vw-120px))] ">
+        <div className="rounded-2xl bg-white/90 p-3 text-lab-ink shadow-hud backdrop-blur">
+          <button type="button" className="focus-ring flex w-full items-center justify-between gap-2 text-left" onClick={() => setCollapsed((c) => !c)} aria-expanded={!collapsed}>
+            <span>
+              <span className="block text-[10px] font-bold uppercase tracking-wider text-emerald-600">Туршилт</span>
+              <span className="block font-display text-sm font-bold leading-tight">{picked.title}</span>
+            </span>
+            <span className="text-xs text-slate-400">{collapsed ? '▼' : '▲'}</span>
+          </button>
+          {!collapsed && <ProcedureList groups={[picked]} />}
+        </div>
+      </div>
+    );
+  }
+  const heading = cardTitle(x.id, launched, x.title);
   const done = progress[x.id] ?? [];
   const next = x.steps.find((s) => !done.includes(s.id));
   if (!currentSession()?.ready) {
@@ -116,23 +138,26 @@ export function ExperimentCard() {
       : 'pointer-events-auto fixed left-3 top-[68px] z-30 w-[min(320px,calc(100vw-24px))] rounded-xl bg-white/95 p-3 text-lab-ink shadow-hud sm:left-4 sm:top-[76px] sm:w-[min(320px,calc(100vw-80px))]';
     return <div className={box}>
       <button type="button" className="focus-ring flex w-full items-center justify-between gap-2 text-left" onClick={toggle} aria-expanded={!closed}>
-        <span><span className="block text-[10px] font-bold uppercase tracking-wider text-amber-700">Туршилтын бэлтгэл</span><b className="block text-xs">{x.title}</b></span>
+        <span><span className="block text-[10px] font-bold uppercase tracking-wider text-amber-700">Туршилтын бэлтгэл</span><b className="block text-xs">{heading}</b></span>
         <span className="shrink-0 rounded-full bg-amber-100 px-2 py-1 text-[11px] font-semibold text-amber-900">{closed ? 'Нээх +' : 'Хураах −'}</span>
       </button>
       {!closed && <div className={`mt-2 overflow-y-auto overscroll-contain ${touch ? 'max-h-[45dvh]' : 'max-h-[40dvh]'}`}><PreparationChecklist /></div>}
     </div>;
   }
+  // Сурах бичгийн "Хэрхэн хийх" алхамтай бол картыг цэвэр «Туршилт» болгоно (лабын ерөнхий 3 алхам, 0/3, зөвлөгөөг нууна)
+  const groups = groupsToShow(x.id, launched, procedureGroupsForLab(x.id));
+  const clean = !SHOW_LAB_STEPS_IN_CARD && groups.length > 0;
   return (
     <div className="pointer-events-auto fixed left-4 top-[76px] z-30 w-[min(300px,calc(100vw-120px))] ">
       <div className="rounded-2xl bg-white/90 p-3 text-lab-ink shadow-hud backdrop-blur">
         <button type="button" className="focus-ring flex w-full items-center justify-between gap-2 text-left" onClick={() => setCollapsed((c) => !c)} aria-expanded={!collapsed}>
           <span>
-            <span className="block text-[10px] font-bold uppercase tracking-wider text-emerald-600">Туршилт · {done.length}/{x.steps.length}</span>
-            <span className="block font-display text-sm font-bold leading-tight">{x.title}</span>
+            <span className="block text-[10px] font-bold uppercase tracking-wider text-emerald-600">{clean ? 'Туршилт' : <>Туршилт · {done.length}/{x.steps.length}</>}</span>
+            <span className="block font-display text-sm font-bold leading-tight">{heading}</span>
           </span>
           <span className="text-xs text-slate-400">{collapsed ? '▼' : '▲'}</span>
         </button>
-        {!collapsed && (
+        {!collapsed && (clean ? <ProcedureList groups={groups} /> : (
           <>
             <ol className="mt-2 space-y-1">
               {x.steps.map((s, i) => {
@@ -157,7 +182,7 @@ export function ExperimentCard() {
             )}
             <ProcedureBlock labId={x.id} />
           </>
-        )}
+        ))}
       </div>
     </div>
   );
