@@ -14,6 +14,11 @@ export function mergeRevision(a:RevisionSnapshot,b:RevisionSnapshot):RevisionSna
  }
  return {state,clocks};
 }
+/** `wrong` shrinks when a question is answered correctly, but the server only unions it, so it stays on this device. */
+export const outgoingRevision=(value:RevisionSnapshot):RevisionSnapshot=>({state:{...value.state,wrong:[]},clocks:value.clocks});
+export function applyRemoteRevision(local:RevisionSnapshot,remote:RevisionSnapshot):RevisionSnapshot {
+ const merged=mergeRevision(local,remote);merged.state.wrong=[...local.state.wrong];return merged;
+}
 export function changedRevision(before:RevisionSnapshot,state:RevisionProgress,at=Date.now()):RevisionSnapshot {
  const clocks={...before.clocks};
  for(const key of ['cards','ratings'] as const)for(const [id,value] of Object.entries(state[key]))if(before.state[key][id]!==value)clocks[`${key}.${id}`]=Math.max(at,(clocks[`${key}.${id}`]??0)+1);

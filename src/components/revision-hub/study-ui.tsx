@@ -28,14 +28,14 @@ export function openReference(reference: string) {
 export function StudyPage({ title, subtitle, children, home = false, showTopicLinks = true, onBack }: { title: string; subtitle?: string; children: ReactNode; home?: boolean; showTopicLinks?: boolean; onBack?: () => void }) {
   const { width } = useWindowDimensions();
   const insets = useSafeAreaInsets();
-  const { saved, error, retry, packId, contentSource } = useRevision();
+  const { saved, error, retry, packId, contentSource, cloud } = useRevision();
   return <LabBackground bubbles={0}>
     <ScreenHeader title={title} subtitle={subtitle} onBack={onBack ?? (() => {
       if (router.canGoBack()) router.back();
       else router.replace(home ? '/lessons' : packId === 'g7-chem' ? '/hub/g7-chem' : packId === 'g10-chem' ? '/hub/g10-chem' : packId === 'g9-chem' ? '/hub/g9-chem' : '/hub/g8-chem');
     })}/>
     <View style={ui.toolbar}>
-      <AppText variant="caption">Агуулга: {contentSource === 'supabase' ? 'Supabase' : 'төхөөрөмжийн нөөц'} · Явц: {error ? 'хадгалалт амжилтгүй' : saved ? 'төхөөрөмжид хадгалсан' : 'хадгалж байна…'}</AppText>
+      <AppText variant="caption">Агуулга: {contentSource === 'supabase' ? 'Supabase' : 'төхөөрөмжийн нөөц'} · Явц: {error ? 'хадгалалт амжилтгүй' : !saved ? 'хадгалж байна…' : cloud === 'synced' ? 'Supabase-д хадгалсан' : cloud === 'syncing' ? 'Supabase-д илгээж байна…' : 'төхөөрөмжид хадгалсан'}</AppText>
       {error && <GameButton title="Дахин хадгалах" size="sm" variant="danger" onPress={retry}/>}
     </View>
     <View style={{ flex: 1, flexDirection: width >= 1100 ? 'row' : 'column' }}>

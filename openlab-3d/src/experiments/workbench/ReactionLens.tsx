@@ -27,8 +27,17 @@ const ATOMS: Record<Species, [number, number, number, string, number][]> = {
   CO2: [[0, 0, 0, '#434a56', .065], [-.105, 0, 0, '#f55457', .065], [.105, 0, 0, '#f55457', .065]],
 };
 
+/** A contents lens (nothing reacting) hides after this long until the selection or its contents change. */
+const CONTENTS_TIMEOUT_MS = 8000;
+
+/** Only what is held, selected or inspected right now; a container put down no longer keeps its lens. */
+function lensTarget(): string | null {
+  const game = useGameStore.getState();
+  return (game.mode === 'inspect' ? game.inspectTarget?.sourceId : heldObjectId() ?? useBenchView.getState().selected) ?? null;
+}
+
 /** Select actual observed chemistry; looking/holding has priority over bench selection. */
-function currentReaction(requested: string | null, dismissed: number | null): VesselReaction | null {
+function currentReaction(dismissed: number | null): VesselReaction | null {
   const game = useGameStore.getState();
   if (!['walk', 'bench', 'inspect'].includes(game.mode)) return null;
   const all = useReactionView.getState().vessels, now = performance.now();
@@ -36,7 +45,7 @@ function currentReaction(requested: string | null, dismissed: number | null): Ve
   const automatic = nearby ? automaticReaction(all, now, dismissed, (id) => isWorkbenchObject(id) && !isBenchPaused(id)) : null;
   if (automatic) return automatic;
   if (!nearby && game.mode !== 'inspect') return null;
-  const selected = (game.mode === 'inspect' ? game.inspectTarget?.sourceId : heldObjectId() ?? useBenchView.getState().selected) ?? requested;
+  const selected = lensTarget();
   if (selected && (describe(selected).capacity > 0 || ['jar', 'reagentJar', 'spat', 'spatula'].includes(describe(selected).role))) {
     const reaction = all[selected];
     if (reaction && !reaction.info && reaction.until > now) return reaction;
@@ -52,14 +61,24 @@ function currentReaction(requested: string | null, dismissed: number | null): Ve
 }
 export function ReactionLens() {
   const mode = useGameStore((s) => s.mode);
-  const lastContainer = useRef<string | null>(null);
+  const dismissed = useRef<number | null>(null), contentsSince = useRef<{ episode: number; at: number } | null>(null);
+  const target = useRef<string | null>(null);
   const [shown, setShown] = useState<VesselReaction | null>(null);
   const viewport = useRef<HTMLDivElement>(null), anchor = useRef<HTMLDivElement>(null), connector = useRef<SVGLineElement>(null);
   const quality = useSettingsStore((s) => s.quality), reduced = useSettingsStore((s) => s.reducedMotion);
   useEffect(() => {
     const poll = () => {
-      const next = currentReaction(lastContainer.current, null);
-      if (next) lastContainer.current = next.vesselId;
+      const now = performance.now();
+      // Picking up, selecting or inspecting again restarts a closed or timed-out contents lens
+      // (contents episodes are negative); a closed live reaction stays closed.
+      if (lensTarget() !== target.current) {
+        target.current = lensTarget(); contentsSince.current = null;
+        if (dismissed.current !== null && dismissed.current < 0) dismissed.current = null;
+      }
+      let next = currentReaction(dismissed.current);
+      if (next?.info && contentsSince.current?.episode !== next.episode) contentsSince.current = { episode: next.episode, at: now };
+      const timedOut = next?.info && useGameStore.getState().mode !== 'inspect' && now - (contentsSince.current?.at ?? now) > CONTENTS_TIMEOUT_MS;
+      if (next && (next.episode === dismissed.current || timedOut)) next = null;
       setShown((previous) => {
         if (next) return next.episode === previous?.episode && Math.abs(next.temp - previous.temp) < .5 && next.equation === previous.equation && next.sentence === previous.sentence ? previous : next;
         if (previous && !previous.info && previous.until + 2500 > performance.now()
@@ -148,11 +167,13 @@ export function ReactionLens() {
   if (!['walk', 'bench', 'inspect'].includes(mode)) return null;
   if (!shown) return null;
   const legend = [...new Map([...shown.reactants, ...shown.products, ...(shown.spectators ?? [])].map((s) => [s.id, s])).values()];
+  const close = () => { dismissed.current = shown.episode; setShown(null); };
   return <><svg className="pointer-events-none fixed inset-0 z-[51] h-full w-full" aria-hidden><line ref={connector} stroke="#a5dffc" strokeWidth="1.5" /></svg>
     <div ref={anchor} style={{ zIndex: mode === 'inspect' ? 52 : 32 }} className="pointer-events-none fixed left-0 top-0 z-[52] w-[min(270px,calc(100vw-24px))] text-lab-ink transition-opacity duration-700" aria-label="Урвалын молекулын линз" data-vessel={shown.vesselId}>
       <div className="pointer-events-none mx-auto w-40 overflow-hidden rounded-full border-2 border-sky-200 bg-slate-900 shadow-hud sm:w-56"><div ref={viewport} className="aspect-square w-full" aria-label="Сав доторх бөөмсийн хөдөлгөөн" /></div>
       <div className="pointer-events-auto text-center"><MoleculeViewerButton reaction={shown}/></div>
-      <div className="pointer-events-none rounded-lg bg-white/95 p-2 text-center text-xs shadow-hud" aria-label="Урвалын тэгшитгэл">
+      <div className="pointer-events-none relative rounded-lg bg-white/95 p-2 px-7 text-center text-xs shadow-hud" aria-label="Урвалын тэгшитгэл">
+        <button type="button" className="focus-ring pointer-events-auto absolute right-1 top-1 flex h-6 w-6 items-center justify-center rounded-full text-sm text-slate-500 hover:bg-slate-100" onClick={close} aria-label="Хаах" title="Хаах">✕</button>
         <b>{shown.equation}</b>{shown.catalyst && <p className="mt-1 text-[10px] text-indigo-800">I⁻ — катализатор, K⁺ — ажиглагч ион<br/>H₂O₂ + I⁻ → H₂O + IO⁻<br/>H₂O₂ + IO⁻ → H₂O + O₂↑ + I⁻</p>}<p className="mt-1 text-[11px]">{shown.sentence}</p>
         <div className="mt-1 hidden flex-wrap justify-center gap-x-2 gap-y-1 text-[10px] sm:flex">{legend.map((s) => <span key={s.id}>{s.name} {s.formula}</span>)}</div>
         <div className="mt-1 hidden text-[9px] text-slate-500 sm:block">Мөргөлдөөн ба хэмжээ нь тайлбарлах загвар · {shown.temp.toFixed(1)} °C</div>
