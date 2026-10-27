@@ -18,6 +18,8 @@ const overlays:Record<string,{labRig:string;supplies:string[]}>= {
  'candle-products':{labRig:'combustionFurnace',supplies:['combustionFurnace','reagent:s_wax','reagent:gas_o2']},
  'fuel-energy':{labRig:'calorimeter',supplies:['calorimeter','reagent:water','reagent:ethanol']},
  'nacl':{labRig:'beaker',supplies:['beaker','reagent:hcl','reagent:s_na2co3']},
+ 'water-quality':{labRig:'soilBench',supplies:['soilBench','reagent:water','reagent:ui','reagent:soil_clay','reagent:nacl','reagent:naoh']},
+ 'water-treatment':{labRig:'soilBench',supplies:['soilBench','reagent:soil_clay','reagent:nacl']},
 };
 const target:Record<string,string>={'g7-salt-evaporation':'evaporatingDish','g10-flame':'bunsenBurner','g10-titration':'erlenmeyer','g9-transition-colours':'beaker','g9-filtration':'beaker','g9-crystallisation':'beaker','g9-precipitation':'beaker','g9-thermal-pairs':'beaker','g9-ph-ranking':'beaker','g9-zinc-hcl':'testTube','g9-antacid':'beaker','g9-water-tests':'watchGlass','catalyst-reuse':'graduatedCylinder',elephant:'graduatedCylinder',titration:'erlenmeyer',fire:'evaporatingDish',boil:'beaker',crystals:'evaporatingDish',cuso4:'evaporatingDish'};
 export function guideDefinition(id:string):InvestigationDefinition|undefined{

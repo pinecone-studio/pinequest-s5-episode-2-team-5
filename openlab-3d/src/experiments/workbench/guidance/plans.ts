@@ -66,6 +66,8 @@ export const GUIDED_PLANS:Record<string,GuideStep[]>={
  'rate-surface':run([['s_caco3',.1],['hcl',5,1]]),
  'candle-products':[...run([['s_wax',.1],['gas_o2',100,1]],heat(80)),set('Парафиныг асаа.',{operation:'ignite',running:true})],
  'fuel-energy':run([['water',25],['ethanol',1,1]],set('Дэнгийг асааж усыг халаа.',{heating:true})),
+ 'water-quality':run([['water',10],['ui',.1]]),
+ 'water-treatment':run([['soil_clay',1],['nacl',20]]),
  'nacl-solution':run([['hcl',5],['na2co3',5]]),
  'copper-salt':run([['h2so4',5],['s_cuco3',.1]]),
  'zinc-salt':run([['h2so4',5],['s_zn',.1]]),
@@ -88,6 +90,7 @@ export const GUIDED_PLANS:Record<string,GuideStep[]>={
  'boil':run([['water',10]],set('Халаагуурыг асаа.',{heating:true})),
  'crystals':run([['nacl',5]],set('Ууршуулах халаалтыг асаа.',{heating:true})),
  'fire':run([['ethanol',1]],set('Дээжийг асаа.',{operation:'ignite'})),
+ 'flame':[{type:'flame',reagent:'nacl',amount:.1,label:'Цэвэр нихром утсанд NaCl дээж авч дөлөнд шар өнгийг ажигла.'}],
 
  'g7-sugar-motion':run([['water',25],['s_sugar',1,1]]),
  'g7-liquid-layers':run([['water',10],['oil',5],['corn_syrup',5]]),

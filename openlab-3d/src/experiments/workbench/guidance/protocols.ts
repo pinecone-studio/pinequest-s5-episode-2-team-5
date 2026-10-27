@@ -20,7 +20,7 @@ function primary(id:string):Check[]{
   'g10-salt-oxide':[a('Cu',.00045),check('acid',undefined,1e-5)],
   'g10-titration':[check('ph',undefined,3)],
   'g10-precipitation':[s('AgCl',1e-5)],'g10-displacement':[s('Cu',1e-5)],
-  'g10-flame':[check('sample',1e-6,undefined,{species:'Na',target:'wireLoop'})],
+  'g10-flame':[check('sample',1e-6,undefined,{species:'Na',target:'wireLoop'})],'flame':[check('sample',1e-6,undefined,{species:'Na',target:'wireLoop'})],
 
   'g7-sugar-motion':[check('extent',.9)],'g7-liquid-layers':[data('mixing',.9),data('oil',4.9)],'g7-gas-motion':[data('dispersion',.9)],'g7-diffusion-comparison':[data('dispersion',.8),data('liquidDispersion',.8)],
   'g7-wax-water':[a('waxLiquid',.002,1),check('solid',undefined,1e-7,{species:'ice',port:0})],
@@ -62,6 +62,7 @@ function primary(id:string):Check[]{
   'halogens':[a('Br2',1e-6),a('I2',1e-6,1)],'physical-change':[check('solid',undefined,1e-7,{species:'ice'})],
   'rate-concentration':[check('solid',undefined,1e-7,{species:'CaCO3'})],'rate-temperature':[check('solid',undefined,1e-7,{species:'CaCO3'})],'rate-surface':[check('solid',undefined,1e-7,{species:'CaCO3'})],
   'candle-products':[check('gas',1e-6,undefined,{species:'CO2'})],'fuel-energy':[check('temperature',30)],
+  'water-quality':[check('ph',6,8)],'water-treatment':[data('settled2',.005)],
   'nacl-solution':[a('Na',.001),check('acid',undefined,1e-5)],'copper-salt':[a('Cu',.0007),check('solid',undefined,1e-7,{species:'CuCO3'})],'zinc-salt':[a('Zn',.001),check('solid',undefined,1e-7,{species:'Zn'})],
   'activity-matrix':[s('Cu',1e-5)],'acid-heat':[check('acid',undefined,1e-6)],'vinegar-soda':[check('solid',undefined,1e-7,{species:'NaHCO3'})],'kcl-dissolution':[a('K',.01),check('solid',undefined,1e-7,{species:'KCl'})],
   'wastewater':[check('ph',6,8)],'catalyst-reuse':[check('aqueous',undefined,1e-5,{species:'H2O2'}),s('MnO2',.001)],
@@ -136,9 +137,19 @@ export function completeProtocol(id:string,starter:GuideStep[]):GuideStep[]{
   const reagent=id==='g7-phenolphthalein'?'hcl':'naoh';const until:Endpoint={label:'Саармагжих төгсгөлийн цэг',checks:[check('ph',6,8)]};
   p.push({...dose(reagent,10),stopWhen:until},wait('Төгсгөлийн цэг ба зарцуулсан хэмжээг бүртгэ.',until.checks),record('Саармагжих төгсгөлийн хэмжээ.'));lastChecks=until.checks;
  }
- if(id==='g10-flame')for(const [reagent,ion] of [['kcl','K'],['licl','Li'],['cacl2','Ca'],['cuso4','Cu']] as const)p.push({type:'flame',reagent,amount:.1,label:`Цэвэр гогцоонд ${reagent} авч дөлний өнгийг шалга.`},wait(`${ion} дээжийн дөлний сорил.`,[check('sample',1e-6,undefined,{species:ion,target:'wireLoop'})]),record(`${ion}: дөлний өнгө ба дээж.`,'wireLoop'));
- if(id==='g10-flame')lastChecks=[check('sample',1e-6,undefined,{species:'Cu',target:'wireLoop'})];
+ if(id==='g10-flame'||id==='flame')for(const [reagent,ion] of [['kcl','K'],['licl','Li'],['cacl2','Ca'],['cuso4','Cu']] as const)p.push({type:'flame',reagent,amount:.1,label:`Цэвэр гогцоонд ${reagent} авч дөлний өнгийг шалга.`},wait(`${ion} дээжийн дөлний сорил.`,[check('sample',1e-6,undefined,{species:ion,target:'wireLoop'})]),record(`${ion}: дөлний өнгө ба дээж.`,'wireLoop'));
+ if(id==='g10-flame'||id==='flame')lastChecks=[check('sample',1e-6,undefined,{species:'Cu',target:'wireLoop'})];
 
+ if(id==='water-quality'){
+  const start:GuideStep={type:'start',label:'Дээжийн pH, булингар, ууссан бодисыг хэмж.'};
+  again('Шавартай ус: булингар тунана',[dose('soil_clay',1),dose('water',10),dose('ui',.1),start],[data('settled2',.005)]);
+  again('Давстай ус: тунгалаг ч ууссан Na⁺ агуулна',[dose('nacl',10),dose('ui',.1),start],[a('Na',.009),check('ph',6,8)]);
+  again('Шүлтлэг хаягдал ус: pH өндөр',[dose('naoh',1),dose('water',9),dose('ui',.1),start],[check('ph',11)]);
+ }
+ if(id==='water-treatment'){
+  p.push(config('Тунгаасан дээжийг шүүлтүүрээр шүү.',{operation:'filter',running:true}),wait('Шавар шүүлтүүрт үлдэж, давс шүүгдэст нэвтрэв.',[check('water',5,undefined,{port:2}),a('Na',1e-3,2)]),record('Тунгалаг шүүгдэс давстай хэвээр: ундны ус гэж батлахгүй.'));
+  lastChecks=[check('water',5,undefined,{port:2}),a('Na',1e-3,2)];
+ }
  if(id==='g9-mass-conservation')p.push(config('Битүү системийн дараах хийг сулла.',{closed:false}),record('Нээлттэй системийн масс өөрчлөлт.'));
  if(id==='g9-water-tests')again('Кобальтын усны сорил',[dose('s_cocl2anh',.1),dose('water',1),{type:'start',label:'Усны хоёр дахь сорил.'}],[a('Co',1e-6)]);
  if(id==='g9-litmus')p.push(dose('water',5,2),dose('s_litmus_red',.01,2),dose('water',5,3),dose('s_litmus_blue',.01,3),wait('Саармаг хяналтын уусмал.',[check('ph',6,8,{port:2}),check('ph',6,8,{port:3})]),record('Хүчил, суурь ба саармаг лакмусын хяналтууд.'));
