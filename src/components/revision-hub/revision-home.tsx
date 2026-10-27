@@ -5,6 +5,7 @@ import { Colors } from '@/constants/theme';
 import { useRevision } from '@/context/revision';
 import { getPack } from '@/data/revision-hub';
 import { nextRevisionStep, topicStats } from '@/lib/revision-progress';
+import { StudyAdvisor } from './study-advisor';
 import { StudyCard, StudyLink, StudyPage, openReference, openTopic } from './study-ui';
 
 export function RevisionHome() {
@@ -19,6 +20,7 @@ export function RevisionHome() {
       <AppText>Эхлээд тэмдэглэлээ уншаад, картаар давтаж, тест болон онооны схемээр мэдлэгээ шалгаарай.</AppText>
     </StudyCard>
     {next && <StudyCard><AppText variant="heading">Дараагийн алхам</AppText><AppText>{next.id} · {next.title}</AppText><GameButton title="Давтлагаа үргэлжлүүлэх" size="md" onPress={() => openTopic(next.id, nextRevisionStep(next, progress) ?? 'notes')}/></StudyCard>}
+    <StudyAdvisor/>
     <StudyCard>
       <AppText variant="heading">Давтах ба лавлах</AppText>
       {[
