@@ -14,14 +14,32 @@ export function mergeRevision(a:RevisionSnapshot,b:RevisionSnapshot):RevisionSna
  }
  return {state,clocks};
 }
-/** `wrong` shrinks when a question is answered correctly, but the server only unions it, so it stays on this device. */
-export const outgoingRevision=(value:RevisionSnapshot):RevisionSnapshot=>({state:{...value.state,wrong:[]},clocks:value.clocks});
+/**
+ * `wrong` shrinks when a question is answered correctly, so each question follows its newest mark
+ * ("wrong.<id>" clocks) and is sent as `wrongMarks`. The list itself is never sent: servers before
+ * 202610270003 only add to it.
+ */
+const WRONG='wrong.';
+export interface OutgoingRevision extends RevisionSnapshot {state:RevisionProgress&{wrongMarks:Record<string,boolean>}}
+export const outgoingRevision=(value:RevisionSnapshot):OutgoingRevision=>{
+ const ids=new Set([...value.state.wrong,...Object.keys(value.clocks).filter((clock)=>clock.startsWith(WRONG)).map((clock)=>clock.slice(WRONG.length))]);
+ const wrongMarks=Object.fromEntries([...ids].map((id)=>[id,value.state.wrong.includes(id)]));
+ return {state:{...value.state,wrong:[],wrongMarks},clocks:value.clocks};
+};
 export function applyRemoteRevision(local:RevisionSnapshot,remote:RevisionSnapshot):RevisionSnapshot {
- const merged=mergeRevision(local,remote);merged.state.wrong=[...local.state.wrong];return merged;
+ const merged=mergeRevision(local,remote),wrong=new Set(local.state.wrong);
+ for(const [clock,stamp] of Object.entries(remote.clocks)){
+  if(!clock.startsWith(WRONG)||stamp<=(local.clocks[clock]??-1))continue;
+  const id=clock.slice(WRONG.length);
+  if(remote.state.wrong.includes(id))wrong.add(id);else wrong.delete(id);
+  merged.clocks[clock]=stamp;
+ }
+ merged.state.wrong=[...wrong];return merged;
 }
 export function changedRevision(before:RevisionSnapshot,state:RevisionProgress,at=Date.now()):RevisionSnapshot {
  const clocks={...before.clocks};
  for(const key of ['cards','ratings'] as const)for(const [id,value] of Object.entries(state[key]))if(before.state[key][id]!==value)clocks[`${key}.${id}`]=Math.max(at,(clocks[`${key}.${id}`]??0)+1);
+ for(const id of new Set([...before.state.wrong,...state.wrong]))if(before.state.wrong.includes(id)!==state.wrong.includes(id))clocks[`${WRONG}${id}`]=Math.max(at,(clocks[`${WRONG}${id}`]??0)+1);
  return {state,clocks};
 }
 export function restoreSnapshot(raw:unknown):RevisionSnapshot {

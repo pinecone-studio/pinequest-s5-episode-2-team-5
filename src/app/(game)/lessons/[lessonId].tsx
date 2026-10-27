@@ -17,7 +17,9 @@ import { Colors } from '@/constants/theme';
 import { useSession } from '@/context/session';
 import { findLesson, getClass } from '@/data/classes';
 import { haptics } from '@/lib/haptics';
+import { saveLessonAttempt, type LessonAttempt } from '@/lib/lesson-attempts';
 import { lessonStatuses, starsForMistakes, type CompletionResult } from '@/lib/progress';
+import { randomId } from '@/lib/random';
 import type { Lesson } from '@/types';
 
 const leave = () => (router.canGoBack() ? router.back() : router.replace('/lessons'));
@@ -39,13 +41,14 @@ export default function LessonScreen() {
 
 function LessonPlayer({ lesson }: { lesson: Lesson }) {
   const insets = useSafeAreaInsets();
-  const { completeLesson } = useSession();
+  const { user, completeLesson } = useSession();
   const { color } = getClass(lesson.classId);
 
   const [index, setIndex] = useState(0);
   const [picked, setPicked] = useState<number | null>(null);
   const [checked, setChecked] = useState(false);
   const [mistakes, setMistakes] = useState(0);
+  const [answers, setAnswers] = useState<LessonAttempt['answers']>([]);
   const [saving, setSaving] = useState(false);
   const [result, setResult] = useState<CompletionResult | null>(null);
 
@@ -65,8 +68,11 @@ function LessonPlayer({ lesson }: { lesson: Lesson }) {
     }
     setSaving(true);
     try {
-      setResult(await completeLesson(lesson.id, starsForMistakes(mistakes)));
+      const stars = starsForMistakes(mistakes);
+      setResult(await completeLesson(lesson.id, stars));
       haptics.success();
+      // Which answers were picked goes to Supabase in the background; offline it waits on the device.
+      if (user) void saveLessonAttempt(user.id, { id: randomId(), lessonId: lesson.id, stars, mistakes, answers, finishedAt: new Date().toISOString() }).catch(() => undefined);
     } catch {
       haptics.error();
       setSaving(false);
@@ -76,6 +82,7 @@ function LessonPlayer({ lesson }: { lesson: Lesson }) {
   const check = () => {
     if (step.type !== 'quiz' || picked === null) return;
     setChecked(true);
+    setAnswers([...answers, { step: index, picked, correct: picked === step.answer }]);
     if (picked === step.answer) {
       haptics.success();
     } else {
