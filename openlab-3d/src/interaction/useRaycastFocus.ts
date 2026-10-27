@@ -11,8 +11,15 @@ import { useGameStore, type FocusInfo } from '../store/useGameStore';
 import { INTERACT_RANGE } from '../utils/constants';
 import { interactables, isVisibleInScene, localBounds, resolveInteractable, type InteractableEntry } from './registry';
 import { playerBodyRef } from '../controls/Player';
+import { MERGED_LAYER } from './stillBatch';
 
 const CENTER = new Vector2(0, 0);
+
+/** Stored items drawn through a merged copy keep their meshes on MERGED_LAYER; aim at those too. */
+export function withMergedLayer(raycaster: Raycaster): Raycaster {
+  raycaster.layers.enable(MERGED_LAYER);
+  return raycaster;
+}
 /** Items whose bounding sphere is smaller than this get aim assist. */
 const ASSIST_RADIUS = 0.1;
 const toCenter = new Vector3();
@@ -22,7 +29,7 @@ export function useRaycastFocus(): void {
   const { world, rapier } = useRapier();
   const state = useMemo(
     () => ({
-      raycaster: new Raycaster(),
+      raycaster: withMergedLayer(new Raycaster()),
       hits: [] as Intersection[],
       sphere: new Sphere(),
       camPos: new Vector3(),

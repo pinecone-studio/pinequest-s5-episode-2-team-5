@@ -24,6 +24,16 @@ const [HolderInstances, HolderInstance] = createInstances();
 
 export { FrontInstance, HandleInstance, BoxInstance, PanelInstance, LinerInstance, HolderInstance };
 
+/**
+ * Instanced copies of shared materials. three.js compiles a separate shader for instanced
+ * meshes, so a material drawn both here and on plain meshes (metal tools, burners) would
+ * switch shaders and rebuild its parameters on every such draw.
+ */
+const frontMaterial = benchFront.clone();
+const handleMaterial = metalChrome.clone();
+const boxMaterial = plasticLightGray.clone();
+const holderMaterial = metalBrushed.clone();
+
 /** Raised center panel of a front: a shade lighter than the frame around it. */
 const panelMaterial = new MeshStandardMaterial({ color: '#646a73', roughness: 0.45 });
 /** Ribbed rubber mat on the floor of a drawer tray. */
@@ -128,12 +138,12 @@ export function BenchParts({ children, limit = 400 }: { children: ReactNode; lim
   useBenchSync((s) => s.version);
   const f = SYNC_FRAMES;
   return (
-    <FrontInstances limit={limit} frames={f} geometry={unitBox()} material={benchFront} castShadow receiveShadow frustumCulled={false}>
-      <HandleInstances limit={limit} frames={f} geometry={handleGeometry()} material={metalChrome} frustumCulled={false}>
-        <BoxInstances limit={Math.round(limit / 2)} frames={f} geometry={drawerBoxGeometry()} material={plasticLightGray} frustumCulled={false}>
+    <FrontInstances limit={limit} frames={f} geometry={unitBox()} material={frontMaterial} castShadow receiveShadow frustumCulled={false}>
+      <HandleInstances limit={limit} frames={f} geometry={handleGeometry()} material={handleMaterial} frustumCulled={false}>
+        <BoxInstances limit={Math.round(limit / 2)} frames={f} geometry={drawerBoxGeometry()} material={boxMaterial} frustumCulled={false}>
           <PanelInstances limit={limit} frames={f} geometry={unitBox()} material={panelMaterial} castShadow receiveShadow frustumCulled={false}>
             <LinerInstances limit={Math.round(limit / 2)} frames={f} geometry={unitBox()} material={linerMaterial} receiveShadow frustumCulled={false}>
-              <HolderInstances limit={limit} frames={f} geometry={unitBox()} material={metalBrushed} frustumCulled={false}>
+              <HolderInstances limit={limit} frames={f} geometry={unitBox()} material={holderMaterial} frustumCulled={false}>
                 <LabelProviders limit={64}>{children}</LabelProviders>
               </HolderInstances>
             </LinerInstances>

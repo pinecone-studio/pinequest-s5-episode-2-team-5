@@ -3,7 +3,9 @@
  * slots. Each one can be taken (E), inspected (F), poured into / used with R, and Q
  * puts the held item back into the same holder.
  */
-import { memo, useMemo } from 'react';
+import { memo, useContext, useLayoutEffect, useMemo, useRef, type ReactNode } from 'react';
+import { useFrame } from '@react-three/fiber';
+import { Frustum, Matrix4, Sphere, Vector3, type Group, type Object3D } from 'three';
 import { CATALOG, type EquipmentKind } from '../equipment/equipmentCatalog';
 import { EquipmentModel } from '../equipment/registry';
 import { RACK_SLOTS } from '../equipment/TestTubeRack';
@@ -16,6 +18,9 @@ import { HOLDER_CAPACITY, STORAGE_INFO, holderCategory, holderType, seedHolder, 
 import { Interactable } from './Interactable';
 import { NameTag } from './NameTag';
 import { storeInto, takeFrom } from './storage';
+import { StillContext, useWakeHolder, type StillHolder } from './still';
+import { mergeStill, unmerge, type StillBatch } from './stillBatch';
+import { useSettingsStore } from '../store/useSettingsStore';
 
 export type HolderLayout =
   | { type: 'drawer'; width: number }
@@ -127,6 +132,7 @@ const StoredItemView = memo(function StoredItemView({ item, holderId, pose, inte
   const mixture = useChemStore((s) => s.mixtures[item.id]);
   const tool = useChemStore((s) => s.tools[item.id]);
   const focused = useGameStore((s) => s.focus?.id === item.id);
+  useWakeHolder();
   const model = (
     <>
       <EquipmentModel kind={item.kind} variant={item.variant} mixture={mixture} itemId={item.id} tool={tool} upright={item.kind === 'testTube' && holderType(holderId) === 'rack'} />
@@ -155,17 +161,106 @@ const StoredItemView = memo(function StoredItemView({ item, holderId, pose, inte
   );
 });
 
+/** Contents farther than this are not drawn (with a margin before they show again), m. */
+const SHOW_WITHIN = 5;
+const HIDE_BEYOND = 5.5;
+/** Covers a drawer tray or cabinet compartment around the contents' origin, m. */
+const CONTENTS_RADIUS = 0.7;
+/** Frames a change keeps the matrices updating (children may settle in their own effects). */
+const WAKE_FRAMES = 4;
+/** Safety net for changes nothing reported: full refresh this often, frames. */
+const REFRESH_FRAMES = 30;
+
+const frustum = new Frustum();
+const viewProjection = new Matrix4();
+const centre = new Vector3();
+const bounds = new Sphere();
+
+/**
+ * Drawer or cabinet contents. three.js recomputes every object's world matrix every frame
+ * and draws every part separately; a few hundred stored items at ~10 objects each cost more
+ * than the rest of the room. Here the subtree's matrices are only recomputed when the holder
+ * moves (drawer sliding), something inside re-renders, or every REFRESH_FRAMES; once nothing
+ * has changed for WAKE_FRAMES the contents are drawn merged by material (stillBatch.ts).
+ * Contents far away or off screen are not drawn at all.
+ */
+function StillGroup({ version, children }: { version: unknown; children: ReactNode }) {
+  const ref = useRef<Group>(null);
+  const batch = useRef<StillBatch>({ merged: [], originals: [] });
+  // `batch.current` is one object for the group's lifetime; merges refill it.
+  // A random phase keeps the holders' safety refreshes on different frames.
+  const state = useMemo(() => ({ awake: WAKE_FRAMES, frame: Math.floor(Math.random() * REFRESH_FRAMES), last: new Matrix4(), dirty: true }), []);
+  const still = useMemo<StillHolder>(() => ({
+    wake: () => {
+      state.awake = WAKE_FRAMES;
+    },
+    changed: () => {
+      state.awake = WAKE_FRAMES;
+      state.dirty = true;
+      if (ref.current) unmerge(ref.current, batch.current);
+    },
+  }), [state]);
+  // Models swap glass and liquid materials with the quality tier; the merged copy must follow.
+  const quality = useSettingsStore((s) => s.quality);
+  useLayoutEffect(() => still.changed(), [still, version, quality]);
+  useLayoutEffect(() => {
+    const group = ref.current;
+    if (!group) return;
+    group.updateMatrixWorld = function (this: Object3D, force?: boolean) {
+      if (this.matrixAutoUpdate) this.updateMatrix();
+      if (this.matrixWorldNeedsUpdate || force) {
+        if (this.parent) this.matrixWorld.multiplyMatrices(this.parent.matrixWorld, this.matrix);
+        else this.matrixWorld.copy(this.matrix);
+        this.matrixWorldNeedsUpdate = false;
+      }
+      if (!this.visible) return;
+      if (state.awake === 0 && state.frame % REFRESH_FRAMES !== 0 && state.last.equals(this.matrixWorld)) return;
+      state.last.copy(this.matrixWorld);
+      for (const child of this.children) child.updateMatrixWorld(true);
+    };
+    const merged = batch.current;
+    return () => {
+      Reflect.deleteProperty(group, 'updateMatrixWorld');
+      unmerge(group, merged);
+    };
+  }, [state]);
+  useFrame(({ camera }) => {
+    const group = ref.current;
+    if (!group) return;
+    state.frame++;
+    if (state.awake > 0) state.awake--;
+    if (state.dirty && state.awake === 0 && group.visible) {
+      mergeStill(group, batch.current);
+      state.dirty = false;
+    }
+    centre.setFromMatrixPosition(group.matrixWorld);
+    viewProjection.multiplyMatrices(camera.projectionMatrix, camera.matrixWorldInverse);
+    frustum.setFromProjectionMatrix(viewProjection);
+    const near = centre.distanceTo(camera.position) < (group.visible ? HIDE_BEYOND : SHOW_WITHIN);
+    const show = near && frustum.intersectsSphere(bounds.set(centre, CONTENTS_RADIUS));
+    if (show === group.visible) return;
+    group.visible = show;
+    if (show) state.awake = WAKE_FRAMES;
+  });
+  return (
+    <StillContext.Provider value={still}>
+      <group ref={ref}>{children}</group>
+    </StillContext.Provider>
+  );
+}
+
 export function HolderContents({ holderId, layout, interactive = true }: { holderId: string; layout: HolderLayout; interactive?: boolean }) {
   const stored = useInventoryStore((s) => s.storage[holderId]);
   const items = stored ?? storedIn({}, holderId);
   const poses = useMemo(() => layoutPoses(holderId, items, layout), [holderId, items, layout]);
-  return (
-    <group>
-      {items.map((item, i) => (
-        <StoredItemView key={item.id} item={item} holderId={holderId} pose={poses[i]} interactive={interactive} />
-      ))}
-    </group>
-  );
+  // Racks on a bench are a workspace (reactions run in their tubes), so only drawers and
+  // cabinets, and racks stored inside them, hold still contents.
+  const inStorage = useContext(StillContext) !== null;
+  const contents = items.map((item, i) => (
+    <StoredItemView key={item.id} item={item} holderId={holderId} pose={poses[i]} interactive={interactive} />
+  ));
+  if (layout.type === 'rack' || inStorage) return <group>{contents}</group>;
+  return <StillGroup version={poses}>{contents}</StillGroup>;
 }
 
 /** "Шургуулга · Шилэн сав (5/8)". */
