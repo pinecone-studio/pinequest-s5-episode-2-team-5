@@ -12,7 +12,7 @@ import { ReactionEffects } from './ReactionEffects';
 import { Lab } from './Lab';
 import { Lighting } from './Lighting';
 import { Effects } from './Effects';
-import { GlassLOD, PerformanceManager, ShadowUpdater, Warmup } from './Performance';
+import { GlassLOD, LiteShading, PerformanceManager, ShadowUpdater, Warmup } from './Performance';
 import { WorkbenchRuntime } from '../experiments/workbench/WorkbenchRuntime';
 import { connectExperimentCatalog } from '../lab/experiments';
 import { startWorkbenchTracking } from '../experiments/workbench/session';
@@ -46,6 +46,7 @@ export default function LabScene({ onDpr }: { onDpr: (dpr: number) => void }) {
       </Physics>
       <Effects />
       <GlassLOD />
+      <LiteShading />
       <ShadowUpdater />
       <Warmup />
       <PerformanceManager onDpr={onDpr} />

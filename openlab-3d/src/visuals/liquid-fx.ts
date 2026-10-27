@@ -12,7 +12,7 @@ import { useEffect, useMemo, useRef } from 'react';
 import { useFrame } from '@react-three/fiber';
 import { Color, MeshPhysicalMaterial, ShaderChunk, Vector3, type MeshStandardMaterial } from 'three';
 import { useSettingsStore } from '../store/useSettingsStore';
-import { useTransmission } from '../materials/glass';
+import { useLiteShading, useTransmission } from '../materials/glass';
 
 type LiquidMaterial = MeshPhysicalMaterial | MeshStandardMaterial;
 
@@ -320,26 +320,31 @@ export function useLiquidFx(material: LiquidMaterial, input: LiquidFxInput) {
  * Liquid body material. On High (refracting glass) it is opaque so the glass can show it;
  * otherwise it is alpha-blended with the alpha glass.
  */
+/** Opaque on purpose: three.js glass only refracts opaque objects behind it, so a transmissive
+ * liquid would vanish behind the vessel wall. The glass does the refraction. */
+export function newLiquidMaterial(transmission: boolean): MeshPhysicalMaterial {
+  return transmission
+    ? new MeshPhysicalMaterial({ roughness: 0.06, metalness: 0, clearcoat: 0.5, clearcoatRoughness: 0.05, specularIntensity: 0.6 })
+    : new MeshPhysicalMaterial({ roughness: 0.12, transparent: true, opacity: 0.86, clearcoat: 0.3 });
+}
+
+/** Cloudiness and opacity; Low quality drops the clearcoat layer, which is costly on phone GPUs. */
+export function shadeLiquid(material: MeshPhysicalMaterial, color: string, turbidity: number, transmission: boolean, lite: boolean): void {
+  const c = new Color(color);
+  material.roughness = 0.06 + turbidity * 0.3;
+  material.clearcoat = lite ? 0 : transmission ? 0.5 : 0.3;
+  if (!transmission) {
+    const dark = 1 - (c.r + c.g + c.b) / 3;
+    material.opacity = Math.min(0.97, 0.62 + Math.max(turbidity, dark) * 0.38);
+  }
+}
+
 export function useLiquidMaterial(color: string, turbidity: number, fx: Omit<LiquidFxInput, 'color'>): MeshPhysicalMaterial {
   const transmission = useTransmission();
-  const material = useMemo(
-    () =>
-      transmission
-        ? // Opaque on purpose: three.js glass only refracts opaque objects behind it, so a
-          // transmissive liquid would vanish behind the vessel wall. The glass does the refraction.
-          new MeshPhysicalMaterial({ roughness: 0.06, metalness: 0, clearcoat: 0.5, clearcoatRoughness: 0.05, specularIntensity: 0.6 })
-        : new MeshPhysicalMaterial({ roughness: 0.12, transparent: true, opacity: 0.86, clearcoat: 0.3 }),
-    [transmission],
-  );
+  const lite = useLiteShading();
+  const material = useMemo(() => newLiquidMaterial(transmission), [transmission]);
   useEffect(() => () => material.dispose(), [material]);
-  useEffect(() => {
-    const c = new Color(color);
-    material.roughness = 0.06 + turbidity * 0.3;
-    if (!transmission) {
-      const dark = 1 - (c.r + c.g + c.b) / 3;
-      material.opacity = Math.min(0.97, 0.62 + Math.max(turbidity, dark) * 0.38);
-    }
-  }, [material, color, turbidity, transmission, fx.radius]);
+  useEffect(() => shadeLiquid(material, color, turbidity, transmission, lite), [material, color, turbidity, transmission, lite]);
   useLiquidFx(material, { glow: 0.12, ...fx, color });
   return material;
 }

@@ -42,12 +42,15 @@ function getScale(kind: ScaleKind) {
   g.font = 'bold 58px sans-serif';
   text(spec.unit, kind === 'erlenmeyer' ? 35 : 245, canvas.height - 40);
   const map = new CanvasTexture(canvas); map.colorSpace = SRGBColorSpace; map.anisotropy = 8;
-  const points = Array.from({ length: 65 }, (_, i) => {
-    const y = spec.bottom + (spec.top - spec.bottom) * i / 64;
+  // The ink is a texture, so the band needs only enough rows to follow the wall (straight
+  // walls: one) and enough columns for a smooth arc; 64 × 40 cost ~5k triangles per vessel.
+  const rows = kind === 'erlenmeyer' ? 12 : kind === 'volumetric' ? 4 : 1;
+  const points = Array.from({ length: rows + 1 }, (_, i) => {
+    const y = spec.bottom + (spec.top - spec.bottom) * i / rows;
     return new Vector2(spec.radius(y), y);
   });
   const asset = {
-    geometry: new LatheGeometry(points, 40, -spec.arc / 2, spec.arc),
+    geometry: new LatheGeometry(points, 16, -spec.arc / 2, spec.arc),
     material: new MeshBasicMaterial({ map, transparent: true, alphaTest: .05, depthWrite: false, toneMapped: false }),
   };
   assets.set(kind, asset);

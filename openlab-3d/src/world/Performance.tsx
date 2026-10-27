@@ -8,7 +8,7 @@ import { useThree } from '@react-three/fiber';
 import { BakeShadows } from '@react-three/drei';
 import { Mesh, Vector3, type Object3D } from 'three';
 import { useFrame } from '@react-three/fiber';
-import { transmissionOriginals, transmissionTwins } from '../materials/glass';
+import { setLiteShading, transmissionOriginals, transmissionTwins, useLiteShading } from '../materials/glass';
 import { usePortableStore } from '../interaction/portable';
 import { QUALITY_PRESETS, defaultQuality, useSettingsStore } from '../store/useSettingsStore';
 import { AUTO_LADDER, FrameGovernor, GOVERNOR, ladderFor, manualLadder } from './qualityGovernor';
@@ -142,6 +142,13 @@ export function Warmup() {
   return null;
 }
 
+/** Low quality draws glass and liquids without their clearcoat layer (see materials/glass.ts). */
+export function LiteShading() {
+  const lite = useLiteShading();
+  useEffect(() => setLiteShading(lite), [lite]);
+  return null;
+}
+
 const NEAR_GLASS = 3.2;
 const tmp = new Vector3();
 
@@ -165,7 +172,8 @@ export function GlassLOD() {
       const cheap = transmissionTwins.get(o.material);
       const original = cheap ? undefined : transmissionOriginals.get(o.material);
       if (!cheap && !original) return;
-      o.getWorldPosition(tmp);
+      // Last frame's matrix is close enough; getWorldPosition would recompute every ancestor.
+      tmp.setFromMatrixPosition(o.matrixWorld);
       const near = tmp.distanceTo(camera.position) < NEAR_GLASS;
       if (cheap && !near) o.material = cheap;
       else if (original && near) o.material = original;
