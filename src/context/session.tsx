@@ -1,5 +1,6 @@
 import { createContext, use, useEffect, useState, type ReactNode } from 'react';
 
+import { flushLessonAttempts } from '@/lib/lesson-attempts';
 import { applyLessonResult, type CompletionResult } from '@/lib/progress';
 import * as auth from '@/services/auth';
 import type { RegionType, Stars, User } from '@/types';
@@ -26,6 +27,12 @@ export function SessionProvider({ children }: { children: ReactNode }) {
       .then(setUser)
       .finally(() => setIsLoading(false));
   }, []);
+
+  // Lessons finished while offline are sent once someone is signed in.
+  const userId = user?.id;
+  useEffect(() => {
+    if (userId) void flushLessonAttempts(userId).catch(() => undefined);
+  }, [userId]);
 
   const value: SessionContextValue = {
     user,

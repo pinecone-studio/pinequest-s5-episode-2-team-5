@@ -9,6 +9,11 @@ export function seededRandom(seed: number): () => number {
   };
 }
 
+/** An id like "mh2k4f0a-x7q1k9p2c3" for records made on this device. Unique enough, not secret. */
+export function randomId(): string {
+  return `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 12)}`;
+}
+
 export function pick<T>(items: readonly T[], rand: () => number = Math.random): T {
   return items[Math.floor(rand() * items.length)];
 }

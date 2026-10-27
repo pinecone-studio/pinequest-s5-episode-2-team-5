@@ -45,6 +45,10 @@ export async function syncJourney(userId:string,journeyId:'catalyst',value:impor
  return restoreJourneySnapshot(data);
 }
 
+export async function recordLessonAttempt(userId:string,attempt:import('@/lib/lesson-attempts').LessonAttempt){
+ await callSync('record_lesson_attempt',{p_attempt:attempt.id,p_lesson:attempt.lessonId,p_stars:attempt.stars,p_mistakes:attempt.mistakes,p_answers:attempt.answers,p_finished_at:attempt.finishedAt,p_user:userId});
+}
+
 /** Sends "known" flags with their times and this device's own answer counts; returns the merged flags. */
 export async function syncElementMemory(userId:string,device:string,known:import('@/lib/element-sync').KnownSnapshot,attempts:import('@/lib/periodic-learning').ElementMemory['attempts']){
  const data=await callSync('sync_element_memory',{p_known:known.known,p_clocks:known.clocks,p_device:device,p_attempts:attempts,p_user:userId});

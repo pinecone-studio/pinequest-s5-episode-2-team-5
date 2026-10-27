@@ -24,11 +24,16 @@ test('cross-device merges preserve best scores, reads and the latest individual 
  const result=lib.mergeRevision(a,b);assert.deepEqual(result.state.notes,['one','two']);assert.equal(result.state.quizBest.x,90);assert.equal(result.state.cards.a,'again');assert.deepEqual(lib.mergeRevision(result,b),result);
  const stale=lib.mergeRevision(result,a);assert.equal(stale.state.cards.a,'again');
 });
-test('wrong answers stay on this device so a corrected question is not restored by the server',()=>{
- const local=lib.snapshot();local.state.wrong=['q2'];local.state.notes=['a'];
- assert.deepEqual(lib.outgoingRevision(local).state.wrong,[]);assert.deepEqual(lib.outgoingRevision(local).state.notes,['a']);
- const remote=lib.snapshot();remote.state.wrong=['q1','q2'];remote.state.notes=['b'];remote.state.ratings.o='green';remote.clocks['ratings.o']=300;
- const merged=lib.applyRemoteRevision(local,remote);assert.deepEqual(merged.state.wrong,['q2']);assert.deepEqual(merged.state.notes,['a','b']);assert.equal(merged.state.ratings.o,'green');assert.equal(merged.clocks['ratings.o'],300);
+test('a question answered right on one device leaves the wrong list on the others',()=>{
+ const before=lib.snapshot();before.state.wrong=['q1','q2'];before.state.notes=['a'];
+ const phone=lib.changedRevision(before,{...before.state,wrong:['q2']},500);
+ assert.equal(phone.clocks['wrong.q1'],500);assert.equal(phone.clocks['wrong.q2'],undefined);
+ const out=lib.outgoingRevision(phone);assert.deepEqual(out.state.wrong,[],'old servers only add to the list, so it is never sent');assert.deepEqual(out.state.wrongMarks,{q1:false,q2:true});assert.deepEqual(out.state.notes,['a']);
+ const remote=lib.snapshot();remote.state.wrong=['q2','q3'];remote.state.notes=['b'];remote.clocks={'wrong.q1':500,'wrong.q2':0,'wrong.q3':600};
+ const laptop=lib.applyRemoteRevision(before,remote);
+ assert.deepEqual(laptop.state.wrong.sort(),['q2','q3']);assert.deepEqual(laptop.state.notes,['a','b']);assert.equal(laptop.clocks['wrong.q1'],500);
+ const newer=lib.applyRemoteRevision({state:{...before.state,wrong:['q1']},clocks:{'wrong.q1':900}},remote);assert.ok(newer.state.wrong.includes('q1'),'a newer mark on this device is kept');
+ const oldServer=lib.applyRemoteRevision(before,{state:{...lib.snapshot().state,wrong:[]},clocks:{}});assert.deepEqual(oldServer.state.wrong,['q1','q2'],'a server without marks changes nothing');
 });
 test('investigation notebooks keep the newest answers and every trial from both devices',()=>{
  const trial=(at)=>({parameters:{},readings:[{label:'T',value:at,unit:'°C'}],observation:'',source:'manual',at});
