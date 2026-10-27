@@ -25,12 +25,19 @@ function restoreAdvice(raw: unknown): StudyAdvice[] {
   });
 }
 
+export interface StudyAdviceResult {
+  advice: StudyAdvice[];
+  /** Set when the advice is the plain template: why the AI wording is missing (e.g. 'daily_limit', 'gemini_key'). */
+  aiError?: string;
+}
+
 /**
  * Pip's suggestions for this grade, worked out on the server from the student's synced revision
  * progress (supabase/functions/study-advisor). `refresh` asks for new wording even if nothing changed.
  */
-export async function fetchStudyAdvice(packId: PackId, refresh = false): Promise<StudyAdvice[]> {
+export async function fetchStudyAdvice(packId: PackId, refresh = false): Promise<StudyAdviceResult> {
   const { data, error } = await supabase.functions.invoke('study-advisor', { body: { pack: packId, refresh } });
   if (error) throw new Error('Study advice unavailable');
-  return restoreAdvice((data as { advice?: unknown } | null)?.advice);
+  const result = data as { advice?: unknown; aiError?: unknown } | null;
+  return { advice: restoreAdvice(result?.advice), aiError: typeof result?.aiError === 'string' ? result.aiError.slice(0, 40) : undefined };
 }

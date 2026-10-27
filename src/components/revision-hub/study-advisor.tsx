@@ -19,11 +19,14 @@ export function StudyAdvisor() {
   const { packId } = useRevision();
   const [status, setStatus] = useState<Status>('idle');
   const [advice, setAdvice] = useState<StudyAdvice[]>([]);
+  const [aiError, setAiError] = useState<string>();
 
   const load = async (refresh: boolean) => {
     setStatus('loading');
     try {
-      setAdvice(await fetchStudyAdvice(packId, refresh));
+      const result = await fetchStudyAdvice(packId, refresh);
+      setAdvice(result.advice);
+      setAiError(result.aiError);
       setStatus('ready');
     } catch {
       setStatus('error');
@@ -51,6 +54,9 @@ export function StudyAdvisor() {
       <AppText>{item.action}</AppText>
       <GameButton title="Нээх" size="sm" onPress={() => openTopic(item.topicId, item.tab, packId)}/>
     </StudyCard>)}
+    {status === 'ready' && advice.length > 0 && !!aiError && <AppText variant="caption">
+      {aiError === 'daily_limit' ? 'Өнөөдрийн AI зөвлөгөөний хязгаарт хүрсэн тул үндсэн зөвлөгөөг харууллаа.' : `Pip-ийн AI энэ удаа ажилласангүй, үндсэн зөвлөгөөг харууллаа (код: ${aiError}).`}
+    </AppText>}
     {status === 'ready' && advice.length > 0 && <GameButton title="Шинэ зөвлөгөө" size="sm" variant="secondary" onPress={() => void load(true)}/>}
   </StudyCard>;
 }

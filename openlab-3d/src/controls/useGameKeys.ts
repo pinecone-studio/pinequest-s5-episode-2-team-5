@@ -15,12 +15,7 @@ import { useWorkbench } from '../experiments/workbench/session';
 import { sounds } from '../utils/sounds';
 import { actionsForKey } from './keyMap';
 import { isPointerLocked, lookBy, releaseLock, requestLock } from './usePointerLock';
-
-function isTyping(target: EventTarget | null): boolean {
-  if (!(target instanceof HTMLElement)) return false;
-  const tag = target.tagName;
-  return tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT' || target.isContentEditable;
-}
+import { isTyping } from './typing';
 
 /** Use whatever is in focus (E / Enter / click). */
 export function interactWithFocus(): boolean {

@@ -29,6 +29,12 @@ import { SPAWN } from '../world/layout';
 import { sounds } from '../utils/sounds';
 import { touchInput } from '../interaction/heldApi';
 import type { MoveAction } from './keyMap';
+import { isTyping } from './typing';
+
+const NO_KEYS: Record<MoveAction, boolean> = {
+  forward: false, backward: false, left: false, right: false, sprint: false,
+  jump: false, turnLeft: false, turnRight: false, lookUp: false, lookDown: false,
+};
 import { preStepHooks } from '../physics/stepHooks';
 
 export const playerBodyRef: { current: RapierRigidBody | null } = { current: null };
@@ -98,7 +104,8 @@ export function Player() {
     const game = useGameStore.getState();
     const settings = useSettingsStore.getState();
     const canMove = game.mode === 'walk' && !usePresentation.getState().modal;
-    const keys = getKeys();
+    // drei's key state also sees letters typed into Pip's chat or the notebook: those are text, not walking or jumping.
+    const keys = isTyping(document.activeElement) ? NO_KEYS : getKeys();
 
     // Keyboard turning (keyboard-turn look mode).
     if (canMove && settings.lookMode === 'keyboard') {

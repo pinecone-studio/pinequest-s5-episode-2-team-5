@@ -1,5 +1,6 @@
-import { GoogleGenAI } from 'npm:@google/genai@2.29.1';
 import { ADVISOR_INSTRUCTION, factsForPrompt, factsHash, packTopics, parseAdvice, pickTopics, restoreProgress, templateAdvice, type Advice, type PackTopic } from '../_shared/advisor.ts';
+import { generateText } from '../_shared/ai.ts';
+import { aiConfig, aiFailure } from '../_shared/ai-text.ts';
 import { corsHeaders } from '../_shared/cors.ts';
 import { signedInStudent } from '../_shared/student.ts';
 
@@ -51,24 +52,22 @@ Deno.serve(async (req) => {
 
     let advice: Advice[] = templateAdvice(facts);
     let source = 'rules';
-    const apiKey = Deno.env.get('GEMINI_API_KEY');
-    const { data: allowed } = apiKey ? await supabase.rpc('use_ai_quota', { p_kind: 'advisor' }) : { data: false };
-    if (apiKey && allowed) {
+    // Why the AI wording is missing, if it is (not configured, daily limit, or an AI failure code).
+    let aiError: string | undefined;
+    const ai = aiConfig((name) => Deno.env.get(name));
+    const { data: allowed } = ai ? await supabase.rpc('use_ai_quota', { p_kind: 'advisor' }) : { data: false };
+    if (!ai) aiError = 'ai_not_configured';
+    else if (!allowed) aiError = 'daily_limit';
+    if (ai && allowed) {
       try {
-        const ai = new GoogleGenAI({ apiKey });
-        const interaction = await ai.interactions.create({
-          model: 'gemini-3.8-flash',
-          store: false,
-          system_instruction: ADVISOR_INSTRUCTION,
-          input: `FACTS:\n${JSON.stringify(factsForPrompt(facts))}`,
-        });
-        const worded = parseAdvice(interaction.output_text ?? '', facts);
+        const worded = parseAdvice(await generateText(ai, ADVISOR_INSTRUCTION, `FACTS:\n${JSON.stringify(factsForPrompt(facts))}`), facts);
         if (worded) {
           advice = worded;
           source = 'ai';
-        }
+        } else aiError = 'ai_unusable_reply';
       } catch (error) {
-        console.error('study-advisor AI failed', error);
+        aiError = aiFailure(error).code;
+        console.error(`study-advisor ${ai.provider} failed`, aiError, error);
       }
     }
     // Template advice is not saved, so the AI's wording replaces it once the AI is reachable again.
@@ -76,7 +75,8 @@ Deno.serve(async (req) => {
       const { error } = await supabase.rpc('save_study_advice', { p_pack: packId, p_hash: hash, p_advice: advice });
       if (error) console.error('study-advisor save failed', error);
     }
-    return json({ advice, source });
+    console.log('study-advisor answered', source, aiError ?? '');
+    return json({ advice, source, ...(aiError ? { aiError } : {}) });
   } catch (error) {
     console.error('study-advisor failed', error);
     return json({ error: 'Зөвлөгөө бэлдэж чадсангүй.' }, 502);
