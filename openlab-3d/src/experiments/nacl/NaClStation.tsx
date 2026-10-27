@@ -8,6 +8,7 @@ import { playerState, useGameStore } from '../../store/useGameStore';
 import { useInventoryStore } from '../../store/useInventoryStore';
 import { CATALOG } from '../../equipment/equipmentCatalog';
 import { interactables, isVisibleInScene, localBounds, resolveInteractable, type InteractableEntry } from '../../interaction/registry';
+import { withMergedLayer } from '../../interaction/useRaycastFocus';
 import { benchUseTarget } from '../../interaction/benchUseTarget';
 import { interactItem } from '../../interaction/interactItem';
 import { endHeldUse } from '../../interaction/useHeld';
@@ -196,7 +197,7 @@ export function NaClStation() {
     const el = gl.domElement;
     let down: { x: number; y: number; id: number } | null = null;
     const pointers = new Set<number>();
-    const ray = new Raycaster();
+    const ray = withMergedLayer(new Raycaster());
     const sphere = new Sphere();
     const point = (e: PointerEvent) => {
       const rect = el.getBoundingClientRect();

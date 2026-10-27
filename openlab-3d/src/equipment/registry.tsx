@@ -6,6 +6,7 @@ import {isGrade9Rig} from '../experiments/grade9/kinds';
 /** Maps a catalog kind (+ variant, live contents and tool state) to its procedural 3D model. */
 import { useMemo } from 'react';
 import type { GroupProps } from '@react-three/fiber';
+import { useHolderChanged, useWakeHolder } from '../interaction/still';
 import { isContainer, type EquipmentKind } from './equipmentCatalog';
 import type { ItemVariant } from '../world/itemsLayout';
 import { mixtureLook, type MixtureLook } from '../chemistry/color';
@@ -80,6 +81,7 @@ function sampleColor(tool?: ToolState): string | undefined {
 
 export function EquipmentModel({ kind, variant, mixture, itemId, lit, flameColor, reading, upright, tool, decorative, ...props }: EquipmentModelProps) {
   const open=useShowcase(s=>!!itemId&&s.source===itemId&&s.cap!==null);
+  useWakeHolder();
   const contents = mixture ?? seedMixture(variant);
   const look: MixtureLook | undefined = useMemo(() => {
     if (!isContainer(kind)) return undefined;
@@ -89,6 +91,9 @@ export function EquipmentModel({ kind, variant, mixture, itemId, lit, flameColor
     const real = pureReagentColor(contents);
     return real && base.liquid ? { ...base, liquid: real } : base;
   }, [kind, contents, decorative, variant]);
+  // In a drawer: rebuild the merged copy only when what is drawn changes, not on every
+  // re-render (focus) or every equal mixture the simulation hands back.
+  useHolderChanged([kind, variant, look ? JSON.stringify(look) : '', open, tool ? JSON.stringify(tool) : '', upright]);
   const reagent = variant?.reagent ? REAGENTS[variant.reagent] : undefined;
   const fx = { look, itemId };
   if(isGrade9Rig(kind))return <Grade9Apparatus kind={kind} itemId={itemId} {...props}/>;

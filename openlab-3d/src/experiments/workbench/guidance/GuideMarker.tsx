@@ -1,6 +1,7 @@
 import {useShowcase} from './showcase';
 import {Html} from '@react-three/drei';
 import {useGuideCue} from './runtime';
+import {useWakeHolder} from '../../../interaction/still';
 /** Anchored to the apparatus itself; no screen-coordinate guessing on phones. */
 export function GuideMarker({id}:{id?:string}){
  const cue=useGuideCue();
@@ -15,6 +16,7 @@ export function GuideMarker({id}:{id?:string}){
 export function GuideStockMarker({id}:{id?:string}){
  const active=useGuideCue(s=>!!id&&s.source===id);
  const watching=useShowcase(s=>s.status==='playing'||s.status==='paused');
+ useWakeHolder();
  if(!active||watching)return null;
  return <group position={[0,.23,0]}>
   <Html center zIndexRange={[25,20]} style={{pointerEvents:'none'}}><div className="whitespace-nowrap rounded-lg border border-amber-400 bg-amber-50 px-2 py-1 text-[11px] font-bold text-amber-950" aria-label="Эх бодисын заагч">Эх бодис ↓</div></Html>

@@ -14,7 +14,8 @@ import { useEffect, useMemo, useRef } from 'react';
 import { useFrame } from '@react-three/fiber';
 import { AdditiveBlending, CanvasTexture, Color, InstancedMesh, LatheGeometry, MeshBasicMaterial, MeshPhysicalMaterial, MeshStandardMaterial, Object3D, SphereGeometry, SpriteMaterial, Vector2, type Group, type Sprite } from 'three';
 import type { MixtureLook } from '../chemistry/color';
-import { useTransmission } from '../materials/glass';
+import { useLiteShading, useTransmission } from '../materials/glass';
+import { useStill, useWakeHolder } from '../interaction/still';
 import { lazy } from '../utils/lazy';
 import { bandGeometry, heightForVolume, radiusAt, rimHeight, type VesselProfile } from './profiles';
 import { bubblePose } from '../lab/reaction-animation';
@@ -49,26 +50,29 @@ const steamTexture = lazy(() => {
   return new CanvasTexture(c);
 });
 
+function newLiquidMaterial(transmission: boolean): MeshPhysicalMaterial {
+  return transmission
+    ? new MeshPhysicalMaterial({ roughness: 0.08, metalness: 0, clearcoat: 1, clearcoatRoughness: 0.04, emissiveIntensity: 0.12 })
+    : new MeshPhysicalMaterial({ roughness: 0.15, transparent: true, opacity: 0.86, emissiveIntensity: 0.06 });
+}
+
+/** Cloudiness and opacity; Low quality drops the clearcoat layer, which is costly on phone GPUs. */
+function shadeLiquid(material: MeshPhysicalMaterial, color: string, turbidity: number, transmission: boolean, lite: boolean): void {
+  const c = new Color(color);
+  material.roughness = 0.08 + turbidity * 0.6;
+  material.clearcoat = lite ? 0 : 1 - turbidity * 0.8;
+  if (!transmission) {
+    const dark = 1 - (c.r + c.g + c.b) / 3;
+    material.opacity = Math.min(0.97, 0.55 + Math.max(turbidity, dark) * 0.45);
+  }
+}
+
 function useLiquidMaterial(color: string, turbidity: number): MeshPhysicalMaterial {
   const transmission = useTransmission();
-  const material = useMemo(
-    () =>
-      transmission
-        ? new MeshPhysicalMaterial({ roughness: 0.08, metalness: 0, clearcoat: 1, clearcoatRoughness: 0.04, emissiveIntensity: 0.12 })
-        : new MeshPhysicalMaterial({ roughness: 0.15, transparent: true, opacity: 0.86, emissiveIntensity: 0.06 }),
-    [transmission],
-  );
+  const lite = useLiteShading();
+  const material = useMemo(() => newLiquidMaterial(transmission), [transmission]);
   useEffect(() => () => material.dispose(), [material]);
-  useEffect(() => {
-    const c = new Color(color);
-
-    material.roughness = 0.08 + turbidity * 0.6;
-    material.clearcoat = 1 - turbidity * 0.8;
-    if (!transmission) {
-      const dark = 1 - (c.r + c.g + c.b) / 3;
-      material.opacity = Math.min(0.97, 0.55 + Math.max(turbidity, dark) * 0.45);
-    }
-  }, [material, color, turbidity, transmission]);
+  useEffect(() => shadeLiquid(material, color, turbidity, transmission, lite), [material, color, turbidity, transmission, lite]);
   // Fade to a new color; parse it once per change and stop work once the fade has landed.
   const target = useMemo(() => new Color(), []);
   const placed = useRef(false);
@@ -187,7 +191,65 @@ export interface VesselContentsProps {
   itemId?: string;
 }
 
-export function VesselContents({ profile, look, itemId }: VesselContentsProps) {
+/** Live contents on the bench and in hand; still ones in a drawer or cabinet (see interaction/still.ts). */
+export function VesselContents(props: VesselContentsProps) {
+  return useStill() ? <StillContents {...props} /> : <LiveContents {...props} />;
+}
+
+/** Still contents share one material per colour: no fades, so nothing to animate per vessel. */
+const stillLiquids = new Map<string, MeshPhysicalMaterial>();
+function stillLiquid(color: string, turbidity: number, transmission: boolean, lite: boolean): MeshPhysicalMaterial {
+  const key = `${color}|${turbidity.toFixed(2)}|${transmission}|${lite}`;
+  let material = stillLiquids.get(key);
+  if (!material) {
+    material = newLiquidMaterial(transmission);
+    shadeLiquid(material, color, turbidity, transmission, lite);
+    material.color.set(color);
+    material.emissive.set(color);
+    stillLiquids.set(key, material);
+  }
+  return material;
+}
+const stillSolids = new Map<string, MeshStandardMaterial>();
+function stillSolid(color: string, metal: boolean): MeshStandardMaterial {
+  const key = `${color}|${metal}`;
+  let material = stillSolids.get(key);
+  if (!material) {
+    material = new MeshStandardMaterial({ color, metalness: metal ? 0.75 : 0, roughness: metal ? 0.38 : 0.85 });
+    stillSolids.set(key, material);
+  }
+  return material;
+}
+
+/** Liquid, layers, sediment and foam of a stored vessel, without bubbles, steam, flames or clouds. */
+function StillContents({ profile, look, itemId }: VesselContentsProps) {
+  useWakeHolder();
+  const transmission = useTransmission();
+  const lite = useLiteShading();
+  const mixture = itemId ? useChemStore.getState().mixtures[itemId] : undefined;
+  const phases = mixture ? appearanceOf(mixture) : null;
+  const rim = rimHeight(profile);
+  const bottom = profile.wall[0][1];
+  const sedimentTop = look.sedimentMl > 0.005 ? heightForVolume(profile, look.sedimentMl * (look.liquid ? 1 : 1.4)) : bottom;
+  const liquidTop = look.liquid ? heightForVolume(profile, look.sedimentMl + look.liquidMl) : sedimentTop;
+  const boundary = phases?.layered ? heightForVolume(profile, look.sedimentMl + phases.aqueousMl) : liquidTop;
+  const rimR = radiusAt(profile, rim);
+  const foamH = look.foamMl > 2 ? Math.min(0.12, (look.foamMl * 1e-6) / (Math.PI * rimR * rimR) + 0.003) : 0;
+  const foamFrom = Math.max(liquidTop, sedimentTop);
+  const showSediment = look.solidColor && sedimentTop - bottom > 0.0006;
+  const showLiquid = look.liquid && liquidTop - sedimentTop > 0.0006;
+  const flags = { noOutline: true, noBatch: true };
+  return (
+    <group userData={{ noBatch: true }}>
+      {showSediment && <mesh geometry={bandGeometry(profile, bottom, sedimentTop, 0.97)} material={stillSolid(look.solidColor ?? '#ffffff', look.solidMetal)} userData={flags} />}
+      {showLiquid && <mesh geometry={bandGeometry(profile, sedimentTop, boundary)} material={stillLiquid(look.liquid ?? '#cfe6f5', look.turbidity, transmission, lite)} userData={flags} />}
+      {showLiquid && phases?.layered && <mesh geometry={bandGeometry(profile, boundary, liquidTop)} material={stillLiquid(phases.organicColor ?? '#eff2e9', 0, transmission, lite)} userData={flags} />}
+      {foamH > 0 && <mesh geometry={bandGeometry(profile, foamFrom, Math.min(rim, foamFrom + foamH), 0.99)} material={foamMaterial()} userData={flags} />}
+    </group>
+  );
+}
+
+function LiveContents({ profile, look, itemId }: VesselContentsProps) {
   const pouring=useShowcase(s=>!!itemId&&s.source===itemId&&s.tool==='pour'&&['playing','paused'].includes(s.status));
   const stirring=useShowcase(s=>s.targetId===itemId&&s.operation==='stir'&&s.status==='playing');
   const flow=useShowcase(s=>s.flow),receiving=useGuideCue(s=>s.target===itemId);

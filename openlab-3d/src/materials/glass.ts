@@ -14,6 +14,25 @@ export const transmissionTwins = new Map<Material, Material>();
 /** Reverse lookup: cheap twin → transmissive original. */
 export const transmissionOriginals = new Map<Material, Material>();
 
+/**
+ * Alpha glass with a clearcoat layer, and its full strength. The second specular layer is
+ * costly per pixel on phone GPUs, so Low quality turns it off (setLiteShading).
+ */
+const clearcoated = new Map<MeshPhysicalMaterial, number>();
+let lite = false;
+function coated(material: MeshPhysicalMaterial): MeshPhysicalMaterial {
+  clearcoated.set(material, material.clearcoat);
+  if (lite) material.clearcoat = 0;
+  return material;
+}
+export function setLiteShading(on: boolean): void {
+  lite = on;
+  for (const [material, clearcoat] of clearcoated) material.clearcoat = on ? 0 : clearcoat;
+}
+export function useLiteShading(): boolean {
+  return useSettingsStore((s) => s.quality === 'low');
+}
+
 export function registerTransmissionTwin(transmissive: Material, cheap: Material): void {
   transmissionTwins.set(transmissive, cheap);
   transmissionOriginals.set(cheap, transmissive);
@@ -36,7 +55,7 @@ export function glassMaterial(transmission: boolean, tint = '#eaf6f8', frosted =
           side: DoubleSide,
           transparent: false,
         })
-      : new MeshPhysicalMaterial({
+      : coated(new MeshPhysicalMaterial({
           color: new Color(tint),
           roughness: 0.08 + frosted,
           metalness: 0,
@@ -46,7 +65,7 @@ export function glassMaterial(transmission: boolean, tint = '#eaf6f8', frosted =
           clearcoat: 1,
           depthWrite: false,
           side: DoubleSide,
-        });
+        }));
     cache.set(key, m);
     if (transmission) registerTransmissionTwin(m, glassMaterial(false, tint, frosted));
   }
@@ -58,14 +77,14 @@ const decorCache = new Map<string, Material>();
 export function decorGlass(tint = '#eef8fb'): Material {
   let m = decorCache.get(tint);
   if (!m) {
-    m = new MeshPhysicalMaterial({ color: new Color(tint), roughness: 0.08, transparent: true, opacity: 0.24, envMapIntensity: 1.4, clearcoat: 1, depthWrite: false, side: DoubleSide });
+    m = coated(new MeshPhysicalMaterial({ color: new Color(tint), roughness: 0.08, transparent: true, opacity: 0.24, envMapIntensity: 1.4, clearcoat: 1, depthWrite: false, side: DoubleSide }));
     decorCache.set(tint, m);
   }
   return m;
 }
 
 /** Large architectural panes (windows, door panels): never use transmission — too costly. */
-export const windowGlass = new MeshPhysicalMaterial({
+export const windowGlass = coated(new MeshPhysicalMaterial({
   color: '#dcefff',
   roughness: 0.05,
   metalness: 0,
@@ -75,7 +94,7 @@ export const windowGlass = new MeshPhysicalMaterial({
   clearcoat: 1,
   depthWrite: false,
   side: DoubleSide,
-});
+}));
 
 export function useTransmission(): boolean {
   return useSettingsStore((s) => QUALITY_PRESETS[s.quality].transmission);
