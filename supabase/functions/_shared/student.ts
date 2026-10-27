@@ -7,12 +7,22 @@ import { createClient, type SupabaseClient } from 'npm:@supabase/supabase-js@2.1
 export async function signedInStudent(req: Request): Promise<{ supabase: SupabaseClient; userId: string } | null> {
   const authorization = req.headers.get('Authorization') ?? '';
   const token = authorization.replace(/^Bearer\s+/i, '');
-  if (!token) return null;
-  const supabase = createClient(Deno.env.get('SUPABASE_URL') ?? '', Deno.env.get('SUPABASE_ANON_KEY') ?? '', {
+  if (!token) {
+    console.warn('refused: no Authorization header');
+    return null;
+  }
+  // Projects on the new API keys (sb_publishable_…) can have the legacy anon key switched off, which
+  // made every student look signed out. The app sends its own public key with each request; use that.
+  const apiKey = req.headers.get('apikey') || Deno.env.get('SUPABASE_ANON_KEY') || '';
+  const supabase = createClient(Deno.env.get('SUPABASE_URL') ?? '', apiKey, {
     global: { headers: { Authorization: authorization } },
     auth: { persistSession: false, autoRefreshToken: false },
   });
   const { data, error } = await supabase.auth.getUser(token);
-  if (error || !data.user) return null;
+  if (error || !data.user) {
+    // The public app key alone lands here too ("missing sub claim"); an expired session says so.
+    console.warn('refused: not a signed-in student', error?.message ?? 'no user');
+    return null;
+  }
   return { supabase, userId: data.user.id };
 }

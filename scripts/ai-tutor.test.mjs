@@ -3,6 +3,54 @@ import assert from 'node:assert/strict';
 import { allowedOrigin, corsHeaders } from '../supabase/functions/_shared/cors.ts';
 import { compactContext } from '../supabase/functions/_shared/tutor-context.ts';
 import { factsHash, packTopics, parseAdvice, pickTopics, restoreProgress, templateAdvice } from '../supabase/functions/_shared/advisor.ts';
+import { AiHttpError, DEFAULT_GEMINI_MODEL, aiConfig, aiFailure, openAiCompatibleText } from '../supabase/functions/_shared/ai-text.ts';
+
+test('secrets choose the AI: Gemini by default, any OpenAI-compatible service on request', () => {
+  const env = (vars) => (name) => vars[name];
+  assert.equal(aiConfig(env({})), null);
+  assert.deepEqual(aiConfig(env({ GEMINI_API_KEY: ' k ' })), { provider: 'gemini', apiKey: 'k', model: DEFAULT_GEMINI_MODEL });
+  assert.equal(aiConfig(env({ GEMINI_API_KEY: 'k', GEMINI_MODEL: 'gemini-2.5-flash' })).model, 'gemini-2.5-flash');
+  const groq = { AI_PROVIDER: 'OpenAI', AI_BASE_URL: 'https://api.groq.com/openai/v1/', AI_API_KEY: 'g', AI_MODEL: 'some-model', GEMINI_API_KEY: 'k' };
+  assert.deepEqual(aiConfig(env(groq)), { provider: 'openai', apiKey: 'g', model: 'some-model', baseUrl: 'https://api.groq.com/openai/v1' });
+  assert.equal(aiConfig(env({ ...groq, AI_MODEL: '' })), null, 'an incomplete setup is reported, not half used');
+  assert.equal(aiConfig(env({ ...groq, AI_BASE_URL: 'api.groq.com' })), null);
+});
+
+test('an OpenAI-compatible service is called with the system prompt and its errors keep their status', async () => {
+  const config = { provider: 'openai', apiKey: 'secret', model: 'm', baseUrl: 'https://ai.example/v1' };
+  let sent;
+  const ok = async (url, init) => { sent = { url, init }; return new Response(JSON.stringify({ choices: [{ message: { content: 'Сайн байна уу' } }] }), { status: 200 }); };
+  assert.equal(await openAiCompatibleText(config, 'system text', 'question', ok), 'Сайн байна уу');
+  assert.equal(sent.url, 'https://ai.example/v1/chat/completions');
+  assert.equal(sent.init.headers.Authorization, 'Bearer secret');
+  assert.deepEqual(JSON.parse(sent.init.body).messages, [{ role: 'system', content: 'system text' }, { role: 'user', content: 'question' }]);
+  const failing = (status, message) => async () => new Response(JSON.stringify({ error: { message } }), { status });
+  await assert.rejects(openAiCompatibleText(config, 's', 'q', failing(401, 'Invalid API Key')), (e) => e instanceof AiHttpError && e.status === 401 && aiFailure(e).code === 'ai_key');
+  await assert.rejects(openAiCompatibleText(config, 's', 'q', failing(429, 'Rate limit reached')), (e) => aiFailure(e).code === 'ai_rate_limit');
+  assert.equal(await openAiCompatibleText(config, 's', 'q', async () => new Response('{}', { status: 200 })), '');
+  assert.equal(JSON.parse(sent.init.body).reasoning_effort, undefined, 'other models get no reasoning options');
+});
+
+test('Groq gpt-oss models think briefly and return only the answer', async () => {
+  let body;
+  const capture = async (_url, init) => { body = JSON.parse(init.body); return new Response(JSON.stringify({ choices: [{ message: { content: 'ok' } }] }), { status: 200 }); };
+  await openAiCompatibleText({ provider: 'openai', apiKey: 'k', model: 'openai/gpt-oss-120b', baseUrl: 'https://api.groq.com/openai/v1' }, 's', 'q', capture);
+  assert.equal(body.reasoning_effort, 'low'); assert.equal(body.include_reasoning, false); assert.equal(body.max_tokens, 2048);
+  await openAiCompatibleText({ provider: 'openai', apiKey: 'k', model: 'openai/gpt-oss-120b', baseUrl: 'https://openrouter.ai/api/v1' }, 's', 'q', capture);
+  assert.equal(body.reasoning_effort, undefined, 'only Groq takes these options');
+  assert.equal(body.max_tokens, 800);
+});
+
+test('a failed AI call says why: key, model, rate limit or other', () => {
+  assert.equal(aiFailure({ status: 403, message: 'Forbidden' }).code, 'ai_key');
+  assert.equal(aiFailure(new Error('API key not valid. Please pass a valid API key.')).code, 'ai_key');
+  assert.equal(aiFailure({ status: 404, message: 'models/gemini-x is not found' }).code, 'ai_model');
+  const busy = aiFailure({ status: 429, message: 'RESOURCE_EXHAUSTED' });
+  assert.equal(busy.code, 'ai_rate_limit'); assert.equal(busy.status, 429);
+  assert.equal(aiFailure({ status: 400, message: 'bad' }).code, 'ai_request');
+  assert.equal(aiFailure(new Error('socket hang up')).code, 'ai_error');
+  assert.equal(aiFailure(undefined).code, 'ai_error');
+});
 
 test('only ChemQuest pages may call the AI functions from a browser', () => {
   for (const origin of ['https://pinequest-s5-episode-2-team-5.vercel.app', 'https://pinequest-s5-episode-2-team-5-123kenshi.vercel.app', 'https://pinequest-s5-episode-2-team-5-i3egqwt34-123kenshi.vercel.app', 'http://localhost:8081']) {
