@@ -51,6 +51,7 @@ interface Match {
   botSolveMs: number;
   playerProblem: Problem;
   botProblem: Problem;
+  usedProblemKeys: string[];
   stunnedUntil: number;
   answerFeedback: string;
   result: string;
@@ -65,11 +66,21 @@ const THEORY_AND_FRIENDLY: Problem[] = [
   ...FRIENDLY_PROBLEMS.map((problem) => ({ topic: `Бодлого · ${problem.category}`, prompt: problem.question, options: problem.choices, answer: problem.answer, explanation: problem.explanation })),
 ];
 
-function pickProblem(rank: Rank): Problem {
-  // Each round mixes this rank's Versus questions with theory and practice quizzes.
-  const useStudyQuestion = Math.random() < 0.5;
-  const options = useStudyQuestion ? THEORY_AND_FRIENDLY : problemBank[rank] as Problem[];
-  return options[Math.floor(Math.random() * options.length)];
+function problemKey(problem: Problem): string {
+  return problem.prompt.trim().toLocaleLowerCase();
+}
+
+function pickProblem(rank: Rank, usedProblemKeys: string[]): Problem {
+  // Mix rank-specific Versus questions with theory and practice without repeating
+  // a prompt during the same match (including between the player and bot).
+  const pool = Math.random() < 0.5
+    ? [...THEORY_AND_FRIENDLY, ...(problemBank[rank] as Problem[])]
+    : [...(problemBank[rank] as Problem[]), ...THEORY_AND_FRIENDLY];
+  const unseen = pool.filter((problem) => !usedProblemKeys.includes(problemKey(problem)));
+  if (unseen.length === 0) throw new Error(`No new Versus questions remain for ${rank}.`);
+  const selected = unseen[Math.floor(Math.random() * unseen.length)];
+  usedProblemKeys.push(problemKey(selected));
+  return selected;
 }
 
 function botThinkingTime(rank: Rank): number {
@@ -82,11 +93,14 @@ function botThinkingWindow(rank: Rank): number {
 }
 
 function newMatch(playerRank: Rank, botRank: Rank): Match {
+  const usedProblemKeys: string[] = [];
+  const playerProblem = pickProblem(playerRank, usedProblemKeys);
+  const botProblem = pickProblem(botRank, usedProblemKeys);
   return {
     phase: 'fight', playerRank, botRank, playerHp: MAX_HP, botHp: MAX_HP,
     playerXp: STARTING_XP, botXp: STARTING_XP, round: 1,
     botThinkMs: botThinkingWindow(botRank), botSolveMs: botThinkingTime(botRank),
-    playerProblem: pickProblem(playerRank), botProblem: pickProblem(botRank),
+    playerProblem, botProblem, usedProblemKeys,
     stunnedUntil: 0, answerFeedback: '', result: '', winner: null, roundWinner: null,
   };
 }
@@ -329,14 +343,16 @@ export function VersusGame() {
   const nextRound = () => {
     const current = matchRef.current;
     if (!current || current.phase !== 'result') return;
+    const usedProblemKeys = [...current.usedProblemKeys];
     commit({
       ...current,
       phase: 'fight',
       round: current.round + 1,
       botThinkMs: botThinkingWindow(current.botRank),
       botSolveMs: botThinkingTime(current.botRank),
-      playerProblem: pickProblem(current.playerRank),
-      botProblem: pickProblem(current.botRank),
+      playerProblem: pickProblem(current.playerRank, usedProblemKeys),
+      botProblem: pickProblem(current.botRank, usedProblemKeys),
+      usedProblemKeys,
       stunnedUntil: 0,
       answerFeedback: '',
       result: '',
