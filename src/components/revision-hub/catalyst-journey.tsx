@@ -21,7 +21,7 @@ const predictions = ['Хүчилтөрөгч илүү хурдан ялгарн�
 const scheme = ['Катализатор бага энерги шаардсан өөр зам бий болгоно.', 'Хүчилтөрөгч хурдан ялгарч, савангийн хөөс үүснэ.', 'Катализатор урвалын эцэст зарцуулагдахгүй үлдэнэ.'];
 
 export function CatalystJourney({ userId }: { userId: string }) {
-  const { progress: p, ready, loadError, saveStatus, update, retryLoad, retrySave } = useCatalystJourney(userId);
+  const { progress: p, ready, loadError, saveStatus, cloud, update, retryLoad, retrySave } = useCatalystJourney(userId);
   const scroll = useRef<ComponentRef<typeof ScrollView>>(null);
   const insets = useSafeAreaInsets();
   const [retryWrong, setRetryWrong] = useState(false);
@@ -41,7 +41,7 @@ export function CatalystJourney({ userId }: { userId: string }) {
     <ScrollView ref={scroll} keyboardShouldPersistTaps="handled" contentContainerStyle={[styles.body, { paddingBottom: insets.bottom + 32 }]}>
       <View style={styles.status}>
         <AppText variant="caption">{p.completed ? 'Дууссан' : `Алхам ${p.step + 1} / 5`}</AppText>
-        <AppText variant="caption">{saveStatus === 'saved' ? 'Энэ төхөөрөмжид хадгалсан' : saveStatus === 'saving' ? 'Хадгалж байна…' : 'Хадгалалт амжилтгүй'}</AppText>
+        <AppText variant="caption">{saveStatus === 'saved' ? (cloud === 'synced' ? 'Supabase-д хадгалсан' : cloud === 'syncing' ? 'Supabase-д илгээж байна…' : 'Энэ төхөөрөмжид хадгалсан') : saveStatus === 'saving' ? 'Хадгалж байна…' : 'Хадгалалт амжилтгүй'}</AppText>
       </View>
       {saveStatus === 'error' && <GameButton title="Хадгалалтыг дахин оролдох" size="sm" variant="danger" onPress={retrySave}/>}
       <View style={styles.steps}>{JOURNEY_STEPS.map((label, i) => <View key={label} style={[styles.step, i <= p.step && styles.stepActive]}><AppText variant="caption" color={i === p.step ? Colors.lime : Colors.textMuted}>{i + 1}. {label}</AppText></View>)}</View>

@@ -14,11 +14,9 @@ export interface RevisionProgress {
   questionBest: Record<string, number>;
   practicals: string[];
   ratings: Record<string, 'red' | 'amber' | 'green'>;
-  /** Best self-marked conclusion score per structured practical workbook. */
-  labBest: Record<string, number>;
 }
 export const emptyRevision = (): RevisionProgress => ({
-  version: 1, notes: [], cards: {}, quizBest: {}, wrong: [], questionBest: {}, practicals: [], ratings: {}, labBest: {},
+  version: 1, notes: [], cards: {}, quizBest: {}, wrong: [], questionBest: {}, practicals: [], ratings: {},
 });
 
 export function restoreRevision(raw: unknown): RevisionProgress {
@@ -30,7 +28,7 @@ export function restoreRevision(raw: unknown): RevisionProgress {
   return {
     version: 1, notes: strings(p.notes), practicals: strings(p.practicals), wrong: strings(p.wrong),
     cards: Object.fromEntries(entries(p.cards).filter(([, v]) => v === 'known' || v === 'again')),
-    quizBest: scores(p.quizBest, 100), questionBest: scores(p.questionBest, 1000), labBest: scores(p.labBest, 100),
+    quizBest: scores(p.quizBest, 100), questionBest: scores(p.questionBest, 1000),
     ratings: Object.fromEntries(entries(p.ratings).filter(([, v]) => ['red', 'amber', 'green'].includes(v as string))),
   };
 }

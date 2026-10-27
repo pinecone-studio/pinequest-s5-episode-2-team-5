@@ -17,6 +17,7 @@ import { PreparationChecklist } from '../experiments/workbench/PreparationHints'
 import { sounds } from '../utils/sounds';
 import { isTouchDevice } from '../utils/device';
 import { mobileizeControlHint } from '../controls/mobileInteraction';
+import { ProcedureBlock } from '../menu/ProcedureBlock';
 
 export function ActionGauge() {
   const { label, detail, visible } = useActionHud();
@@ -154,6 +155,7 @@ export function ExperimentCard() {
                 💡 Зөвлөгөө: {isTouchDevice() ? mobileizeControlHint(next.hint) : next.hint}
               </button>
             )}
+            <ProcedureBlock labId={x.id} />
           </>
         )}
       </div>

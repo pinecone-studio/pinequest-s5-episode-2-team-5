@@ -1,11 +1,10 @@
 import {emptyRevision,restoreRevision,type RevisionProgress} from './revision-progress';
 export interface RevisionSnapshot {state:RevisionProgress;clocks:Record<string,number>}
 export const snapshot=(state:RevisionProgress=emptyRevision()):RevisionSnapshot=>({state,clocks:{}});
-/** Merge b into a: union reads, max scores, and latest-wins ratings and wrong-answer membership. */
 export function mergeRevision(a:RevisionSnapshot,b:RevisionSnapshot):RevisionSnapshot {
  const state=restoreRevision(a.state),clocks={...a.clocks};
- for(const key of ['notes','practicals'] as const)state[key]=[...new Set([...a.state[key],...b.state[key]])];
- for(const key of ['quizBest','questionBest','labBest'] as const)for(const [id,value] of Object.entries(b.state[key]??{}))state[key][id]=Math.max(state[key][id]??0,value);
+ for(const key of ['notes','practicals','wrong'] as const)state[key]=[...new Set([...a.state[key],...b.state[key]])];
+ for(const key of ['quizBest','questionBest'] as const)for(const [id,value] of Object.entries(b.state[key]))state[key][id]=Math.max(state[key][id]??0,value);
  for(const key of ['cards','ratings'] as const)for(const id of Object.keys(b.state[key])){
   const clock=`${key}.${id}`;
   if((b.clocks[clock]??0)>(clocks[clock]??-1)){
@@ -13,23 +12,34 @@ export function mergeRevision(a:RevisionSnapshot,b:RevisionSnapshot):RevisionSna
    clocks[clock]=b.clocks[clock]??0;
   }
  }
- // A clocked entry records the latest add or removal; unclocked (legacy) entries are only ever added.
- const wrong=new Set(state.wrong),incoming=new Set(b.state.wrong);
- const ids=new Set([...incoming,...Object.keys(b.clocks).filter((k)=>k.startsWith('wrong.')).map((k)=>k.slice(6))]);
- for(const id of ids){
-  const clock=`wrong.${id}`,stamp=b.clocks[clock];
-  if(stamp===undefined){if(clocks[clock]===undefined)wrong.add(id);}
-  else if(stamp>(clocks[clock]??-1)){if(incoming.has(id))wrong.add(id);else wrong.delete(id);clocks[clock]=stamp;}
- }
- state.wrong=[...wrong];
  return {state,clocks};
+}
+/**
+ * `wrong` shrinks when a question is answered correctly, so each question follows its newest mark
+ * ("wrong.<id>" clocks) and is sent as `wrongMarks`. The list itself is never sent: servers before
+ * 202610270003 only add to it.
+ */
+const WRONG='wrong.';
+export interface OutgoingRevision extends RevisionSnapshot {state:RevisionProgress&{wrongMarks:Record<string,boolean>}}
+export const outgoingRevision=(value:RevisionSnapshot):OutgoingRevision=>{
+ const ids=new Set([...value.state.wrong,...Object.keys(value.clocks).filter((clock)=>clock.startsWith(WRONG)).map((clock)=>clock.slice(WRONG.length))]);
+ const wrongMarks=Object.fromEntries([...ids].map((id)=>[id,value.state.wrong.includes(id)]));
+ return {state:{...value.state,wrong:[],wrongMarks},clocks:value.clocks};
+};
+export function applyRemoteRevision(local:RevisionSnapshot,remote:RevisionSnapshot):RevisionSnapshot {
+ const merged=mergeRevision(local,remote),wrong=new Set(local.state.wrong);
+ for(const [clock,stamp] of Object.entries(remote.clocks)){
+  if(!clock.startsWith(WRONG)||stamp<=(local.clocks[clock]??-1))continue;
+  const id=clock.slice(WRONG.length);
+  if(remote.state.wrong.includes(id))wrong.add(id);else wrong.delete(id);
+  merged.clocks[clock]=stamp;
+ }
+ merged.state.wrong=[...wrong];return merged;
 }
 export function changedRevision(before:RevisionSnapshot,state:RevisionProgress,at=Date.now()):RevisionSnapshot {
  const clocks={...before.clocks};
- const stamp=(clock:string)=>{clocks[clock]=Math.max(at,(clocks[clock]??0)+1);};
- for(const key of ['cards','ratings'] as const)for(const [id,value] of Object.entries(state[key]))if(before.state[key][id]!==value)stamp(`${key}.${id}`);
- const was=new Set(before.state.wrong),now=new Set(state.wrong);
- for(const id of new Set([...was,...now]))if(was.has(id)!==now.has(id))stamp(`wrong.${id}`);
+ for(const key of ['cards','ratings'] as const)for(const [id,value] of Object.entries(state[key]))if(before.state[key][id]!==value)clocks[`${key}.${id}`]=Math.max(at,(clocks[`${key}.${id}`]??0)+1);
+ for(const id of new Set([...before.state.wrong,...state.wrong]))if(before.state.wrong.includes(id)!==state.wrong.includes(id))clocks[`${WRONG}${id}`]=Math.max(at,(clocks[`${WRONG}${id}`]??0)+1);
  return {state,clocks};
 }
 export function restoreSnapshot(raw:unknown):RevisionSnapshot {
@@ -37,8 +47,3 @@ export function restoreSnapshot(raw:unknown):RevisionSnapshot {
  const clocks=value?.clocks&&typeof value.clocks==='object'?Object.fromEntries(Object.entries(value.clocks).filter(([,x])=>typeof x==='number'&&Number.isFinite(x)&&x>=0)):{};
  return {state:restoreRevision(value?.state),clocks};
 }
-/** Device storage holds a snapshot; earlier builds stored the bare progress object. */
-export function restoreStored(raw:unknown):RevisionSnapshot {
- return raw&&typeof raw==='object'&&'state' in raw?restoreSnapshot(raw):snapshot(restoreRevision(raw));
-}
-export const sameRevision=(a:RevisionSnapshot,b:RevisionSnapshot)=>JSON.stringify(a)===JSON.stringify(b);
