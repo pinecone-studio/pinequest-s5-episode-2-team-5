@@ -32,9 +32,12 @@ These additions remain editorial draft content pending the teacher QA described 
 Progress is versioned and saved with AsyncStorage under the signed-in user's ID.
 Writes are serialized across mounts, scores use maxima and note/practical sets use unions.
 Card and objective ratings reflect the latest selection. Storage failures expose retry.
-This is device-local persistence, not Supabase sync. No global XP is awarded here.
+Signed-in progress also syncs to `hub.revision_progress` through `sync_revision_progress`
+(own-row, security definer; merge rules in `202610270001_revision_progress_merge.sql`).
+Sync is debounced and runs on load, on backgrounding and on unmount; the toolbar shows
+its status. Wrong answers are latest-wins per question. No global XP is awarded here.
 
-The eight structured practical workbooks, cloud progress/RLS, streak/quiz-history views,
+The eight structured practical workbooks, streak/quiz-history views,
 and teacher/entitlement features from later phases are not part of this implementation.
 The practical tab explicitly labels its completion as reviewing instructions, rather than
 performing or automatically verifying a 3D lab experiment.
