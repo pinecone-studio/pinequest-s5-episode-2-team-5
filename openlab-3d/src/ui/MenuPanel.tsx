@@ -9,10 +9,14 @@ import { resumeWalk } from '../controls/useGameKeys';
 import { sounds } from '../utils/sounds';
 import { SettingsPanel } from './SettingsPanel';
 import { ControlsList } from './ControlsHelp';
+import { LabMenu } from '../menu/LabMenu';
 import { openNaClExperiment } from '../experiments/nacl/bench';
 import { repeatBenchExperiment, selectBenchExperiment, useWorkbench } from '../experiments/workbench/session';
 
 type Tab = 'experiments' | 'settings' | 'controls';
+
+/** true = ☰ товчоор шинэ загварын цэс (src/menu) гарна. false болговол хуучин цэс (доорх толгой + 3 таб) буцна. */
+export const NEW_LAB_MENU: boolean = true;
 
 function SkillsCard() {
   const skills = useExperimentStore((s) => s.skills);
@@ -155,8 +159,10 @@ const TABS: { id: Tab; label: string }[] = [
 export function MenuPanel() {
   const open = useGameStore((s) => s.panel === 'menu');
   const [tab, setTab] = useState<Tab>('experiments');
+  // Шинэ дэлгэц бэлэн болоогүй хэсгийн товч дарахад хуучин цэсийг түр нээнэ (самбар хаагдахад буцаж шинэ болно)
+  const [legacy, setLegacy] = useState(false);
   return (
-    <AnimatePresence>
+    <AnimatePresence onExitComplete={() => setLegacy(false)}>
       {open && (
         <>
           <motion.div className="fixed inset-0 z-40 bg-slate-900/25" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={resumeWalk} />
@@ -170,42 +176,54 @@ export function MenuPanel() {
             exit={{ x: '-100%' }}
             transition={{ type: 'spring', stiffness: 260, damping: 30 }}
           >
-            <header className="flex items-center gap-3 bg-lab-yellow px-5 py-4 text-white">
-              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-white/25 font-display text-lg font-bold">OL</div>
-              <div className="flex-1">
-                <div className="font-display text-lg font-bold leading-tight">OpenLab 3D</div>
-                <div className="text-xs text-white/85">Виртуал химийн лаборатори</div>
-              </div>
-              <button type="button" aria-label="Цэсийг хаах" onClick={resumeWalk} className="focus-ring rounded-full p-2 hover:bg-white/20">
-                ✕
-              </button>
-            </header>
-            <div className="px-5 pt-4">
-              <button type="button" className="btn-yellow w-full py-3 text-base" onClick={resumeWalk}>
-                ▶ Үргэлжлүүлэх
-              </button>
-              <nav className="mt-4 flex gap-1 rounded-xl bg-slate-200/70 p-1" role="tablist">
-                {TABS.map((t) => (
-                  <button
-                    key={t.id}
-                    role="tab"
-                    aria-selected={tab === t.id}
-                    onClick={() => {
-                      setTab(t.id);
-                      sounds.play('ui');
-                    }}
-                    className={`focus-ring flex-1 rounded-lg px-2 py-1.5 text-xs font-semibold transition ${tab === t.id ? 'bg-white text-lab-ink shadow' : 'text-slate-600 hover:text-slate-800'}`}
-                  >
-                    {t.label}
+            {NEW_LAB_MENU && !legacy ? (
+              <LabMenu
+                onClose={resumeWalk}
+                onLegacy={(next) => {
+                  setTab(next);
+                  setLegacy(true);
+                }}
+              />
+            ) : (
+              <>
+                <header className="flex items-center gap-3 bg-lab-yellow px-5 py-4 text-white">
+                  <div className="flex h-10 w-10 items-center justify-center rounded-full bg-white/25 font-display text-lg font-bold">OL</div>
+                  <div className="flex-1">
+                    <div className="font-display text-lg font-bold leading-tight">OpenLab 3D</div>
+                    <div className="text-xs text-white/85">Виртуал химийн лаборатори</div>
+                  </div>
+                  <button type="button" aria-label="Цэсийг хаах" onClick={resumeWalk} className="focus-ring rounded-full p-2 hover:bg-white/20">
+                    ✕
                   </button>
-                ))}
-              </nav>
-            </div>
-            <div className="scrollbar-thin flex-1 overflow-y-auto px-5 py-4" role="tabpanel">
-              {tab === 'experiments' && <ExperimentsTab />}
-              {tab === 'settings' && <SettingsPanel />}
-              {tab === 'controls' && <ControlsList />}
-            </div>
+                </header>
+                <div className="px-5 pt-4">
+                  <button type="button" className="btn-yellow w-full py-3 text-base" onClick={resumeWalk}>
+                    ▶ Үргэлжлүүлэх
+                  </button>
+                  <nav className="mt-4 flex gap-1 rounded-xl bg-slate-200/70 p-1" role="tablist">
+                    {TABS.map((t) => (
+                      <button
+                        key={t.id}
+                        role="tab"
+                        aria-selected={tab === t.id}
+                        onClick={() => {
+                          setTab(t.id);
+                          sounds.play('ui');
+                        }}
+                        className={`focus-ring flex-1 rounded-lg px-2 py-1.5 text-xs font-semibold transition ${tab === t.id ? 'bg-white text-lab-ink shadow' : 'text-slate-600 hover:text-slate-800'}`}
+                      >
+                        {t.label}
+                      </button>
+                    ))}
+                  </nav>
+                </div>
+                <div className="scrollbar-thin flex-1 overflow-y-auto px-5 py-4" role="tabpanel">
+                  {tab === 'experiments' && <ExperimentsTab />}
+                  {tab === 'settings' && <SettingsPanel />}
+                  {tab === 'controls' && <ControlsList />}
+                </div>
+              </>
+            )}
           </motion.aside>
         </>
       )}

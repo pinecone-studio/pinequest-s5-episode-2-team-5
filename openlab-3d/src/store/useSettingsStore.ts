@@ -2,6 +2,7 @@ import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { DEFAULT_BINDINGS, type ActionName, type Bindings, type LookMode } from '../controls/keyMap';
 import { isTouchDevice } from '../utils/device';
+import { DEFAULT_THEME, isThemeId, type ThemeId } from '../theme/themes';
 
 function isLowEndDevice(): boolean {
   if (typeof navigator === 'undefined') return false;
@@ -52,6 +53,8 @@ export interface SettingsState {
   lookMode: LookMode;
   invertY: boolean;
   reducedMotion: boolean;
+  /** Шинэ цэсний өнгө (src/theme/themes.ts): сурагч Тохиргоо → Өнгө сонгох-оос сонгоно */
+  theme: ThemeId;
   reactionAutoZoom: boolean;
   molecularLens: boolean;
   jumpEnabled: boolean;
@@ -76,6 +79,7 @@ export const useSettingsStore = create<SettingsState>()(
       lookMode: 'mouse',
       invertY: false,
       reducedMotion: false,
+      theme: DEFAULT_THEME.id,
       reactionAutoZoom: false,
       molecularLens: false,
       jumpEnabled: true,
@@ -105,6 +109,8 @@ export const useSettingsStore = create<SettingsState>()(
           // A tier picked before Auto existed stays picked.
           autoQuality: p.autoQuality ?? !(p.qualityManuallySet ?? false),
           bindings: { ...DEFAULT_BINDINGS, ...(p.bindings ?? {}) },
+          // Хадгалсан өнгө алдаатай (эсвэл хуучин хувилбарт байгаагүй) бол анхны өнгө
+          theme: isThemeId(p.theme) ? p.theme : DEFAULT_THEME.id,
         };
       },
     },
