@@ -2,6 +2,7 @@ import { Pressable, StyleSheet, useWindowDimensions, View } from 'react-native';
 
 import { AppText } from '@/components/ui/app-text';
 import { ChemistryDoodle } from '@/components/revision-hub/chemistry-doodle';
+import { StudyAdvisor } from '@/components/revision-hub/study-advisor';
 import { StudyPage, openTopic } from '@/components/revision-hub/study-ui';
 import { Colors, Radius } from '@/constants/theme';
 import { getPack } from '@/data/revision-hub';
@@ -16,6 +17,7 @@ export default function CourseScreen() {
 
   return (
     <StudyPage title={`Хими ${pack.meta.grade} · Сурах бичгийн зам`} subtitle={`${pack.topics.length} сэдэв`} showTopicLinks={false}>
+      <StudyAdvisor />
       <View style={styles.groups}>
         {pack.chapters.map((chapter) => {
           const topics = chapter.topicIds
