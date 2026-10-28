@@ -5,7 +5,7 @@ import { metalAluminum, metalBrushed, metalDark, metalSteel } from '../materials
 import { plastic, plasticBlack, plasticBlue, plasticGreen, plasticWhite, wood } from '../materials/plastic';
 import { decorGlass } from '../materials/glass';
 import { ModelOr, type ModelProps } from './ModelOr';
-import type { TextbookEquipmentKind } from './equipmentCatalog';
+import { STAND_RING, type TextbookEquipmentKind } from './equipmentCatalog';
 import type { MixtureLook } from '../chemistry/color';
 import { VesselContents } from './VesselContents';
 import { PROFILES, type VesselProfile } from './profiles';
@@ -65,10 +65,10 @@ export function TextbookEquipmentModel({ kind, modelUrl, lit = false, look, item
       model = <>
         <mesh material={metalDark} position={[0, 0.012, 0]}><boxGeometry args={[0.2, 0.024, 0.12]} /></mesh>
         <mesh material={metalSteel} position={[-0.07, 0.15, 0]}><cylinderGeometry args={[0.007, 0.007, 0.27, 12]} /></mesh>
-        <mesh material={metalBrushed} position={[-0.015, 0.21, 0]}><boxGeometry args={[0.11, 0.012, 0.016]} /></mesh>
-        <mesh material={metalDark} position={[0.035, 0.21, 0]}><boxGeometry args={[0.018, 0.035, 0.04]} /></mesh>
-        <mesh material={metalBrushed} position={[-0.015, 0.13, 0]}><boxGeometry args={[0.11, 0.01, 0.016]} /></mesh>
-        <mesh material={metalDark} position={[0.035, 0.13, 0]}><boxGeometry args={[0.018, 0.035, 0.04]} /></mesh>
+        {/* Boss and arm to the ring (STAND_RING): a funnel sits in the ring, a flask stands on the base below. */}
+        <mesh material={metalDark} position={[-0.07, STAND_RING[1], 0]}><boxGeometry args={[0.026, 0.026, 0.026]} /></mesh>
+        <mesh material={metalBrushed} position={[(-0.07 + STAND_RING[0] - 0.03) / 2, STAND_RING[1], 0]}><boxGeometry args={[STAND_RING[0] - 0.03 + 0.07, 0.008, 0.01]} /></mesh>
+        <mesh material={metalSteel} position={[STAND_RING[0], STAND_RING[1], 0]} rotation={[Math.PI / 2, 0, 0]}><torusGeometry args={[0.03, 0.003, 8, 32]} /></mesh>
       </>;
       break;
     case 'crystallizingDish':

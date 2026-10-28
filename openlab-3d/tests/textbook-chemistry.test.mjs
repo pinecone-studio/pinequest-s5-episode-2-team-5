@@ -183,3 +183,25 @@ test('CO₂ хий усанд уусч хүчиллэг болгоно; шүлт
   const naoh = wait(pour(['naoh', 10], ['gas_co2', 20]), 20).m;
   assert.ok(!(naoh.g?.CO2 > 1e-6) && naoh.aq.CO3 > 0, 'NaOH бүх CO₂-ийг шингээнэ');
 });
+
+test('Спиртэн дэн аяга болон хуруу шилтэй усыг буцалгана (Бунзенээс удаан)', () => {
+  const loss = (ml) => 1.2 + 5 * (ml / 250) ** (2 / 3);
+  const boils = (heatW, glassJK, lossWK, ml) => { let m = E.reagentMixture('water', ml); for (let t = 0; t < 600; t++) { const r = E.advanceChemistry(m, 1, { ...ENV, heatW, glassJK, lossWK, stir: 0 }); m = r.m; if (r.boiling) return t; } return Infinity; };
+  const lamp = boils(650, 110, loss(250), 50), bunsen = boils(1300, 110, loss(250), 50);
+  assert.ok(lamp < 300 && bunsen < lamp, `дэн ${lamp} с, Бунзен ${bunsen} с`);
+  assert.ok(boils(420 * 650 / 1300, 17, loss(20), 2) < 300, 'хуруу шил дэнгийн дөлөнд');
+});
+
+test('Халаах банны үүр бага ус үлдсэн ч хөрнө (цөөн мл ууршсан ч температур хөлдөхгүй)', () => {
+  let r = E.createRig('test', 'heatingBath');
+  r.port = 0; r = E.loadRig(r, E.reagentMixture('water', 2));
+  r = { ...E.startRig(r), heating: true };
+  assert.ok(r.running, r.message);
+  for (let i = 0; i < 400 && r.chambers[0].water > 0.6; i++) r = E.tickRig(r, 0.5);
+  assert.ok(r.chambers[0].water < 0.8, `ус ${r.chambers[0].water}`);
+  assert.ok(r.chambers[0].temp > 60, `халсан ${r.chambers[0].temp}`);
+  assert.ok(r.chambers[0].temp <= 350, `хэт халсан ${r.chambers[0].temp}`);
+  r = { ...r, heating: false, cooling: true };
+  for (let i = 0; i < 400; i++) r = E.tickRig(r, 0.5);
+  assert.ok(r.chambers[0].temp < 35, `хөрсөн ${r.chambers[0].temp}`);
+});

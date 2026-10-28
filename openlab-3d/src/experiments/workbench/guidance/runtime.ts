@@ -15,7 +15,7 @@ import {useBenchView,benchView} from '../../nacl/view';
 import {useSandbox} from '../../nacl/sandbox';
 import {transfer,stirUntil,heldHeat} from '../../../interaction/actions';
 import {REAGENTS} from '../../../chemistry/reagents';
-import {CATALOG,type EquipmentKind} from '../../../equipment/equipmentCatalog';
+import {CATALOG,baseKind,type BenchKey,type EquipmentKind} from '../../../equipment/equipmentCatalog';
 import {bodies} from '../../../interaction/bodies';
 import {useExperimentStore} from '../../../store/useExperimentStore';
 import {currentSession,itemPosition} from '../session';
@@ -23,12 +23,13 @@ import type {InvestigationDefinition} from '../../../../../src/lib/textbook-inve
 import type {GuideStep} from './plans';
 export const useGuideCue=create<{experiment:string|null;target:string|null;source:string|null;port:number;label:string;playing:boolean}>(()=>({experiment:null,target:null,source:null,port:0,label:'',playing:false}));
 export function clearGuideCue(){useGuideCue.setState({experiment:null,target:null,source:null,label:'',playing:false});}
-export function guideTargetKind(def:InvestigationDefinition,step:GuideStep):EquipmentKind{return (step.type==='place'?step.onto==='table'?step.item:step.onto:step.type==='move'?step.to:'target' in step&&step.target?step.target:def.labRig) as EquipmentKind;}
+/** The worktop piece a step acts on (its BenchKey: `beaker`, or `beaker#2` for a second beaker). */
+export function guideTargetKind(def:InvestigationDefinition,step:GuideStep):BenchKey{return (step.type==='place'?step.onto==='table'?step.item:step.onto:step.type==='move'?step.to:'target' in step&&step.target?step.target:def.labRig) as BenchKey;}
 export function portName(kind:string,port:number){return isCurriculumRig(kind)?`${port+1}. ${CURRICULUM_RIGS[kind].ports[port]}`:kind==='gasTrain'?['1. Урвалын сав','2. Нэмэх сав','3. Хий хүлээн авагч'][port]:isGrade9Rig(kind)?`${port+1}-р үүр`:CATALOG[kind as EquipmentKind]?.name??kind;}
 export function doseUnit(id:ReagentId){const m=reagentMixture(id,1);return gasMl(m)>0&&liquidMl(m)<.005?'мл хий':liquidMl(m)<.005?'г':'мл';}
 export function stepLabel(step:GuideStep,kind:string){if(step.type!=='dose')return step.label;const r=REAGENTS[step.reagent];return `${r.name} · ${step.amount} ${doseUnit(step.reagent)} → ${portName(step.target??kind,step.port)}`;}
 export function focusGuideStep(def:InvestigationDefinition,step:GuideStep,playing=false,frameCamera=true){
- const kind=guideTargetKind(def,step),id=currentSession()?.objects[kind];if(!id||!CATALOG[kind])return false;
+ const key=guideTargetKind(def,step),kind=baseKind(key),id=currentSession()?.objects[key];if(!id||!CATALOG[kind])return false;
  const store=useGrade9Apparatus.getState();let port=0;
  if(isGrade9Rig(kind)){store.ensure(id,def.id,kind);port='port' in step&&step.port!==undefined?step.port:(step.type==='observe'||step.type==='finish')?step.until?.checks.find(c=>c.port!==undefined&&(!c.target||c.target===kind))?.port??0:0;store.change(id,{port});const m=useGrade9Apparatus.getState().rigs[id]?.chambers[port];if(m)useChemStore.getState().setMixtures({[id]:m});}
  useBenchView.setState({selected:id});useSandbox.setState({inspected:playing?null:id});if(frameCamera)benchView.focus(id);
@@ -47,7 +48,7 @@ function heatGlassware(id:string,on:boolean){
 }
 /** Both rigs and ordinary vessels use the same finite chemical transfer operations. */
 export function executeGuideStep(def:InvestigationDefinition,step:GuideStep,sourceOverride?:string):{ok:boolean;message:string}{
- const session=currentSession(),kind=guideTargetKind(def,step),id=session?.objects[kind];if(!id||!CATALOG[kind])return {ok:false,message:'Эхлээд багаж, бодисоо бэлтгэ.'};
+ const session=currentSession(),key=guideTargetKind(def,step),kind=baseKind(key),id=session?.objects[key];if(!id||!CATALOG[kind])return {ok:false,message:'Эхлээд багаж, бодисоо бэлтгэ.'};
  const store=useGrade9Apparatus.getState(),rig=isGrade9Rig(kind);if(rig)store.ensure(id,def.id,kind);
  if(step.type==='flame'){
   const source=session?.objects[`reagent-${step.reagent}`],loop=session?.objects.wireLoop;if(!source||!loop)return {ok:false,message:'Дөлний сорилын гогцоо, давсны дээж хэрэгтэй.'};
@@ -64,7 +65,7 @@ export function executeGuideStep(def:InvestigationDefinition,step:GuideStep,sour
   const source=sourceOverride??(step.type==='dose'?session?.objects[`reagent-${step.reagent}`]:session?.objects[step.from]);if(!source)return {ok:false,message:'Шаардлагатай эх бодис олдсонгүй. Бэлтгэлээ шалга.'};
   if(rig)store.change(id,{port:step.type==='dose'?step.port:0});
   const r=step.type==='dose'?REAGENTS[step.reagent]:null;
-  const result=transfer({id:source,kind:r?r.container:step.type==='move'?step.from:'beaker',...(step.type==='dose'?{variant:{reagent:step.reagent}}:{})},{id,kind},step.type==='move'&&step.all?(liquidMl(mixtureOf(source))||solidMassG(mixtureOf(source))):step.amount,step.filter?session?.objects[step.filter]:undefined);
+  const result=transfer({id:source,kind:r?r.container:step.type==='move'?baseKind(step.from):'beaker',...(step.type==='dose'?{variant:{reagent:step.reagent}}:{})},{id,kind},step.type==='move'&&step.all?(liquidMl(mixtureOf(source))||solidMassG(mixtureOf(source))):step.amount,step.filter?session?.objects[step.filter]:undefined);
   if(!(step.type==='move'&&step.all)&&Math.abs(result.moved-step.amount)>1e-6)return {ok:false,message:`${result.moved} шилжлээ; нөөц хүрэлцэхгүй эсвэл сав дүүрсэн. Үзүүлбэр зогслоо.`};
  }else if(step.type==='record'){
   const readings=protocolReadings(def,step);if(!readings.length)return {ok:false,message:'Бүртгэх хэмжилт олдсонгүй.'};

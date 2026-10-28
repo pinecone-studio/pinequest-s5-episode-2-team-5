@@ -1,6 +1,6 @@
 import type {Endpoint} from './conditions';
 import {completeProtocol} from './protocols';
-import type {EquipmentKind} from '../../../equipment/equipmentCatalog';
+import type {BenchKey as EquipmentKind} from '../../../equipment/equipmentCatalog';
 import type {ReagentId} from '../../../chemistry/reagents';
 import type {RigState} from '../../grade9/process';
 export type GuideStep = {type:'dose';reagent:ReagentId;amount:number;port:number;target?:EquipmentKind;filter?:EquipmentKind;stopWhen?:Endpoint} | {type:'configure';label:string;change:Partial<RigState>;target?:EquipmentKind} | {type:'start';label:string} | {type:'move';from:EquipmentKind;to:EquipmentKind;amount:number;all?:boolean;filter?:EquipmentKind;label:string} | {type:'observe';label:string;duration?:number;target?:EquipmentKind;until?:Endpoint} | {type:'record';label:string;target?:EquipmentKind;port?:number} | {type:'reset';label:string;target?:EquipmentKind} | {type:'place';item:EquipmentKind;onto:EquipmentKind|'table';label:string} | {type:'portion';fromPort:number;toPort:number;grams:number;label:string} | {type:'flame';reagent:ReagentId;amount:number;label:string} | {type:'finish';label:string;until:Endpoint;target?:EquipmentKind};
@@ -28,7 +28,7 @@ export const GUIDED_PLANS:Record<string,GuideStep[]>={
  'g9-gas-expansion':[set('Тариурт 10 мл агаар соруул.',{initialAir:10,gas:10}),set('Халаалтыг асаа.',{heating:true}),start],
  'g9-liquid-diffusion':run([['water',20],['s_kmno4',.1,1]]),
  'g9-gas-diffusion':run([['nh3',1],['hcl',1,1]]),
- 'g9-diffusion-temperature':run([['hot_water',20],['s_cuso4',.1,1]]),
+ 'g9-diffusion-temperature':dose(['s_cuso4',5,0,'beaker'],['s_cuso4',5,0,'beaker#2'],['s_cuso4',5,0,'beaker#3'],['water',100,0,'beaker'],['cold_water',100,0,'beaker#2'],['water',100,0,'beaker#3']),
  'g9-diffusion-surface':run([['water',20],['s_cuso4',.1,1]],set('Нунтагласан дээжийн нөхцөлийг сонго.',{})),
  'g9-diffusion-media':run([['water',20],['s_gelatin',.1,2],['kmno4',.1,1]]),
  'g9-period3':run([['s_mg',.1]]),
@@ -37,7 +37,7 @@ export const GUIDED_PLANS:Record<string,GuideStep[]>={
  'g9-catalyst-screen':run([['h2o2',10],['s_mno2',.1,1]]),
  'g9-element-types':run([['s_graphite',.1]]),
  'g9-chromatography':run([['water',25],['s_paper',.1,2],['inkA',.1,1]]),
- 'g9-filtration':[...run([['water',10],['s_sand',1]]),{type:'move',from:'beaker',to:'erlenmeyer',amount:1,all:true,filter:'funnel',label:'Холимгийг юүлүүрээр шүүж конус колбонд цуглуул.'}],
+ 'g9-filtration':[...dose(['water',20,0,'beaker'],['s_sand',1,0,'beaker'],['water',20,0,'beaker#2'],['tomato',5,0,'beaker#2'],['water',20,0,'beaker#3'],['s_nacl',1,0,'beaker#3'],['water',20,0,'beaker#4'],['ethanol',5,0,'beaker#4']),{type:'move',from:'beaker',to:'erlenmeyer',amount:1,all:true,filter:'funnel',label:'Холимгийг юүлүүрээр шүүж конус колбонд цуглуул.'}],
  'g9-crystallisation':[...run([['water',5],['s_nacl',1]]),{type:'move',from:'beaker',to:'evaporatingDish',amount:3,label:'Уусмалаас 3 мл-ийг ууршуулагч аяганд шилжүүл.'},{type:'configure',target:'evaporatingDish',label:'Ууршуулагч аягийг халаа.',change:{heating:true}},{type:'observe',target:'evaporatingDish',label:'Ус багасаж талст үүсэхийг ажигла.',duration:35}],
  'g9-mass-conservation':run([['s_na2co3',.1],['hcl',5,1]],set('Хийн хураагуурыг битүү холбо.',{closed:true})),
  'g9-reaction-types':run([['s_cuco3',.1],['limewater',50,2]],set('Халаалтыг асаа.',{heating:true})),
@@ -89,7 +89,7 @@ export const GUIDED_PLANS:Record<string,GuideStep[]>={
  'crystals':run([['nacl',5]],set('Ууршуулах халаалтыг асаа.',{heating:true})),
  'fire':run([['ethanol',1]],set('Дээжийг асаа.',{operation:'ignite'})),
 
- 'g7-sugar-motion':run([['water',25],['s_sugar',1,1]]),
+ 'g7-sugar-motion':dose(['water',50,0,'beaker'],['cold_water',50,0,'beaker#2'],['hot_water',50,0,'beaker#3'],['s_ice',25,0,'beaker#2'],['s_sugar',1,0,'beaker#2'],['s_sugar',1,0,'beaker'],['s_sugar',1,0,'beaker#3']),
  'g7-liquid-layers':run([['water',10],['oil',5],['corn_syrup',5]]),
  'g7-gas-motion':run([['gas_tracer',50]],set('Сэнсийг унтрааж цэвэр тархалтыг ажигла.',{light:0})),
  'g7-wax-water':run([['s_ice',1],['s_wax',1,1]],heat(80)),

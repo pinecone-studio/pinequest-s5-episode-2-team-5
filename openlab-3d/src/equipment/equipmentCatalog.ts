@@ -90,15 +90,19 @@ export type TextbookEquipmentKind =
 /** Heat sources: a lit one heats the vessel on a tripod above it. */
 export const HEATERS: EquipmentKind[] = ['bunsenBurner', 'alcoholLamp'];
 export const isHeater = (kind: EquipmentKind): boolean => HEATERS.includes(kind);
-/** Heat a lit heater gives the vessel above it, W: a spirit lamp's small flame gives about a quarter of a Bunsen burner's. */
-export const HEATER_WATTS: Partial<Record<EquipmentKind, number>> = { bunsenBurner: 1300, alcoholLamp: 350 };
+/**
+ * Heat a lit heater gives the vessel above it, W (accelerated like the rest of the lab). A spirit
+ * lamp's small flame gives half a Bunsen burner's: it still boils a beaker or a test tube of water,
+ * only about 2.5× more slowly, and evaporates it about 5× more slowly.
+ */
+export const HEATER_WATTS: Partial<Record<EquipmentKind, number>> = { bunsenBurner: 1300, alcoholLamp: 650 };
 export const heaterWatts = (kind: EquipmentKind): number => HEATER_WATTS[kind] ?? 1300;
 
 export type EquipmentCategory = 'Шилэн сав' | 'Урвалжийн сав' | 'Халаах' | 'Хэмжилт' | 'Багаж' | 'Аюулгүй ажиллагаа';
 
 export const EQUIPMENT_CATEGORIES: EquipmentCategory[] = ['Шилэн сав', 'Хэмжилт', 'Халаах', 'Багаж', 'Аюулгүй ажиллагаа', 'Урвалжийн сав'];
 
-type ColliderPart =
+export type ColliderPart =
   | { shape: 'cuboid'; size: [number, number, number]; offset: [number, number, number]; mass: number }
   | { shape: 'cylinder'; radius: number; height: number; offset: [number, number, number]; mass: number };
 
@@ -166,10 +170,20 @@ const textbookTool = (
 /** An open textbook vessel: holds what is poured in, spills when knocked over. */
 const holds = (capacityMl: number, heatJK: number, extra: Partial<CatalogEntry> = {}): Partial<CatalogEntry> => ({ capacityMl, pourRate: 12, heatJK, upright: true, ...extra });
 
+/** Retort-stand ring centre (x, height) over its base plate. */
+export const STAND_RING: [number, number] = [0.03, 0.23];
+/** A funnel's stem below its cone: a ring or a flask mouth holds it by the cone. */
+export const FUNNEL_STEM = 0.06;
+
 const TEXTBOOK_CATALOG: Record<TextbookEquipmentKind, CatalogEntry> = {
   stopwatch: textbookTool('stopwatch', 'Хугацаа хэмжигч', [0.09, 0.035, 0.11], box(0.09, 0.035, 0.11), 'Туршилтын хугацаа, урвалын хурдыг хэмжинэ.', 0.12),
   gasDeliveryTube: textbookTool('gasDeliveryTube', 'Хий дамжуулах хоолой', [0.14, 0.12, 0.08], box(0.14, 0.12, 0.08), 'Үүссэн хийг савнаас цуглуулах төхөөрөмж рүү дамжуулна.', 0.03),
-  retortStand: textbookTool('retortStand', 'Штатив', [0.24, 0.28, 0.12], box(0.24, 0.28, 0.12), 'Хавчаар, цагираг тогтоон савыг байрлуулах төмөр суурь.', 0.8),
+  // A real frame, not a solid block: base plate, rod and a ring that holds a funnel above a flask on the base.
+  retortStand: textbookTool('retortStand', 'Штатив (цагаригтай)', [0.24, 0.28, 0.12], { shape: 'compound', parts: [
+    { shape: 'cuboid', size: [0.2, 0.024, 0.12], offset: [0, 0.012, 0], mass: 0.6 },
+    { shape: 'cylinder', radius: 0.008, height: 0.28, offset: [-0.07, 0.14, 0], mass: 0.15 },
+    ...([[0, 0.024], [0, -0.024], [0.024, 0], [-0.024, 0]] as const).map(([x, z]): ColliderPart => ({ shape: 'cuboid', size: x ? [0.006, 0.006, 0.06] : [0.06, 0.006, 0.006], offset: [STAND_RING[0] + x, STAND_RING[1], z], mass: 0.0125 })),
+  ] }, 'Хавчаар, цагираг тогтоон савыг байрлуулах төмөр суурь. Цагирагт юүлүүр тавиад доор нь колбо, аягаа суурин дээр тавина.', 0.8),
   crystallizingDish: { ...textbookTool('crystallizingDish', 'Талстжуулагч', [0.15, 0.035, 0.15], cyl(0.075, 0.035), 'Уусмалыг өргөн гадаргуутай саванд ууршуулж талстжуулна.', 0.18), ...holds(350, 150, { glass: true }) },
   splint: textbookTool('splint', 'Зомгол', [0.012, 0.012, 0.18], box(0.012, 0.012, 0.18), 'Хийг таних болон шаталтыг ажиглахад хэрэглэдэг модон зомгол.', 0.005),
   sandpaper: textbookTool('sandpaper', 'Зүлгүүр', [0.1, 0.003, 0.14], box(0.1, 0.003, 0.14), 'Металлын гадаргууг цэвэрлэхэд хэрэглэнэ.', 0.01),
@@ -547,7 +561,11 @@ export const CATALOG: Record<EquipmentKind, CatalogEntry> = {
     description: 'Шингэнийг нарийн амсартай саванд асгах, шүүлтүүрийн цаасаар тунадасыг шүүх юүлүүр. Тунадастай сав руу хараад R дарвал шүүнэ.',
     safety: 'Юүлүүрийг колбонд зөөлөн суулга. Нарийн хошуу нь амархан хугардаг.',
     size: [0.077, 0.112, 0.077],
-    collider: cyl(0.032, 0.112),
+    // Narrow stem below a wide cone, so a ring holds it by the cone with the stem through the ring.
+    collider: { shape: 'compound', parts: [
+      { shape: 'cylinder', radius: 0.014, height: 0.06, offset: [0, 0.03, 0], mass: 0.01 },
+      { shape: 'cylinder', radius: 0.035, height: 0.052, offset: [0, 0.086, 0], mass: 0.05 },
+    ] },
     pickable: true,
     spawnable: true,
     massKg: 0.06,
@@ -664,6 +682,11 @@ export const CATALOG: Record<EquipmentKind, CatalogEntry> = {
     heatJK: 400,
   },
 };
+
+/** A piece on the worktop: its kind, or `kind#n` for the 2nd, 3rd … of the same kind (three beakers). */
+export type BenchKey = EquipmentKind | `${EquipmentKind}#${number}`;
+export const baseKind = (key: string): EquipmentKind => key.split('#')[0] as EquipmentKind;
+export const benchKey = (kind: EquipmentKind, n: number): BenchKey => (n <= 1 ? kind : `${kind}#${n}`);
 
 export const isContainer = (kind: EquipmentKind): boolean => CATALOG[kind].capacityMl !== undefined && kind !== 'spatula';
 
