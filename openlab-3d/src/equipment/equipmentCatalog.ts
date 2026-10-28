@@ -65,7 +65,31 @@ export type TextbookEquipmentKind =
   | 'dripAdjuster'
   | 'wireGauze'
   | 'wellPlate'
-  | 'filterPaper';
+  | 'filterPaper'
+  | 'alcoholLamp'
+  | 'electrode'
+  | 'powerSupply'
+  | 'voltmeter'
+  | 'led'
+  | 'deskLamp'
+  | 'barometer'
+  | 'hammer'
+  | 'brush'
+  | 'straw'
+  | 'ruler'
+  | 'pencil'
+  | 'balloon'
+  | 'crucible'
+  | 'trough'
+  | 'magnet'
+  | 'plasticBag'
+  | 'glassTube'
+  | 'rubberBand'
+  | 'wires';
+
+/** Heat sources: a lit one heats the vessel on a tripod above it. */
+export const HEATERS: EquipmentKind[] = ['bunsenBurner', 'alcoholLamp'];
+export const isHeater = (kind: EquipmentKind): boolean => HEATERS.includes(kind);
 
 export type EquipmentCategory = 'Шилэн сав' | 'Урвалжийн сав' | 'Халаах' | 'Хэмжилт' | 'Багаж' | 'Аюулгүй ажиллагаа';
 
@@ -164,6 +188,26 @@ const TEXTBOOK_CATALOG: Record<TextbookEquipmentKind, CatalogEntry> = {
   wireGauze: textbookTool('wireGauze', 'Шөрмөсөн чулуун тор', [0.14, 0.008, 0.14], box(0.14, 0.008, 0.14), 'Гурван хөлт тавиур дээр тавьж савны ёроолд дулааныг жигд тараана.', 0.12),
   wellPlate: textbookTool('wellPlate', 'Хонхортой таваг', [0.14, 0.018, 0.1], box(0.14, 0.018, 0.1), 'Бага хэмжээний урвалыг олон хонхорт тус тусад нь явуулна.', 0.05),
   filterPaper: textbookTool('filterPaper', 'Шүүлтүүрийн цаас', [0.09, 0.002, 0.09], cyl(0.045, 0.002), 'Тунадасыг юүлүүрээр шүүхэд хэрэглэдэг дугуй цаас.', 0.001),
+  alcoholLamp: { ...textbookTool('alcoholLamp', 'Спиртэн дэн', [0.08, 0.12, 0.08], cyl(0.04, 0.12), 'Спиртийн дөлөөр хуруу шил, аягыг халаана. Гурван хөлт тавиурын доор тавьж асаана.', 0.25), category: 'Халаах', safety: 'Асаалттай дэнг бүү зөө. Малгайгаар нь бүрхэж унтраа.' },
+  electrode: textbookTool('electrode', 'Электрод', [0.012, 0.15, 0.012], cyl(0.006, 0.15), 'Уусмалд дүрж хэлхээнд холбодог металл эсвэл бал чулуун саваа.', 0.02),
+  powerSupply: textbookTool('powerSupply', 'Гүйдэл үүсгэгч', [0.14, 0.08, 0.1], box(0.14, 0.08, 0.1), 'Хэлхээнд тогтмол гүйдэл өгөх тэжээл, холбох утастай.', 0.6),
+  voltmeter: textbookTool('voltmeter', 'Вольтметр', [0.11, 0.09, 0.08], box(0.11, 0.09, 0.08), 'Хоёр электродын хоорондох хүчдэлийг хэмжинэ.', 0.3),
+  led: textbookTool('led', 'Гэрлэн диод', [0.02, 0.05, 0.02], box(0.02, 0.05, 0.02), 'Хэлхээгээр гүйдэл гүйж байгааг гэрэлтэж харуулна.', 0.005),
+  deskLamp: textbookTool('deskLamp', 'Гэрлийн үүсгүүр', [0.14, 0.3, 0.14], box(0.14, 0.3, 0.14), 'Ургамал, дээжийг тогтмол гэрлээр гэрэлтүүлнэ.', 0.8),
+  barometer: textbookTool('barometer', 'Барометр', [0.12, 0.12, 0.04], box(0.12, 0.12, 0.04), 'Агаар, хийн даралтыг хэмжинэ.', 0.4),
+  hammer: textbookTool('hammer', 'Алх', [0.11, 0.03, 0.26], box(0.11, 0.03, 0.26), 'Материалын хатуулаг, хэврэгшлийг сорихдоо цохино.', 0.4),
+  brush: textbookTool('brush', 'Багс', [0.02, 0.02, 0.2], box(0.02, 0.02, 0.2), 'Хамгаалах будаг, тосыг гадаргуу дээр нимгэн түрхэнэ.', 0.01),
+  straw: textbookTool('straw', 'Соруул', [0.008, 0.008, 0.2], cyl(0.004, 0.2), 'Шохойн ус руу амьсгалын хийг үлээж нэвтрүүлнэ.', 0.002),
+  ruler: textbookTool('ruler', 'Шугам', [0.035, 0.003, 0.3], box(0.035, 0.003, 0.3), 'Урт, зай, хроматограммын шилжилтийг хэмжинэ.', 0.02),
+  pencil: textbookTool('pencil', 'Харандаа', [0.008, 0.008, 0.17], cyl(0.004, 0.17), 'Хроматографын цаасан дээр эхлэх шугам татна; бал уусахгүй.', 0.005),
+  balloon: textbookTool('balloon', 'Бөмбөлөг', [0.08, 0.1, 0.08], cyl(0.04, 0.1), 'Үүссэн хийг цуглуулж, эзэлхүүний өөрчлөлтийг харуулна.', 0.003),
+  crucible: textbookTool('crucible', 'Тигль', [0.05, 0.045, 0.05], cyl(0.025, 0.045), 'Хатуу бодисыг хүчтэй халаах шаазан сав.', 0.05),
+  trough: textbookTool('trough', 'Том сав (усан онгоц)', [0.3, 0.1, 0.2], box(0.3, 0.1, 0.2), 'Хийг ус түрж хураах, савыг усанд дүрэхэд хэрэглэх өргөн сав.', 0.6),
+  magnet: textbookTool('magnet', 'Соронз', [0.06, 0.012, 0.03], box(0.06, 0.012, 0.03), 'Төмрийн үртэсийг хольцоос ялгана.', 0.05),
+  plasticBag: textbookTool('plasticBag', 'Гялгар уут', [0.16, 0.01, 0.2], box(0.16, 0.01, 0.2), 'Хий эсвэл дээжийг битүү хадгалж, ажиглана.', 0.005),
+  glassTube: textbookTool('glassTube', 'Шилэн хоолой', [0.014, 0.014, 0.3], cyl(0.007, 0.3), 'Хий, шингэнийг дамжуулах эсвэл диффузийг ажиглах шулуун шилэн хоолой.', 0.03),
+  rubberBand: textbookTool('rubberBand', 'Резин', [0.05, 0.006, 0.05], cyl(0.025, 0.006), 'Уут, савны амсрыг битүү боох резинэн бүч.', 0.002),
+  wires: textbookTool('wires', 'Холбох утас', [0.12, 0.012, 0.08], box(0.12, 0.012, 0.08), 'Хавчаартай улаан, хар утсаар хэлхээний хэсгүүдийг холбоно.', 0.02),
 };
 
 export const CATALOG: Record<EquipmentKind, CatalogEntry> = {

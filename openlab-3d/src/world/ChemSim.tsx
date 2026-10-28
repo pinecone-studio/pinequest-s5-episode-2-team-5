@@ -13,7 +13,7 @@ import {isGrade9Rig} from '../experiments/grade9/kinds';
 import { useEffect, useRef } from 'react';
 import { useFrame } from '@react-three/fiber';
 import { interactables } from '../interaction/registry';
-import { CATALOG, isContainer, type EquipmentKind } from '../equipment/equipmentCatalog';
+import { CATALOG, isContainer, isHeater, type EquipmentKind } from '../equipment/equipmentCatalog';
 import { liquidMl, takeLiquid, type Mixture } from '../chemistry/mixture';
 import { DEFAULT_ENV } from '../chemistry/kinetics';
 import { mixtureOf, seedMixture, useChemStore } from '../store/useChemStore';
@@ -66,7 +66,7 @@ function simulate(dt: number): void {
 
   // Which vessels sit over a lit burner (on a tripod)?
   const heat = new Map<string, number>();
-  const burners = inv.worldItems.filter((w) => w.kind === 'bunsenBurner' && toggles[w.id] && !isBenchPaused(w.id)).map(livePose);
+  const burners = inv.worldItems.filter((w) => isHeater(w.kind) && toggles[w.id] && !isBenchPaused(w.id)).map(livePose);
   if (burners.length > 0) {
     for (const w of inv.worldItems) {
       if (!isContainer(w.kind) || w.kind === 'burette') continue;

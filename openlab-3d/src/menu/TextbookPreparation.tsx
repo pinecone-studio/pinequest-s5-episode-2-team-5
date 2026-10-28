@@ -1,11 +1,11 @@
 /**
  * «Бэлтгэлээ хийе»: лаб ширээн дээрх хэрэгслийг өөрөө хянаж чадахгүй туршилтад (лабын заавар олдоогүй,
  * эсвэл хэрэгслийн жагсаалтгүй) сурах бичгийн бодис, хэрэгслийн жагсаалтыг харуулна.
- * Сурагч бэлдсэнээ тэмдэглээд «Бэлэн боллоо» дарахад карт «Туршилт» болж алхмаа харуулна.
+ * Мөр бүрийг дарахад тэр хэрэгсэл/бодис ширээн дээр гарна; «Бэлэн боллоо» дарахад карт «Туршилт» болж алхмаа харуулна.
  * Харагдах байдал нь лабын өөрийн бэлтгэл (PreparationChecklist)-тэй адил.
  */
 import { useLaunchedProcedure } from './launchedProcedure';
-import { spawnTextbookEquipment } from './textbookEquipment';
+import { spawnTextbookItem, spawnTextbookSupplies } from './textbookEquipment';
 import { useGameStore } from '../store/useGameStore';
 
 export function TextbookPreparation() {
@@ -14,16 +14,22 @@ export function TextbookPreparation() {
   const toggleChecked = useLaunchedProcedure((s) => s.toggleChecked);
   const finishPrep = useLaunchedProcedure((s) => s.finishPrep);
   if (!prep) return null;
+  const warnMissing = (missing: string[]) => {
+    if (missing.length) useGameStore.getState().showToast('Зарим зүйлд лабын загвар алга', missing.slice(0, 3).join(' · '));
+  };
+  // Teacher: everything the book lists goes on the bench at once.
   const skipPrep = () => {
-    const unsupported = spawnTextbookEquipment(prep.equipment);
+    warnMissing(spawnTextbookSupplies(prep));
     finishPrep();
-    if (unsupported.length) {
-      useGameStore.getState().showToast('Зарим хэрэгсэлд 3D загвар алга', unsupported.slice(0, 3).join(' · '));
-    }
+  };
+  // Ticking a line puts that item on the bench, so the table matches the list.
+  const pick = (key: string, name: string, group: 'equipment' | 'substance') => {
+    if (!checked.includes(key)) warnMissing(spawnTextbookItem(prep, name, group));
+    toggleChecked(key);
   };
   const groups = [
-    { label: 'Хэрэгсэл', items: prep.equipment.map((name) => ({ key: `e:${name}`, name })) },
-    { label: 'Бодис', items: prep.substances.map((name) => ({ key: `s:${name}`, name })) },
+    { label: 'Хэрэгсэл', group: 'equipment' as const, items: prep.equipment.map((name) => ({ key: `e:${name}`, name })) },
+    { label: 'Бодис', group: 'substance' as const, items: prep.substances.map((name) => ({ key: `s:${name}`, name })) },
   ].filter((group) => group.items.length > 0);
   const total = groups.reduce((sum, group) => sum + group.items.length, 0);
   const ready = groups.reduce((sum, group) => sum + group.items.filter((item) => checked.includes(item.key)).length, 0);
@@ -37,7 +43,7 @@ export function TextbookPreparation() {
       <div className="mt-2 h-2 overflow-hidden rounded-full bg-indigo-950/50">
         <div className="h-full rounded-full bg-lime-300 transition-all" style={{ width: `${total ? ready / total * 100 : 100}%` }} />
       </div>
-      <p className="mt-1 text-[11px] text-indigo-100">Хэрэгсэл, бодисоо бэлдээд тэмдэглэ → бүгд бэлэн болмогц туршилт эхэлнэ.</p>
+      <p className="mt-1 text-[11px] text-indigo-100">Хэрэгсэл, бодис бүрийг дарж ширээнд гарга → бүгд бэлэн болмогц туршилт эхэлнэ.</p>
     </header>
     <div className="space-y-2.5 p-3">
       {groups.length === 0 && <p className="rounded-lg bg-slate-50 px-2 py-1.5 text-xs text-slate-700">Энэ туршилтад тусгай хэрэгсэл, бодис заагаагүй байна.</p>}
@@ -47,7 +53,7 @@ export function TextbookPreparation() {
           <div className="mt-1 flex flex-wrap gap-1.5">
             {group.items.map((item) => {
               const on = checked.includes(item.key);
-              return <button key={item.key} type="button" aria-pressed={on} onClick={() => toggleChecked(item.key)} className={`focus-ring rounded-full border px-2 py-1 text-left text-[10px] font-semibold ${on ? 'border-emerald-500 bg-emerald-100 text-emerald-900' : 'border-slate-300 bg-slate-100 text-slate-700'}`}>
+              return <button key={item.key} type="button" aria-pressed={on} onClick={() => pick(item.key, item.name, group.group)} className={`focus-ring rounded-full border px-2 py-1 text-left text-[10px] font-semibold ${on ? 'border-emerald-500 bg-emerald-100 text-emerald-900' : 'border-slate-300 bg-slate-100 text-slate-700'}`}>
                 {on ? '✓' : '○'} {item.name}
               </button>;
             })}

@@ -191,6 +191,27 @@ export function EquipmentModel({ kind, variant, mixture, itemId, lit, flameColor
     case 'wireGauze':
     case 'wellPlate':
     case 'filterPaper':
+    case 'electrode':
+    case 'powerSupply':
+    case 'voltmeter':
+    case 'led':
+    case 'deskLamp':
+    case 'barometer':
+    case 'hammer':
+    case 'brush':
+    case 'straw':
+    case 'ruler':
+    case 'pencil':
+    case 'balloon':
+    case 'crucible':
+    case 'trough':
+    case 'magnet':
+    case 'plasticBag':
+    case 'glassTube':
+    case 'rubberBand':
+    case 'wires':
       return <TextbookEquipmentModel kind={kind} {...props} />;
+    case 'alcoholLamp':
+      return <TextbookEquipmentModel kind={kind} lit={lit} {...props} />;
   }
 }

@@ -42,6 +42,17 @@ export function reactCurriculum(m:Mixture,dt:number):ChemicalChange[]{
  if(gaseous(m,'C2H4')>0&&aq(m,'MnO4')>0&&m.water>0){const dn=Math.min(gaseous(m,'C2H4')/3,aq(m,'MnO4')/2,m.water/18.015/4)*fraction(.15);putG(m,'C2H4',-3*dn);putA(m,'MnO4',-2*dn);putA(m,'glycol',3*dn);putS(m,'MnO2',2*dn);m.water-=4*dn*18.015;report('3C₂H₄ + 2MnO₄⁻ + 4H₂O → 3C₂H₆O₂ + 2MnO₂ + 2OH⁻',dn,'precipitate');}
  // Acid dichromate oxidises ethanol to ethanoic acid. Charge balance consumes H+.
  if(m.temp>=40&&m.ethanol>0&&aq(m,'Cr2O7')>0){const dn=Math.min(m.ethanol*.789/46.069/3,aq(m,'Cr2O7')/2,Math.max(0,acidityToNeutral(m))/16)*fraction(.06);m.ethanol-=3*dn*46.069/.789;putA(m,'Cr2O7',-2*dn);putA(m,'Cr3',4*dn);putA(m,'Ac',3*dn);m.water+=11*dn*18.015;report('3C₂H₅OH + 2Cr₂O₇²⁻ + 16H⁺ → 3CH₃COOH + 4Cr³⁺ + 11H₂O',dn,'color');}
+ // Acid permanganate does the same oxidation; purple MnO₄⁻ fades to pale Mn²⁺.
+ if(m.temp>=40&&m.ethanol>0&&aq(m,'MnO4')>0){const dn=Math.min(m.ethanol*.789/46.069/5,aq(m,'MnO4')/4,Math.max(0,acidityToNeutral(m))/12)*fraction(.06);m.ethanol-=5*dn*46.069/.789;putA(m,'MnO4',-4*dn);putA(m,'Mn',4*dn);putA(m,'Ac',5*dn);m.water+=11*dn*18.015;report('5C₂H₅OH + 4MnO₄⁻ + 12H⁺ → 5CH₃COOH + 4Mn²⁺ + 11H₂O',dn,'color');}
+ // Hot copper oxide is reduced by hydrogen held over it: black → pink copper.
+ if(m.temp>=150&&sol(m,'CuO')>0&&gaseous(m,'H2')>0){const dn=Math.min(sol(m,'CuO'),gaseous(m,'H2'))*fraction(.2);putS(m,'CuO',-dn);putG(m,'H2',-dn);putS(m,'Cu',dn);putG(m,'H2O',dn);report('CuO + H₂ → Cu + H₂O',dn,'color');}
+ // Iron(II) sulfide and acid give H₂S, which precipitates the sulfides of Cu, Pb and Cd.
+ if(m.water>0&&sol(m,'FeS')>0){const dn=Math.min(sol(m,'FeS'),Math.max(0,acidityToNeutral(m))/2)*fraction(.1);putS(m,'FeS',-dn);putA(m,'Fe2',dn);putG(m,'H2S',dn);report('FeS + 2H⁺ → Fe²⁺ + H₂S',dn,'gas');}
+ for(const [ion,sulfide] of [['Cu','CuS'],['Pb','PbS'],['Cd','CdS']] as const){
+  if(m.water>0&&gaseous(m,'H2S')>0&&aq(m,ion)>0){const dn=Math.min(gaseous(m,'H2S'),aq(m,ion))*fraction(.5);putG(m,'H2S',-dn);putA(m,ion,-dn);putS(m,sulfide,dn);report(`${ion}²⁺ + H₂S → ${SOLIDS[sulfide].formula}↓ + 2H⁺`,dn,'precipitate');}
+ }
+ // Concentrated sulfuric acid strips water from sugar, leaving a hot column of carbon.
+ if(m.from.includes('h2so4_conc')&&aq(m,'sulfuricNeat')/Math.max(.001,liquidMl(m)/1000)>=6&&sol(m,'sucrose')+aq(m,'sucrose')>0){const dn=(sol(m,'sucrose')+aq(m,'sucrose'))*fraction(.05);const s=Math.min(sol(m,'sucrose'),dn);putS(m,'sucrose',-s);putA(m,'sucrose',-(dn-s));putS(m,'C',12*dn);m.water+=11*dn*18.015;m.temp=Math.min(120,m.temp+dn*900000/(4.18*Math.max(5,liquidMl(m))+40));report('C₁₂H₂₂O₁₁ → 12C + 11H₂O',dn,'precipitate');}
  // Catalysed ethanol dehydration and hydrocarbon cracking are distinct heat regimes.
  const acid=(m.ethanol>0||aq(m,'Ac')+aq(m,'aceticNeat')+aq(m,'ethylAcetate')>0)&&acidState(m).h>.01;
  if(m.temp>=160&&m.temp<250&&m.ethanol>0&&m.from.includes('h2so4_conc')&&acid){const dn=m.ethanol*.789/46.069*fraction(.02);m.ethanol-=dn*46.069/.789;m.water+=dn*18.015;putG(m,'C2H4',dn);report('C₂H₅OH → C₂H₄ + H₂O',dn,'gas');}

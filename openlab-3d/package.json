@@ -9,7 +9,7 @@
     "build:chemquest": "tsc -b && vite build --base /openlab/ --outDir ../public/openlab --emptyOutDir",
     "typecheck": "tsc -b --noEmit",
     "preview": "vite preview",
-    "test:workbench": "node --experimental-strip-types --test tests/molecules.test.mjs tests/mobile-interaction.test.mjs tests/quality-governor.test.mjs tests/still-batch.test.mjs",
+    "test:workbench": "node --experimental-strip-types --test tests/molecules.test.mjs tests/mobile-interaction.test.mjs tests/quality-governor.test.mjs tests/still-batch.test.mjs tests/book-supplies.test.mjs tests/textbook-chemistry.test.mjs",
     "test:production": "node scripts/production-smoke.mjs"
   },
   "dependencies": {

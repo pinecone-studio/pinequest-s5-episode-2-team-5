@@ -1,82 +1,22 @@
-import { CATALOG, type EquipmentKind } from '../equipment/equipmentCatalog';
+import { bookSupplies } from '../experiments/workbench/bookSupplies';
 import { collectSupply } from '../experiments/workbench/session';
-
-type EquipmentKinds = EquipmentKind | EquipmentKind[];
-
-const EQUIPMENT_KIND: Record<string, EquipmentKinds> = {
-  'шилэн аяга': 'beaker',
-  'хуванцар аяга': 'plasticCup',
-  'ууршуулагч аяга': 'evaporatingDish',
-  'талстжуулагч': 'crystallizingDish',
-  'хуруу шил': 'testTube',
-  'бөглөөтэй хуруу шил': ['testTube', 'corkStopper'],
-  'чанамлын шил': 'testTube',
-  'хий дамжуулах хоолой': 'gasDeliveryTube',
-  'штатив': 'retortStand',
-  'зомгол': 'splint',
-  'хуруу шилний тавиур': 'testTubeRack',
-  'хэмжээст цилиндр': 'graduatedCylinder',
-  'шувтан колбо': 'erlenmeyer',
-  'хугацаа хэмжигч': 'stopwatch',
-  'техник жин': 'scale',
-  'жин': 'scale',
-  'термометр': 'thermometer',
-  'тигелийн хавчаар': 'tongs',
-  'хавчаар': 'testTubeHolder',
-  'шилэн савх': 'glassRod',
-  'хутгуур': 'glassRod',
-  'дусаагуур': 'pipette',
-  'тариур': 'syringe',
-  'дуслын системийн тохируулагч': 'dripAdjuster',
-  'шүүлтүүрийн цаас': 'filterPaper',
-  'салфетка': 'tissue',
-  'шүүлтүүр': 'waterFilter',
-  'юүлүүр': 'funnel',
-  'халаагуур': 'bunsenBurner',
-  'шөрмөсөн чулуун тор': 'wireGauze',
-  'гурван хөлт тавиур': 'tripod',
-  'зүлгүүр': 'sandpaper',
-  'хөвөн': 'cottonWool',
-  'чүдэнз': 'matches',
-  'насос': 'handPump',
-  'u хэлбэрийн хоолой': 'uTube',
-  'хөнгөнцагаан лааз': 'aluminumCan',
-  'хутга': 'knife',
-  'томруулагч шил': 'magnifyingGlass',
-  'цагийн шил': 'watchGlass',
-  'хонхортой таваг': 'wellPlate',
-  'нэг удаагийн таваг': 'disposableDish',
-  'үр суулгах сав': 'seedPot',
-  'ундааны сав': 'plasticBottle',
-  'хуванцар сав': 'plasticBottle',
-  'бөглөө': 'corkStopper',
-  'балны таг': 'penCap',
-  'баримлын шавар': 'modellingClay',
-};
+import type { TextbookPrep } from './launchedProcedure';
 
 let skipSequence = 0;
 
-/** Put the textbook equipment that has a lab model directly on the shared workbench. */
-export function spawnTextbookEquipment(equipment: string[]): string[] {
+/**
+ * Put textbook equipment and substances on the shared workbench (experiments without a lab
+ * guide). Items already standing on the bench are reused, not doubled. Returns any name that has
+ * no lab item (bookSupplies.ts maps them all; tests/book-supplies.test.mjs keeps it that way).
+ */
+export function spawnTextbookSupplies(prep: Pick<TextbookPrep, 'id' | 'equipment' | 'substances'>): string[] {
   const run = ++skipSequence;
-  const spawned = new Set<EquipmentKind>();
-  const unsupported: string[] = [];
+  const { supplies, unmatched } = bookSupplies(prep);
+  for (const supply of supplies) collectSupply({ ...supply, key: `textbook-${run}-${supply.key}` });
+  return unmatched;
+}
 
-  for (const label of equipment) {
-    const key = label.toLocaleLowerCase('mn').replace(/\s+/g, ' ').trim();
-    const mapped = EQUIPMENT_KIND[key];
-    if (!mapped) {
-      unsupported.push(label);
-      continue;
-    }
-    const kinds = Array.isArray(mapped) ? mapped : [mapped];
-    for (const kind of kinds) {
-      if (spawned.has(kind)) continue;
-      spawned.add(kind);
-      const item = CATALOG[kind];
-      collectSupply({ key: `textbook-skip-${run}-${kind}`, kind, name: item.name, use: item.description });
-    }
-  }
-
-  return unsupported;
+/** One line of «Бэлтгэлээ хийе»: the equipment or substance it names. */
+export function spawnTextbookItem(prep: Pick<TextbookPrep, 'id'>, name: string, group: 'equipment' | 'substance'): string[] {
+  return spawnTextbookSupplies({ id: prep.id, equipment: group === 'equipment' ? [name] : [], substances: group === 'substance' ? [name] : [] });
 }

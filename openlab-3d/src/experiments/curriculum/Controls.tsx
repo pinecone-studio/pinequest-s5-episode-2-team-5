@@ -16,10 +16,10 @@ export function CurriculumControls({id,rig}:{id:string;rig:RigState}){
  const held=useInventoryStore(s=>s.held),hm=held?useChemStore.getState().mixtures[held.id]??mixtureOf(held.id,held.variant):undefined;
  const gas=!!hm&&gasMl(hm)>0&&liquidMl(hm)<.005,solid=!!hm&&solidMassG(hm)>0&&liquidMl(hm)<.005&&!gas;
  const style='min-h-10 rounded-lg border border-slate-300 bg-white px-3 py-2 text-xs font-semibold disabled:opacity-40';
- const thermal=['phaseBath','refluxBath','magneticReactor','combustionFurnace','opticalBench','dryingOven','pressureCell','refluxReactor','limeFurnace','oilColumn','crackingTube','dehydrationFlask','fermenter','enzymeRack'].includes(kind);
+ const thermal=['electrolysisCell','phaseBath','refluxBath','magneticReactor','combustionFurnace','opticalBench','dryingOven','pressureCell','refluxReactor','limeFurnace','oilColumn','crackingTube','dehydrationFlask','fermenter','enzymeRack'].includes(kind);
  const electrical=['electrolysisCell','migrationTube'].includes(kind);
  const speed=['exposureRack','soilBench','fermenter','enzymeRack','electrolysisCell','galvanicCell'].includes(kind);
- const maxTemp=kind==='magneticReactor'||kind==='oilColumn'?400:kind==='combustionFurnace'||kind==='limeFurnace'?1100:kind==='crackingTube'?700:kind==='phaseBath'?150:kind==='dryingOven'?250:kind==='dehydrationFlask'?220:kind==='refluxBath'?100:kind==='enzymeRack'||kind==='fermenter'?100:kind==='pressureCell'?650:180;
+ const maxTemp=kind==='magneticReactor'||kind==='oilColumn'||kind==='electrolysisCell'?400:kind==='combustionFurnace'||kind==='limeFurnace'?1100:kind==='crackingTube'?700:kind==='phaseBath'?150:kind==='dryingOven'?250:kind==='dehydrationFlask'?220:kind==='refluxBath'?100:kind==='enzymeRack'||kind==='fermenter'?100:kind==='pressureCell'?650:180;
  const select=(port:number)=>{change({port});useChemStore.getState().setMixtures({[id]:rig.chambers[port]});};
  const start=()=>{store.start(id);const next=useGrade9Apparatus.getState().rigs[id];if(next.running)useChemStore.getState().setMixtures({[id]:next.chambers[next.port]});};
  return <section className="my-3 space-y-3 border-t border-slate-200 pt-3" aria-label="Сурах бичгийн багажийн удирдлага">

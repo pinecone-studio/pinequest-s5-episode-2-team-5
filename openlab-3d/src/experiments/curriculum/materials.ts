@@ -1,4 +1,4 @@
-import type { AqDef, SolidDef } from '../../chemistry/species';
+import type { AqDef, SolidDef, SolidId } from '../../chemistry/species';
 import type { Reagent } from '../../chemistry/reagents';
 
 export const GASES = {
@@ -13,6 +13,7 @@ export const GASES = {
  NO2:{name:'Азотын диоксид',formula:'NO₂',molarMass:46.0055,color:'#a66a36'},
  N2O4:{name:'Азотын тетроксид',formula:'N₂O₄',molarMass:92.011,color:'#e2e8f0'},
  NH3:{name:'Аммиак хий',formula:'NH₃',molarMass:17.031,color:'#e2e8f0'},
+ H2S:{name:'Устөрөгчийн сульфид',formula:'H₂S',molarMass:34.08,color:'#e8e3b0'},
  H2O:{name:'Усны уур',formula:'H₂O',molarMass:18.015,color:'#e2e8f0'},
  Ar:{name:'Аргон',formula:'Ar',molarMass:39.948,color:'#cbd5e1'},
  tracer:{name:'Тархалтын тэмдэгт хий',formula:'Тэмдэгт',molarMass:100,color:'#a78bfa'},
@@ -27,6 +28,8 @@ export const EXTRA_AQ = {
  glucose:aq('Глюкоз','C₆H₁₂O₆',0,180.156), maltose:aq('Мальтоз','C₁₂H₂₂O₁₁',0,342.297),
  diamine:aq('Гексаметилендиамин','H₂N(CH₂)₆NH₂',0,116.208), sebacoyl:aq('Себакоилхлорид','ClCO(CH₂)₈COCl',0,239.14),
  dissolvedO2:aq('Ууссан хүчилтөрөгч','O₂(aq)',0,31.998),
+ // Flame-test (X анги) and sulfide-precipitation salts from the textbooks.
+ Rb:aq('Рубидийн ион','Rb⁺',1,85.468), Sr:aq('Стронцийн ион','Sr²⁺',2,87.62), Cd:aq('Кадмийн ион','Cd²⁺',2,112.41),
  sulfuricNeat:solvent('Концентрацтай хүхрийн хүчил','H₂SO₄',98.079,1.84,337),
  dibromoethane:solvent('1,2-дибромэтан','C₂H₄Br₂',187.862,2.18,131.4),
  acetone:solvent('Ацетон','C₃H₆O',58.08,.7845,56.05), oilFluid:solvent('Ургамлын тос','Триглицерид (жишээ)',885.45,.91,350),
@@ -55,11 +58,32 @@ export const EXTRA_SOLIDS = {
  nylon610:solid('Найлон-6,10 давтагдах нэгж','[C₁₆H₃₀N₂O₂]ₙ',282.428,'#f4f1e2'),
  nylonEnds:solid('Найлоны төгсгөлийн бүлгүүд','–NH₂ / –COCl төгсгөл',36.46,'#eee8d5'),
  PET:solid('PET савны дээж','PET (г)',1,'#a4d6df'), PE:solid('PE уутны дээж','PE (г)',1,'#dddfea'),
+ // Textbook metals and salts the activity series and electrolysis use.
+ Ca:{...solid('Кальци','Ca',40.078,'#dcdcd2'),metal:true}, Pb:{...solid('Хар тугалга','Pb',207.2,'#6b7280'),metal:true},
+ PbBr2:solid('Хар тугалганы (II) бромид','PbBr₂',367.01,'#f2f2ec'),
+ // ~32 g/100 мл at 20 °C, ~110 at 60 °C: the classic recrystallisation salt.
+ KNO3:{...solid('Калийн нитрат','KNO₃',101.103,'#f6f8f8'),dissolve:{products:{K:1,NO3:1},solubility:3.1,dH:35,doubling:24}},
+ Ag2CrO4:solid('Мөнгөний хромат','Ag₂CrO₄',331.73,'#a3392b'),
+ CuS:solid('Зэсийн (II) сульфид','CuS',95.61,'#1f1f22'),PbS:solid('Хар тугалганы (II) сульфид','PbS',239.27,'#2b2b2e'),CdS:solid('Кадмийн сульфид','CdS',144.48,'#f2c230'),
+ aspirin:solid('Аспирин','C₉H₈O₄',180.158,'#f7f7f2'),
+ // Everyday textbook samples, recorded in grams like the soils and seeds above.
+ apple:solid('Алим','Алим (г)',1,'#c2362f'), lemonFruit:solid('Нимбэг','Нимбэг (г)',1,'#f2d93a'), orange:solid('Жүрж','Жүрж (г)',1,'#f28c28'),
+ potato:solid('Төмс','Төмс (г)',1,'#c9a46a'), liver:solid('Шинэхэн элэг','Элэг · каталаза (г)',1,'#7a2f2a'),
+ gravel:solid('Хайрга','Хайрга (г)',1,'#8d8a80'), pebbles:solid('Жижиг чулуу','Чулуу (г)',1,'#a39e93'),
+ charcoal:solid('Модны нүүрс','C (г)',12.011,'#2b2b2b'), activatedCarbon:solid('Идэвхжүүлсэн нүүрс','C (г)',12.011,'#1c1c1c'),
+ detergent:solid('Угаагч нунтаг','Угаагч (г)',1,'#e8eef8'), tobacco:solid('Тамхи','Тамхины навч (г)',1,'#6b4a2b'),
+ mineralWool:solid('Эрдэс хөвөн','Эрдэс хөвөн (г)',1,'#d9cfb8'), vaseline:solid('Вазелин','Вазелин (г)',1,'#f1e7c4'),
 };
 export type ExtraSolidId=keyof typeof EXTRA_SOLIDS;
-export type ExtraReagentId='gas_o2'|'gas_n2'|'gas_h2'|'gas_co2'|'gas_ch4'|'gas_ethene'|'gas_no2'|'gas_n2o4'|'gas_air'|'gas_tracer'|'s_nickel'|'s_silver'|'s_wax'|'s_benzoic'|'s_glucose'|'s_yeast'|'s_amylase'|'s_alumina'|'s_glass_beads'|'model_carbon'|'model_hydrogen'|'pet_waste'|'pe_waste'|'soil_sandy'|'soil_loam'|'soil_clay'|'s_seeds'|'acetone'|'hexane'|'octane'|'decane'|'crude_oil'|'cyclohexane'|'glacial_acetic'|'h2so4_conc'|'hno3'|'alcl3'|'niso4'|'thiosulfate'|'cu_chromate'|'glucose'|'amylase'|'diamine'|'sebacoyl'|'corn_syrup'|'deoxygenated_water'|'kaolin'|'s_silt'|'s_humus';
+export type ExtraReagentId='gas_o2'|'gas_n2'|'gas_h2'|'gas_co2'|'gas_ch4'|'gas_ethene'|'gas_no2'|'gas_n2o4'|'gas_air'|'gas_tracer'|'s_nickel'|'s_silver'|'s_wax'|'s_benzoic'|'s_glucose'|'s_yeast'|'s_amylase'|'s_alumina'|'s_glass_beads'|'model_carbon'|'model_hydrogen'|'pet_waste'|'pe_waste'|'soil_sandy'|'soil_loam'|'soil_clay'|'s_seeds'|'acetone'|'hexane'|'octane'|'decane'|'crude_oil'|'cyclohexane'|'glacial_acetic'|'h2so4_conc'|'hno3'|'alcl3'|'niso4'|'thiosulfate'|'cu_chromate'|'glucose'|'amylase'|'diamine'|'sebacoyl'|'corn_syrup'|'deoxygenated_water'|'kaolin'|'s_silt'|'s_humus'
+ |'s_ca'|'s_pb'|'s_pbbr2'|'s_kno3'|'s_fes'|'s_aspirin'|'s_apple'|'s_lemon'|'s_orange'|'s_potato'|'s_liver'|'s_gravel'|'s_pebbles'|'s_charcoal'|'s_activated_carbon'
+ |'s_detergent'|'s_tobacco'|'s_mineral_wool'|'s_vaseline'|'s_corn_seeds'|'s_barley'|'s_pondweed'|'s_iron_nails'|'s_steel_nails'|'s_galvanized_nails'|'s_iron_item'
+ |'milk'|'apple_juice'|'orange_juice'|'tap_water'|'river_water'|'dirty_water'|'motor_oil'|'sugar_solution'|'unknown_salt'|'cuno3'|'mgno3'|'cano3'|'znno3'|'al2so4'|'na2cro4'
+ |'rbcl'|'srcl2'|'cdso4'|'hcl_conc'|'nh3_conc'|'veg_oil'|'paraffin_oil';
 const jar=(id:ExtraReagentId,material:ExtraSolidId,name:string):Reagent=>({id,name,label:EXTRA_SOLIDS[material].formula,category:'solid',container:'reagentJar',stock:100,solid:material,hazards:[],note:'Ширээн дээр хэмжиж хийдэг дээж. Нэгж нь г.',stripe:EXTRA_SOLIDS[material].color});
 const bottle=(id:ExtraReagentId,name:string,solutes:Reagent['solution'],hazards:Reagent['hazards']=[]):Reagent=>({id,name,label:name.split(' · ')[0],category:'special',container:'reagentBottle',stock:250,solution:solutes,hazards,note:'Хэмжсэн мл-ээр шилжүүл. Шошгын концентрацыг шалга.',stripe:'#6b9cbd'});
+/** A jar of one of the lab's own solids (metals, salts) under the textbook's name. */
+const sample=(id:ExtraReagentId,material:SolidId,name:string,stripe:string):Reagent=>({id,name,label:name,category:'solid',container:'reagentJar',stock:100,solid:material,hazards:[],note:'Сурах бичгийн туршилтын дээж. Нэгж нь г.',stripe});
 const pure=(id:ExtraReagentId,material:ExtraAqId,name:string):Reagent=>({...bottle(id,name,{solutes:{}}),liquid:material,hazards:['flammable','irritant']});
 const gas=(id:ExtraReagentId,kind:GasId,name:string=GASES[kind].name):Reagent=>({id,name,label:GASES[kind].formula,category:'special',container:'gasCylinder',stock:2000,gas:kind,hazards:kind==='H2'||kind==='CH4'||kind==='C2H4'?['flammable']:kind==='NO2'||kind==='N2O4'?['toxic']:[],note:'Хийн баллон. 22°C орчимд 24 л/моль жишгээр мл-ээр тунлана. Хоолой, хаалттай угсралт хэрэглэ.',stripe:GASES[kind].color});
 export const EXTRA_REAGENTS:Reagent[]=[
@@ -81,4 +105,23 @@ export const EXTRA_REAGENTS:Reagent[]=[
  {...bottle('sebacoyl','Себакоилхлорид · 0.1 М (циклогексан)',{solutes:{sebacoyl:.1}},['corrosive','flammable']),solvent:'cyclohexane'},
  bottle('corn_syrup','Эрдэнэ шишийн сироп · сахарозын жишээ',{solutes:{sucrose:2}}),
  {...bottle('deoxygenated_water','Буцалгаад хөргөсөн агааргүй ус',{solutes:{}}),note:'Ууссан O₂-гүй гэж бэлтгэсэн хяналт. Нээлттэй орхивол дахин агаар орно.'},
+ // Substances the 7–10-р ангийн сурах бичиг lists that the lab did not stock yet.
+ jar('s_ca','Ca','Кальци'),jar('s_pb','Pb','Хар тугалга'),jar('s_pbbr2','PbBr2','Хар тугалганы (II) бромид'),jar('s_kno3','KNO3','Калийн нитрат'),jar('s_fes','FeS','Төмрийн (II) сульфид'),
+ jar('s_aspirin','aspirin','Аспирины шахмал'),jar('s_apple','apple','Алим'),jar('s_lemon','lemonFruit','Нимбэг'),jar('s_orange','orange','Жүрж'),jar('s_potato','potato','Төмс'),jar('s_liver','liver','Шинэхэн элэг'),
+ jar('s_gravel','gravel','Хайрга'),jar('s_pebbles','pebbles','Жижиг чулуу'),jar('s_charcoal','charcoal','Модны нүүрс'),jar('s_activated_carbon','activatedCarbon','Идэвхжүүлсэн нүүрс'),
+ jar('s_detergent','detergent','Угаагч нунтаг'),jar('s_tobacco','tobacco','Тамхи'),jar('s_mineral_wool','mineralWool','Эрдэс хөвөн'),jar('s_vaseline','vaseline','Вазелин'),
+ jar('s_corn_seeds','seed','Эрдэнэ шишийн үр'),jar('s_barley','seed','Арвайн үр'),jar('s_pondweed','plant','Усны ургамал'),
+ sample('s_iron_nails','Fe','Төмөр хадаас','#52525b'),sample('s_steel_nails','Fe','Ган хадаас','#71717a'),sample('s_galvanized_nails','Zn','Цайраар бүрсэн хадаас','#a2aab1'),sample('s_iron_item','Fe','Төмөр эдлэл','#57534e'),
+ {...bottle('milk','Сүү',{solutes:{Ac:.0003}}),color:'#f4f1e8'},{...bottle('apple_juice','Алимны шүүс',{solutes:{Cit:.02}}),color:'#e9c46a'},{...bottle('orange_juice','Жүржийн шүүс',{solutes:{Cit:.04}}),color:'#f4a259'},
+ bottle('tap_water','Крантны ус',{solutes:{Ca:.001,Cl:.002}}),{...bottle('river_water','Голын ус',{solutes:{Ca:.0015,Cl:.003}}),blend:{silt:.4}},
+ {...bottle('dirty_water','Бохирдсон ус',{solutes:{}}),blend:{silt:2,humus:.5},color:'#8a7a5a'},
+ {...bottle('motor_oil','Хөдөлгүүрийн тос',{solutes:{}}),liquid:'hexadecane',color:'#3a2a18',hazards:['flammable','env']},
+ bottle('sugar_solution','Сахарын уусмал',{solutes:{sucrose:.3}}),
+ {...bottle('unknown_salt','Үл мэдэгдэх давсны уусмал',{solutes:{Fe2:.1,SO4:.1}}),label:'?',note:'Ионыг сорилоор тодорхойлох дээж. Шошгон дээр найрлага бичээгүй.'},
+ bottle('cuno3','Cu(NO₃)₂ · 0.5 М',{solutes:{Cu:.5,NO3:1}},['irritant','env']),bottle('mgno3','Mg(NO₃)₂ · 0.5 М',{solutes:{Mg:.5,NO3:1}}),
+ bottle('cano3','Ca(NO₃)₂ · 0.5 М',{solutes:{Ca:.5,NO3:1}}),bottle('znno3','Zn(NO₃)₂ · 0.5 М',{solutes:{Zn:.5,NO3:1}}),
+ bottle('al2so4','Al₂(SO₄)₃ · 0.1 М',{solutes:{Al:.2,SO4:.3}}),bottle('na2cro4','Na₂CrO₄ · 0.1 М',{solutes:{Na:.2,CrO4:.1}},['toxic','env']),
+ bottle('rbcl','RbCl · 0.5 М',{solutes:{Rb:.5,Cl:.5}}),bottle('srcl2','SrCl₂ · 0.5 М',{solutes:{Sr:.5,Cl:1}}),bottle('cdso4','CdSO₄ · 0.1 М',{solutes:{Cd:.1,SO4:.1}},['toxic','env']),
+ bottle('hcl_conc','Өтгөрүүлсэн давсны хүчил · 6 М',{solutes:{Cl:6}},['corrosive','irritant']),bottle('nh3_conc','Өтгөрүүлсэн аммиакийн уусмал · 6 М',{solutes:{NH3:6}},['corrosive','irritant']),
+ pure('veg_oil','oilFluid','Ургамлын тос'),pure('paraffin_oil','waxLiquid','Парафины тос'),
 ];

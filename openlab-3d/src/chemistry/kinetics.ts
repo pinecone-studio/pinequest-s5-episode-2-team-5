@@ -5,7 +5,7 @@ import { reactCurriculum } from '../experiments/curriculum/reactions';
  * boiling and evaporation, thermal decomposition and burning ethanol.
  * Rates are tuned so a classroom demo plays out in seconds rather than minutes.
  */
-import { ACTIVITY, SOLIDS, type AqId, type SolidId } from './species';
+import { ACTIVITY, SOLIDS, solubilityAt, type AqId, type SolidId } from './species';
 import { acidState, acidityToNeutral, equilibrate } from './equilibrium';
 import { ROOM_T, clean, heatCapacity, liquidMl, type Mixture } from './mixture';
 
@@ -40,8 +40,10 @@ export interface StepResult {
 export const DEFAULT_ENV: StepEnv = { heatW: 0, glassJK: 100, lossWK: 6, stir: 0, covered: false, co2: false, flame: false };
 
 /** Soluble solids, in the order they crystallize out when a solution dries. */
-const CRYSTALLIZE: SolidId[] = ['NH4Cl', 'KCl', 'ZnSO4', 'CuSO4_5', 'KMnO4', 'NaCl', 'Na2CO3', 'NaHCO3', 'NH4NO3', 'sucrose', 'NaOH'];
+const CRYSTALLIZE: SolidId[] = ['NH4Cl', 'KCl', 'ZnSO4', 'CuSO4_5', 'KMnO4', 'KNO3', 'NaCl', 'Na2CO3', 'NaHCO3', 'NH4NO3', 'sucrose', 'NaOH'];
 
+/** How fast a metal displaces less active metal ions, per metal (not by its place in ACTIVITY). */
+const DISPLACE_RATE: Partial<Record<SolidId, number>> = { Al: 0.35, Mg: 0.16, Zn: 0.07, Fe: 0.12 };
 const LATENT_WATER = 1130; // J/g (halved latent heat so evaporation demos are quick)
 const LATENT_ETHANOL = 1500;
 
@@ -127,7 +129,7 @@ export function step(input: Mixture, dtRaw: number, env: StepEnv): StepResult {
       const d = SOLIDS[id].dissolve;
       if (!d || n <= 0) continue;
       const [key, nu] = Object.entries(d.products)[0] as [AqId, number];
-      const room = Math.max(0, (d.solubility * nu * V - get(m, key)) / nu);
+      const room = Math.max(0, (solubilityAt(d, m.temp) * nu * V - get(m, key)) / nu);
       if (room <= 0) continue;
       const k = 0.22 * (m.fine ? 3 : 1) * (1 + 3 * env.stir) * warm;
       const dn = Math.min(n * (1 - Math.exp(-k * dt)) + Math.min(n, 2e-6), room, n);
@@ -145,7 +147,7 @@ export function step(input: Mixture, dtRaw: number, env: StepEnv): StepResult {
       if (!d) continue;
       let avail = Infinity;
       for (const [p, nu] of Object.entries(d.products) as [AqId, number][]) avail = Math.min(avail, get(m, p) / nu);
-      const cap = d.solubility * V;
+      const cap = solubilityAt(d, m.temp) * V;
       if (avail > cap * 1.03 && avail > 1e-7) {
         const x = (avail - cap) * 0.6;
         for (const [p, nu] of Object.entries(d.products) as [AqId, number][]) add(m, p, -x * nu);
@@ -198,12 +200,30 @@ export function step(input: Mixture, dtRaw: number, env: StepEnv): StepResult {
           changed = true;
         }
       }
+      // M + 2H₂O → M(OH)₂ + H₂ (the hydroxide settles by its Ksp); in steam Mg gives MgO.
+      if (metal.waterRate && m.water > 0 && T >= (metal.waterFrom ?? 0)) {
+        const left = m.s[metal.solid] ?? 0;
+        const rate = metal.waterRate * 0.0022 * surface * 2 ** ((Math.min(T, 100) - 22) / 12);
+        const dn = Math.min(left, rate * dt, m.water / 18.015 / 2);
+        if (dn > 1e-11) {
+          const steam = T >= 99 && metal.solid === 'Mg';
+          addS(m, metal.solid, -dn);
+          if (steam) addS(m, 'MgO', dn);
+          else add(m, metal.ion, dn);
+          m.water -= (steam ? 1 : 2) * dn * 18.015;
+          gas.H2 += dn / Math.max(dt, 1e-3);
+          // About three quarters of the heat the same metal gives with acid.
+          heat += -metal.dH * 760 * dn;
+          changed = true;
+          notes.push(steam ? 'steam:Mg' : `water:${metal.solid}`);
+        }
+      }
       for (let j = i + 1; j < ACTIVITY.length; j++) {
         const other = ACTIVITY[j];
         const c = get(m, other.ion);
         const left = m.s[metal.solid] ?? 0;
         if (c <= 1e-10 || left <= 1e-10) continue;
-        const k = [0.35, 0.16, 0.07, 0.12][i] ?? 0.05;
+        const k = DISPLACE_RATE[metal.solid] ?? 0.05;
         let dnIon = c * (1 - Math.exp(-k * Math.min(1, surface) * warm * dt));
         dnIon = Math.min(dnIon, (left * metal.charge) / other.charge);
         if (dnIon <= 1e-11) continue;

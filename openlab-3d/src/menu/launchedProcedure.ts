@@ -20,6 +20,8 @@ export const SHOW_LAB_STEPS_IN_CARD: boolean = false;
  * Сурах бичгийн JSON-ийн бодис, хэрэгслээс авна (хянадаг туршилтад null).
  */
 export interface TextbookPrep {
+  /** Сурах бичгийн туршилтын дугаар (жишээ нь "9-23") */
+  id: string;
   substances: string[];
   equipment: string[];
   safety: string;
