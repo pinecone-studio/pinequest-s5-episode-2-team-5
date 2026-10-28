@@ -33,7 +33,7 @@ import { isTyping } from './typing';
 
 const NO_KEYS: Record<MoveAction, boolean> = {
   forward: false, backward: false, left: false, right: false, sprint: false,
-  jump: false, turnLeft: false, turnRight: false, lookUp: false, lookDown: false,
+  jump: false, crouch: false, turnLeft: false, turnRight: false, lookUp: false, lookDown: false,
 };
 import { preStepHooks } from '../physics/stepHooks';
 
@@ -75,6 +75,15 @@ export function Player() {
   const sprinting = useRef(false);
 
   useEffect(() => {
+    playerApi.toggleSeat = (x, z) => {
+      playerState.seated = !playerState.seated;
+      playerState.crouched = false;
+      if (playerState.seated) playerApi.teleport(x, z, playerState.yaw);
+    };
+    return () => { playerApi.toggleSeat = () => undefined; };
+  }, []);
+
+  useEffect(() => {
     playerApi.teleport = (x, z, yaw) => {
       const rb = body.current;
       if (!rb) return;
@@ -103,9 +112,10 @@ export function Player() {
     if (!rb || !col) return;
     const game = useGameStore.getState();
     const settings = useSettingsStore.getState();
-    const canMove = game.mode === 'walk' && !usePresentation.getState().modal;
+    const canMove = game.mode === 'walk' && !usePresentation.getState().modal && !playerState.seated;
     // drei's key state also sees letters typed into Pip's chat or the notebook: those are text, not walking or jumping.
     const keys = isTyping(document.activeElement) ? NO_KEYS : getKeys();
+    playerState.crouched = !playerState.seated && keys.crouch;
 
     // Keyboard turning (keyboard-turn look mode).
     if (canMove && settings.lookMode === 'keyboard') {
@@ -243,7 +253,8 @@ export function Player() {
     const bobX = Math.cos(b.phase) * 0.018 * b.amount;
 
     euler.set(playerState.pitch, playerState.yaw, 0);
-    camera.position.set(nx + bobX * cos, ny + EYE_OFFSET + bobY, nz - bobX * sin);
+    const eyeOffset = playerState.seated ? 0.56 : playerState.crouched ? 0.12 : EYE_OFFSET;
+    camera.position.set(nx + bobX * cos, ny + eyeOffset + bobY, nz - bobX * sin);
     camera.quaternion.setFromEuler(euler);
     if (Math.abs(camera.fov - settings.fov) > 0.01) {
       camera.fov = settings.fov;

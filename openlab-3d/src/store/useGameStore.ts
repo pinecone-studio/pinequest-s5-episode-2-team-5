@@ -42,13 +42,17 @@ export const playerState = {
   pitch: 0,
   speed: 0,
   grounded: true,
+  seated: false,
+  crouched: false,
 };
 
 /** Imperative hooks the Player registers so UI code can move the camera/body. */
 export const playerApi: {
   teleport: (x: number, z: number, yaw: number) => void;
+  toggleSeat: (x: number, z: number) => void;
 } = {
   teleport: () => undefined,
+  toggleSeat: () => undefined,
 };
 
 interface GameState {

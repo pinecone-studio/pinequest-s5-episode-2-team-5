@@ -121,7 +121,7 @@ function HubHouse({ building }: { building: BuildingDef }) {
     <Svg width={w} height={h} viewBox="0 0 200 260">
       <Ellipse cx={100} cy={249} rx={94} ry={9} fill="#14320A" opacity={0.22} />
       <Rect x={13} y={223} width={174} height={25} rx={7} fill="#E9E4F8" stroke={OUTLINE} strokeWidth={3} />
-      <Rect x={27} y={102} width={146} height={125} rx={7} fill={study ? '#F3E8FF' : openlab ? '#F1FFE1' : '#FFF0F3'} stroke={OUTLINE} strokeWidth={3} />
+      <Rect x={27} y={102} width={146} height={125} rx={7} fill={study ? '#F3E8FF' : openlab ? '#F1FFE1' : '#FFF1E4'} stroke={OUTLINE} strokeWidth={3} />
       <Rect x={31} y={205} width={138} height={16} fill={color} opacity={0.32} />
       <Rect x={39} y={130} width={34} height={42} rx={7} fill="#9BE8FF" stroke={OUTLINE} strokeWidth={2.5} />
       <Line x1={56} y1={131} x2={56} y2={171} stroke="#FFFFFF" strokeWidth={2.5} />

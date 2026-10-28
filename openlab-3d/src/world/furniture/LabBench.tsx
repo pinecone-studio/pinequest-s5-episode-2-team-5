@@ -55,7 +55,8 @@ const INSET = 0.026;
 const REVEAL = FRONT_T + 0.001;
 
 /** Cabinet compartment: light melamine, a darker back for depth, an LED strip under the top. */
-const interior = new MeshStandardMaterial({ color: '#d9dde2', roughness: 0.7 });
+// Slight self illumination keeps the shelf boards visibly white under deep cabinet shadows.
+const interior = new MeshStandardMaterial({ color: '#ffffff', emissive: '#ffffff', emissiveIntensity: 0.75, roughness: 0.78 });
 const interiorBack = new MeshStandardMaterial({ color: '#b3b9c1', roughness: 0.75 });
 const ledStrip = new MeshStandardMaterial({ color: '#ffffff', emissive: '#fff3d6', emissiveIntensity: 1.6, roughness: 0.5 });
 /** Inside of a drawer stack, seen when a drawer is pulled out. */
@@ -179,6 +180,8 @@ function CabinetDoor({ id, width, height, depth, hinge, shelfTop, category }: { 
           <group ref={pivot}>
             <group position={[-hx, 0, 0]}>
               <FrontSlab width={width - GAP * 2} height={height - GAP * 2} focused={focused} />
+              {/* The panel collider follows the animated hinge so an open door remains solid. */}
+              <CuboidCollider args={[width / 2, height / 2, FRONT_T / 2]} position={[0, 0, -FRONT_T / 2]} />
               <group position={[-hinge * (width / 2 - 0.055), height * 0.3, RAISE]} rotation={[0, 0, Math.PI / 2]}>
                 <HandleInstance />
               </group>

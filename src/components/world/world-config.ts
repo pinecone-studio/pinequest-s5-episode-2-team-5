@@ -60,8 +60,8 @@ export const BUILDINGS: BuildingDef[] = [
     rect: { x: 10, y: 510, w: 210, h: 273 }, door: { x: 115, y: 795 },
   },
   {
-    id: 'lessons', sprite: 'house', label: 'Lesson Hall', route: '/lessons', icon: 'book-open-variant', color: '#7C4DFF',
-    rect: { x: 470, y: 390, w: 160, h: 208 }, door: { x: 550, y: 610 },
+    id: 'lessons', sprite: 'house', label: 'Lesson Hall', route: '/lessons', icon: 'book-open-variant', color: '#F28C28',
+    rect: { x: 420, y: 510, w: 210, h: 273 }, door: { x: 525, y: 795 },
   },
 ];
 
@@ -78,23 +78,13 @@ export const PATHS: Point[][] = [
     { x: 305, y: 528 },
   ],
   [
-    { x: 400, y: 700 },
-    { x: 300, y: 750 },
+    { x: 380, y: 680 },
+    { x: 435, y: 735 },
+    { x: 525, y: 782 },
   ],
   [
-    { x: 400, y: 700 },
-    { x: 470, y: 655 },
-    { x: 550, y: 610 },
-  ],
-  [
-    { x: 300, y: 754 },
-    { x: 335, y: 850 },
-    { x: 345, y: 960 },
-    { x: 330, y: 1100 },
-  ],
-  [
-    { x: 208, y: 680 },
-    { x: 165, y: 710 },
+    { x: 220, y: 700 },
+    { x: 165, y: 735 },
     { x: 110, y: 782 },
   ],
 ];

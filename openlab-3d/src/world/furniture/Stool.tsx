@@ -10,6 +10,8 @@ import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js
 import { metalChrome, metalDark } from '../../materials/metal';
 import { plastic } from '../../materials/plastic';
 import { lazy } from '../../utils/lazy';
+import { Interactable } from '../../interaction/Interactable';
+import { playerApi } from '../../store/useGameStore';
 
 const seatGeo = lazy(() => {
   const g = new CylinderGeometry(0.18, 0.17, 0.06, 28);
@@ -70,7 +72,15 @@ export function Stools({ positions, color = '#2b3036' }: { positions: [number, n
       <Part geometry={chromeGeo()} material={metalChrome} positions={positions} />
       <Part geometry={baseGeo()} material={metalDark} positions={positions} />
       {positions.map(([x, z], i) => (
-        <CylinderCollider key={i} args={[0.33, 0.2]} position={[x, 0.33, z]} />
+        <group key={i}>
+          <CylinderCollider args={[0.33, 0.2]} position={[x, 0.33, z]} />
+          <Interactable id={`lab-stool-${i}-${x}-${z}`} label="Лабораторийн сандал" verb="суух / босох" highlight="none" onInteract={() => playerApi.toggleSeat(x, z + 0.36)}>
+            <mesh position={[x, 0.64, z]}>
+              <cylinderGeometry args={[0.19, 0.19, 0.07, 16]} />
+              <meshBasicMaterial transparent opacity={0} depthWrite={false} />
+            </mesh>
+          </Interactable>
+        </group>
       ))}
     </group>
   );

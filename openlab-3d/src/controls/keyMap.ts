@@ -29,7 +29,7 @@ export type Bindings = Record<ActionName, string[]>;
 export type LookMode = 'mouse' | 'keyboard';
 
 /** Continuous actions read every frame by the player controller. */
-export type MoveAction = 'forward' | 'backward' | 'left' | 'right' | 'sprint' | 'jump' | 'turnLeft' | 'turnRight' | 'lookUp' | 'lookDown';
+export type MoveAction = 'forward' | 'backward' | 'left' | 'right' | 'sprint' | 'jump' | 'crouch' | 'turnLeft' | 'turnRight' | 'lookUp' | 'lookDown';
 
 export const DEFAULT_BINDINGS: Bindings = {
   forward: ['KeyW', 'ArrowUp'],
@@ -116,6 +116,7 @@ export function buildMovementMap(bindings: Bindings, lookMode: LookMode): Keyboa
     { name: 'right', keys: keyboard ? without(bindings.right, arrowsLR) : bindings.right },
     { name: 'sprint', keys: bindings.sprint },
     { name: 'jump', keys: bindings.jump },
+    { name: 'crouch', keys: ['ControlLeft', 'ControlRight'] },
     { name: 'turnLeft', keys: keyboard ? [...bindings.turnLeft, 'ArrowLeft'] : [] },
     { name: 'turnRight', keys: keyboard ? [...bindings.turnRight, 'ArrowRight'] : [] },
     { name: 'lookUp', keys: keyboard ? bindings.lookUp : [] },
