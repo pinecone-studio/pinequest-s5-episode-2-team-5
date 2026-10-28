@@ -5,6 +5,8 @@
  * Харагдах байдал нь лабын өөрийн бэлтгэл (PreparationChecklist)-тэй адил.
  */
 import { useLaunchedProcedure } from './launchedProcedure';
+import { spawnTextbookEquipment } from './textbookEquipment';
+import { useGameStore } from '../store/useGameStore';
 
 export function TextbookPreparation() {
   const prep = useLaunchedProcedure((s) => s.prep);
@@ -12,6 +14,13 @@ export function TextbookPreparation() {
   const toggleChecked = useLaunchedProcedure((s) => s.toggleChecked);
   const finishPrep = useLaunchedProcedure((s) => s.finishPrep);
   if (!prep) return null;
+  const skipPrep = () => {
+    const unsupported = spawnTextbookEquipment(prep.equipment);
+    finishPrep();
+    if (unsupported.length) {
+      useGameStore.getState().showToast('Зарим хэрэгсэлд 3D загвар алга', unsupported.slice(0, 3).join(' · '));
+    }
+  };
   const groups = [
     { label: 'Хэрэгсэл', items: prep.equipment.map((name) => ({ key: `e:${name}`, name })) },
     { label: 'Бодис', items: prep.substances.map((name) => ({ key: `s:${name}`, name })) },
@@ -47,7 +56,7 @@ export function TextbookPreparation() {
       ))}
       {prep.safety && <p className="rounded-md bg-amber-50 px-2 py-1.5 text-[11px] font-semibold text-amber-950">⚠ {prep.safety}</p>}
       <div className="flex items-center justify-between gap-2 border-t border-slate-200 pt-2">
-        <button type="button" className="min-h-8 rounded-lg border border-indigo-700 px-2.5 text-[10px] font-bold text-indigo-800 hover:bg-indigo-50" onClick={finishPrep}>Багш: бэлтгэл алгасах</button>
+        <button type="button" className="min-h-8 rounded-lg border border-indigo-700 px-2.5 text-[10px] font-bold text-indigo-800 hover:bg-indigo-50" onClick={skipPrep}>Багш: бэлтгэл алгасах</button>
         <button type="button" disabled={!all} className="focus-ring min-h-8 rounded-lg bg-indigo-700 px-3 text-[11px] font-bold text-white disabled:bg-slate-300 disabled:text-slate-500" onClick={finishPrep}>Бэлэн боллоо</button>
       </div>
     </div>

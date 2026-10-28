@@ -21,7 +21,7 @@ export function Grade9Controls({id}:{id:string}){
  const button='min-h-10 rounded-lg border border-slate-300 bg-white px-2 py-2 text-xs font-semibold';
  return <div className="my-3 space-y-2 border-t border-slate-200 pt-3" aria-label="Судалгааны багажийн удирдлага">
   <b className="block text-xs">{RIG_NAMES[kind]}</b>
-  <p className="text-[11px]">Тасалгаагаа сонго → бодисоо авч өмнөхтэй адил цутга / халбагаар хий.</p>
+  <p className="text-[11px]">{kind==='heatingBath'?'Үүрээ сонгоод халаагуурыг асаа. Зөвхөн сонгосон дээж халаана.':'Тасалгаагаа сонго → бодисоо авч өмнөхтэй адил цутга / халбагаар хий.'}</p>
   <div className="flex flex-wrap gap-1">{rig.chambers.map((m,i)=><button key={i} className={`${button} ${rig.port===i?'border-sky-600 bg-sky-100':''}`} aria-pressed={rig.port===i} onClick={()=>{change({port:i});useChemStore.getState().setMixtures({[id]:m});}}>{kind==='corrosionRack'||kind==='reactionTile'?`Үүр ${i+1}`:names[i]} · {liquidMl(m).toFixed(1)} мл / {solidMassG(m).toFixed(2)} г</button>)}</div>
   <div className="flex flex-wrap gap-1">
    <button className={button} onClick={start}>{kind==='gasTrain'?'② → ① Холих · урвалыг ажиглах':rig.running?'Ажиллаж байна · үргэлжлүүлэх':'Багажийг ажиллуулах'}</button>

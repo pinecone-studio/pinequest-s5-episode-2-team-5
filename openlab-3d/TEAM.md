@@ -125,7 +125,6 @@ This note records the contract change; no external teammate message was sent.
 - **2 ↔ 3:** UI нь `useExperimentStore` (лабын дадал `SKILLS`), `useInventoryStore`-ийг уншина.
   Товчлуурын удирдлага (`useGameKeys.ts`) нь `interactables` бүртгэл болон `heldApi`-г дууддаг.
 - **1 ↔ 3:** Чанарын тохиргоо (`QUALITY_PRESETS`) нь Effects/Lighting/Performance-д нөлөөлнө.
-  Газрын зураг (`Minimap`) нь `layout.ts`-ийн `LAB_BOUNDS`, `WALLS`-ыг ашиглана.
 - Store-ийн бүтэц, `layout.ts`-ийн координат, `equipmentCatalog.ts`-ийн `EquipmentKind`
   гэх мэт **дундын төрлийг** өөрчлөх бол бусаддаа урьдчилан хэлнэ.
 

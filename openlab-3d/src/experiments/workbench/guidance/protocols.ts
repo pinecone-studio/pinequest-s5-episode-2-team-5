@@ -58,7 +58,7 @@ function primary(id:string):Check[]{
   'g9-litmus':[check('ph',undefined,3,{port:0}),check('ph',11,undefined,{port:1})],'g9-ph-ranking':[check('ph',0,7)],'g9-zinc-hcl':[check('solid',undefined,1e-7,{species:'Zn'})],
   'g9-carbonate-co2':[check('solid',undefined,1e-7,{species:'CaCO3'}),s('CaCO3',1e-5,2)],'g9-antacid':[check('acid',undefined,1e-6)],'g9-air-oxygen':[s('CuO',.0015)],
   'g9-corrosion':[s('FeOH3',1e-5)],'g9-ammonia-preparation':[check('volume',20)],'g9-water-tests':[a('Cu',1e-6)],'g9-air-distillation':[check('volume',99)],
-  'reaction-timing':[check('solid',undefined,1e-7,{species:'CaCO3'})],'melting-point':[check('solid',undefined,1e-7,{species:'ice'})],'group2-water':[s('Mg',.004),check('volume',undefined,.1)],'group2-acid':[check('volume',55)],
+  'reaction-timing':[check('solid',undefined,1e-7,{species:'CaCO3'})],'melting-point':[check('solid',undefined,1e-7,{species:'ice',port:0}),check('solid',undefined,1e-7,{species:'ice',port:1})],'group2-water':[s('Mg',.004),check('volume',undefined,.1)],'group2-acid':[check('volume',55)],
   'halogens':[a('Br2',1e-6),a('I2',1e-6,1)],'physical-change':[check('solid',undefined,1e-7,{species:'ice'})],
   'rate-concentration':[check('solid',undefined,1e-7,{species:'CaCO3'})],'rate-temperature':[check('solid',undefined,1e-7,{species:'CaCO3'})],'rate-surface':[check('solid',undefined,1e-7,{species:'CaCO3'})],
   'candle-products':[check('gas',1e-6,undefined,{species:'CO2'})],'fuel-energy':[check('temperature',30)],
@@ -85,6 +85,27 @@ function saltWorkup(id:string):GuideStep[]{
 }
 export function completeProtocol(id:string,starter:GuideStep[]):GuideStep[]{
  let setup:GuideStep[]=starter.filter(s=>s.type!=='observe'||id==='g9-air-distillation'||id==='g9-crystallisation').map(s=>s.type==='observe'?{...s,until:{label:s.label,checks:id==='g9-air-distillation'?[check('temperature',undefined,-199)]:[s2('NaCl','evaporatingDish')],speed:8,timeout:90}}:s);
+ if(id==='melting-point'){
+  const purePlateau=[check('solid',.001,undefined,{species:'ice',port:0}),check('temperature',-.05,.05,{port:0})];
+  const saltedPlateau=[check('solid',.001,undefined,{species:'ice',port:1}),check('temperature',-21.1,-.1,{port:1})];
+  const pureMelted=[check('solid',undefined,1e-7,{species:'ice',port:0})];
+  const saltedMelted=[check('solid',undefined,1e-7,{species:'ice',port:1})];
+  const melted=[...pureMelted,...saltedMelted];
+  return [
+   ...setup,
+   wait('Цэвэр мөс хайлах үеийн температурыг тогтооно.',purePlateau,{speed:4,timeout:90,minimum:0}),
+   record('Цэвэр мөсний хайлах үеийн хэмжилт.','heatingBath',0),
+   {type:'configure',label:'Харьцуулах үүрийг сонгож халаана.',target:'heatingBath',change:{port:1}},
+   wait('Давстай мөсний хайлах үеийн температурыг тогтооно.',saltedPlateau,{speed:4,timeout:90,minimum:0}),
+   record('Давстай мөсний хайлах үеийн хэмжилт.','heatingBath',1),
+   wait('Давстай дээжийн мөс бүрэн хайлахыг хүлээнэ.',saltedMelted,{speed:8,timeout:90,minimum:0}),
+   record('Давстай дээжийн эцсийн төлөв ба температурыг тэмдэглэ.','heatingBath',1),
+   {type:'configure',label:'Цэвэр мөсний үүрийг сонгож халаана.',target:'heatingBath',change:{port:0}},
+   wait('Цэвэр дээжийн мөс бүрэн хайлахыг хүлээнэ.',pureMelted,{speed:8,timeout:90,minimum:0,stopHeat:true}),
+   record('Цэвэр дээжийн эцсийн төлөв ба температурыг тэмдэглэ.','heatingBath',0),
+   {type:'finish',label:'Цэвэр ба давстай мөсний хайлах хэмжилтийг харьцуулж дуусгалаа.',target:'heatingBath',until:{label:'Хоёр дээжийн мөс хайлсан.',checks:melted}},
+  ];
+ }
  if(id==='g9-filtration'){const at=setup.findIndex(s=>s.type==='move'&&s.filter==='funnel');if(at>=0)setup.splice(at,0,{type:'place',item:'funnel',onto:'erlenmeyer',label:'Цаастай юүлүүрийг шүүгдэс хүлээн авах колбонд суулга.'});}
  if(id==='g10-galvanic')setup=[...setup.map(s=>s.type==='configure'&&s.change.connected?{...s,change:{...s.change,connected:false}}:s),wait('Нээлттэй хэлхээний хүчдэлийг унш.',[data('cellVoltage',1)]),record('Ачаалал залгахаас өмнөх хүчдэл.'),config('Ачааллыг холбо.',{connected:true})];
  const initial=primary(id),label='Урвал / хэмжилтийн бодит эцсийн төлөвийг хүлээ.';

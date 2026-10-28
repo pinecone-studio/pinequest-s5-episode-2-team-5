@@ -56,7 +56,7 @@ export const GUIDED_PLANS:Record<string,GuideStep[]>={
  'g9-water-tests':run([['s_cuso4anh',.1],['water',1]]),
  'g9-air-distillation':[set('100 мл агаар соруулж хөргүүрийг асаа.',{initialAir:100,cooling:true}),start,{type:'observe',label:'Агаарыг −200°C хүртэл хөргөнө.',duration:25},set('Хөргүүрийг унтрааж халаалтыг асаа.',{cooling:false,heating:true})],
  'reaction-timing':run([['s_caco3',.1],['hcl',5,1]]),
- 'melting-point':run([['s_ice',1]],set('Халаалтыг асаа.',{heating:true})),
+ 'melting-point':run([['s_ice',10,0],['s_ice',10,1],['s_nacl',1,1]],set('Цэвэр мөсийг халааж хэмж. Дараа нь давстай мөсийг ижил халаагуураар шалга.',{port:0,heating:true})),
  'group2-water':run([['s_mg',.1],['water',10,1]]),
  'group2-acid':run([['s_mg',.1],['hcl',5,1]]),
  'halogens':run([['kbr',5],['chlorine',1],['ki',5,1],['chlorine',1,1]]),

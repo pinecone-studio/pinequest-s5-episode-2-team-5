@@ -34,7 +34,38 @@ export type EquipmentKind = RigKind | 'gasCylinder' | 'paperStrip' |
   | 'evaporatingDish'
   | 'volumetricFlask'
   | 'testTubeHolder'
-  | 'mortar';
+  | 'mortar'
+  | TextbookEquipmentKind;
+
+/** Textbook apparatus that did not previously have its own procedural model. */
+export type TextbookEquipmentKind =
+  | 'stopwatch'
+  | 'gasDeliveryTube'
+  | 'retortStand'
+  | 'crystallizingDish'
+  | 'splint'
+  | 'sandpaper'
+  | 'cottonWool'
+  | 'syringe'
+  | 'matches'
+  | 'handPump'
+  | 'uTube'
+  | 'aluminumCan'
+  | 'plasticCup'
+  | 'knife'
+  | 'magnifyingGlass'
+  | 'disposableDish'
+  | 'plasticBottle'
+  | 'seedPot'
+  | 'tissue'
+  | 'waterFilter'
+  | 'corkStopper'
+  | 'penCap'
+  | 'modellingClay'
+  | 'dripAdjuster'
+  | 'wireGauze'
+  | 'wellPlate'
+  | 'filterPaper';
 
 export type EquipmentCategory = 'Шилэн сав' | 'Урвалжийн сав' | 'Халаах' | 'Хэмжилт' | 'Багаж' | 'Аюулгүй ажиллагаа';
 
@@ -91,8 +122,53 @@ const TRIPOD_LEGS = [0, 1, 2].map((i) => {
 const GRADE9_CATALOG=Object.fromEntries(Object.entries(RIG_NAMES).map(([kind,name])=>[kind,{
  kind,name,category:'Багаж',description:'Сурах бичгийн туршилтын зориулалтын угсралт. Бодисоо авч цутгана. Сонгоод багажийн удирдлага, хэмжилтийг нээнэ.',safety:'Хамгаалах шил хэрэглэ. Хийн угсралтыг бөглөж даралт бүү үүсгэ.',size:[.22,.28,.16],collider:box(.22,.28,.16),pickable:true,spawnable:true,massKg:.65,capacityMl:500,pourRate:15,heatJK:100,upright:true,
 }])) as Record<RigKind,CatalogEntry>;
+
+const textbookTool = (
+  kind: TextbookEquipmentKind,
+  name: string,
+  size: [number, number, number],
+  collider: ColliderShape,
+  description: string,
+  massKg = 0.08,
+): CatalogEntry => ({
+  kind, name, category: 'Багаж', description,
+  safety: 'Багший зааврын дагуу хэрэглэж, туршилтын дараа цэвэрлэж хураа.',
+  size, collider, pickable: true, spawnable: true, massKg,
+});
+
+const TEXTBOOK_CATALOG: Record<TextbookEquipmentKind, CatalogEntry> = {
+  stopwatch: textbookTool('stopwatch', 'Хугацаа хэмжигч', [0.09, 0.035, 0.11], box(0.09, 0.035, 0.11), 'Туршилтын хугацаа, урвалын хурдыг хэмжинэ.', 0.12),
+  gasDeliveryTube: textbookTool('gasDeliveryTube', 'Хий дамжуулах хоолой', [0.14, 0.12, 0.08], box(0.14, 0.12, 0.08), 'Үүссэн хийг савнаас цуглуулах төхөөрөмж рүү дамжуулна.', 0.03),
+  retortStand: textbookTool('retortStand', 'Штатив', [0.24, 0.28, 0.12], box(0.24, 0.28, 0.12), 'Хавчаар, цагираг тогтоон савыг байрлуулах төмөр суурь.', 0.8),
+  crystallizingDish: textbookTool('crystallizingDish', 'Талстжуулагч', [0.15, 0.035, 0.15], cyl(0.075, 0.035), 'Уусмалыг өргөн гадаргуутай саванд ууршуулж талстжуулна.', 0.18),
+  splint: textbookTool('splint', 'Зомгол', [0.012, 0.012, 0.18], box(0.012, 0.012, 0.18), 'Хийг таних болон шаталтыг ажиглахад хэрэглэдэг модон зомгол.', 0.005),
+  sandpaper: textbookTool('sandpaper', 'Зүлгүүр', [0.1, 0.003, 0.14], box(0.1, 0.003, 0.14), 'Металлын гадаргууг цэвэрлэхэд хэрэглэнэ.', 0.01),
+  cottonWool: textbookTool('cottonWool', 'Хөвөн', [0.06, 0.04, 0.06], box(0.06, 0.04, 0.06), 'Шүүлтүүр болон бөглөөний завсарт хэрэглэдэг сул ширхэглэг хөвөн.', 0.002),
+  syringe: textbookTool('syringe', 'Тариур', [0.035, 0.035, 0.19], box(0.035, 0.035, 0.19), 'Шингэнийг хэмжиж соруулан, хяналттай шахна.', 0.025),
+  matches: textbookTool('matches', 'Чүдэнз', [0.045, 0.018, 0.07], box(0.045, 0.018, 0.07), 'Багшийн хяналтад гал асаахад хэрэглэнэ.', 0.01),
+  handPump: textbookTool('handPump', 'Насос', [0.09, 0.2, 0.09], box(0.09, 0.2, 0.09), 'Хийг шахаж, хоолойгоор дамжуулна.', 0.35),
+  uTube: textbookTool('uTube', 'U хэлбэрийн хоолой', [0.12, 0.14, 0.025], box(0.12, 0.14, 0.025), 'Хийг дамжуулах эсвэл шингэний түвшний өөрчлөлт ажиглах шилэн хоолой.', 0.04),
+  aluminumCan: textbookTool('aluminumCan', 'Хөнгөнцагаан лааз', [0.067, 0.12, 0.067], cyl(0.034, 0.12), 'Дулаан дамжуулалт, халаалтын туршилтад хэрэглэнэ.', 0.02),
+  plasticCup: textbookTool('plasticCup', 'Хуванцар аяга', [0.085, 0.09, 0.085], cyl(0.042, 0.09), 'Шингэн түр хийх, хэмжихэд хэрэглэдэг хөнгөн аяга.', 0.02),
+  knife: textbookTool('knife', 'Хутга', [0.025, 0.012, 0.17], box(0.025, 0.012, 0.17), 'Зөөлөн материалыг огтлоход хэрэглэнэ.', 0.06),
+  magnifyingGlass: textbookTool('magnifyingGlass', 'Томруулагч шил', [0.11, 0.012, 0.18], box(0.11, 0.012, 0.18), 'Жижиг биет, талст болон гадаргууг томруулж ажиглана.', 0.04),
+  disposableDish: textbookTool('disposableDish', 'Нэг удаагийн таваг', [0.14, 0.018, 0.14], cyl(0.07, 0.018), 'Дээжийг ширээн дээр тарааж байрлуулах гүехэн хуванцар таваг.', 0.015),
+  plasticBottle: textbookTool('plasticBottle', 'Ундааны сав', [0.07, 0.2, 0.07], cyl(0.035, 0.2), 'Ус болон туршилтын уусмал хадгалах хуванцар сав.', 0.04),
+  seedPot: textbookTool('seedPot', 'Үр суулгах сав', [0.1, 0.08, 0.1], cyl(0.05, 0.08), 'Үр соёолуулах зориулалтын жижиг сав.', 0.03),
+  tissue: textbookTool('tissue', 'Салфетка', [0.08, 0.006, 0.08], box(0.08, 0.006, 0.08), 'Шингэн шингээх, гадаргуу арчих цаасан салфетка.', 0.002),
+  waterFilter: textbookTool('waterFilter', 'Шүүлтүүр', [0.07, 0.16, 0.07], cyl(0.035, 0.16), 'Усыг үе давхаргаар нэвтрүүлж механик хольцыг шүүнэ.', 0.1),
+  corkStopper: textbookTool('corkStopper', 'Бөглөө', [0.035, 0.045, 0.035], cyl(0.018, 0.045), 'Савны амсрыг сул бөглөх зориулалтын үйсэн бөглөө.', 0.01),
+  penCap: textbookTool('penCap', 'Балны таг', [0.02, 0.02, 0.055], box(0.02, 0.02, 0.055), 'Хуванцар хоолой эсвэл туршилтын амсрыг хаах жижиг таг.', 0.004),
+  modellingClay: textbookTool('modellingClay', 'Баримлын шавар', [0.06, 0.045, 0.06], box(0.06, 0.045, 0.06), 'Хоолойн амсрыг түр битүүлэхэд хэрэглэнэ.', 0.06),
+  dripAdjuster: textbookTool('dripAdjuster', 'Дуслын системийн тохируулагч', [0.05, 0.07, 0.035], box(0.05, 0.07, 0.035), 'Дуслын системээр гарах шингэний урсгалыг тохируулна.', 0.02),
+  wireGauze: textbookTool('wireGauze', 'Шөрмөсөн чулуун тор', [0.14, 0.008, 0.14], box(0.14, 0.008, 0.14), 'Гурван хөлт тавиур дээр тавьж савны ёроолд дулааныг жигд тараана.', 0.12),
+  wellPlate: textbookTool('wellPlate', 'Хонхортой таваг', [0.14, 0.018, 0.1], box(0.14, 0.018, 0.1), 'Бага хэмжээний урвалыг олон хонхорт тус тусад нь явуулна.', 0.05),
+  filterPaper: textbookTool('filterPaper', 'Шүүлтүүрийн цаас', [0.09, 0.002, 0.09], cyl(0.045, 0.002), 'Тунадасыг юүлүүрээр шүүхэд хэрэглэдэг дугуй цаас.', 0.001),
+};
+
 export const CATALOG: Record<EquipmentKind, CatalogEntry> = {
  ...GRADE9_CATALOG,
+ ...TEXTBOOK_CATALOG,
  gasCylinder:{kind:'gasCylinder',name:'Хийн баллон ба хаалт',category:'Урвалжийн сав',description:'Шошготой хий. мл-ээр хэмжиж угсралтад дамжуулна.',safety:'Хийг битүү угсралтад дамжуул. Галын эх үүсвэрээс хол байлга.',size:[.06,.18,.06],collider:cyl(.03,.18),pickable:true,spawnable:false,massKg:1,capacityMl:2000,pourRate:20},
  paperStrip:{kind:'paperStrip',name:'Шүүлтүүрийн цаас / хроматографийн зурвас',category:'Багаж',description:'Шүүлтүүрийн целлюлоз цаас. Хроматографийн камерын цаасны үүрэнд байрлуулна.',safety:'Хуурай цэвэр цаас хэрэглэ.',size:[.03,.001,.2],collider:box(.03,.002,.2),pickable:true,spawnable:false,massKg:.001,capacityMl:1,pourRate:.2},
   beaker: {

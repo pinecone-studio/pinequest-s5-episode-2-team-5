@@ -18,7 +18,6 @@ export type ActionName =
   | 'closeup'
   | 'tools'
   | 'notes'
-  | 'map'
   | 'turnLeft'
   | 'turnRight'
   | 'lookUp'
@@ -48,7 +47,6 @@ export const DEFAULT_BINDINGS: Bindings = {
   closeup: ['KeyV'],
   tools: ['Tab'],
   notes: ['KeyN'],
-  map: ['KeyM'],
   turnLeft: ['KeyQ'],
   turnRight: ['KeyE'],
   lookUp: ['PageUp'],
@@ -72,7 +70,6 @@ export const ACTION_LABELS: Record<ActionName, string> = {
   closeup: 'Ширээний ажлын харагдац / буцах',
   tools: 'Багажны шургуулга',
   notes: 'Лабын тэмдэглэл',
-  map: 'Газрын зураг',
   turnLeft: 'Зүүн тийш эргэх (товчлуураар)',
   turnRight: 'Баруун тийш эргэх (товчлуураар)',
   lookUp: 'Дээш харах (товчлуураар)',
@@ -128,7 +125,7 @@ export function buildMovementMap(bindings: Bindings, lookMode: LookMode): Keyboa
  * turning are removed from interact/drop; Enter and Backspace always work instead.
  */
 export function actionsForKey(code: string, bindings: Bindings, lookMode: LookMode): ActionName[] {
-  const oneShot: ActionName[] = ['interact', 'inspect', 'drop', 'grab', 'pour', 'throw', 'cursor', 'closeup', 'tools', 'notes', 'map'];
+  const oneShot: ActionName[] = ['interact', 'inspect', 'drop', 'grab', 'pour', 'throw', 'cursor', 'closeup', 'tools', 'notes'];
   const turnKeys = lookMode === 'keyboard' ? [...bindings.turnLeft, ...bindings.turnRight] : [];
   const result: ActionName[] = [];
   for (const action of oneShot) {

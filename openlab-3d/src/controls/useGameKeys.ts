@@ -200,10 +200,6 @@ export function useGameKeys(canvas: HTMLElement | null): void {
           if (actions.includes('cursor')) toggleCursor();
           if (actions.includes('tools')) toggleTools();
           if (actions.includes('notes')) openPanelFromGame('notes');
-          if (actions.includes('map')) {
-            game.toggleMinimap();
-            sounds.play('ui');
-          }
           return;
         }
         case 'ui': {

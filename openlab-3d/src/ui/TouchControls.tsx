@@ -197,7 +197,7 @@ export function TouchControls() {
           R
         </button>
       </div>
-      {/* Гүйх горим (⇧) баруун талд хэвээр; газрын зурагтай давхцахгүйн тулд хамгийн багадаа 148px өндөрт. */}
+      {/* Гүйх горим (⇧) баруун талд байрлана. */}
       <div className="pointer-events-none fixed bottom-[max(36%,148px)] right-12" onTouchStart={(e) => e.stopPropagation()}>
         <button className={`${btn} ${sprint ? '!bg-lab-yellow' : ''}`} onClick={() => setSprint((s) => !s)} aria-label="Гүйх горим" aria-pressed={sprint}>
           ⇧
