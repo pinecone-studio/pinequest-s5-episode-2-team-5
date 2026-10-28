@@ -30,6 +30,8 @@ import { HolderContents } from './StoredItems';
 import { storeInto, mayTake } from './storage';
 import { isInactiveBenchObject, isWorkbenchObject, useWorkbench } from '../experiments/workbench/session';
 import { useLabStore } from '../store/useLabStore';
+import { useSandbox } from '../experiments/nacl/sandbox';
+import { useBenchView } from '../experiments/nacl/view';
 
 const FLOW_WORDS = ['хаалттай', 'дуслаар', 'удаан урсгал', 'хурдан урсгал'];
 
@@ -132,7 +134,13 @@ export const Pickable = memo(function Pickable({ item }: { item: WorldItem }) {
     if (!mayTake(item.id, item.variant)) return;
     const exp = useExperimentStore.getState();
     if (isHeater(item.kind) && exp.toggles[item.id]) exp.toggle(item.id);
-    if (useInventoryStore.getState().pickUp(item.id)) sounds.play('pickup');
+    if (useInventoryStore.getState().pickUp(item.id)) {
+      // Picking up the selected item ends its detail view so the item panel cannot
+      // remain over the bench after the object has left the work surface.
+      if (useSandbox.getState().inspected === item.id) useSandbox.setState({ inspected: null });
+      if (useBenchView.getState().selected === item.id) useBenchView.setState({ selected: null });
+      sounds.play('pickup');
+    }
   };
 
   let onInteract = grab;
