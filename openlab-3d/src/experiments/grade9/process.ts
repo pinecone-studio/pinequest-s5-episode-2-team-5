@@ -17,7 +17,7 @@ export interface RigState {
  temperature:number;initialAir:number;closed:boolean;scratched:boolean;hotAbove:boolean;
  gas:number;escaped:number;initialMass:number;extent:number;bands:number[];rust:number[];color:string;message:string;
 }
-export const createRig=(experiment:string,kind:RigKind):RigState=>({pressure:1,targetTemperature:22,voltage:3,current:.2,resistance:100,volumeMl:250,light:1,timeScale:1,covers:Array(9).fill(false),targets:Array(9).fill(22),inactive:Array(9).fill(false),data:{},results:[],equation:'',bonds:[],operation:'observe',experiment,kind,port:0,chambers:Array.from({length:isCurriculumRig(kind)?CURRICULUM_RIGS[kind].ports.length:kind==='corrosionRack'?7:kind==='reactionTile'?6:3},()=>emptyMixture()),running:false,connected:false,elapsed:0,heating:false,cooling:false,temperature:22,initialAir:0,closed:true,scratched:false,hotAbove:false,gas:0,escaped:0,initialMass:0,extent:0,bands:[],rust:Array(7).fill(0),color:'#c5eaff',message:'Бодисоо өмнөхтэй адил авч, сонгосон тасалгаанд хий. Дараа нь багажийг ажиллуул.'});
+export const createRig=(experiment:string,kind:RigKind):RigState=>({pressure:1,targetTemperature:22,voltage:3,current:.2,resistance:100,volumeMl:250,light:1,timeScale:1,covers:Array(9).fill(false),targets:Array(9).fill(22),inactive:Array(9).fill(false),data:{},results:[],equation:'',bonds:[],operation:'observe',experiment,kind,port:0,chambers:Array.from({length:isCurriculumRig(kind)?CURRICULUM_RIGS[kind].ports.length:kind==='corrosionRack'?7:kind==='reactionTile'?6:kind==='heatingBath'?2:3},()=>emptyMixture()),running:false,connected:false,elapsed:0,heating:false,cooling:false,temperature:22,initialAir:0,closed:true,scratched:false,hotAbove:false,gas:0,escaped:0,initialMass:0,extent:0,bands:[],rust:Array(7).fill(0),color:'#c5eaff',message:'Бодисоо өмнөхтэй адил авч, сонгосон тасалгаанд хий. Дараа нь багажийг ажиллуул.'});
 const mass=contentMassG;
 const copy=(r:RigState):RigState=>({...r,chambers:r.chambers.map(m=>structuredClone(m)),rust:[...r.rust],bands:[...r.bands],covers:[...r.covers],targets:[...r.targets],inactive:[...r.inactive],data:{...r.data},results:r.results.map(x=>({...x})),bonds:r.bonds.map(b=>[...b] as [number,number])});
 export function loadRig(r:RigState,portion:Mixture):RigState {
@@ -31,7 +31,7 @@ export function startRig(r:RigState):RigState {
  let error='';
  switch(n.kind){
  case 'convectionCell':if(liquidMl(a)<1||liquidMl(b)<1)error='Хоёр саванд тус тус халуун ба хүйтэн ус хий.';break;
- case 'heatingBath':if(!solidMassG(a)&&liquidMl(a)<1)error='Мөс эсвэл ус эхлээд хий.';break;
+ case 'heatingBath':if(!n.chambers.slice(0,2).some(m=>solidMassG(m)>0.001||liquidMl(m)>=1))error='Мөс эсвэл ус эхлээд нэг үүрэнд хий.';break;
  case 'gasSyringe':if(!n.initialAir)error='Эхлээд тариурт агаар соруулаарай.';else if(n.experiment==='g9-air-oxygen'&&!(a.s.Cu))error='Халаах хэсэгт зэс хий.';break;
  case 'diffusionTube':if(!(a.aq.NH3)&&!(b.aq.NH3))error='Нэг төгсгөлд аммиакийн уусмал хэрэгтэй.';else if(!((a.aq.NH3&&acidityToNeutral(b)>1e-7)||(b.aq.NH3&&acidityToNeutral(a)>1e-7)))error='Хоёр тусдаа төгсгөлд NH₃ ба HCl хийн эх үүсвэрийг байрлуул.';break;
  case 'diffusionCell':if(liquidMl(a)<1)error='Үндсэн саванд ус хий.';else if(!n.connected&&!solidMassG(b)&&!Object.keys(b.aq).length)error='Хоёр дахь тасалгаанд тархах бодис хий.';break;
@@ -54,7 +54,21 @@ export function tickRig(r:RigState,dt:number):RigState {
  const n=copy(r);n.elapsed+=dt;const a=n.chambers[0],b=n.chambers[1];
  switch(n.kind){
  case 'convectionCell': {const delta=Math.abs(a.temp-b.temp);const hotBelow=n.hotAbove?a.temp<b.temp:a.temp>b.temp;const rate=hotBelow?.015+.002*delta:.001; n.extent+=(1-n.extent)*(1-Math.exp(-rate*dt));const ca=heatCapacity(a)+20,cb=heatCapacity(b)+20;const heat=(a.temp-b.temp)*dt*(hotBelow?.08:.003)*ca*cb/(ca+cb);a.temp-=heat/ca;b.temp+=heat/cb;n.message=hotBelow?'Халуун, нягт багатай ус дээш хөөрч эргэлт үүсэв.':'Халуун ус дээр: нягтын тогтвортой үе, холилдолт удаан.';break;}
- case 'heatingBath': {const result=step(a,dt,{...DEFAULT_ENV,heatW:n.heating?150:0,glassJK:20,lossWK:n.cooling?2:.05});n.chambers[0]=result.m;n.temperature=result.m.temp;n.message=(result.m.s.ice??0)>1e-10?'Мөс: 0°C-д хайлах үед дулаан төлөв шилжихэд зарцуулагдана.':result.boiling?'Буцлах: усны уур үүсч байна.':'Шингэн усны температур өөрчлөгдөж байна.';break;}
+ case 'heatingBath': {
+  let boiling=false;
+  for(let i=0;i<2;i++){
+   const sample=n.chambers[i];
+   if(solidMassG(sample)<=0.001&&liquidMl(sample)<1)continue;
+   // The two wells are independent comparison samples. Heat only the selected well
+   // so its counterpart stays as a valid control while the reading is taken.
+   const result=step(sample,dt,{...DEFAULT_ENV,heatW:n.heating&&i===n.port?150:0,glassJK:20,lossWK:n.cooling?2:.05});
+   n.chambers[i]=result.m;boiling=boiling||result.boiling;
+  }
+  n.temperature=n.chambers[n.port]?.temp??n.temperature;
+  const ice=n.chambers.slice(0,2).some(sample=>(sample.s.ice??0)>1e-10);
+  n.message=ice?'Мөс хайлах температуртаа хүрэхэд дулаан төлөв шилжихэд зарцуулагдана.':boiling?'Буцлах: усны уур үүсч байна.':'Шингэн усны температур өөрчлөгдөж байна.';
+  break;
+ }
  case 'gasSyringe': {n.temperature+=(n.heating?1:n.cooling?-1:(22-n.temperature)*.08)*dt;n.temperature=Math.max(0,Math.min(80,n.temperature));if(n.experiment==='g9-air-oxygen'&&n.heating&&(a.s.Cu??0)>0){const available=Math.max(0,n.initialAir*.21-n.extent)/24000;const dn=Math.min(a.s.Cu??0,available*2)*(1-Math.exp(-.12*dt));a.s.Cu=(a.s.Cu??0)-dn;a.s.CuO=(a.s.CuO??0)+dn;n.extent+=dn/2*24000;}n.gas=(n.initialAir-n.extent)*(n.temperature+273.15)/295.15;n.message=n.experiment==='g9-air-oxygen'?'2Cu + O₂ → 2CuO. Эхний температур хүртэл хөргөж унш.':'Чөлөөт бүлүүр: V/T тогтмол. Температур Кельвинээр.';break;}
  case 'diffusionTube': {const leftAmmonia=(a.aq.NH3??0)*acidState(a).nh3Fraction;const rightAmmonia=(b.aq.NH3??0)*acidState(b).nh3Fraction;const ammonia=leftAmmonia>rightAmmonia?a:b,acid=leftAmmonia>rightAmmonia?b:a;const limit=Math.min(Math.max(leftAmmonia,rightAmmonia),Math.max(0,acidityToNeutral(acid)));const dn=limit*(1-Math.exp(-dt/15));ammonia.aq.NH3=Math.max(0,(ammonia.aq.NH3??0)-dn);acid.aq.Cl=Math.max(0,(acid.aq.Cl??0)-dn);n.chambers[2].s.NH4Cl=(n.chambers[2].s.NH4Cl??0)+dn;n.extent+=dn;n.color='#f8fafc';n.message='NH₃ + HCl → NH₄Cl(s). Цагаан цагираг HCl төгсгөлд ойр үүснэ. Хий өнгөгүй.';break;}
  case 'diffusionCell': {const factor=a.fine?3:1;const medium=n.chambers[2].s.paper?'paper':n.chambers[2].s.gelatin?'gelatin':'water';const D=.006*factor*2**((a.temp-22)/25)*(medium==='gelatin'?.1:medium==='paper'?.5:1);n.extent+=(1-n.extent)*(1-Math.exp(-D*dt));n.chambers[0]=step(a,dt,{...DEFAULT_ENV,lossWK:0,stir:0}).m;n.color=a.aq.MnO4||a.s.KMnO4?'#9848ba':'#358bdf';n.message=medium==='paper'?'Цаасанд капиллярын урсгал мөн оролцоно.':a.fine?'Нунтагласан гадаргуу их: уусалт хурдан.':'Тархалт: өндөр концентрациас бага концентраци руу нийт шилжилт.';break;}

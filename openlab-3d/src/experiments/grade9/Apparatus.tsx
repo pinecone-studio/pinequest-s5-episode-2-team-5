@@ -93,12 +93,14 @@ export function Grade9Apparatus({kind,itemId,...props}:GroupProps&{kind:RigKind;
   {['gasTrain','convectionCell'].includes(kind)&&<Box at={[0,.14,0]} size={[.13,.006,.006]} color="#9ac2cd"/>}
   {kind==='gasTrain'&&<><mesh geometry={hose}><meshStandardMaterial color="#90bac8" transparent opacity={.75}/></mesh>{well(2,0,.055)}<mesh material={glass} position={[0,.17,.045]}><cylinderGeometry args={[.012,.012,.08,20,1,true]}/></mesh></>}
   {kind==='conductivityTester'&&<><Box at={[-.075,.09,0]} size={[.003,.08,.008]} color={metal}/><Box at={[-.055,.09,0]} size={[.003,.08,.008]} color={metal}/><mesh position={[.06,.15,0]}><sphereGeometry args={[.012,12,10]}/><meshStandardMaterial color={(rig?.extent??0)>.5?'#f9e34e':'#5d6869'} emissive={(rig?.extent??0)>.5?'#bfa41a':'#000000'}/></mesh></>}
-  {['calorimeter','heatingBath','gasTrain'].includes(kind)&&<Box at={[-.065,.025,0]} size={[.065,.028,.065]} color={rig?.heating?'#da713b':'#566975'}/>}
+  {['calorimeter','heatingBath','gasTrain'].includes(kind)&&<Box at={[-.065,.025,0]} size={[.065,.028,.065]} color={rig?.heating&&(kind!=='heatingBath'||rig.port===0)?'#da713b':'#566975'}/>}
+  {kind==='heatingBath'&&<Box at={[.065,.025,0]} size={[.065,.028,.065]} color={rig?.heating&&rig.port===1?'#da713b':'#566975'}/>}
   {kind==='calorimeter'&&rig?.heating&&rig.chambers[1].ethanol>0&&<mesh position={[-.065,.11,0]}><coneGeometry args={[.007,.035,12]}/><meshStandardMaterial color="#ffc45b" emissive="#da6726" transparent opacity={.85}/></mesh>}
   {kind==='gasTrain'&&rig?.heating&&<mesh position={[-.065,.065,0]}><coneGeometry args={[.006,.03,12]}/><meshStandardMaterial color="#63b8f4" emissive="#3984e2" transparent opacity={.85}/></mesh>}
   {kind==='heatingBath'&&(rig?.chambers[0].s.ice??0)>0&&<Box at={[-.065,.06,0]} size={[.024,.025,.023]} color="#e1f5ff"/>}
+  {kind==='heatingBath'&&(rig?.chambers[1].s.ice??0)>0&&<Box at={[.065,.06,0]} size={[.024,.025,.023]} color="#e1f5ff"/>}
  </>}
- {!isCurriculumRig(kind)&&!['gasTrain','reactionTile','corrosionRack','diffusionTube','fractionatingColumn'].includes(kind)&&well(2,0,.055)}
+ {!isCurriculumRig(kind)&&!['gasTrain','heatingBath','reactionTile','corrosionRack','diffusionTube','fractionatingColumn'].includes(kind)&&well(2,0,.055)}
  {rig?.running&&(rig.kind==='gasTrain'&&rig.gas>0||rig.kind==='heatingBath'&&rig.temperature>=100)&&<group ref={particles}>{Array.from({length:12},(_,i)=><mesh key={i} position={[-.065+(i%3)*.004,.09+i*.009,0]}><sphereGeometry args={[.0018,8,6]}/><meshStandardMaterial color="#e2f4f8" transparent opacity={.7}/></mesh>)}</group>}
  </group>;
 }

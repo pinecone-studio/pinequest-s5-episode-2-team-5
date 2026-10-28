@@ -32,6 +32,7 @@ import { restoreScenePortable, usePortableStore } from '../../interaction/portab
 import { clearReactionViews } from '../../lab/reaction-view';
 import { sounds } from '../../utils/sounds';
 import { isWorkbenchPosition,grade9SupplyPosition } from './placement';
+import { GUIDED_OVERLAYS } from './guidance/overlays';
 
 export interface BenchSupply { key: string; name: string; use: string; kind?: EquipmentKind; reagent?: ReagentId; part?: PartKey }
 const apparatus = (kind: EquipmentKind): BenchSupply => ({ key: kind, kind, name: CATALOG[kind].name, use: CATALOG[kind].description });
@@ -41,6 +42,7 @@ export const NACL_SUPPLIES = LABEL_KEYS.map((part): BenchSupply => ({ key: `nacl
 /** Executable apparatus lists complement the existing human-readable JSON materials. */
 const RECIPES: Record<string, BenchSupply[]> = {
   ...Object.fromEntries(INVESTIGATIONS.map((x) => [x.id, x.supplies.map((s) => s.startsWith('reagent:') ? reagent(s.slice(8) as ReagentId) : apparatus(s as EquipmentKind))])),
+  ...Object.fromEntries(Object.entries(GUIDED_OVERLAYS).map(([id, overlay]) => [id, overlay.supplies.map((s) => s.startsWith('reagent:') ? reagent(s.slice(8) as ReagentId) : apparatus(s as EquipmentKind))])),
   nacl: NACL_SUPPLIES,
   safety: list(['goggles', 'gloves', 'fireExtinguisher']),
   boil: list(['beaker', 'bunsenBurner', 'tripod', 'thermometer'], ['water']),

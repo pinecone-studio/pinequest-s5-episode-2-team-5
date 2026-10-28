@@ -44,6 +44,7 @@ import { EvaporatingDish } from './EvaporatingDish';
 import { VolumetricFlask } from './VolumetricFlask';
 import { TestTubeHolder } from './TestTubeHolder';
 import { Mortar } from './Mortar';
+import { TextbookEquipmentModel } from './TextbookEquipmentModel';
 import { FireExtinguisherModel } from '../world/furniture/FireExtinguisher';
 
 export interface EquipmentModelProps extends GroupProps {
@@ -163,5 +164,33 @@ export function EquipmentModel({ kind, variant, mixture, itemId, lit, flameColor
       return <TestTubeHolder {...props} />;
     case 'mortar':
       return <Mortar {...fx} {...props} />;
+    case 'stopwatch':
+    case 'gasDeliveryTube':
+    case 'retortStand':
+    case 'crystallizingDish':
+    case 'splint':
+    case 'sandpaper':
+    case 'cottonWool':
+    case 'syringe':
+    case 'matches':
+    case 'handPump':
+    case 'uTube':
+    case 'aluminumCan':
+    case 'plasticCup':
+    case 'knife':
+    case 'magnifyingGlass':
+    case 'disposableDish':
+    case 'plasticBottle':
+    case 'seedPot':
+    case 'tissue':
+    case 'waterFilter':
+    case 'corkStopper':
+    case 'penCap':
+    case 'modellingClay':
+    case 'dripAdjuster':
+    case 'wireGauze':
+    case 'wellPlate':
+    case 'filterPaper':
+      return <TextbookEquipmentModel kind={kind} {...props} />;
   }
 }

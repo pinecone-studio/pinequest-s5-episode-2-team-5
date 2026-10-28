@@ -349,13 +349,17 @@ export function step(input: Mixture, dtRaw: number, env: StepEnv): StepResult {
   if (dissolveRate < -0.3) notes.push('dissolve:cold');
   else if (dissolveRate > 0.3) notes.push('dissolve:hot');
   let power = env.heatW + heat / Math.max(dt, 1e-3) - env.lossWK * (m.temp - ROOM_T);
-  // Ice absorbs latent heat instead of warming through the melting interval.
+  // Ice absorbs latent heat at its mixture's melting point. Dissolved or still-solid
+  // NaCl lowers the transition temperature; the solvent mass includes liquid and ice.
   const ice=m.s.ice??0;
-  if(ice>0&&m.temp+power*dt/capacity>=0){
-    const energy=Math.max(0,m.temp*capacity+power*dt);
+  const solventKg=(m.water+ice*18.015)/1000;
+  const saltMol=(m.s.NaCl??0)+Math.min(m.aq.Na??0,m.aq.Cl??0);
+  const meltPoint=solventKg>0&&saltMol>0?-Math.min(21.1,3.72*saltMol/solventKg):0;
+  if(ice>0&&m.temp+power*dt/capacity>=meltPoint){
+    const energy=Math.max(0,(m.temp-meltPoint)*capacity+power*dt);
     const dn=Math.min(ice,energy/(334*18.015));
     m.s.ice=ice-dn;m.water+=dn*18.015;
-    m.temp=(m.s.ice??0)>1e-10?0:Math.max(0,energy-dn*334*18.015)/(heatCapacity(m)+env.glassJK);
+    m.temp=(m.s.ice??0)>1e-10?meltPoint:Math.max(meltPoint,energy-dn*334*18.015)/(heatCapacity(m)+env.glassJK);
     power=0;changed=true;
   }
   let boiling = false;
