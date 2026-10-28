@@ -84,3 +84,58 @@ export function unlinkedCard(state: Pick<LaunchedProcedureState, 'labId' | 'step
   if (!SHOW_TEXTBOOK_PROCEDURE || state.labId !== null || !state.steps.length) return null;
   return { title: state.title, steps: state.steps };
 }
+
+/**
+ * Ажлын ширээнд суухад зүүн дээд самбарт харуулах туршилтын нэр.
+ * `labId` нь идэвхтэй лабын туршилт (холбоогүй туршилтад null). Цэснээс сонгосон нэр байвал тэр, үгүй бол лабын зааврын нэр.
+ * Юу ч сонгоогүй бол undefined.
+ */
+export function benchTitle(labId: string | null, state: Pick<LaunchedProcedureState, 'labId' | 'title'>, labTitle?: string): string | undefined {
+  if (labId) return cardTitle(labId, state, labTitle ?? '') || undefined;
+  return SHOW_TEXTBOOK_PROCEDURE && state.labId === null && state.title ? state.title : undefined;
+}
+
+/**
+ * Нэрийг үгийн заагаар мөрүүдэд хуваана: богино нэр 1 мөр, урт нэр 2 мөр, хэт урт нэр 3 мөр.
+ * Хамгийн урт мөр аль болох богино байхаар тэнцүү хуваана — тэгэхгүй бол самбарын үсэг жижиг болно.
+ */
+function wrapTitle(title: string): string {
+  const text = title.trim().replace(/\s+/g, ' ');
+  if (text.length <= 28) return text;
+  const words = text.split(' ');
+  const count = Math.min(text.length > 52 ? 3 : 2, words.length);
+  let best: string[] = [text];
+  let bestWidest = Infinity;
+  // Үгсийг дараалсан `count` бүлэгт хуваах бүх аргыг туршиж, хамгийн урт мөр нь хамгийн богино байхыг сонгоно
+  const split = (start: number, left: number, lines: string[]): void => {
+    if (left === 1) {
+      const all = [...lines, words.slice(start).join(' ')];
+      const widest = Math.max(...all.map((line) => line.length));
+      if (widest < bestWidest) {
+        best = all;
+        bestWidest = widest;
+      }
+      return;
+    }
+    for (let end = start + 1; end <= words.length - (left - 1); end++) split(end, left - 1, [...lines, words.slice(start, end).join(' ')]);
+  };
+  split(0, count, []);
+  return best.join('\n');
+}
+
+/**
+ * Ажлын ширээн дээрх 3D самбарын бичиг: "Ажлын ширээ" + сонгосон туршилтын нэр.
+ * Цэснээс сонгосон бол тэр нэр (лабын заавартай холбоогүй ч), үгүй бол лабын зааврын нэр.
+ */
+export function benchSignText(labId: string | null, state: Pick<LaunchedProcedureState, 'labId' | 'title'>, labTitle?: string): string {
+  const title = benchTitle(labId, state, labTitle);
+  if (title) return `Ажлын ширээ\n${wrapTitle(title)}`;
+  return labId ? 'Ажлын ширээ\nТуршилт олдсонгүй' : 'Ажлын ширээ\nТуршилт сонгоогүй байна';
+}
+
+/** Ажлын ширээний самбарын "Хэрхэн хийх" бүлгүүд: лабтай холбоотой бол groupsToShow, холбоогүй бол unlinkedCard (ExperimentCard-тай ижил) */
+export function benchGroups(labId: string | null, state: Pick<LaunchedProcedureState, 'labId' | 'steps' | 'title'>, linked: ProcedureGroup[]): ProcedureGroup[] {
+  if (labId) return groupsToShow(labId, state, linked);
+  const card = unlinkedCard(state);
+  return card ? [card] : [];
+}

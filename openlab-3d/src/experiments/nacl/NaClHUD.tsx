@@ -35,6 +35,10 @@ import { currentSession, jumpToStep, useWorkbench } from '../workbench/session';
 import { isTouchDevice } from '../../utils/device';
 import { PreparationChecklist } from '../workbench/PreparationHints';
 import { mobileizeControlHint } from '../../controls/mobileInteraction';
+import { ProcedureList } from '../../menu/ProcedureBlock';
+import { TextbookPreparation } from '../../menu/TextbookPreparation';
+import { SHOW_LAB_STEPS_IN_CARD, benchGroups, benchTitle, useLaunchedProcedure } from '../../menu/launchedProcedure';
+import { procedureGroupsForLab } from '../../menu/labProcedureData';
 
 function readItem(id: string) {
   mixture(id);
@@ -187,6 +191,13 @@ export function NaClHUD() {
   const cohesiveGuide=!!active&&!!guidedPlan(active);
   const lesson = catalog.find((x) => x.id === active);
   const preparing = !!lesson && !session?.ready;
+  // Ширээнд суухад ExperimentCard нуугддаг тул цэснээс сонгосон туршилтын нэр, "Хэрхэн хийх" алхмыг энд харуулна
+  const launched = useLaunchedProcedure();
+  const topic = benchTitle(active, launched, lesson?.title);
+  const groups = benchGroups(active, launched, active ? procedureGroupsForLab(active) : []);
+  const clean = !SHOW_LAB_STEPS_IN_CARD && groups.length > 0;
+  // Лаб ширээн дээрх хэрэгслийг хянадаггүй (эсвэл лабын заавартай холбоогүй) туршилт: сурах бичгийн бодис, хэрэгслийн жагсаалтаар бэлтгэнэ
+  const textbookPrep = !!launched.prep && launched.labId === active;
   const done = active ? progress[active] ?? [] : [];
   const nextStep = lesson?.steps.findIndex((s) => !done.includes(s.id)) ?? 0;
   const autoStep = nextStep < 0 ? lesson?.steps.length ?? 0 : nextStep;
@@ -208,16 +219,19 @@ export function NaClHUD() {
       {isTouchDevice() && view.inspecting && <button className="rounded-full bg-white/95 px-3 py-2 shadow" onClick={benchView.back}>Esc · Ширээнд буцах</button>}
     </div>}
     {closeup && !workbench.drawer && <aside className="fixed left-3 right-12 top-14 z-30 max-h-[43vh] overflow-auto overscroll-contain rounded-xl bg-white/95 p-3 text-lab-ink shadow-hud sm:right-auto sm:max-h-[75vh] sm:w-[340px] sm:max-w-lg" aria-label="Туршилтын заавар">
-      <div className="truncate text-xs font-bold">{lesson?.title ?? 'Туршилт сонгоогүй байна'}{preparing ? ' · Бэлтгэл' : ''}</div>
+      <div className="text-xs font-bold leading-snug">{topic ?? lesson?.title ?? 'Туршилт сонгоогүй байна'}{preparing || textbookPrep ? ' · Бэлтгэл' : ''}</div>
       {session?.teacher && !cohesiveGuide && <span className="mt-1 inline-block rounded-full bg-indigo-50 px-2 py-1 text-[11px] font-bold text-indigo-700">👩‍🏫 Багшийн горим</span>}
       {cohesiveGuide&&active&&<MeasurementGuide experiment={active} target={receiver??view.selected} step={lesson?.steps[selectedStep]?.id}/>}
-      {preparing ? <PreparationChecklist /> : lesson && <>
-        {!cohesiveGuide&&<p className="mt-1 text-xs font-semibold">{active === 'nacl' ? (isTouchDevice() ? mobileizeControlHint(guide.current.hint) : guide.current.hint) : lesson.steps[selectedStep]?.text ?? 'Туршилт дууслаа.'}</p>}
-        {!cohesiveGuide && active === 'elephant' && selectedStep < lesson.steps.length && <p className="mt-1 rounded bg-sky-50 p-2 text-sm font-bold text-sky-950">{selectedStep === 0 ? 'H₂O₂: 20–30 мл → цилиндр' : selectedStep === 1 ? 'Саван: бага хэмжээ · нэмсэн мл-ээ тэмдэглэ' : `KI (0.5 М): ≈${KI_DOSE_ML?.toFixed(1) ?? '—'} мл → цилиндр`}</p>}
-        {!cohesiveGuide && active !== 'nacl' && lesson.steps[selectedStep] && <details key={lesson.steps[selectedStep].id} className="mt-1 text-[11px]"><summary className="cursor-pointer text-sky-800">Тусламж хэрэгтэй юу?</summary><p className="mt-1">{lesson.steps[selectedStep].hint}</p></details>}
+      {preparing ? <PreparationChecklist /> : textbookPrep ? <TextbookPreparation /> : <>
+        {clean && <ProcedureList groups={groups} />}
+        {lesson && <>
+        {!cohesiveGuide&&!clean&&<p className="mt-1 text-xs font-semibold">{active === 'nacl' ? (isTouchDevice() ? mobileizeControlHint(guide.current.hint) : guide.current.hint) : lesson.steps[selectedStep]?.text ?? 'Туршилт дууслаа.'}</p>}
+        {!cohesiveGuide && !clean && active === 'elephant' && selectedStep < lesson.steps.length && <p className="mt-1 rounded bg-sky-50 p-2 text-sm font-bold text-sky-950">{selectedStep === 0 ? 'H₂O₂: 20–30 мл → цилиндр' : selectedStep === 1 ? 'Саван: бага хэмжээ · нэмсэн мл-ээ тэмдэглэ' : `KI (0.5 М): ≈${KI_DOSE_ML?.toFixed(1) ?? '—'} мл → цилиндр`}</p>}
+        {!cohesiveGuide && !clean && active !== 'nacl' && lesson.steps[selectedStep] && <details key={lesson.steps[selectedStep].id} className="mt-1 text-[11px]"><summary className="cursor-pointer text-sky-800">Тусламж хэрэгтэй юу?</summary><p className="mt-1">{lesson.steps[selectedStep].hint}</p></details>}
         {!cohesiveGuide && active && <MeasurementGuide experiment={active} target={receiver ?? view.selected} step={lesson.steps[selectedStep]?.id}/>}
+        </>}
       </>}
-      {!cohesiveGuide && lesson && <details className="mt-1 text-[11px]"><summary className="cursor-pointer text-slate-500">Алхмууд</summary><div className="mt-1 flex flex-wrap gap-1">{lesson.steps.map((step, i) => <button key={step.id} className="rounded bg-slate-100 px-2 py-1" onClick={() => jumpToStep(i)}>{(active === 'nacl' && guide.steps[i]?.done) || done.includes(step.id) ? '✓ ' : ''}{i + 1}. {step.text}</button>)}</div></details>}
+      {!cohesiveGuide && !clean && lesson && <details className="mt-1 text-[11px]"><summary className="cursor-pointer text-slate-500">Алхмууд</summary><div className="mt-1 flex flex-wrap gap-1">{lesson.steps.map((step, i) => <button key={step.id} className="rounded bg-slate-100 px-2 py-1" onClick={() => jumpToStep(i)}>{(active === 'nacl' && guide.steps[i]?.done) || done.includes(step.id) ? '✓ ' : ''}{i + 1}. {step.text}</button>)}</div></details>}
       {!cohesiveGuide && lesson && <p className="mt-1 text-[11px] text-slate-600" role="status">{active === 'nacl' && !preparing ? guide.warning : state.warning}</p>}
     </aside>}
     {closeup && !workbench.drawer && isTouchDevice() && <CameraControls />}
