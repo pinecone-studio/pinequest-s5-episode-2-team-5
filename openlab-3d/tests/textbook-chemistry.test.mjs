@@ -139,3 +139,47 @@ test('Төмөр зэсийн сульфатаас зэсийг шахна', () 
   const { m } = wait(pour(['cuso4', 20], ['s_fe', 1]), 30);
   assert.ok(m.s.Cu > 0 && m.aq.Fe2 > 0);
 });
+
+test('Давстай ус дахь мөс бүрэн хайлсны дараах температур дулааны тэнцвэрээр тогтоно', () => {
+  // 50 мл ус + 2 г NaCl (уусгасан) + −10 °C мөс 2 г: хайлах цэг ≈ −2.45 °C, эцсийн T ≈ 19 °C
+  // (Q = mcΔT, 100 Ж/К шилтэй). Алдаатай томьёо хайлах цэгийн шилжилтийг алгасаж ≈21.4 °C гаргадаг.
+  let m = wait(pour(['water', 50], ['s_nacl', 2]), 60, { stir: 1, lossWK: 0 }).m;
+  m.temp = 22;
+  m = E.equilibrateHeat(m, E.reagentMixture('s_ice', 2), 100).m;
+  ({ m } = wait(m, 5, { lossWK: 0 }));
+  assert.ok(!(m.s.ice > 1e-6));
+  assert.ok(Math.abs(m.temp - 19.0) < 0.4, `${m.temp}`);
+});
+
+test('Этанол тасалгааны температурт галд ойртоход асна; шингэн дарс асахгүй', () => {
+  assert.ok(wait(E.reagentMixture('ethanol', 5), 1, { flame: true }).m.burning, '96% этанол 22 °C');
+  assert.ok(!wait(E.reagentMixture('wine', 5), 1, { flame: true }).m.burning, 'усан уусмал');
+  const dilute = pour(['water', 8], ['ethanol', 2]);
+  assert.ok(!wait(dilute, 1, { flame: true }).m.burning, '20% этанол 22 °C-д асахгүй');
+});
+
+test('Металл орлох урвал дулаан ялгаруулна: Zn + CuSO₄ халуу оргино', () => {
+  const start = pour(['cuso4', 20], ['s_zn', 2]);
+  start.fine = true;
+  const { m } = wait(start, 60, { lossWK: 0.2 });
+  assert.ok(m.s.Cu > 0);
+  assert.ok(m.temp > start.temp + 5, `${start.temp} → ${m.temp}`);
+});
+
+test('Ил агаарт халаасан зэс харлаж, магни шатна; битүү саванд хүчилтөрөгчгүй бол үгүй', () => {
+  const heat = { heatW: 1300, glassJK: 60, lossWK: 2 };
+  const cu = wait(E.reagentMixture('s_cu', 0.5), 60, { ...heat, air: true }).m;
+  assert.ok(cu.s.CuO > 0, 'Cu → CuO');
+  let mg = E.reagentMixture('s_mg', 0.1);
+  const notes = new Set();
+  for (let t = 0; t < 60; t++) { const r = E.advanceChemistry(mg, 1, { ...ENV, ...heat, air: true }); mg = r.m; r.notes.forEach((n) => notes.add(n)); }
+  assert.ok(mg.s.MgO > 0 && notes.has('burn:Mg'), 'Mg шатна');
+  assert.ok(!(wait(E.reagentMixture('s_mg', 0.1), 60, heat).m.s.MgO > 0), 'агааргүй');
+});
+
+test('CO₂ хий усанд уусч хүчиллэг болгоно; шүлт CO₂-ийг шингээнэ', () => {
+  const water = wait(pour(['water', 10], ['gas_co2', 20]), 10).m;
+  assert.ok(E.phOf(water) < 6, `${E.phOf(water)}`);
+  const naoh = wait(pour(['naoh', 10], ['gas_co2', 20]), 20).m;
+  assert.ok(!(naoh.g?.CO2 > 1e-6) && naoh.aq.CO3 > 0, 'NaOH бүх CO₂-ийг шингээнэ');
+});

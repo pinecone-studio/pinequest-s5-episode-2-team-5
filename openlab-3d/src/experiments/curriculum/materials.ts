@@ -71,7 +71,8 @@ export const EXTRA_SOLIDS = {
  potato:solid('Төмс','Төмс (г)',1,'#c9a46a'), liver:solid('Шинэхэн элэг','Элэг · каталаза (г)',1,'#7a2f2a'),
  gravel:solid('Хайрга','Хайрга (г)',1,'#8d8a80'), pebbles:solid('Жижиг чулуу','Чулуу (г)',1,'#a39e93'),
  charcoal:solid('Модны нүүрс','C (г)',12.011,'#2b2b2b'), activatedCarbon:solid('Идэвхжүүлсэн нүүрс','C (г)',12.011,'#1c1c1c'),
- detergent:solid('Угаагч нунтаг','Угаагч (г)',1,'#e8eef8'), tobacco:solid('Тамхи','Тамхины навч (г)',1,'#6b4a2b'),
+ detergent:{...solid('Угаагч нунтаг','Угаагч (г)',1,'#e8eef8'),dissolve:{products:{Na:.0047,CO3:.00236,soap:.0007},solubility:200,dH:0}},
+ dust:solid('Агаарын тоос, тортог','Тоос (г)',1,'#5b5348'), tar:solid('Тамхины давирхай','Давирхай (г)',1,'#8a5a22'), tobacco:solid('Тамхи','Тамхины навч (г)',1,'#6b4a2b'),
  mineralWool:solid('Эрдэс хөвөн','Эрдэс хөвөн (г)',1,'#d9cfb8'), vaseline:solid('Вазелин','Вазелин (г)',1,'#f1e7c4'),
 };
 export type ExtraSolidId=keyof typeof EXTRA_SOLIDS;
@@ -114,7 +115,7 @@ export const EXTRA_REAGENTS:Reagent[]=[
  sample('s_iron_nails','Fe','Төмөр хадаас','#52525b'),sample('s_steel_nails','Fe','Ган хадаас','#71717a'),sample('s_galvanized_nails','Zn','Цайраар бүрсэн хадаас','#a2aab1'),sample('s_iron_item','Fe','Төмөр эдлэл','#57534e'),
  {...bottle('milk','Сүү',{solutes:{Ac:.0003}}),color:'#f4f1e8'},{...bottle('apple_juice','Алимны шүүс',{solutes:{Cit:.02}}),color:'#e9c46a'},{...bottle('orange_juice','Жүржийн шүүс',{solutes:{Cit:.04}}),color:'#f4a259'},
  bottle('tap_water','Крантны ус',{solutes:{Ca:.001,Cl:.002}}),{...bottle('river_water','Голын ус',{solutes:{Ca:.0015,Cl:.003}}),blend:{silt:.4}},
- {...bottle('dirty_water','Бохирдсон ус',{solutes:{}}),blend:{silt:2,humus:.5},color:'#8a7a5a'},
+ {...bottle('dirty_water','Бохирдсон ус · гар, аяга угаасан',{solutes:{soap:.01}}),blend:{silt:2,humus:.5},color:'#8a7a5a'},
  {...bottle('motor_oil','Хөдөлгүүрийн тос',{solutes:{}}),liquid:'hexadecane',color:'#3a2a18',hazards:['flammable','env']},
  bottle('sugar_solution','Сахарын уусмал',{solutes:{sucrose:.3}}),
  {...bottle('unknown_salt','Үл мэдэгдэх давсны уусмал',{solutes:{Fe2:.1,SO4:.1}}),label:'?',note:'Ионыг сорилоор тодорхойлох дээж. Шошгон дээр найрлага бичээгүй.'},

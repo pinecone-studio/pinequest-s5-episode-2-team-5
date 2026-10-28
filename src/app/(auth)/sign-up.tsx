@@ -15,7 +15,6 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { AvatarPreview } from '@/components/auth/avatar-preview';
 import { FormError, FormSection } from '@/components/auth/form-section';
 import { LocationSchoolPicker } from '@/components/auth/location-school-picker';
-import type { RegionSelection } from '@/components/ranking/region-picker';
 import { AppText } from '@/components/ui/app-text';
 import { GameButton } from '@/components/ui/game-button';
 import { LabBackground } from '@/components/ui/lab-background';
@@ -32,7 +31,7 @@ import {
   validatePassword,
 } from '@/lib/validation';
 import { AuthError, isNicknameAvailable, type AuthField } from '@/services/auth';
-import type { ClassId } from '@/types';
+import type { ClassId, RegionSelection } from '@/types';
 
 type Field = AuthField | 'region' | 'school' | 'subregion';
 

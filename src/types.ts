@@ -6,6 +6,11 @@ export type IconName = ComponentProps<typeof MaterialCommunityIcons>['name'];
 export type ClassId = 'beginner' | 'medium' | 'hard';
 export type RegionType = 'city' | 'province';
 
+export interface RegionSelection {
+  type: RegionType;
+  name: string;
+}
+
 export type LessonStep =
   | { type: 'info'; title: string; body: string; icon: IconName }
   | {

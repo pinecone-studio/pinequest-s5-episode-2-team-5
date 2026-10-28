@@ -34,3 +34,14 @@ export function pourTilt(p:VesselProfile,ml:number){
  for(let i=0;i<16;i++){const a=(lo+hi)/2,n:Normal3=[-Math.sin(a),Math.cos(a),0],lip=n[1]*top-Math.abs(n[0])*r;if(volumeBelow(p,n,lip)>ml)lo=a;else hi=a;}
  return Math.min(1.5,(lo+hi)/2+.015);
 }
+
+/**
+ * Liquid (mL) an open vessel keeps when tilted so its axis has world-up component `upY`: what
+ * lies below the lower lip of its rim. Anything more runs out.
+ */
+export function heldAtTilt(p:VesselProfile,upY:number){
+ if(upY>=.9995)return Infinity;
+ if(upY<=0)return 0;
+ const a=Math.acos(upY),n:Normal3=[-Math.sin(a),Math.cos(a),0],top=rimHeight(p);
+ return volumeBelow(p,n,n[1]*top-Math.abs(n[0])*radiusAt(p,top));
+}

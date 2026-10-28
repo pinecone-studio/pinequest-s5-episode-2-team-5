@@ -142,6 +142,9 @@ export function completeProtocol(id:string,starter:GuideStep[]):GuideStep[]{
   lastChecks=id==='g9-gas-expansion'?[check('volume',9.5,10.5)]:[check('volume',75,86),s('CuO',.0015)];
  }
  if(['rate-concentration','g10-rate-concentration','g10-rate-zinc','g9-zinc-hcl'].includes(id))again('Хүчлийн хэмжээ бага нөхцөл',variant(s=>s.type==='dose'&&s.reagent==='hcl'?{...s,amount:1}:s),['g9-zinc-hcl'].includes(id)?[check('acid',undefined,1e-5)]:[check('volume',11)]);
+ // 8-07/8-08: the same mass of calcium, which is more reactive than magnesium.
+ if(id==='group2-water')again('Кальци хүйтэн устай хүчтэй урвалд орно',[dose('s_ca',.1),dose('water',10,1),{type:'start',label:'Кальцийг устай холь.'}],[check('volume',40)]);
+ if(id==='group2-acid')again('Кальци давсны хүчилтэй',[dose('s_ca',.1),dose('hcl',5,1),{type:'start',label:'Кальцийг хүчилтэй холь.'}],[check('volume',40)]);
  if(id==='rate-temperature')again('Халаалтгүй температурын хяналт',variant(s=>s.type==='configure'&&s.change.heating?{...s,change:{heating:false}}:s),initial);
  if(id==='g10-electrolysis')again('Инерт анодтой электролиз',variant(s=>s.type==='dose'&&s.port===2&&s.reagent==='s_cu'?{...s,reagent:'s_graphite'}:s),[data('deposited',.0001),check('gas',1e-6,undefined,{species:'O2',port:2})]);
  if(id==='g10-combustion')again('Хүчилтөрөгч дутсан шаталт',variant(s=>s.type==='dose'&&s.reagent==='gas_o2'?{...s,amount:75}:s),[check('gas',.0018,undefined,{species:'CO'}),check('gas',undefined,1e-6,{species:'CH4'})]);

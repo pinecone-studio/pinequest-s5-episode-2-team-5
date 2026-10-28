@@ -24,6 +24,12 @@ export interface StepEnv {
   co2: boolean;
   /** Sits in/over an open flame (can ignite ethanol vapour). */
   flame: boolean;
+  /** Open to the room's air: hot metals oxidise, the outside can mist over. Sealed rigs leave it off. */
+  air?: boolean;
+  /** 0..1 light reaching the vessel (photosynthesis). */
+  light?: number;
+  /** Ambient pressure, kPa (boiling point); 101.325 when unset. */
+  pressureKPa?: number;
 }
 
 export interface StepResult {
@@ -59,11 +65,30 @@ function addS(m: Mixture, id: SolidId, n: number): void {
   m.s[id] = Math.max(0, (m.s[id] ?? 0) + n);
 }
 
-function boilingPoint(m: Mixture): number {
+/** Hottest a vessel gets: a dry crucible over a Bunsen flame glows at ~700 °C, never above the flame. */
+const MAX_T = 1000;
+/** Room air (22 °C, ~45% RH) mists cold glass below this. */
+export const DEW_POINT = 9.5;
+/** Flash points of ethanol–water by ethanol volume fraction (closed cup, °C). */
+const FLASH: [number, number][] = [[0.05, 62], [0.1, 49], [0.2, 36], [0.3, 29], [0.4, 26], [0.5, 24], [0.7, 21], [0.96, 17], [1, 13]];
+
+export function flashPoint(ethanolFraction: number): number {
+  if (ethanolFraction < FLASH[0][0]) return Infinity;
+  for (let i = 1; i < FLASH.length; i++) {
+    const [f1, t1] = FLASH[i];
+    const [f0, t0] = FLASH[i - 1];
+    if (ethanolFraction <= f1) return t0 + ((t1 - t0) * (ethanolFraction - f0)) / (f1 - f0);
+  }
+  return FLASH[FLASH.length - 1][1];
+}
+
+/** Boiling point at `kPa` (Clausius–Clapeyron, ΔHvap 40.7 kJ/mol): ~95.6 °C at Ulaanbaatar's 86.5 kPa. */
+export function boilingPoint(m: Mixture, kPa = 101.325): number {
   const total = liquidMl(m);
-  if (total <= 0) return 100;
-  const f = m.ethanol / total;
-  return 100 - 22 * Math.pow(f, 0.7);
+  const f = total > 0 ? m.ethanol / total : 0;
+  const atSea = 100 - 22 * Math.pow(f, 0.7);
+  const k = 1 / (atSea + 273.15) - (8.314 * Math.log(kPa / 101.325)) / 40700;
+  return 1 / k - 273.15;
 }
 
 /** Turns the dissolved salts of a drying solution into crystals; volatile leftovers escape. */
@@ -90,6 +115,17 @@ export function dryOut(input: Mixture): Mixture {
   m.ethanol = 0;
   m.burning = false;
   return clean(m);
+}
+
+/**
+ * O₂ (mol/s) that pondweed in water gives off in `light` (6CO₂ + 6H₂O → C₆H₁₂O₆ + 6O₂). About
+ * 1.5 mL a minute per gram in bright light near 27 °C; dissolved CO₂/HCO₃⁻ speeds it up.
+ */
+export function photosynthesisRate(m: Mixture, light: number): number {
+  const grams = (m.s.plant ?? 0) * SOLIDS.plant.molarMass;
+  if (grams <= 0 || light <= 0 || m.water < 1) return 0;
+  const carbon = get(m, 'CO3') / (liquidMl(m) / 1000);
+  return grams * Math.min(1, light) * 1e-6 * (0.4 + 0.6 * Math.min(1, carbon / 0.01)) * Math.exp(-(((m.temp - 27) / 12) ** 2));
 }
 
 export function step(input: Mixture, dtRaw: number, env: StepEnv): StepResult {
@@ -161,7 +197,18 @@ export function step(input: Mixture, dtRaw: number, env: StepEnv): StepResult {
   const acid = acidState(m);
   const h = acid.h;
 
-  // 2. Gases leaving the solution.
+  // 2. CO₂ over the liquid dissolves as carbonic acid (kept below the fizz threshold); an alkaline
+  // liquid absorbs it all as carbonate. Then gases leave the solution.
+  const headCo2 = m.g?.CO2 ?? 0;
+  if (headCo2 > 1e-12 && m.water > 0.01 && V > 5e-5) {
+    const room = Math.max(0, 0.00035 * V - get(m, 'CO3') * acid.co2Fraction) + Math.max(0, -acidityToNeutral(m));
+    const dn = Math.min(headCo2, room) * (1 - Math.exp(-1.5 * dt));
+    if (dn > 1e-12) {
+      m.g = { ...m.g, CO2: headCo2 - dn };
+      add(m, 'CO3', dn);
+      changed = true;
+    }
+  }
   if (V > 5e-5) {
     const co2 = get(m, 'CO3') * acid.co2Fraction;
     const escapable = Math.max(0, co2 - 0.0004 * V);
@@ -231,6 +278,8 @@ export function step(input: Mixture, dtRaw: number, env: StepEnv): StepResult {
         addS(m, other.solid, dnIon);
         addS(m, metal.solid, -(dnIon * other.charge) / metal.charge);
         add(m, metal.ion, (dnIon * other.charge) / metal.charge);
+        // ΔH from the ions' enthalpies of formation: Zn + Cu²⁺ → Zn²⁺ + Cu is −218 kJ/mol.
+        heat += -((dnIon * other.charge) / metal.charge * metal.dH - dnIon * other.dH) * 1000;
         changed = true;
         notes.push(`displace:${other.solid}`);
       }
@@ -336,10 +385,19 @@ export function step(input: Mixture, dtRaw: number, env: StepEnv): StepResult {
     }
   }
 
-  // 6. Burning ethanol.
+  // Pondweed in lit water gives off oxygen bubbles.
+  const o2Plant = photosynthesisRate(m, env.light ?? 0);
+  if (o2Plant > 0) {
+    add(m, 'CO3', -Math.min(get(m, 'CO3'), o2Plant * dt));
+    gas.O2 += o2Plant;
+    if (o2Plant > 2e-7) notes.push('photosynthesis');
+    changed = true;
+  }
+
+  // 6. Burning ethanol: its vapour catches once the liquid is at its flash point (17 °C for 96%).
   const liquid = liquidMl(m);
   const ethFrac = liquid > 0 ? m.ethanol / liquid : 0;
-  if (!m.burning && env.flame && m.ethanol > 1 && ethFrac > 0.3 && T > 35) {
+  if (!m.burning && env.flame && m.ethanol > 0.5 && T >= flashPoint(ethFrac)) {
     m.burning = true;
     notes.push('ignite');
   }
@@ -379,12 +437,13 @@ export function step(input: Mixture, dtRaw: number, env: StepEnv): StepResult {
     const energy=Math.max(0,(m.temp-meltPoint)*capacity+power*dt);
     const dn=Math.min(ice,energy/(334*18.015));
     m.s.ice=ice-dn;m.water+=dn*18.015;
-    m.temp=(m.s.ice??0)>1e-10?meltPoint:Math.max(meltPoint,energy-dn*334*18.015)/(heatCapacity(m)+env.glassJK);
+    // Energy left after the last ice melts warms the melt up from its melting point.
+    m.temp=(m.s.ice??0)>1e-10?meltPoint:meltPoint+Math.max(0,energy-dn*334*18.015)/(heatCapacity(m)+env.glassJK);
     power=0;changed=true;
   }
   let boiling = false;
   if (liquidMl(m) > 0.005) {
-    const bp = boilingPoint(m);
+    const bp = boilingPoint(m, env.pressureKPa);
     const next = m.temp + (power * dt) / capacity;
     if (next >= bp && power > 0) {
       // Energy above the boiling point goes into evaporation.
@@ -409,7 +468,18 @@ export function step(input: Mixture, dtRaw: number, env: StepEnv): StepResult {
   } else {
     m.temp += (power * dt) / capacity;
   }
-  m.temp = Math.min(450, Math.max(-15, m.temp));
+  m.temp = Math.min(MAX_T, Math.max(-15, m.temp));
+  // Cold glass mists over with the room's water vapour, and dries off again once it warms up.
+  if (env.air) {
+    const dew = m.dew ?? 0;
+    const cold = m.temp < DEW_POINT && (liquidMl(m) > 0.5 || (m.s.ice ?? 0) > 1e-4);
+    const next = cold ? dew + 0.004 * (DEW_POINT - m.temp) * dt : Math.max(0, dew - 0.01 * Math.max(0.5, m.temp - DEW_POINT) * dt);
+    if (next !== dew) {
+      if (dew === 0 && next > 0) notes.push('dew');
+      m.dew = next > 1e-6 ? next : 0;
+      changed = true;
+    }
+  }
 
   // 8. Settling, foam.
   const fizz = gas.CO2 + gas.H2 + gas.O2;
@@ -430,7 +500,10 @@ export function step(input: Mixture, dtRaw: number, env: StepEnv): StepResult {
     notes.push('dry');
     changed = true;
   }
-  const curriculumChanges=reactCurriculum(out,dt);if(curriculumChanges.length){changed=true;notes.push(...curriculumChanges.map(c=>c.equation));}
+  const magnesium=out.s.Mg??0;
+  const curriculumChanges=reactCurriculum(out,dt,!!env.air);if(curriculumChanges.length){changed=true;notes.push(...curriculumChanges.map(c=>c.equation));}
+  // Burning magnesium: blinding white flame, white MgO smoke.
+  if(env.air&&magnesium-(out.s.Mg??0)>1e-9){notes.push('burn:Mg');gas.smoke+=(magnesium-(out.s.Mg??0))*40/Math.max(dt,1e-3);}
   // Equilibria only depend on composition, so skip the solve when nothing reacted.
   const eq = changed ? equilibrate(out) : { m: out, formed: [] as SolidId[] };
   out = eq.m;

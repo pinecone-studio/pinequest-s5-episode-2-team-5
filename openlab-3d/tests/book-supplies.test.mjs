@@ -95,3 +95,18 @@ test('хэрэгслийн төрөл бодисын савтай давхцах
   const tools = [...Object.values(BOOK_EQUIPMENT), ...Object.values(PROCEDURE_TOOLS)].flat().filter((ref) => !ref.startsWith('reagent:'));
   assert.deepEqual([...new Set(tools.filter((kind) => containers.has(kind)))], []);
 });
+
+test('сурах бичгийн сав (тигль, лааз, аяга, сав, тавиурт таваг) бодис багтаана', () => {
+  for (const kind of ['crucible', 'aluminumCan', 'plasticCup', 'plasticBottle', 'seedPot', 'trough', 'crystallizingDish', 'disposableDish']) {
+    assert.ok(CATALOG[kind].capacityMl > 0, kind);
+    assert.ok(CATALOG[kind].heatJK > 0, kind);
+  }
+  assert.ok(CATALOG.crucible.glass, 'шаазан тигль унавал хагарна');
+});
+
+test('хуруу шил бүхий туршилтад тавиур гарна (хэвтээ хуруу шилэнд шингэн тогтохгүй)', () => {
+  for (const e of experiments) {
+    const kinds = bookSupplies(e).supplies.map((s) => s.kind);
+    if (kinds.includes('testTube')) assert.ok(kinds.includes('testTubeRack'), e.id);
+  }
+});

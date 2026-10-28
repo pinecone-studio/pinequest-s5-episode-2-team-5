@@ -12,7 +12,7 @@ import { recordTransfer } from '../lab/measurements';
 import { create } from 'zustand';
 import { useSandbox } from '../experiments/nacl/sandbox';
 import { useBenchView } from '../experiments/nacl/view';
-import { CATALOG, STOCK_KINDS, isContainer, isHeater, type EquipmentKind } from '../equipment/equipmentCatalog';
+import { CATALOG, STOCK_KINDS, heaterWatts, isContainer, isHeater, type EquipmentKind } from '../equipment/equipmentCatalog';
 import { CATIONS, FLAME_COLORS, SOLIDS, type Cation } from '../chemistry/species';
 import { REAGENTS } from '../chemistry/reagents';
 import { emptyMixture, heatCapacity, isEmptyMixture, gasMl, liquidMl, merge, reagentMixture, solidMassG, solidVolumeMl, takeLiquid, takeSolid, type Mixture } from '../chemistry/mixture';
@@ -33,6 +33,7 @@ import { sounds } from '../utils/sounds';
 import type { ItemVariant, WorldItem } from '../world/itemsLayout';
 import { interactables, type UseTarget } from './registry';
 import { livePose } from './bodies';
+import { isLooseTube, standTube } from './storage';
 
 export type UseKind =
   | 'pour'
@@ -244,6 +245,8 @@ export function transfer(src: Vessel, dst: Vessel, amount: number, viaFunnel?: s
   const available = liquid ? (liquidMl(sm) || gasMl(sm)) : solidMassG(sm);
   let take = Math.min(amount, available);
   if (take <= 1e-6) return { moved: 0, overflow: false };
+  // Liquid goes into a test tube standing in a rack; a loose one is stood up first.
+  if (liquid && dst.kind === 'testTube' && isLooseTube(dst.id)) standTube(dst.id);
   const room = capacityOf(dst.kind) - fullness(dm);
   let overflow = false;
   const { taken, rest } = liquid ? takeLiquid(sm, take) : takeSolid(sm, take);
@@ -304,6 +307,9 @@ export function emptyVessel(id: string, variant: ItemVariant | undefined, name: 
   }
   game.logEvent(`${name}-ийг угаалтуурт хоосоллоо.`);
 }
+
+/** Element named by a flame colour (every cation in FLAME_COLORS). */
+const FLAME_ELEMENT: Partial<Record<Cation, string>> = { Na: 'натри', K: 'кали', Li: 'лити', Ca: 'кальци', Cu: 'зэс', Ba: 'бари', Rb: 'рубиди', Sr: 'стронци' };
 
 function runOnce(kind: UseKind, held: HeldItem, target: UseTarget): void {
   const chem = useChemStore.getState();
@@ -375,10 +381,11 @@ function runOnce(kind: UseKind, held: HeldItem, target: UseTarget): void {
     case 'filter': {
       if (!tv) return;
       const m = mixtureOf(tv.id, tv.variant);
-      const residue: Mixture = { ...emptyMixture(m.temp), s: { ...m.s } };
+      const residue: Mixture = { ...emptyMixture(m.temp), s: { ...m.s }, from: [...m.from] };
       const clear: Mixture = { ...m, s: {}, cloud: 0 };
       const color = Object.keys(m.s).length > 0 ? SOLIDS[Object.keys(m.s)[0] as keyof typeof SOLIDS].color : '#ffffff';
-      chem.setMixtures({ [tv.id]: clear });
+      // The residue stays on the filter paper in the funnel (nothing vanishes).
+      chem.setMixtures({ [tv.id]: clear, [held.id]: merge(mixtureOf(held.id, held.variant), residue) });
       chem.setTool(held.id, { residue: color });
       sounds.play('pour', 0.5);
       emitLab({ key: 'filter', title: 'Шүүлээ', detail: `Тунадас (${fmtG(solidMassG(residue))}) шүүлтүүрийн цаасан дээр үлдэж, тунгалаг уусмал (шүүгдэс) үлдлээ.` });
@@ -426,7 +433,7 @@ function runOnce(kind: UseKind, held: HeldItem, target: UseTarget): void {
       // The sample burns off; a sodium trace stays until the loop is cleaned in HCl.
       chem.setTool(held.id, { sample: sample.Na ? { Na: sample.Na * 0.15 } : {} });
       sounds.play('puff', 0.9);
-      emitLab({ key: `flame:${best}`, title: `Дөл ${flame.name} өнгөтэй боллоо`, detail: `Энэ нь ${best === 'Cu' ? 'зэс' : best === 'Na' ? 'натри' : best === 'K' ? 'кали' : best === 'Li' ? 'лити' : best === 'Ca' ? 'кальци' : 'бари'}-ийн ионы шинж. Дараагийн сорилын өмнө утсаа HCl-д дүрж цэвэрлэ.` });
+      emitLab({ key: `flame:${best}`, title: `Дөл ${flame.name} өнгөтэй боллоо`, detail: `Энэ нь ${FLAME_ELEMENT[best] ?? best}-ийн ионы шинж. Дараагийн сорилын өмнө утсаа HCl-д дүрж цэвэрлэ.` });
       return;
     }
     case 'cover': {
@@ -533,6 +540,11 @@ export function beginUse(): void {
   }
   // A rack or funnel in focus passes the pour on to the vessel that receives it.
   const resolved = resolveTarget(target);
+  // A loose tube lies on its side: stand it in a rack first, or what goes in runs straight out.
+  if ((use.kind === 'pour' || use.kind === 'drip') && resolved?.type === 'item' && resolved.kind === 'testTube' && isLooseTube(resolved.id) && !standTube(resolved.id)) {
+    useGameStore.getState().showToast('Хэвтээ хуруу шилэнд асгаж болохгүй', 'Хуруу шилийг тавиурт босгож тавь (Q) — тэгэхгүй бол шингэн гоожно');
+    return;
+  }
   if (!use.continuous) {
     if (resolved) runOnce(use.kind, held, resolved);
     return;
@@ -659,7 +671,8 @@ export function tickUse(dt: number): void {
         return;
       }
       heldHeat.id = s.held.id;
-      heldHeat.watts = s.held.kind === 'testTube' ? 420 : 800;
+      // Held in the flame: a spirit lamp heats far more gently than a Bunsen burner.
+      heldHeat.watts = (s.held.kind === 'testTube' ? 420 : 800) * heaterWatts(s.target.kind) / heaterWatts('bunsenBurner');
       heldHeat.until = performance.now() + 250;
       const m = mixtureOf(s.held.id, s.held.variant);
       hud(`Халааж байна · ${m.temp.toFixed(0)} °C`, CATALOG[s.held.kind].name);

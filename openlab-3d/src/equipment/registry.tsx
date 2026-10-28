@@ -210,7 +210,7 @@ export function EquipmentModel({ kind, variant, mixture, itemId, lit, flameColor
     case 'glassTube':
     case 'rubberBand':
     case 'wires':
-      return <TextbookEquipmentModel kind={kind} {...props} />;
+      return <TextbookEquipmentModel kind={kind} {...fx} {...props} />;
     case 'alcoholLamp':
       return <TextbookEquipmentModel kind={kind} lit={lit} {...props} />;
   }

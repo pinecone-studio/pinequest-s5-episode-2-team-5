@@ -41,9 +41,12 @@ const reagent = (id: ReagentId): BenchSupply => ({ key: `reagent-${id}`, reagent
 const list = (kinds: EquipmentKind[], reagents: ReagentId[] = []) => [...kinds.map(apparatus), ...reagents.map(reagent)];
 export const NACL_SUPPLIES = LABEL_KEYS.map((part): BenchSupply => ({ key: `nacl-${part}`, part, name: NAMES[part], use: USES[part] }));
 /** Executable apparatus lists complement the existing human-readable JSON materials. */
+/** Test tubes come with a rack to stand in: a loose tube lies on its side and cannot hold liquid. */
+const withRack = (supplies: BenchSupply[]): BenchSupply[] => supplies.some((s) => s.kind === 'testTube' && !s.reagent) && !supplies.some((s) => s.kind === 'testTubeRack') ? [...supplies, apparatus('testTubeRack')] : supplies;
+const fromRefs = (refs: string[]) => withRack(refs.map((s) => s.startsWith('reagent:') ? reagent(s.slice(8) as ReagentId) : apparatus(s as EquipmentKind)));
 const RECIPES: Record<string, BenchSupply[]> = {
-  ...Object.fromEntries(INVESTIGATIONS.map((x) => [x.id, x.supplies.map((s) => s.startsWith('reagent:') ? reagent(s.slice(8) as ReagentId) : apparatus(s as EquipmentKind))])),
-  ...Object.fromEntries(Object.entries(GUIDED_OVERLAYS).map(([id, overlay]) => [id, overlay.supplies.map((s) => s.startsWith('reagent:') ? reagent(s.slice(8) as ReagentId) : apparatus(s as EquipmentKind))])),
+  ...Object.fromEntries(INVESTIGATIONS.map((x) => [x.id, fromRefs(x.supplies)])),
+  ...Object.fromEntries(Object.entries(GUIDED_OVERLAYS).map(([id, overlay]) => [id, fromRefs(overlay.supplies)])),
   nacl: NACL_SUPPLIES,
   safety: list(['goggles', 'gloves', 'fireExtinguisher']),
   boil: list(['beaker', 'bunsenBurner', 'tripod', 'thermometer'], ['water']),

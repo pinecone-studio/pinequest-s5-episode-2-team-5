@@ -233,8 +233,9 @@ export const SALTS: { cation: Cation; a: number; anion: Anion | 'CO3'; b: number
 
 /**
  * Activity series (most reactive first); a metal displaces the ions of any metal after it.
- * `waterRate`: also reacts with water itself, from `waterFrom` °C (Ca in cold water; Mg only
- * once the water is hot, and fast in steam).
+ * `dH` is the ion's enthalpy of formation, kJ/mol (M + 2H⁺ → M²⁺ + H₂), so displacements release
+ * the difference. `waterRate`: also reacts with water itself, from `waterFrom` °C (Ca in cold
+ * water; Mg only once the water is hot, and fast in steam).
  */
 export const ACTIVITY: { solid: SolidId; ion: Cation; charge: number; acidRate: number; dH: number; waterRate?: number; waterFrom?: number }[] = [
   { solid: 'Ca', ion: 'Ca', charge: 2, acidRate: 2.2, dH: -543, waterRate: 0.4 },
@@ -244,8 +245,8 @@ export const ACTIVITY: { solid: SolidId; ion: Cation; charge: number; acidRate: 
   { solid: 'Fe', ion: 'Fe2', charge: 2, acidRate: 0.035, dH: -87 },
   { solid: 'Ni', ion: 'Ni', charge: 2, acidRate: .02, dH: -50 },
   { solid: 'Pb', ion: 'Pb', charge: 2, acidRate: .004, dH: -1 },
-  { solid: 'Cu', ion: 'Cu', charge: 2, acidRate: 0, dH: 0 },
-  { solid: 'Ag', ion: 'Ag', charge: 1, acidRate: 0, dH: 0 },
+  { solid: 'Cu', ion: 'Cu', charge: 2, acidRate: 0, dH: 64.8 },
+  { solid: 'Ag', ion: 'Ag', charge: 1, acidRate: 0, dH: 105.6 },
 ];
 
 /** Flame-test colors of cations (Bunsen burner + nichrome loop). */

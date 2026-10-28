@@ -512,7 +512,9 @@ test('all textbook practical summaries have valid executable lab mappings and re
   for(const d of stores.inquiryDefinitions){
     const supplies=stores.suppliesFor(d.id);
     const overlay=stores.GUIDED_OVERLAYS[d.id];
-    assert.equal(supplies.length,overlay?.supplies.length??d.supplies.length);
+    // A test tube always comes with a rack to stand it in.
+    const listed=overlay?.supplies??d.supplies,rack=listed.includes('testTube')&&!listed.includes('testTubeRack')?1:0;
+    assert.equal(supplies.length,listed.length+rack);if(rack)assert.ok(supplies.some(s=>s.kind==='testTubeRack'));
     assert.ok(supplies.every(s=>s.kind&&s.name));
     if(d.mode==='model'&&!overlay)assert.equal(supplies.length,0);
   }
@@ -1023,4 +1025,24 @@ test('measured tools reserve actual stock and cancellation returns only the unus
 });
 test('device actions distinguish leads, gas hoses, nylon winding and gentle mixing',()=>{
  const start={type:'start',label:'start'};assert.equal(stores.operationFor('galvanicCell',start),'connect-electric');assert.equal(stores.operationFor('gasTrain',start),'connect-gas');assert.equal(stores.operationFor('interfacialBath',start),'measure');assert.equal(stores.operationFor('beaker',start),'stir');assert.equal(stores.operationFor('interfacialBath',{type:'configure',label:'draw',change:{operation:'draw'}}),'wind');
+});
+
+test('liquid poured into a loose test tube first stands it in the nearest rack, so it cannot spill',()=>{
+ stores.resetWorkbench();stores.useInventoryStore.getState().reset();stores.useChemStore.getState().reset();
+ const inv=stores.useInventoryStore.getState();
+ const tube=inv.spawn('testTube',[8,.915,-14.5]),rack=stores.useInventoryStore.getState().spawn('testTubeRack',[8.6,.915,-14.5]),bottle=stores.useInventoryStore.getState().spawn('reagentBottle',[9.2,.915,-14.5],0,{reagent:'hcl'});
+ const {moved}=stores.transfer({id:bottle,kind:'reagentBottle',variant:{reagent:'hcl'}},{id:tube,kind:'testTube'},5);
+ const s=stores.useInventoryStore.getState();
+ assert.equal(moved,5);assert.ok(!s.worldItems.some(w=>w.id===tube));assert.ok(stores.storedIn(s.storage,rack).some(it=>it.id===tube));
+ assert.ok(Math.abs(chem.liquidMl(stores.useChemStore.getState().mixtures[tube])-5)<1e-9);
+ stores.useInventoryStore.getState().reset();stores.useChemStore.getState().reset();
+});
+
+test('a tilted vessel keeps only what lies below its lower lip; knocked over it empties',()=>{
+ const p=stores.PROFILES.beaker,full=stores.volumeBelow(p,[0,1,0],stores.rimHeight?.(p)??.092);
+ assert.equal(stores.heldAtTilt(p,1),Infinity);assert.equal(stores.heldAtTilt(p,-.2),0);
+ const at30=stores.heldAtTilt(p,Math.cos(Math.PI/6)),at60=stores.heldAtTilt(p,Math.cos(Math.PI/3));
+ assert.ok(at30<full&&at60<at30&&at60>0,`${full} ${at30} ${at60}`);
+ // Half full: a 20° nudge spills nothing.
+ assert.ok(stores.heldAtTilt(p,Math.cos(20*Math.PI/180))>full/2);
 });

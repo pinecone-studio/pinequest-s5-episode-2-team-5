@@ -30,6 +30,8 @@ export interface Mixture {
   foam: number;
   /** Reagents poured in, in order (used for names). */
   from: ReagentId[];
+  /** Condensed room moisture on the outside of the vessel, mL (not part of the contents). */
+  dew?: number;
 }
 
 export const ROOM_T = 22;
