@@ -30,6 +30,7 @@ import { enterBench } from './bench';
 import { useLabStore } from '../../store/useLabStore';
 import { currentSession, itemPosition, updateStationVisibility, useWorkbench } from '../workbench/session';
 import { experimentById } from '../../lab/experiments';
+import { benchSignText, useLaunchedProcedure } from '../../menu/launchedProcedure';
 import { emitLab } from '../../lab/events';
 import { crystalMass, describe, heldObjectId, labSpace, labUse, mixture, partId, partKey, simulateLab, useSandbox, warn } from './sandbox';
 
@@ -38,6 +39,8 @@ type Controls = ElementRef<typeof OrbitControls>;
 
 export function NaClStation() {
   const active = useLabStore((s) => s.active);
+  // Ширээний самбарт цэснээс сонгосон туршилтын нэр гаргахын тулд (лабын заавартай холбоогүй туршилтад active=null)
+  const launched = useLaunchedProcedure();
   const engine = useMemo(() => createNaClEngine(), []);
   const inBench = useGameStore((s) => s.mode === 'bench');
   const camera = useThree((s) => s.camera) as PerspectiveCamera;
@@ -369,7 +372,7 @@ export function NaClStation() {
       <Interactable id="open-workbench" label="Ажлын ширээ" verb="суух" onInteract={() => enterBench()} highlight="none" position={[8.25, BENCH_HEIGHT, -14.5]}>
         <mesh><boxGeometry args={[1.6, .025, .8]} /><meshBasicMaterial transparent opacity={0} colorWrite={false} depthWrite={false} /></mesh>
       </Interactable>
-      <SignText text={active ? `Ажлын ширээ\n${experimentById(active)?.title ?? 'Туршилт олдсонгүй'}` : 'Ажлын ширээ\nТуршилт сонгоогүй байна'} color="#1e4db5" width={0.9} height={0.22} position={[8.3, 1.5, -14.885]} />
+      <SignText text={benchSignText(active, launched, active ? experimentById(active)?.title : undefined)} color="#1e4db5" width={0.9} height={0.22} position={[8.3, 1.5, -14.885]} />
       {inBench && <OrbitControls ref={controls} target={initialTarget} enablePan={!inspecting} enableDamping dampingFactor={0.12} minDistance={0.018} maxDistance={3.5} minPolarAngle={0.12} maxPolarAngle={1.48}
         zoomSpeed={0.7} panSpeed={0.7} rotateSpeed={0.5} screenSpacePanning={false} zoomToCursor
         mouseButtons={{ LEFT: MOUSE.ROTATE, MIDDLE: MOUSE.DOLLY, RIGHT: MOUSE.PAN }} touches={{ ONE: TOUCH.ROTATE, TWO: TOUCH.DOLLY_PAN }} /> }
