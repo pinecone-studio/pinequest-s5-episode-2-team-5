@@ -14,5 +14,7 @@ export function guideDefinition(id:string):InvestigationDefinition|undefined{
  const stages=physicalShowcasePlan(id)??[];const needed=new Set(overlay?.supplies??base.supplies);for(const step of stages){if(step.type==='dose'||step.type==='flame')needed.add(`reagent:${step.reagent}`);if('target' in step&&step.target)needed.add(step.target);if('filter' in step&&step.filter)needed.add(step.filter);if(step.type==='move'){needed.add(step.from);needed.add(step.to);}if(step.type==='place'){needed.add(step.item);if(step.onto!=='table')needed.add(step.onto);}}
  if(stages.some(s=>operationFor(overlay?.labRig??base.labRig??target[id]??'beaker',s)==='stir'))needed.add('glassRod');
  if(stages.some(s=>s.type==='configure'&&s.change.heating)&&!isGrade9Rig(overlay?.labRig??base.labRig??target[id]??'beaker')){needed.add('bunsenBurner');needed.add('tripod');}
- return {...base,mode:'bench',labRig:overlay?.labRig??base.labRig??target[id]??'beaker',supplies:[...needed]};
+ // Liquid in a test tube needs a rack to stand in.
+ const rig=overlay?.labRig??base.labRig??target[id]??'beaker';if(rig==='testTube'||stages.some(s=>'target' in s&&s.target==='testTube'))needed.add('testTubeRack');
+ return {...base,mode:'bench',labRig:rig,supplies:[...needed]};
 }

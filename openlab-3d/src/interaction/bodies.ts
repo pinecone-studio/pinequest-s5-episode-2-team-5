@@ -132,7 +132,7 @@ export function supportSpots(items: WorldItem[], heldKind: string) {
   return items.flatMap((item) => {
     const spec = SUPPORTS[item.kind];
     if (!spec || item.kind === heldKind) return [];
-    if (item.kind === 'tripod' && !['beaker', 'erlenmeyer', 'evaporatingDish', 'dish'].includes(heldKind)) return [];
+    if (item.kind === 'tripod' && !['beaker', 'erlenmeyer', 'evaporatingDish', 'dish', 'crucible', 'crystallizingDish', 'aluminumCan'].includes(heldKind)) return [];
     if (item.kind === 'burette' && !['beaker', 'erlenmeyer', 'flask'].includes(heldKind)) return [];
     const pose = livePose(item);
     if (pose.upY < .9) return [];

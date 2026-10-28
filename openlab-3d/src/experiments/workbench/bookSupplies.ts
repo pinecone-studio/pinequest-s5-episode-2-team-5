@@ -115,6 +115,11 @@ export const PROCEDURE_TOOLS: Record<string, SupplyRef[]> = {
   '7-30': ['exposureRack'], // давстай ус, хүчил, халуун усанд зэврэлтийг харьцуулна
   '8-14': ['scale'], // «2 г … жинлэж ав»
   '8-17': ['funnel', 'filterPaper'], // «Катализаторыг шүүж»
+  '8-24': ['soilBench'], // Ургамал гэрэлд: гэрэлтэй тавцан ялгарсан O₂-ийг хуруу шилэнд хураана
+  '8-25': ['exposureRack'], // Вазелинтай таваг ил/хучсан үүрэнд тоос цуглуулна
+  '8-27': ['soilBench'], // Үрийг өөр өөр усаар услаж ургалтыг хэмжинэ
+  '8-28': ['soilBench'], // Элс, нүүрс, хайргатай шүүлтүүрийн үе
+  '8-30': ['gasTrain'], // Тамхины утааг усаар нэвтрүүлнэ
   '9-07': ['scale'], // «5 г жинлэж»
   '9-12': [...HEAT], // «шувтан колбонд хийж халаа»
   '10-20': ['electrolysisCell'], // Хайлмал PbBr₂ (373 °C) — the cell heats to 400 °C
@@ -157,6 +162,8 @@ export function bookSupplies(experiment: { id: string; equipment: string[]; subs
   };
   add(experiment.equipment, BOOK_EQUIPMENT);
   put(PROCEDURE_TOOLS[experiment.id] ?? []);
+  // A test tube needs a rack to stand in before anything is poured into it.
+  if (supplies.has('testTube')) put(['testTubeRack']);
   add(experiment.substances, BOOK_SUBSTANCES);
   return { supplies: [...supplies.values()], unmatched };
 }

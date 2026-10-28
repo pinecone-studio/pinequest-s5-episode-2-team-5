@@ -32,6 +32,14 @@ export const PROFILES = {
   mortar: { key: 'mortar', wall: [[0.022, 0.0065], [0.045, 0.017], [0.0535, 0.04], [0.056, 0.046]] },
   watchGlass: { key: 'watchGlass', wall: [[0.005, 0.0007], [0.022, 0.0025], [0.036, 0.0062]] },
   burette: { key: 'burette', wall: [[0.0057, 0.0], [0.0057, 0.5]] },
+  // Textbook vessels, matching TextbookEquipmentModel.
+  crucible: { key: 'crucible', wall: [[0.016, 0.002], [0.024, 0.04]] },
+  aluminumCan: { key: 'aluminumCan', wall: [[0.027, 0.007], [0.031, 0.012], [0.031, 0.116]] },
+  plasticCup: { key: 'plasticCup', wall: [[0.028, 0.006], [0.039, 0.079]] },
+  plasticBottle: { key: 'plasticBottle', wall: [[0.03, 0.01], [0.031, 0.134], [0.019, 0.155], [0.011, 0.174]] },
+  seedPot: { key: 'seedPot', wall: [[0.036, 0.004], [0.045, 0.058]] },
+  crystallizingDish: { key: 'crystallizingDish', wall: [[0.067, 0.003], [0.068, 0.025]] },
+  disposableDish: { key: 'disposableDish', wall: [[0.06, 0.003], [0.066, 0.015]] },
 } satisfies Record<string, VesselProfile>;
 
 interface Table {

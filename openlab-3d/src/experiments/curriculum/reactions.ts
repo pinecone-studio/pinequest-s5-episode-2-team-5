@@ -11,7 +11,8 @@ export function putG(m:Mixture,id:GasId,dn:number){m.g??={};m.g[id]=Math.max(0,g
 export interface ChemicalChange {equation:string;extent:number;effect:'gas'|'color'|'precipitate'|'physical'}
 /** Finite-reactant, stoichiometric pathways. Rates are accelerated teaching kinetics.
  * The caller owns/clones the mixture. No products are selected by an experiment ID. */
-export function reactCurriculum(m:Mixture,dt:number):ChemicalChange[]{
+/** `air`: the vessel is open to the room, so hot metals find all the oxygen they need. */
+export function reactCurriculum(m:Mixture,dt:number,air=false):ChemicalChange[]{
  const changes:ChemicalChange[]=[];if(!(dt>0))return changes;
  if(m.temp>60&&sol(m,'wax')>0){const dn=sol(m,'wax')*(-Math.expm1(-.1*dt));putS(m,'wax',-dn);putA(m,'waxLiquid',dn);}
 
@@ -23,8 +24,9 @@ export function reactCurriculum(m:Mixture,dt:number):ChemicalChange[]{
  if(m.water>0&&sol(m,'CuO')>0){const dn=Math.min(sol(m,'CuO'),Math.max(0,acidityToNeutral(m))/2)*fraction(.08*2**((m.temp-22)/25));putS(m,'CuO',-dn);putA(m,'Cu',dn);m.water+=dn*18.015;report('CuO + 2H⁺ → Cu²⁺ + H₂O',dn);}
  // Solid Fe/S and metal oxidation require heat and an actual oxygen reservoir.
  if(m.temp>=200&&sol(m,'Fe')>0&&sol(m,'S')>0){const dn=Math.min(sol(m,'Fe'),sol(m,'S'))*fraction(.08);putS(m,'Fe',-dn);putS(m,'S',-dn);putS(m,'FeS',dn);report('Fe + S → FeS',dn,'precipitate');}
- for(const [metal,oxide,threshold] of [['Cu','CuO',250],['Mg','MgO',500]] as const){
-  if(m.temp>=threshold){const dn=Math.min(sol(m,metal),gaseous(m,'O2')*2)*fraction(.1);putS(m,metal,-dn);putG(m,'O2',-dn/2);putS(m,oxide,dn);report(`2${metal} + O₂ → 2${oxide}`,dn/2,'precipitate');}
+ // Mg ignites near 500 °C and burns out in seconds; copper only tarnishes black.
+ for(const [metal,oxide,threshold,k] of [['Cu','CuO',250,.03],['Mg','MgO',500,.5]] as const){
+  if(m.temp>=threshold){const dn=Math.min(sol(m,metal),air?Infinity:gaseous(m,'O2')*2)*fraction(air?k:.1);putS(m,metal,-dn);if(!air)putG(m,'O2',-dn/2);putS(m,oxide,dn);report(`2${metal} + O₂ → 2${oxide}`,dn/2,'precipitate');}
  }
  if(m.temp>=850&&sol(m,'CaCO3')>0){const dn=sol(m,'CaCO3')*fraction(.04);putS(m,'CaCO3',-dn);putS(m,'CaO',dn);putG(m,'CO2',dn);report('CaCO₃ → CaO + CO₂',dn,'gas');}
  if(m.water>0&&sol(m,'CaO')>0){const dn=Math.min(sol(m,'CaO'),m.water/18.015)*fraction(.5);putS(m,'CaO',-dn);m.water-=dn*18.015;putS(m,'CaOH2',dn);m.temp+=dn*63000/(4.18*m.water+40);report('CaO + H₂O → Ca(OH)₂',dn,'precipitate');}
@@ -57,6 +59,8 @@ export function reactCurriculum(m:Mixture,dt:number):ChemicalChange[]{
  const acid=(m.ethanol>0||aq(m,'Ac')+aq(m,'aceticNeat')+aq(m,'ethylAcetate')>0)&&acidState(m).h>.01;
  if(m.temp>=160&&m.temp<250&&m.ethanol>0&&m.from.includes('h2so4_conc')&&acid){const dn=m.ethanol*.789/46.069*fraction(.02);m.ethanol-=dn*46.069/.789;m.water+=dn*18.015;putG(m,'C2H4',dn);report('C₂H₅OH → C₂H₄ + H₂O',dn,'gas');}
  if(m.temp>=400&&sol(m,'alumina')>0&&aq(m,'decane')>0){const dn=aq(m,'decane')*fraction(.05);putA(m,'decane',-dn);putA(m,'octane',dn);putG(m,'C2H4',dn);report('C₁₀H₂₂ → C₈H₁₈ + C₂H₄',dn,'gas');}
+ // Paraffin wax vapour over the hot porcelain cracks the same way (10-35).
+ if(m.temp>=400&&sol(m,'alumina')>0&&aq(m,'waxLiquid')>0){const dn=aq(m,'waxLiquid')*fraction(.05);putA(m,'waxLiquid',-dn);putA(m,'decane',dn);putG(m,'C2H4',7.5*dn);report('2C₂₅H₅₂ → 2C₁₀H₂₂ + 15C₂H₄',dn/2,'gas');}
  // Esterification uses the current amounts, including its reverse hydrolysis.
  if(m.temp>=40&&m.temp<150&&acid&&(aq(m,'Ac')+aq(m,'aceticNeat')+aq(m,'ethylAcetate'))>0){
   const a=aq(m,'Ac')+aq(m,'aceticNeat'),b=m.ethanol*.789/46.069,e=aq(m,'ethylAcetate'),w=m.water/18.015;

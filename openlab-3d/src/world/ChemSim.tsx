@@ -13,7 +13,7 @@ import {isGrade9Rig} from '../experiments/grade9/kinds';
 import { useEffect, useRef } from 'react';
 import { useFrame } from '@react-three/fiber';
 import { interactables } from '../interaction/registry';
-import { CATALOG, isContainer, isHeater, type EquipmentKind } from '../equipment/equipmentCatalog';
+import { CATALOG, heaterWatts, isContainer, isHeater, type EquipmentKind } from '../equipment/equipmentCatalog';
 import { liquidMl, takeLiquid, type Mixture } from '../chemistry/mixture';
 import { DEFAULT_ENV } from '../chemistry/kinetics';
 import { mixtureOf, seedMixture, useChemStore } from '../store/useChemStore';
@@ -21,6 +21,8 @@ import { useExperimentStore } from '../store/useExperimentStore';
 import { useInventoryStore } from '../store/useInventoryStore';
 import { co2Until, coverUntil, heldHeat, stirUntil, tickUse, transfer } from '../interaction/actions';
 import { buretteTip, livePose, startSpeedRecorder } from '../interaction/bodies';
+import { PROFILES, type VesselProfile } from '../equipment/profiles';
+import { heldAtTilt } from '../equipment/liquid-plane';
 import { surfaceYAt } from '../interaction/surfaces';
 import { note, observe, prime } from '../lab/observe';
 import { spillMixture } from '../lab/spill';
@@ -33,6 +35,8 @@ import { isBenchPaused } from '../experiments/workbench/session';
 import { useGameStore } from '../store/useGameStore';
 
 const TICK = 0.1;
+/** Daylight and ceiling lamps on the benches (0..1); a plant on the bench photosynthesises slowly. */
+const ROOM_LIGHT = 0.6;
 const BURETTE_RATE = [0, 0.25, 1, 3.5];
 
 /** Vessels that have settled: same mixture object as last tick and nothing going on. */
@@ -66,7 +70,7 @@ function simulate(dt: number): void {
 
   // Which vessels sit over a lit burner (on a tripod)?
   const heat = new Map<string, number>();
-  const burners = inv.worldItems.filter((w) => isHeater(w.kind) && toggles[w.id] && !isBenchPaused(w.id)).map(livePose);
+  const burners = inv.worldItems.filter((w) => isHeater(w.kind) && toggles[w.id] && !isBenchPaused(w.id)).map((w) => ({ ...livePose(w), watts: heaterWatts(w.kind) }));
   if (burners.length > 0) {
     for (const w of inv.worldItems) {
       if (!isContainer(w.kind) || w.kind === 'burette') continue;
@@ -74,7 +78,7 @@ function simulate(dt: number): void {
       if (p.upY < 0.7) continue;
       for (const b of burners) {
         const dy = p.y - b.y;
-        if (Math.hypot(p.x - b.x, p.z - b.z) < 0.065 && dy > 0.14 && dy < 0.34) heat.set(w.id, 1300);
+        if (Math.hypot(p.x - b.x, p.z - b.z) < 0.065 && dy > 0.14 && dy < 0.34) heat.set(w.id, Math.max(heat.get(w.id) ?? 0, b.watts));
       }
     }
   }
@@ -106,6 +110,9 @@ function simulate(dt: number): void {
       covered: (coverUntil.get(id) ?? 0) > now,
       co2: (co2Until.get(id) ?? 0) > now,
       flame: heatW > 0,
+      // Open vessels in the room: air for hot metals and for misting, ceiling and window light.
+      air: (coverUntil.get(id) ?? 0) <= now,
+      light: ROOM_LIGHT,
     };
     if (heatW > 0) note(id, 'heat:start', 20000);
     if(isGrade9Rig(kind))continue;
@@ -139,7 +146,7 @@ function simulate(dt: number): void {
   }
   if (Object.keys(patch).length > 0) chem.setMixtures(patch);
 
-  // Knocked-over vessels spill; a loose test tube cannot hold liquid at all.
+  // Tilted vessels spill what rises past the rim; a loose test tube cannot hold liquid at all.
   const spills: Record<string, Mixture> = {};
   for (const w of inv.worldItems) {
     if (isBenchPaused(w.id) || useShowcase.getState().source === w.id) continue;
@@ -149,8 +156,11 @@ function simulate(dt: number): void {
     const m = useChemStore.getState().mixtures[w.id] ?? seedMixture(w.variant);
     if (liquidMl(m) < 0.3) continue;
     const p = livePose(w);
-    if (w.kind !== 'testTube' && p.upY > 0.35) continue;
-    const out = Math.min(liquidMl(m), 45 * dt);
+    const profile = (PROFILES as Record<string, VesselProfile>)[w.kind];
+    const keep = w.kind === 'testTube' ? 0 : profile ? heldAtTilt(profile, p.upY) : p.upY > 0.35 ? Infinity : 0;
+    const excess = liquidMl(m) - keep;
+    if (excess < 0.05) continue;
+    const out = Math.min(excess, 45 * dt);
     const { taken, rest } = takeLiquid(m, out);
     spills[w.id] = rest;
     spillMixture(taken, p.x, surfaceYAt(p.x, p.z, p.y + 0.05), p.z, w.id);

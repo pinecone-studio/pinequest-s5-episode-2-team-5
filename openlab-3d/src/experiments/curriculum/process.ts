@@ -1,7 +1,7 @@
 import { AQ, SOLIDS, type AqId, type SolidId } from '../../chemistry/species';
 import { emptyMixture, merge, liquidMl, solidMassG, contentMassG, gasMl, takeSolid, type Mixture } from '../../chemistry/mixture';
 import { acidityToNeutral, equilibrate, phOf } from '../../chemistry/equilibrium';
-import { step, DEFAULT_ENV } from '../../chemistry/kinetics';
+import { step, DEFAULT_ENV, photosynthesisRate } from '../../chemistry/kinetics';
 import type { RigState } from '../grade9/process';
 import { isCurriculumRig } from './kinds';
 import { aq,sol,gaseous,putA,putS,putG,reactCurriculum,MATERIAL_PROPERTIES } from './reactions';
@@ -124,15 +124,22 @@ function distil(r:RigState,dt:number){
  r.message='Хөргөгч бодит шилжсэн хэсгийг хүлээн авагчид цуглуулна. Энэ нь тусгаарлах сургалтын нэрлэг; бүх фракц цэвэр нэг бодис болохгүй.';
 }
 function expose(r:RigState,dt:number){
- r.chambers.forEach((m,i)=>{
+ r.chambers.forEach((input,i)=>{
+  // Salt dissolves and acid attacks the metal in each cell as in any vessel.
+  const m=has(input)?step(input,Math.min(.3,dt),{...DEFAULT_ENV,lossWK:0}).m:input;r.chambers[i]=m;
+  // Sticky vaseline in an uncovered cell catches the airborne dust settling on it (8-25).
+  if(sol(m,'vaseline')>EPS&&!r.covers[i]){putS(m,'dust',2e-6*dt);r.data[`dust${i}`]=sol(m,'dust')*1000;}
   const metal=(['Fe','Zn','Cu','Al','Ag'] as const).find(id=>sol(m,id)>EPS);if(!metal||m.water<=0)return;
-  const barrier=aq(m,'oilFluid')>EPS||aq(m,'dyeB')>EPS||sol(m,'plastic')>EPS;
+  // Oil, grease, paint and plastic keep water and air off the metal.
+  const barrier=(['oilFluid','hexadecane','waxLiquid','dyeB'] as const).some(id=>aq(m,id)>EPS)||(['plastic','wax','vaseline'] as const).some(id=>sol(m,id)>EPS);
   const blocked=(barrier&&!r.scratched)||r.covers[i];
   const rate=({Fe:.000002,Zn:.0000008,Cu:.0000003,Al:.0000001,Ag:.00000002})[metal];
   const salinity=aq(m,'Na')+aq(m,'Cl')>1e-8?1.8:1;
+  // Warm water rusts iron faster (roughly double per 30 °C while air can reach it).
+  const warmth=2**((Math.min(80,Math.max(0,m.temp))-22)/30);
   const oxygen=(aq(m,'dissolvedO2')+gaseous(m,'O2'));
   const external=blocked?0:1;
-  const desired=sol(m,metal)*(-Math.expm1(-rate*salinity*dt));
+  const desired=sol(m,metal)*(-Math.expm1(-rate*salinity*warmth*dt));
   if(metal==='Fe'){
    const dn=Math.min(desired,external?desired:oxygen/0.75,m.water/18.015/1.5);
    putS(m,'Fe',-dn);putS(m,'FeOH3',dn);m.water-=dn*1.5*18.015;
@@ -142,27 +149,39 @@ function expose(r:RigState,dt:number){
  });
  r.message='Шууд төмрийн зарцуулалт ба зэвний бүтээгдэхүүнийг бүртгэнэ. Бусад металлын гадаргын индекс нь пассивацийн сургалтын ойролцоо, төмрийн зэв биш. Нээлттэй үүр O₂-ийг орчноос авна.';
 }
+/** How much what is in the water holds seedlings back: soap, an oil film, heavy metals, brine. */
+function pollution(m:Mixture){
+ const V=Math.max(EPS,liquidMl(m)/1000),oil=(aq(m,'hexadecane')*226.448/.773+aq(m,'oilFluid')*885.45/.91+aq(m,'octane')*114.23/.703)/Math.max(EPS,liquidMl(m));
+ const metals=(aq(m,'Cu')+aq(m,'Pb')+aq(m,'Cd')+aq(m,'Ni')+aq(m,'Ag'))/V;
+ return Math.exp(-aq(m,'soap')/V/.005-oil*20-metals/.001-Math.max(0,aq(m,'Na')/V-.05)/.1);
+}
 function soil(r:RigState,dt:number){
  const m=r.chambers[r.port===2?0:r.port],mass=soilMass(m),water=m.water;
- if(!(mass>EPS)){r.message='Тунгаалт, шүүлт эсвэл үрийн сорилд хөрсний дээж эхлээд нэм.';return;}
+ // Pondweed under the lamp: O₂ bubbles collect in the tube over the funnel (8-24).
+ const o2=photosynthesisRate(m,r.light);
+ if(o2>0){putG(m,'O2',o2*dt);putA(m,'CO3',-Math.min(aq(m,'CO3'),o2*dt));r.data.oxygen=gaseous(m,'O2')*24000;reaction(r,'6CO₂ + 6H₂O → C₆H₁₂O₆ + 6O₂ (гэрэл)',o2*dt);}
+ // Seeds sprout on a wet napkin too; soil is not needed to compare waters (8-27).
+ const seeds=sol(m,'seed')/.2;
+ if(seeds>0&&water>0){
+  const ph=phOf(m)??7;
+  const response=Math.exp(-(((ph-6.5)/2.5)**2))*pollution(m)*r.light*Math.max(0,1-Math.abs(m.temp-24)/30);
+  r.data.height=(r.data.height??0)+dt/86400*.25*response;
+  r.data.germinated=Math.min(Math.floor(seeds),Math.floor(seeds*.9*response*(-Math.expm1(-r.elapsed/86400))));
+ }
+ if(!(mass>EPS)){r.message=o2>0?'Гэрэлд ургамал хүчилтөрөгчийн бөмбөлөг ялгаруулж, хуруу шилэнд хураагдана.':seeds>0?'Үр чийгтэй салфетка дээр соёолж байна; усны чанар ургалтад нөлөөлнө.':'Тунгаалт, шүүлт эсвэл үрийн сорилд хөрсний дээж эхлээд нэм.';return;}
  r.data.soilMass=mass;
  if(r.operation==='filter'){
   const clay=sol(m,'clay')/mass,capacity=mass*(.3+clay*2.4),vol=liquidMl(m);
   const movable=Math.max(0,vol-capacity)*(-Math.expm1(-dt/(8+clay*50)));
   // Transfer only fluids; all soil remains in the fitted filter bed.
   const f=movable/Math.max(EPS,vol),part=emptyMixture(m.temp);part.water=m.water*f;part.ethanol=m.ethanol*f;m.water-=part.water;m.ethanol-=part.ethanol;
-  for(const [id,n] of Object.entries(m.aq) as [AqId,number][]){part.aq[id]=n*f;m.aq[id]=n*(1-f);}
+  // Activated carbon (and to a lesser degree charcoal) adsorbs dissolved soap and dyes from the filtrate.
+  const carbon=sol(m,'activatedCarbon')*12.011+sol(m,'charcoal')*12.011*.3,held=carbon>0?1-Math.exp(-carbon/2):0;
+  for(const [id,n] of Object.entries(m.aq) as [AqId,number][]){const keep=['soap','dyeR','dyeY','dyeG','dyeB'].includes(id)?held:0;part.aq[id]=n*f*(1-keep);m.aq[id]=n-part.aq[id]!;}
   r.chambers[2]=merge(r.chambers[2],part);r.data.filtered=(r.data.filtered??0)+movable;
  }
  const sand=sol(m,'sand')*60.08,clay=sol(m,'clay'),silt=sol(m,'silt');
  [sand,silt,clay].forEach((g,i)=>r.data[`settled${i}`]=g*(-Math.expm1(-r.elapsed/[30,300,1800][i])));
- const seeds=sol(m,'seed')/.2;
- const ph=phOf(m)??7;
- if(seeds>0&&water>0){
-  const response=Math.exp(-(((ph-6.5)/2.5)**2))*r.light*Math.max(0,1-Math.abs(m.temp-24)/30);
-  r.data.height=(r.data.height??0)+dt/86400*.25*response;
-  r.data.germinated=Math.min(Math.floor(seeds),Math.floor(seeds*.9*response*(-Math.expm1(-r.elapsed/86400))));
- }
  r.message='Гурван төрлийн хөрсний бодит нэмсэн хэсгийг хэмжинэ. Туналт ба ургамлын өсөлт нь жишээ кинетик; pH дангаар бохирдолгүйг батлахгүй. Шүүгдэс тусдаа саванд хуримтлагдана.';
 }
 function biology(r:RigState,dt:number){

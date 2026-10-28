@@ -6,6 +6,9 @@ import { plastic, plasticBlack, plasticBlue, plasticGreen, plasticWhite, wood } 
 import { decorGlass } from '../materials/glass';
 import { ModelOr, type ModelProps } from './ModelOr';
 import type { TextbookEquipmentKind } from './equipmentCatalog';
+import type { MixtureLook } from '../chemistry/color';
+import { VesselContents } from './VesselContents';
+import { PROFILES, type VesselProfile } from './profiles';
 
 const glassBlue = decorGlass('#b9dfe8');
 const glassDark = plastic('#59808b', 0.35);
@@ -27,9 +30,12 @@ export interface TextbookEquipmentModelProps extends ModelProps {
   kind: TextbookEquipmentKind;
   /** Alcohol lamp flame. */
   lit?: boolean;
+  /** Contents of the vessels (crucible, can, cup …). */
+  look?: MixtureLook;
+  itemId?: string;
 }
 
-export function TextbookEquipmentModel({ kind, modelUrl, lit = false, ...props }: TextbookEquipmentModelProps) {
+export function TextbookEquipmentModel({ kind, modelUrl, lit = false, look, itemId, ...props }: TextbookEquipmentModelProps) {
   let model: ReactNode;
   switch (kind) {
     case 'stopwatch':
@@ -401,5 +407,6 @@ export function TextbookEquipmentModel({ kind, modelUrl, lit = false, ...props }
       return exhaustive;
     }
   }
-  return <ModelOr modelUrl={modelUrl} {...props}>{model}</ModelOr>;
+  const profile = (PROFILES as Record<string, VesselProfile>)[kind];
+  return <ModelOr modelUrl={modelUrl} {...props}>{model}{profile && look && <VesselContents profile={profile} look={look} itemId={itemId} />}</ModelOr>;
 }

@@ -1,0 +1,3266 @@
+{
+  ".vscode/extensions.json": {
+    "mtime": 1792542762.9305332,
+    "seen": 1793178425.906859,
+    "ast_hash": "b2354ba0225f5689d13651ec0fac0de0",
+    "semantic_hash": "b2354ba0225f5689d13651ec0fac0de0"
+  },
+  ".vscode/settings.json": {
+    "mtime": 1792542762.9306018,
+    "seen": 1793178425.9068615,
+    "ast_hash": "6b9302c1f72c315e90233c7539c48c9f",
+    "semantic_hash": "6b9302c1f72c315e90233c7539c48c9f"
+  },
+  "app.json": {
+    "mtime": 1792975000.5755699,
+    "seen": 1793178425.9068737,
+    "ast_hash": "1337948ba5c9b8da5de2e25fba1d7cc2",
+    "semantic_hash": "1337948ba5c9b8da5de2e25fba1d7cc2"
+  },
+  "docs/hub-g8/001_revision_hub.sql": {
+    "mtime": 1792975000.5764153,
+    "seen": 1793178425.9068766,
+    "ast_hash": "960a1f4b11735637fe67058a73eb22c8",
+    "semantic_hash": "960a1f4b11735637fe67058a73eb22c8"
+  },
+  "docs/hub-g8/grade8-chemistry.content.json": {
+    "mtime": 1792975000.5819368,
+    "seen": 1793178425.9068794,
+    "ast_hash": "70e367886a60c7b1f61d010b09a1426b",
+    "semantic_hash": "70e367886a60c7b1f61d010b09a1426b"
+  },
+  "eslint.config.js": {
+    "mtime": 1792641306.1465032,
+    "seen": 1793178425.9068823,
+    "ast_hash": "7ada9a7fa20f1479e3e95a71cfe4eacb",
+    "semantic_hash": "7ada9a7fa20f1479e3e95a71cfe4eacb"
+  },
+  "openlab-3d/package.json": {
+    "mtime": 1793164802.0487185,
+    "seen": 1793178425.906885,
+    "ast_hash": "4df84066b1302dbe8c14d6767af8e132",
+    "semantic_hash": "4df84066b1302dbe8c14d6767af8e132"
+  },
+  "openlab-3d/postcss.config.js": {
+    "mtime": 1792641306.1505032,
+    "seen": 1793178425.9068878,
+    "ast_hash": "c735540bb63936a123bc867d950c9f69",
+    "semantic_hash": "c735540bb63936a123bc867d950c9f69"
+  },
+  "openlab-3d/scripts/production-smoke.mjs": {
+    "mtime": 1793155729.0601885,
+    "seen": 1793178425.9068902,
+    "ast_hash": "ab7c5e6a1a3e650221b8d89094922537",
+    "semantic_hash": "ab7c5e6a1a3e650221b8d89094922537"
+  },
+  "openlab-3d/src/App.tsx": {
+    "mtime": 1792982665.2558136,
+    "seen": 1793178425.9068928,
+    "ast_hash": "f9c9000ce4b6be588184fc995c8262e6",
+    "semantic_hash": "f9c9000ce4b6be588184fc995c8262e6"
+  },
+  "openlab-3d/src/CanvasRuntime.tsx": {
+    "mtime": 1792993793.1295178,
+    "seen": 1793178425.9068954,
+    "ast_hash": "c523821e2d820f48e6be77b5366e8ef9",
+    "semantic_hash": "c523821e2d820f48e6be77b5366e8ef9"
+  },
+  "openlab-3d/src/chemistry/advance.ts": {
+    "mtime": 1792993793.1295178,
+    "seen": 1793178425.9068987,
+    "ast_hash": "92b6350dd7a254169c1ad7e1f2c065eb",
+    "semantic_hash": "92b6350dd7a254169c1ad7e1f2c065eb"
+  },
+  "openlab-3d/src/chemistry/appearance.ts": {
+    "mtime": 1792993793.1296997,
+    "seen": 1793178425.9069014,
+    "ast_hash": "49a5eedfc19c4065fc9d5860d4443809",
+    "semantic_hash": "49a5eedfc19c4065fc9d5860d4443809"
+  },
+  "openlab-3d/src/chemistry/color.ts": {
+    "mtime": 1792652001.4835162,
+    "seen": 1793178425.9069037,
+    "ast_hash": "d4c674362b08f2c0289ce2bc93c63924",
+    "semantic_hash": "d4c674362b08f2c0289ce2bc93c63924"
+  },
+  "openlab-3d/src/chemistry/describe.ts": {
+    "mtime": 1792993793.131118,
+    "seen": 1793178425.9069064,
+    "ast_hash": "6c74410896bf7ee386115482fe87210e",
+    "semantic_hash": "6c74410896bf7ee386115482fe87210e"
+  },
+  "openlab-3d/src/chemistry/equilibrium.ts": {
+    "mtime": 1792993793.1313567,
+    "seen": 1793178425.9069092,
+    "ast_hash": "7666480e8eb070f7ecac92d1941177f2",
+    "semantic_hash": "7666480e8eb070f7ecac92d1941177f2"
+  },
+  "openlab-3d/src/chemistry/kinetics.ts": {
+    "mtime": 1793165000.6636717,
+    "seen": 1793178425.9069118,
+    "ast_hash": "4d438b91617d8c8b0f37cabb5ee087d9",
+    "semantic_hash": "4d438b91617d8c8b0f37cabb5ee087d9"
+  },
+  "openlab-3d/src/chemistry/mix.ts": {
+    "mtime": 1792652720.5848653,
+    "seen": 1793178425.9069145,
+    "ast_hash": "ea60b61ab893b0caaa26e558911edbaa",
+    "semantic_hash": "ea60b61ab893b0caaa26e558911edbaa"
+  },
+  "openlab-3d/src/chemistry/mixture.ts": {
+    "mtime": 1792993793.1320758,
+    "seen": 1793178425.906917,
+    "ast_hash": "e8388e6dacd27459f5b80e8bb5c5eb15",
+    "semantic_hash": "e8388e6dacd27459f5b80e8bb5c5eb15"
+  },
+  "openlab-3d/src/chemistry/molecules3d.ts": {
+    "mtime": 1792720971.9141016,
+    "seen": 1793178425.9069197,
+    "ast_hash": "6e35d5fc3901a98b45ae90224967bf4c",
+    "semantic_hash": "6e35d5fc3901a98b45ae90224967bf4c"
+  },
+  "openlab-3d/src/chemistry/reaction-view.ts": {
+    "mtime": 1792993793.1323552,
+    "seen": 1793178425.9069223,
+    "ast_hash": "5b1555a42553b884552b5bdda6feae67",
+    "semantic_hash": "5b1555a42553b884552b5bdda6feae67"
+  },
+  "openlab-3d/src/chemistry/reagents.ts": {
+    "mtime": 1792993793.132687,
+    "seen": 1793178425.9069247,
+    "ast_hash": "b75608f4c561e1b14746f1369e444d33",
+    "semantic_hash": "b75608f4c561e1b14746f1369e444d33"
+  },
+  "openlab-3d/src/chemistry/real-color.ts": {
+    "mtime": 1792975000.5862088,
+    "seen": 1793178425.9069276,
+    "ast_hash": "f06282fc349293288e37a661c72d4523",
+    "semantic_hash": "f06282fc349293288e37a661c72d4523"
+  },
+  "openlab-3d/src/chemistry/species.ts": {
+    "mtime": 1793165000.6633143,
+    "seen": 1793178425.9069304,
+    "ast_hash": "75eac335a5af380e83a8d2f80c48599c",
+    "semantic_hash": "75eac335a5af380e83a8d2f80c48599c"
+  },
+  "openlab-3d/src/controls/PhysicsDriver.tsx": {
+    "mtime": 1792982665.2560325,
+    "seen": 1793178425.906933,
+    "ast_hash": "e0c873e3f0dbd94093f53572de89ac8a",
+    "semantic_hash": "e0c873e3f0dbd94093f53572de89ac8a"
+  },
+  "openlab-3d/src/controls/Player.tsx": {
+    "mtime": 1793084036.0568717,
+    "seen": 1793178425.9069355,
+    "ast_hash": "76e2ee92f2e658744795173c4ca9242a",
+    "semantic_hash": "76e2ee92f2e658744795173c4ca9242a"
+  },
+  "openlab-3d/src/controls/keyMap.ts": {
+    "mtime": 1793155729.0610385,
+    "seen": 1793178425.906938,
+    "ast_hash": "8f1411c37ced0cd8aa52c244198c4b5a",
+    "semantic_hash": "8f1411c37ced0cd8aa52c244198c4b5a"
+  },
+  "openlab-3d/src/controls/mobileInteraction.ts": {
+    "mtime": 1792982665.2563193,
+    "seen": 1793178425.9069407,
+    "ast_hash": "2228dac4ea5419af8c7c2703a0b7b558",
+    "semantic_hash": "2228dac4ea5419af8c7c2703a0b7b558"
+  },
+  "openlab-3d/src/controls/pointerLock.ts": {
+    "mtime": 1792991060.3719335,
+    "seen": 1793178425.9069436,
+    "ast_hash": "7cc5692eb9c865fae10b95b4562b0016",
+    "semantic_hash": "7cc5692eb9c865fae10b95b4562b0016"
+  },
+  "openlab-3d/src/controls/typing.ts": {
+    "mtime": 1793084033.5567513,
+    "seen": 1793178425.906946,
+    "ast_hash": "8c5ae05bd874f8ea05945063b063fad8",
+    "semantic_hash": "8c5ae05bd874f8ea05945063b063fad8"
+  },
+  "openlab-3d/src/controls/useGameKeys.ts": {
+    "mtime": 1793155729.06131,
+    "seen": 1793178425.9069488,
+    "ast_hash": "06f905600a590d4ad7369fdd8bf42b2d",
+    "semantic_hash": "06f905600a590d4ad7369fdd8bf42b2d"
+  },
+  "openlab-3d/src/controls/usePointerLock.ts": {
+    "mtime": 1792982665.2569218,
+    "seen": 1793178425.9069514,
+    "ast_hash": "fad1630f55d32ef5016d0958fda9cf29",
+    "semantic_hash": "fad1630f55d32ef5016d0958fda9cf29"
+  },
+  "openlab-3d/src/data/experiments.json": {
+    "mtime": 1792975000.5870829,
+    "seen": 1793178425.90696,
+    "ast_hash": "f9a6a13a8030df25b061874df700bd27",
+    "semantic_hash": "f9a6a13a8030df25b061874df700bd27"
+  },
+  "openlab-3d/src/data/textbook-experiments/experiments_grade10.json": {
+    "mtime": 1793064254.832212,
+    "seen": 1793178425.9069626,
+    "ast_hash": "53fa900c6af1c8ceff8441f5b98a2929",
+    "semantic_hash": "53fa900c6af1c8ceff8441f5b98a2929"
+  },
+  "openlab-3d/src/data/textbook-experiments/experiments_grade7.json": {
+    "mtime": 1793064254.832839,
+    "seen": 1793178425.9069655,
+    "ast_hash": "48865fdab882d85cb19a54f01b9cbd53",
+    "semantic_hash": "48865fdab882d85cb19a54f01b9cbd53"
+  },
+  "openlab-3d/src/data/textbook-experiments/experiments_grade8.json": {
+    "mtime": 1793064254.833146,
+    "seen": 1793178425.906968,
+    "ast_hash": "36900152303cc05fa478e890a2a8abcd",
+    "semantic_hash": "36900152303cc05fa478e890a2a8abcd"
+  },
+  "openlab-3d/src/data/textbook-experiments/experiments_grade9.json": {
+    "mtime": 1793064254.8334365,
+    "seen": 1793178425.9069707,
+    "ast_hash": "65c0d1bcca73e5840ade2f1c3a482803",
+    "semantic_hash": "65c0d1bcca73e5840ade2f1c3a482803"
+  },
+  "openlab-3d/src/data/textbook-experiments/lab-links.json": {
+    "mtime": 1793064254.8335087,
+    "seen": 1793178425.9069734,
+    "ast_hash": "bca71967930c5aa973468443351e3d4a",
+    "semantic_hash": "bca71967930c5aa973468443351e3d4a"
+  },
+  "openlab-3d/src/equipment/Beaker.tsx": {
+    "mtime": 1792975000.5872307,
+    "seen": 1793178425.906976,
+    "ast_hash": "40daf7c60d747b4bc4eb211e1fb0fb02",
+    "semantic_hash": "40daf7c60d747b4bc4eb211e1fb0fb02"
+  },
+  "openlab-3d/src/equipment/BunsenBurner.tsx": {
+    "mtime": 1792656360.836218,
+    "seen": 1793178425.9069786,
+    "ast_hash": "f5c57c485084ab3531d9a21d05bc9dd7",
+    "semantic_hash": "f5c57c485084ab3531d9a21d05bc9dd7"
+  },
+  "openlab-3d/src/equipment/Burette.tsx": {
+    "mtime": 1792975000.5884798,
+    "seen": 1793178425.9069815,
+    "ast_hash": "638718fb0f21166ccafb2d870987ad5b",
+    "semantic_hash": "638718fb0f21166ccafb2d870987ad5b"
+  },
+  "openlab-3d/src/equipment/DropperBottle.tsx": {
+    "mtime": 1792993793.133347,
+    "seen": 1793178425.9069839,
+    "ast_hash": "2dfae8c8b5ed5e376ea199c10e34f0ea",
+    "semantic_hash": "2dfae8c8b5ed5e376ea199c10e34f0ea"
+  },
+  "openlab-3d/src/equipment/ErlenmeyerFlask.tsx": {
+    "mtime": 1792975000.5887284,
+    "seen": 1793178425.9069865,
+    "ast_hash": "8293737a83e0a12c3c85d86f68ab3e60",
+    "semantic_hash": "8293737a83e0a12c3c85d86f68ab3e60"
+  },
+  "openlab-3d/src/equipment/EvaporatingDish.tsx": {
+    "mtime": 1792652970.589827,
+    "seen": 1793178425.906989,
+    "ast_hash": "70ff4ed021749a79dfb59eafe2759730",
+    "semantic_hash": "70ff4ed021749a79dfb59eafe2759730"
+  },
+  "openlab-3d/src/equipment/FittedModel.tsx": {
+    "mtime": 1792653712.3821797,
+    "seen": 1793178425.9069917,
+    "ast_hash": "b02abf1df3978abb45473197ab3d0807",
+    "semantic_hash": "b02abf1df3978abb45473197ab3d0807"
+  },
+  "openlab-3d/src/equipment/Funnel.tsx": {
+    "mtime": 1792653136.602586,
+    "seen": 1793178425.9069943,
+    "ast_hash": "b9ed956e481d964cb6594de082eb0377",
+    "semantic_hash": "b9ed956e481d964cb6594de082eb0377"
+  },
+  "openlab-3d/src/equipment/GasCylinder.tsx": {
+    "mtime": 1792993793.133347,
+    "seen": 1793178425.9069972,
+    "ast_hash": "85a391e39c1be81c78f7b02fa9cbdce7",
+    "semantic_hash": "85a391e39c1be81c78f7b02fa9cbdce7"
+  },
+  "openlab-3d/src/equipment/GlassRod.tsx": {
+    "mtime": 1792650176.3487668,
+    "seen": 1793178425.9069998,
+    "ast_hash": "62906306c9d9dc073825bfbed9df4123",
+    "semantic_hash": "62906306c9d9dc073825bfbed9df4123"
+  },
+  "openlab-3d/src/equipment/Gloves.tsx": {
+    "mtime": 1792653030.1375804,
+    "seen": 1793178425.9070027,
+    "ast_hash": "575ae3977c43b11e5c97aa55f34fda5f",
+    "semantic_hash": "575ae3977c43b11e5c97aa55f34fda5f"
+  },
+  "openlab-3d/src/equipment/Goggles.tsx": {
+    "mtime": 1792641306.1530683,
+    "seen": 1793178425.907005,
+    "ast_hash": "16d670b544f98afbf11c53d6e9755187",
+    "semantic_hash": "16d670b544f98afbf11c53d6e9755187"
+  },
+  "openlab-3d/src/equipment/GraduatedCylinder.tsx": {
+    "mtime": 1792975000.588824,
+    "seen": 1793178425.9070077,
+    "ast_hash": "3dd0f60c304d896be7772dccc1120c36",
+    "semantic_hash": "3dd0f60c304d896be7772dccc1120c36"
+  },
+  "openlab-3d/src/equipment/GraduationScale.tsx": {
+    "mtime": 1793070945.503975,
+    "seen": 1793178425.9070103,
+    "ast_hash": "d4be1f4eecf386d8905c8deb8e69c6f3",
+    "semantic_hash": "d4be1f4eecf386d8905c8deb8e69c6f3"
+  },
+  "openlab-3d/src/equipment/HydrostaticLiquid.tsx": {
+    "mtime": 1792993793.1335642,
+    "seen": 1793178425.9070132,
+    "ast_hash": "9b3458134baad5fd320da4bda17aebe1",
+    "semantic_hash": "9b3458134baad5fd320da4bda17aebe1"
+  },
+  "openlab-3d/src/equipment/ModelOr.tsx": {
+    "mtime": 1792641306.1530683,
+    "seen": 1793178425.9070156,
+    "ast_hash": "1dce52e91248f367e870de3ddc777c1f",
+    "semantic_hash": "1dce52e91248f367e870de3ddc777c1f"
+  },
+  "openlab-3d/src/equipment/Mortar.tsx": {
+    "mtime": 1792653130.0090528,
+    "seen": 1793178425.9070182,
+    "ast_hash": "e544b5c3e5c55b22b185371103eefafc",
+    "semantic_hash": "e544b5c3e5c55b22b185371103eefafc"
+  },
+  "openlab-3d/src/equipment/PetriDish.tsx": {
+    "mtime": 1792652970.5895872,
+    "seen": 1793178425.9070208,
+    "ast_hash": "c6386dddc76de1a622f2bc8d71ec430a",
+    "semantic_hash": "c6386dddc76de1a622f2bc8d71ec430a"
+  },
+  "openlab-3d/src/equipment/PhPaper.tsx": {
+    "mtime": 1792653072.4540887,
+    "seen": 1793178425.9070234,
+    "ast_hash": "4adea6a0647c217b5ca3d9702bfcb18d",
+    "semantic_hash": "4adea6a0647c217b5ca3d9702bfcb18d"
+  },
+  "openlab-3d/src/equipment/Pipette.tsx": {
+    "mtime": 1792653130.0084152,
+    "seen": 1793178425.9070258,
+    "ast_hash": "d9c9ab6f5ab09ffb5d118d9ba0643020",
+    "semantic_hash": "d9c9ab6f5ab09ffb5d118d9ba0643020"
+  },
+  "openlab-3d/src/equipment/ReagentBottle.tsx": {
+    "mtime": 1792993793.1337128,
+    "seen": 1793178425.9070287,
+    "ast_hash": "5978988d37f4f7b9023e132472f07ed9",
+    "semantic_hash": "5978988d37f4f7b9023e132472f07ed9"
+  },
+  "openlab-3d/src/equipment/ReagentJar.tsx": {
+    "mtime": 1792993793.1338406,
+    "seen": 1793178425.9070313,
+    "ast_hash": "a9a88b676b9dc8e63d5136bd23421517",
+    "semantic_hash": "a9a88b676b9dc8e63d5136bd23421517"
+  },
+  "openlab-3d/src/equipment/Scale.tsx": {
+    "mtime": 1792656360.8358984,
+    "seen": 1793178425.9070342,
+    "ast_hash": "84f87bb447307be68b6d35160ff16419",
+    "semantic_hash": "84f87bb447307be68b6d35160ff16419"
+  },
+  "openlab-3d/src/equipment/Spatula.tsx": {
+    "mtime": 1792653130.0086122,
+    "seen": 1793178425.9070368,
+    "ast_hash": "88dddf679253e15ad789e5bd0e28e39d",
+    "semantic_hash": "88dddf679253e15ad789e5bd0e28e39d"
+  },
+  "openlab-3d/src/equipment/TestTube.tsx": {
+    "mtime": 1792652979.3593495,
+    "seen": 1793178425.9070392,
+    "ast_hash": "b66addd8cd01f6bd3ef8dd8954e206bf",
+    "semantic_hash": "b66addd8cd01f6bd3ef8dd8954e206bf"
+  },
+  "openlab-3d/src/equipment/TestTubeHolder.tsx": {
+    "mtime": 1792650176.3487668,
+    "seen": 1793178425.9070418,
+    "ast_hash": "28b602cbd8bae73ede25b487305f4b98",
+    "semantic_hash": "28b602cbd8bae73ede25b487305f4b98"
+  },
+  "openlab-3d/src/equipment/TestTubeRack.tsx": {
+    "mtime": 1792653085.89892,
+    "seen": 1793178425.9070446,
+    "ast_hash": "9c22e404f727eb38d9eccfae4de9a085",
+    "semantic_hash": "9c22e404f727eb38d9eccfae4de9a085"
+  },
+  "openlab-3d/src/equipment/TextbookEquipmentModel.tsx": {
+    "mtime": 1793156943.765943,
+    "seen": 1793178425.9070473,
+    "ast_hash": "53e1c522afe401f357f39b64a02ef729",
+    "semantic_hash": "53e1c522afe401f357f39b64a02ef729"
+  },
+  "openlab-3d/src/equipment/Thermometer.tsx": {
+    "mtime": 1792975000.5892777,
+    "seen": 1793178425.9070497,
+    "ast_hash": "d104ae87d93d8726a0147504c010ae3e",
+    "semantic_hash": "d104ae87d93d8726a0147504c010ae3e"
+  },
+  "openlab-3d/src/equipment/Tongs.tsx": {
+    "mtime": 1792650176.3487668,
+    "seen": 1793178425.9070525,
+    "ast_hash": "10b65365c388a076e9b43746e7b75744",
+    "semantic_hash": "10b65365c388a076e9b43746e7b75744"
+  },
+  "openlab-3d/src/equipment/Tripod.tsx": {
+    "mtime": 1792653030.1265802,
+    "seen": 1793178425.9070551,
+    "ast_hash": "234a4898357db20f3a1a6594fa82b38a",
+    "semantic_hash": "234a4898357db20f3a1a6594fa82b38a"
+  },
+  "openlab-3d/src/equipment/VesselContents.tsx": {
+    "mtime": 1793071715.734049,
+    "seen": 1793178425.907058,
+    "ast_hash": "65512fb9788d096d6bcdf0d9fa3b77a2",
+    "semantic_hash": "65512fb9788d096d6bcdf0d9fa3b77a2"
+  },
+  "openlab-3d/src/equipment/VolumetricFlask.tsx": {
+    "mtime": 1792975000.5895472,
+    "seen": 1793178425.9070604,
+    "ast_hash": "25f9220b25f332487965bbe2ca97a4d5",
+    "semantic_hash": "25f9220b25f332487965bbe2ca97a4d5"
+  },
+  "openlab-3d/src/equipment/WashBottle.tsx": {
+    "mtime": 1792975000.5896444,
+    "seen": 1793178425.9070632,
+    "ast_hash": "14fddd44830a5074316ea249c0d3979e",
+    "semantic_hash": "14fddd44830a5074316ea249c0d3979e"
+  },
+  "openlab-3d/src/equipment/WatchGlass.tsx": {
+    "mtime": 1792653130.0089116,
+    "seen": 1793178425.9070659,
+    "ast_hash": "4ab832f2baa773a803227c7a403701d3",
+    "semantic_hash": "4ab832f2baa773a803227c7a403701d3"
+  },
+  "openlab-3d/src/equipment/WireLoop.tsx": {
+    "mtime": 1792653030.1335804,
+    "seen": 1793178425.9070687,
+    "ast_hash": "78f18dfa203625923fe95335bd292b2d",
+    "semantic_hash": "78f18dfa203625923fe95335bd292b2d"
+  },
+  "openlab-3d/src/equipment/equipmentCatalog.ts": {
+    "mtime": 1793156932.3328311,
+    "seen": 1793178425.907071,
+    "ast_hash": "db38223c88fd9f298d21ed1a4ad22cc7",
+    "semantic_hash": "db38223c88fd9f298d21ed1a4ad22cc7"
+  },
+  "openlab-3d/src/equipment/liquid-plane.ts": {
+    "mtime": 1792993793.134578,
+    "seen": 1793178425.907076,
+    "ast_hash": "4b18bdf7e4801f3dc974b63d3899938b",
+    "semantic_hash": "4b18bdf7e4801f3dc974b63d3899938b"
+  },
+  "openlab-3d/src/equipment/profiles.ts": {
+    "mtime": 1792975000.5900278,
+    "seen": 1793178425.9070785,
+    "ast_hash": "c9af556b6492fb0f010dec1adc4949cc",
+    "semantic_hash": "c9af556b6492fb0f010dec1adc4949cc"
+  },
+  "openlab-3d/src/equipment/registry.tsx": {
+    "mtime": 1793156933.2392676,
+    "seen": 1793178425.9070811,
+    "ast_hash": "6d3bf8ba5fd26c62171fd0959c4a68ce",
+    "semantic_hash": "6d3bf8ba5fd26c62171fd0959c4a68ce"
+  },
+  "openlab-3d/src/experiments/curriculum/Apparatus.tsx": {
+    "mtime": 1792993793.1349359,
+    "seen": 1793178425.9070837,
+    "ast_hash": "accdc3939a7da0c24d1f8c50dee38da6",
+    "semantic_hash": "accdc3939a7da0c24d1f8c50dee38da6"
+  },
+  "openlab-3d/src/experiments/curriculum/Controls.tsx": {
+    "mtime": 1793164531.3072896,
+    "seen": 1793178425.9070866,
+    "ast_hash": "5648849e2950f1f0cbe5c2f3d6003b17",
+    "semantic_hash": "5648849e2950f1f0cbe5c2f3d6003b17"
+  },
+  "openlab-3d/src/experiments/curriculum/kinds.ts": {
+    "mtime": 1792993793.1353877,
+    "seen": 1793178425.9070895,
+    "ast_hash": "26cfbf95f993af0ba6901d67e85665da",
+    "semantic_hash": "26cfbf95f993af0ba6901d67e85665da"
+  },
+  "openlab-3d/src/experiments/curriculum/materials.ts": {
+    "mtime": 1793164416.1919503,
+    "seen": 1793178425.9070923,
+    "ast_hash": "5ca2e24da3ecea49d1f2ec64f032ec3e",
+    "semantic_hash": "5ca2e24da3ecea49d1f2ec64f032ec3e"
+  },
+  "openlab-3d/src/experiments/curriculum/observations.ts": {
+    "mtime": 1792993793.1356504,
+    "seen": 1793178425.907095,
+    "ast_hash": "593322324d2ec7f180c8aa2dde527c28",
+    "semantic_hash": "593322324d2ec7f180c8aa2dde527c28"
+  },
+  "openlab-3d/src/experiments/curriculum/process.ts": {
+    "mtime": 1793164721.5598326,
+    "seen": 1793178425.9070976,
+    "ast_hash": "9a3148e2bacc6285949b3ce1e0f58b4b",
+    "semantic_hash": "9a3148e2bacc6285949b3ce1e0f58b4b"
+  },
+  "openlab-3d/src/experiments/curriculum/reactions.ts": {
+    "mtime": 1793164493.8009114,
+    "seen": 1793178425.9071004,
+    "ast_hash": "f6d54c0b1c8c3c0e29a45d6c2cb23d6e",
+    "semantic_hash": "f6d54c0b1c8c3c0e29a45d6c2cb23d6e"
+  },
+  "openlab-3d/src/experiments/grade9/ActuatedBlock.tsx": {
+    "mtime": 1792993793.1362185,
+    "seen": 1793178425.9071033,
+    "ast_hash": "57fe1afb3f8c0eb4844405a092e79abb",
+    "semantic_hash": "57fe1afb3f8c0eb4844405a092e79abb"
+  },
+  "openlab-3d/src/experiments/grade9/Apparatus.tsx": {
+    "mtime": 1793155729.062507,
+    "seen": 1793178425.9071057,
+    "ast_hash": "8781150c9e22360ca740f9d3a99441cf",
+    "semantic_hash": "8781150c9e22360ca740f9d3a99441cf"
+  },
+  "openlab-3d/src/experiments/grade9/ApparatusLabels.tsx": {
+    "mtime": 1792993793.1364994,
+    "seen": 1793178425.9071083,
+    "ast_hash": "6d5128b775a14c86fe4fd87b66f3081a",
+    "semantic_hash": "6d5128b775a14c86fe4fd87b66f3081a"
+  },
+  "openlab-3d/src/experiments/grade9/ChamberContents.tsx": {
+    "mtime": 1792993793.1366236,
+    "seen": 1793178425.9071112,
+    "ast_hash": "77047f7e8ca583a0701ed9f43c4bed41",
+    "semantic_hash": "77047f7e8ca583a0701ed9f43c4bed41"
+  },
+  "openlab-3d/src/experiments/grade9/Controls.tsx": {
+    "mtime": 1793155729.0627077,
+    "seen": 1793178425.907114,
+    "ast_hash": "49b25cda109928f7dd250606386b0bb1",
+    "semantic_hash": "49b25cda109928f7dd250606386b0bb1"
+  },
+  "openlab-3d/src/experiments/grade9/GasTrainGuide.tsx": {
+    "mtime": 1792975000.590584,
+    "seen": 1793178425.9071167,
+    "ast_hash": "d6971e24f23163533c65a25e94daf0e4",
+    "semantic_hash": "d6971e24f23163533c65a25e94daf0e4"
+  },
+  "openlab-3d/src/experiments/grade9/OperationVisual.tsx": {
+    "mtime": 1792993793.1369278,
+    "seen": 1793178425.907119,
+    "ast_hash": "b2ad7c4616878b059141812b4d06afc8",
+    "semantic_hash": "b2ad7c4616878b059141812b4d06afc8"
+  },
+  "openlab-3d/src/experiments/grade9/chamber-view.ts": {
+    "mtime": 1792993793.1370163,
+    "seen": 1793178425.907122,
+    "ast_hash": "52677ab7e34606a94bcc6897737ffba8",
+    "semantic_hash": "52677ab7e34606a94bcc6897737ffba8"
+  },
+  "openlab-3d/src/experiments/grade9/kinds.ts": {
+    "mtime": 1792993793.1371572,
+    "seen": 1793178425.9071248,
+    "ast_hash": "e4f1a59df00317b949a15c2aaed2f612",
+    "semantic_hash": "e4f1a59df00317b949a15c2aaed2f612"
+  },
+  "openlab-3d/src/experiments/grade9/observations.ts": {
+    "mtime": 1792993793.1373386,
+    "seen": 1793178425.9071274,
+    "ast_hash": "3cccca445c7c6fae506ab41dd3b9bc99",
+    "semantic_hash": "3cccca445c7c6fae506ab41dd3b9bc99"
+  },
+  "openlab-3d/src/experiments/grade9/port-layout.ts": {
+    "mtime": 1792993793.1374636,
+    "seen": 1793178425.90713,
+    "ast_hash": "fe3aa5c32ec18b5d07ec2fd50b63249d",
+    "semantic_hash": "fe3aa5c32ec18b5d07ec2fd50b63249d"
+  },
+  "openlab-3d/src/experiments/grade9/process.ts": {
+    "mtime": 1793155729.0629866,
+    "seen": 1793178425.9071326,
+    "ast_hash": "e7a1364547b8d2d635b51a3051dfe086",
+    "semantic_hash": "e7a1364547b8d2d635b51a3051dfe086"
+  },
+  "openlab-3d/src/experiments/grade9/store.ts": {
+    "mtime": 1792993793.1378498,
+    "seen": 1793178425.9071355,
+    "ast_hash": "f0c66f1e8f984eafbf7e786bdc3eacdb",
+    "semantic_hash": "f0c66f1e8f984eafbf7e786bdc3eacdb"
+  },
+  "openlab-3d/src/experiments/grade9/transfer.ts": {
+    "mtime": 1792993793.1379716,
+    "seen": 1793178425.907138,
+    "ast_hash": "97d3648a1214a47316157c3d5bffa129",
+    "semantic_hash": "97d3648a1214a47316157c3d5bffa129"
+  },
+  "openlab-3d/src/experiments/nacl/NaClHUD.tsx": {
+    "mtime": 1793153483.955067,
+    "seen": 1793178425.907141,
+    "ast_hash": "369e080c09f99cfd002cc596b231a4e1",
+    "semantic_hash": "369e080c09f99cfd002cc596b231a4e1"
+  },
+  "openlab-3d/src/experiments/nacl/NaClStation.tsx": {
+    "mtime": 1793153483.9554863,
+    "seen": 1793178425.9071434,
+    "ast_hash": "f1e39e5a9246f9ea3270818b6f159c50",
+    "semantic_hash": "f1e39e5a9246f9ea3270818b6f159c50"
+  },
+  "openlab-3d/src/experiments/nacl/bench.ts": {
+    "mtime": 1792720971.915979,
+    "seen": 1793178425.907146,
+    "ast_hash": "30dfdeb47ed82ca9f962912b6f65a76d",
+    "semantic_hash": "30dfdeb47ed82ca9f962912b6f65a76d"
+  },
+  "openlab-3d/src/experiments/nacl/chemistry.ts": {
+    "mtime": 1792671864.6215196,
+    "seen": 1793178425.9071488,
+    "ast_hash": "5199b53a39fe40b6e9614fde7c8ab55e",
+    "semantic_hash": "5199b53a39fe40b6e9614fde7c8ab55e"
+  },
+  "openlab-3d/src/experiments/nacl/data.ts": {
+    "mtime": 1792975000.591898,
+    "seen": 1793178425.9071517,
+    "ast_hash": "2a7e82c9010aa3b3a6ffa226d7d29ed9",
+    "semantic_hash": "2a7e82c9010aa3b3a6ffa226d7d29ed9"
+  },
+  "openlab-3d/src/experiments/nacl/engine.ts": {
+    "mtime": 1792975000.5926812,
+    "seen": 1793178425.907154,
+    "ast_hash": "4ed84b50ad4ed300fa46a8b6aa0276a5",
+    "semantic_hash": "4ed84b50ad4ed300fa46a8b6aa0276a5"
+  },
+  "openlab-3d/src/experiments/nacl/guidance.ts": {
+    "mtime": 1792720971.916979,
+    "seen": 1793178425.907157,
+    "ast_hash": "6c6ec607329918e5321145a4c0791a0c",
+    "semantic_hash": "6c6ec607329918e5321145a4c0791a0c"
+  },
+  "openlab-3d/src/experiments/nacl/lesson.ts": {
+    "mtime": 1792720971.916979,
+    "seen": 1793178425.9071596,
+    "ast_hash": "4f09c9fd48b3dcf84dae641db6a49ba6",
+    "semantic_hash": "4f09c9fd48b3dcf84dae641db6a49ba6"
+  },
+  "openlab-3d/src/experiments/nacl/sandbox.ts": {
+    "mtime": 1793156805.6655421,
+    "seen": 1793178425.9071624,
+    "ast_hash": "47817f94dc889d9f46daadbac1e8ecdc",
+    "semantic_hash": "47817f94dc889d9f46daadbac1e8ecdc"
+  },
+  "openlab-3d/src/experiments/nacl/store.ts": {
+    "mtime": 1792671864.6215196,
+    "seen": 1793178425.9071648,
+    "ast_hash": "189023ea400fb58131d3029f7f460f90",
+    "semantic_hash": "189023ea400fb58131d3029f7f460f90"
+  },
+  "openlab-3d/src/experiments/nacl/view.ts": {
+    "mtime": 1792993793.138879,
+    "seen": 1793178425.9071677,
+    "ast_hash": "4611e3ca6be318a5a87eca3327c91b83",
+    "semantic_hash": "4611e3ca6be318a5a87eca3327c91b83"
+  },
+  "openlab-3d/src/experiments/workbench/InquiryPanel.tsx": {
+    "mtime": 1792993793.139127,
+    "seen": 1793178425.9071703,
+    "ast_hash": "85ee2d3a0e4d0058c61655178d301b8c",
+    "semantic_hash": "85ee2d3a0e4d0058c61655178d301b8c"
+  },
+  "openlab-3d/src/experiments/workbench/InstrumentDiagram.tsx": {
+    "mtime": 1792975000.5945227,
+    "seen": 1793178425.9071732,
+    "ast_hash": "ccae46f846e8adb76068675c7aaa77e6",
+    "semantic_hash": "ccae46f846e8adb76068675c7aaa77e6"
+  },
+  "openlab-3d/src/experiments/workbench/LabLaunch.tsx": {
+    "mtime": 1793155729.063221,
+    "seen": 1793178425.9071758,
+    "ast_hash": "98a6d0f7f554854d6cb935c1ab89df7c",
+    "semantic_hash": "98a6d0f7f554854d6cb935c1ab89df7c"
+  },
+  "openlab-3d/src/experiments/workbench/MeasurementGuide.tsx": {
+    "mtime": 1792993793.13934,
+    "seen": 1793178425.9071784,
+    "ast_hash": "6ef6409df1b660dbbefcfb7659c91db5",
+    "semantic_hash": "6ef6409df1b660dbbefcfb7659c91db5"
+  },
+  "openlab-3d/src/experiments/workbench/PreparationHints.tsx": {
+    "mtime": 1792975000.594916,
+    "seen": 1793178425.907181,
+    "ast_hash": "9b0261f4dd4922ea0f0c6e833d74ef35",
+    "semantic_hash": "9b0261f4dd4922ea0f0c6e833d74ef35"
+  },
+  "openlab-3d/src/experiments/workbench/ProcedureGuide.tsx": {
+    "mtime": 1792993793.1395288,
+    "seen": 1793178425.9071836,
+    "ast_hash": "02bfd8c892aced23d837a832e5f4dcfa",
+    "semantic_hash": "02bfd8c892aced23d837a832e5f4dcfa"
+  },
+  "openlab-3d/src/experiments/workbench/ReactionLens.tsx": {
+    "mtime": 1793065133.8053439,
+    "seen": 1793178425.9071865,
+    "ast_hash": "ada7c4667dcfe67bfbf96a39b61af6b0",
+    "semantic_hash": "ada7c4667dcfe67bfbf96a39b61af6b0"
+  },
+  "openlab-3d/src/experiments/workbench/WorkbenchRuntime.tsx": {
+    "mtime": 1792975000.5954068,
+    "seen": 1793178425.9071891,
+    "ast_hash": "2a515c8ceb303e114e39607353ac230a",
+    "semantic_hash": "2a515c8ceb303e114e39607353ac230a"
+  },
+  "openlab-3d/src/experiments/workbench/bookSupplies.ts": {
+    "mtime": 1793165142.8954349,
+    "seen": 1793178425.9071918,
+    "ast_hash": "5a411aa166962f4e4632bf07e1f8e404",
+    "semantic_hash": "5a411aa166962f4e4632bf07e1f8e404"
+  },
+  "openlab-3d/src/experiments/workbench/guidance/ApparatusKey.tsx": {
+    "mtime": 1792993793.1396778,
+    "seen": 1793178425.9071944,
+    "ast_hash": "861b0a3f232b742e7953baebe3ad5434",
+    "semantic_hash": "861b0a3f232b742e7953baebe3ad5434"
+  },
+  "openlab-3d/src/experiments/workbench/guidance/GuideMarker.tsx": {
+    "mtime": 1793071669.3071408,
+    "seen": 1793178425.9071972,
+    "ast_hash": "a08d9022cede1f0c4a9f7fe916950d68",
+    "semantic_hash": "a08d9022cede1f0c4a9f7fe916950d68"
+  },
+  "openlab-3d/src/experiments/workbench/guidance/GuidedProcedure.tsx": {
+    "mtime": 1793153483.95578,
+    "seen": 1793178425.9071999,
+    "ast_hash": "e398f25dba12a73676eed596a9323e54",
+    "semantic_hash": "e398f25dba12a73676eed596a9323e54"
+  },
+  "openlab-3d/src/experiments/workbench/guidance/MaterialFlow.tsx": {
+    "mtime": 1792993793.1400461,
+    "seen": 1793178425.9072025,
+    "ast_hash": "a70cd84f599a95daa0858ed8c5ad21f1",
+    "semantic_hash": "a70cd84f599a95daa0858ed8c5ad21f1"
+  },
+  "openlab-3d/src/experiments/workbench/guidance/ObservationReadout.tsx": {
+    "mtime": 1792993793.140131,
+    "seen": 1793178425.9072053,
+    "ast_hash": "5cc280c04d799f82677fd8156261bd8a",
+    "semantic_hash": "5cc280c04d799f82677fd8156261bd8a"
+  },
+  "openlab-3d/src/experiments/workbench/guidance/PhysicalShowcase.tsx": {
+    "mtime": 1792993793.1402345,
+    "seen": 1793178425.9072082,
+    "ast_hash": "6034f56035e27e634b512fd0c758f3a8",
+    "semantic_hash": "6034f56035e27e634b512fd0c758f3a8"
+  },
+  "openlab-3d/src/experiments/workbench/guidance/ShowcaseLauncher.tsx": {
+    "mtime": 1793153483.955936,
+    "seen": 1793178425.9072108,
+    "ast_hash": "d17cdb066f718e3b8d79fde4f20abd9d",
+    "semantic_hash": "d17cdb066f718e3b8d79fde4f20abd9d"
+  },
+  "openlab-3d/src/experiments/workbench/guidance/clock.ts": {
+    "mtime": 1792993793.1403096,
+    "seen": 1793178425.9072132,
+    "ast_hash": "b94ebe86280d6dbd60f52d5124c674bd",
+    "semantic_hash": "b94ebe86280d6dbd60f52d5124c674bd"
+  },
+  "openlab-3d/src/experiments/workbench/guidance/conditions.ts": {
+    "mtime": 1792993793.1404524,
+    "seen": 1793178425.907216,
+    "ast_hash": "e8db10d5425d4c622b36cf9880a90a5b",
+    "semantic_hash": "e8db10d5425d4c622b36cf9880a90a5b"
+  },
+  "openlab-3d/src/experiments/workbench/guidance/definitions.ts": {
+    "mtime": 1793155729.0634046,
+    "seen": 1793178425.9072187,
+    "ast_hash": "3ecb54a34d231cd956a21bf3e25ff114",
+    "semantic_hash": "3ecb54a34d231cd956a21bf3e25ff114"
+  },
+  "openlab-3d/src/experiments/workbench/guidance/endpoint.ts": {
+    "mtime": 1792993793.1406333,
+    "seen": 1793178425.9072216,
+    "ast_hash": "3755be6480556ef0a0e6d7da53cb1c27",
+    "semantic_hash": "3755be6480556ef0a0e6d7da53cb1c27"
+  },
+  "openlab-3d/src/experiments/workbench/guidance/launch-store.ts": {
+    "mtime": 1792993793.1406333,
+    "seen": 1793178425.9072242,
+    "ast_hash": "5be567c8ecfc2a1e8e821c72558fe2d2",
+    "semantic_hash": "5be567c8ecfc2a1e8e821c72558fe2d2"
+  },
+  "openlab-3d/src/experiments/workbench/guidance/manual-starters.ts": {
+    "mtime": 1792993793.1407816,
+    "seen": 1793178425.9072266,
+    "ast_hash": "2fe871d5d9d0b7a5efa0c8625345f950",
+    "semantic_hash": "2fe871d5d9d0b7a5efa0c8625345f950"
+  },
+  "openlab-3d/src/experiments/workbench/guidance/operation.ts": {
+    "mtime": 1792993793.1408772,
+    "seen": 1793178425.9072294,
+    "ast_hash": "f258849070ecb55f63e4543af57565f1",
+    "semantic_hash": "f258849070ecb55f63e4543af57565f1"
+  },
+  "openlab-3d/src/experiments/workbench/guidance/overlays.ts": {
+    "mtime": 1793155729.0635324,
+    "seen": 1793178425.907232,
+    "ast_hash": "9e69de921099fe697b1e2a25c0b98ff1",
+    "semantic_hash": "9e69de921099fe697b1e2a25c0b98ff1"
+  },
+  "openlab-3d/src/experiments/workbench/guidance/plans.ts": {
+    "mtime": 1793155729.0637784,
+    "seen": 1793178425.9072347,
+    "ast_hash": "9282a717d1455e27f1ceaa4fda6d2236",
+    "semantic_hash": "9282a717d1455e27f1ceaa4fda6d2236"
+  },
+  "openlab-3d/src/experiments/workbench/guidance/pour-physics.ts": {
+    "mtime": 1792993793.1410897,
+    "seen": 1793178425.9072373,
+    "ast_hash": "88ff7853ae1a77c598bf9d6487ac834b",
+    "semantic_hash": "88ff7853ae1a77c598bf9d6487ac834b"
+  },
+  "openlab-3d/src/experiments/workbench/guidance/prepare.ts": {
+    "mtime": 1792993793.1413937,
+    "seen": 1793178425.90724,
+    "ast_hash": "8008a386fe87d4a0c1a18493e9cd472e",
+    "semantic_hash": "8008a386fe87d4a0c1a18493e9cd472e"
+  },
+  "openlab-3d/src/experiments/workbench/guidance/protocols.ts": {
+    "mtime": 1793155729.0641527,
+    "seen": 1793178425.907243,
+    "ast_hash": "8d77c95fe15ad18ef7d9f6b920ff8c96",
+    "semantic_hash": "8d77c95fe15ad18ef7d9f6b920ff8c96"
+  },
+  "openlab-3d/src/experiments/workbench/guidance/results.ts": {
+    "mtime": 1792993793.141707,
+    "seen": 1793178425.9072456,
+    "ast_hash": "26bd6636af2df8973969a05064e42dbc",
+    "semantic_hash": "26bd6636af2df8973969a05064e42dbc"
+  },
+  "openlab-3d/src/experiments/workbench/guidance/runtime.ts": {
+    "mtime": 1792993793.142011,
+    "seen": 1793178425.9072485,
+    "ast_hash": "fe6734f1f0de017667d385b6c9c39abb",
+    "semantic_hash": "fe6734f1f0de017667d385b6c9c39abb"
+  },
+  "openlab-3d/src/experiments/workbench/guidance/showcase.ts": {
+    "mtime": 1792993793.142219,
+    "seen": 1793178425.907251,
+    "ast_hash": "8dfb2132c0e2d06fa7aca1496f2d9fb0",
+    "semantic_hash": "8dfb2132c0e2d06fa7aca1496f2d9fb0"
+  },
+  "openlab-3d/src/experiments/workbench/inquiry-store.ts": {
+    "mtime": 1792975000.595467,
+    "seen": 1793178425.9072535,
+    "ast_hash": "9840fedf4d21dd7c1972a7aefab624a6",
+    "semantic_hash": "9840fedf4d21dd7c1972a7aefab624a6"
+  },
+  "openlab-3d/src/experiments/workbench/molecules.ts": {
+    "mtime": 1792975000.5956316,
+    "seen": 1793178425.9072561,
+    "ast_hash": "9956fae56fabb907de801976c41a1a0b",
+    "semantic_hash": "9956fae56fabb907de801976c41a1a0b"
+  },
+  "openlab-3d/src/experiments/workbench/placement.ts": {
+    "mtime": 1793157078.6142485,
+    "seen": 1793178425.907259,
+    "ast_hash": "3383c8ddb883321b2b5d44bfa7dfad1e",
+    "semantic_hash": "3383c8ddb883321b2b5d44bfa7dfad1e"
+  },
+  "openlab-3d/src/experiments/workbench/session.ts": {
+    "mtime": 1793157812.8653212,
+    "seen": 1793178425.9072614,
+    "ast_hash": "57e62910a104533e899b78b2198185f4",
+    "semantic_hash": "57e62910a104533e899b78b2198185f4"
+  },
+  "openlab-3d/src/experiments/workbench/textbook.ts": {
+    "mtime": 1792993793.1430702,
+    "seen": 1793178425.9072642,
+    "ast_hash": "6cb1967695b6cb36574aba66b25b6383",
+    "semantic_hash": "6cb1967695b6cb36574aba66b25b6383"
+  },
+  "openlab-3d/src/interaction/HeldItem.tsx": {
+    "mtime": 1792993793.143356,
+    "seen": 1793178425.9072669,
+    "ast_hash": "0686527138a26de0e58b1f2ebc8b97bf",
+    "semantic_hash": "0686527138a26de0e58b1f2ebc8b97bf"
+  },
+  "openlab-3d/src/interaction/InspectMode.tsx": {
+    "mtime": 1792720971.9189792,
+    "seen": 1793178425.9072695,
+    "ast_hash": "989ac99d849cef3dfd49f6dbe70be9a9",
+    "semantic_hash": "989ac99d849cef3dfd49f6dbe70be9a9"
+  },
+  "openlab-3d/src/interaction/Interactable.tsx": {
+    "mtime": 1792975000.5969412,
+    "seen": 1793178425.907272,
+    "ast_hash": "c7b0032fe99adde419c3e2657fdcacd2",
+    "semantic_hash": "c7b0032fe99adde419c3e2657fdcacd2"
+  },
+  "openlab-3d/src/interaction/NameTag.tsx": {
+    "mtime": 1792650176.3507667,
+    "seen": 1793178425.9072747,
+    "ast_hash": "45f82b8f986096ab1c81fc05fc6b21ea",
+    "semantic_hash": "45f82b8f986096ab1c81fc05fc6b21ea"
+  },
+  "openlab-3d/src/interaction/Pickable.tsx": {
+    "mtime": 1793156831.8788404,
+    "seen": 1793178425.9072776,
+    "ast_hash": "4d4a2f331e98429a0edc0cc85c137d08",
+    "semantic_hash": "4d4a2f331e98429a0edc0cc85c137d08"
+  },
+  "openlab-3d/src/interaction/StoredItems.tsx": {
+    "mtime": 1793073172.805769,
+    "seen": 1793178425.9072802,
+    "ast_hash": "a607f6304c52c34ed653bc86440c9f95",
+    "semantic_hash": "a607f6304c52c34ed653bc86440c9f95"
+  },
+  "openlab-3d/src/interaction/actions.ts": {
+    "mtime": 1793156805.680693,
+    "seen": 1793178425.9072828,
+    "ast_hash": "219758748e3d28ea128341d45aab40db",
+    "semantic_hash": "219758748e3d28ea128341d45aab40db"
+  },
+  "openlab-3d/src/interaction/benchUseTarget.ts": {
+    "mtime": 1792975000.5977018,
+    "seen": 1793178425.9072857,
+    "ast_hash": "4836a7a4cb7c9885b746a50a4c1813f0",
+    "semantic_hash": "4836a7a4cb7c9885b746a50a4c1813f0"
+  },
+  "openlab-3d/src/interaction/bodies.ts": {
+    "mtime": 1792982665.2596047,
+    "seen": 1793178425.9072886,
+    "ast_hash": "84b4d933fecfed91bf1ac48f23741a5f",
+    "semantic_hash": "84b4d933fecfed91bf1ac48f23741a5f"
+  },
+  "openlab-3d/src/interaction/heldApi.ts": {
+    "mtime": 1792671864.622408,
+    "seen": 1793178425.9072912,
+    "ast_hash": "ae79f7880f8699e986b3ba43cf3b456e",
+    "semantic_hash": "ae79f7880f8699e986b3ba43cf3b456e"
+  },
+  "openlab-3d/src/interaction/holders.ts": {
+    "mtime": 1792720971.9199793,
+    "seen": 1793178425.907294,
+    "ast_hash": "6cc12034401d0d34bf1f256f127f0950",
+    "semantic_hash": "6cc12034401d0d34bf1f256f127f0950"
+  },
+  "openlab-3d/src/interaction/interactItem.ts": {
+    "mtime": 1792975000.598159,
+    "seen": 1793178425.9072964,
+    "ast_hash": "5ec61f1e47d2aa62bb77826aedd6afb3",
+    "semantic_hash": "5ec61f1e47d2aa62bb77826aedd6afb3"
+  },
+  "openlab-3d/src/interaction/portable.ts": {
+    "mtime": 1792720971.9199793,
+    "seen": 1793178425.907299,
+    "ast_hash": "15288fcea38678a5bb837f215b228632",
+    "semantic_hash": "15288fcea38678a5bb837f215b228632"
+  },
+  "openlab-3d/src/interaction/registry.ts": {
+    "mtime": 1792721804.0391197,
+    "seen": 1793178425.907302,
+    "ast_hash": "4cd489e7d98a379d63e05a94d0891ff7",
+    "semantic_hash": "4cd489e7d98a379d63e05a94d0891ff7"
+  },
+  "openlab-3d/src/interaction/spawn.ts": {
+    "mtime": 1792982665.259731,
+    "seen": 1793178425.9073064,
+    "ast_hash": "6747843fb95795dd1e8e9a6b04c5779e",
+    "semantic_hash": "6747843fb95795dd1e8e9a6b04c5779e"
+  },
+  "openlab-3d/src/interaction/still.ts": {
+    "mtime": 1793074661.6988792,
+    "seen": 1793178425.907309,
+    "ast_hash": "19a73f73f765a5aff4c62b9f0afa4981",
+    "semantic_hash": "19a73f73f765a5aff4c62b9f0afa4981"
+  },
+  "openlab-3d/src/interaction/stillBatch.ts": {
+    "mtime": 1793074660.7616491,
+    "seen": 1793178425.907312,
+    "ast_hash": "07ee00ed50d334fab9ff20d4148762bd",
+    "semantic_hash": "07ee00ed50d334fab9ff20d4148762bd"
+  },
+  "openlab-3d/src/interaction/storage.ts": {
+    "mtime": 1792653211.0618865,
+    "seen": 1793178425.9073148,
+    "ast_hash": "509dcdd74bc4132ec3c4d5b648894d5e",
+    "semantic_hash": "509dcdd74bc4132ec3c4d5b648894d5e"
+  },
+  "openlab-3d/src/interaction/supportPlacement.ts": {
+    "mtime": 1792975000.598159,
+    "seen": 1793178425.9073174,
+    "ast_hash": "fbefe92f513fac38852308556d8cb07c",
+    "semantic_hash": "fbefe92f513fac38852308556d8cb07c"
+  },
+  "openlab-3d/src/interaction/surfaces.ts": {
+    "mtime": 1792975000.598408,
+    "seen": 1793178425.90732,
+    "ast_hash": "47f491c20f880b5416626f45b077e516",
+    "semantic_hash": "47f491c20f880b5416626f45b077e516"
+  },
+  "openlab-3d/src/interaction/useHeld.ts": {
+    "mtime": 1792671864.6234078,
+    "seen": 1793178425.907323,
+    "ast_hash": "367d8f16a1f0d30f44c168aeddc4ebec",
+    "semantic_hash": "367d8f16a1f0d30f44c168aeddc4ebec"
+  },
+  "openlab-3d/src/interaction/useRaycastFocus.ts": {
+    "mtime": 1793074662.551739,
+    "seen": 1793178425.9073255,
+    "ast_hash": "6f43f679d1d038eb32aaba7afa670bb9",
+    "semantic_hash": "6f43f679d1d038eb32aaba7afa670bb9"
+  },
+  "openlab-3d/src/lab/announcer.ts": {
+    "mtime": 1792720971.9209795,
+    "seen": 1793178425.9073284,
+    "ast_hash": "473f112cf71d30e474e6f0753b8e4ad0",
+    "semantic_hash": "473f112cf71d30e474e6f0753b8e4ad0"
+  },
+  "openlab-3d/src/lab/container-observation.ts": {
+    "mtime": 1792975000.598408,
+    "seen": 1793178425.907331,
+    "ast_hash": "aba32e1a1c10b37eedc13c59781971b9",
+    "semantic_hash": "aba32e1a1c10b37eedc13c59781971b9"
+  },
+  "openlab-3d/src/lab/events.ts": {
+    "mtime": 1792652142.4191992,
+    "seen": 1793178425.9073336,
+    "ast_hash": "5a868f3c2dbb69288591c9c9d166fc8f",
+    "semantic_hash": "5a868f3c2dbb69288591c9c9d166fc8f"
+  },
+  "openlab-3d/src/lab/experiment-schema.ts": {
+    "mtime": 1792720971.9209795,
+    "seen": 1793178425.9073365,
+    "ast_hash": "c51315723c66d832f85dce40f586b250",
+    "semantic_hash": "c51315723c66d832f85dce40f586b250"
+  },
+  "openlab-3d/src/lab/experiments.ts": {
+    "mtime": 1792993793.143922,
+    "seen": 1793178425.907339,
+    "ast_hash": "1832c4f21dab20deba9793e14cb86d99",
+    "semantic_hash": "1832c4f21dab20deba9793e14cb86d99"
+  },
+  "openlab-3d/src/lab/measurements.ts": {
+    "mtime": 1792975000.5986059,
+    "seen": 1793178425.9073415,
+    "ast_hash": "064aa90bd77863b9b2b693873a2ebd14",
+    "semantic_hash": "064aa90bd77863b9b2b693873a2ebd14"
+  },
+  "openlab-3d/src/lab/observe.ts": {
+    "mtime": 1792720971.9209795,
+    "seen": 1793178425.9073443,
+    "ast_hash": "3665899dc8b245d38a7ea20d948d1fff",
+    "semantic_hash": "3665899dc8b245d38a7ea20d948d1fff"
+  },
+  "openlab-3d/src/lab/presentation.ts": {
+    "mtime": 1792720971.9209795,
+    "seen": 1793178425.9073477,
+    "ast_hash": "8ef424390b4acf7121fe93f3fc2ed7c4",
+    "semantic_hash": "8ef424390b4acf7121fe93f3fc2ed7c4"
+  },
+  "openlab-3d/src/lab/quantity-guidance.ts": {
+    "mtime": 1792975000.598731,
+    "seen": 1793178425.907351,
+    "ast_hash": "6e41526f4945e17840f400876918af47",
+    "semantic_hash": "6e41526f4945e17840f400876918af47"
+  },
+  "openlab-3d/src/lab/reaction-animation.ts": {
+    "mtime": 1792975000.5988028,
+    "seen": 1793178425.907354,
+    "ast_hash": "a6f353027f2c9edaed1b67e7762fea23",
+    "semantic_hash": "a6f353027f2c9edaed1b67e7762fea23"
+  },
+  "openlab-3d/src/lab/reaction-view.ts": {
+    "mtime": 1792975000.5988028,
+    "seen": 1793178425.907357,
+    "ast_hash": "b27098758831923c4e8a4d00c516890a",
+    "semantic_hash": "b27098758831923c4e8a4d00c516890a"
+  },
+  "openlab-3d/src/lab/spill.ts": {
+    "mtime": 1792720971.9219794,
+    "seen": 1793178425.90736,
+    "ast_hash": "0e186c1574cb6b47e78a05862dcf79c2",
+    "semantic_hash": "0e186c1574cb6b47e78a05862dcf79c2"
+  },
+  "openlab-3d/src/lab/vesselFx.ts": {
+    "mtime": 1792652938.7433565,
+    "seen": 1793178425.9073634,
+    "ast_hash": "7f40b1ebeb38b65e3ade027036de49fa",
+    "semantic_hash": "7f40b1ebeb38b65e3ade027036de49fa"
+  },
+  "openlab-3d/src/main.tsx": {
+    "mtime": 1792641306.154359,
+    "seen": 1793178425.9073668,
+    "ast_hash": "b333ec3b7b2237d1a210cdd21ebec431",
+    "semantic_hash": "b333ec3b7b2237d1a210cdd21ebec431"
+  },
+  "openlab-3d/src/materials/glass.ts": {
+    "mtime": 1793071745.0495965,
+    "seen": 1793178425.9073691,
+    "ast_hash": "aa4a5107125acf65624064f23ad192b3",
+    "semantic_hash": "aa4a5107125acf65624064f23ad192b3"
+  },
+  "openlab-3d/src/materials/labPalette.ts": {
+    "mtime": 1792641306.155184,
+    "seen": 1793178425.907372,
+    "ast_hash": "fb1f634983a970d33023b952b41bb207",
+    "semantic_hash": "fb1f634983a970d33023b952b41bb207"
+  },
+  "openlab-3d/src/materials/liquids.ts": {
+    "mtime": 1792641306.155184,
+    "seen": 1793178425.9073746,
+    "ast_hash": "c0f804a4d02aa7dd47bc743faa2cabe9",
+    "semantic_hash": "c0f804a4d02aa7dd47bc743faa2cabe9"
+  },
+  "openlab-3d/src/materials/metal.ts": {
+    "mtime": 1792641306.155184,
+    "seen": 1793178425.9073775,
+    "ast_hash": "03e705bf6db811c52aba66245d4af4ec",
+    "semantic_hash": "03e705bf6db811c52aba66245d4af4ec"
+  },
+  "openlab-3d/src/materials/plastic.ts": {
+    "mtime": 1792641306.155184,
+    "seen": 1793178425.9073803,
+    "ast_hash": "d1550dc6c69039ea31fc13473740cb4c",
+    "semantic_hash": "d1550dc6c69039ea31fc13473740cb4c"
+  },
+  "openlab-3d/src/menu/ChapterScreen.tsx": {
+    "mtime": 1793064254.8337996,
+    "seen": 1793178425.9073827,
+    "ast_hash": "a4a5c4d2b3668b00da713c14cf1ec3cf",
+    "semantic_hash": "a4a5c4d2b3668b00da713c14cf1ec3cf"
+  },
+  "openlab-3d/src/menu/ControlsScreen.tsx": {
+    "mtime": 1793064254.8338752,
+    "seen": 1793178425.9073853,
+    "ast_hash": "5abb204c63ddd50d635b4b7a44edeb16",
+    "semantic_hash": "5abb204c63ddd50d635b4b7a44edeb16"
+  },
+  "openlab-3d/src/menu/ExperimentScreen.tsx": {
+    "mtime": 1793064254.8340168,
+    "seen": 1793178425.9073882,
+    "ast_hash": "0453b432ae499d93e2dd79016faef84e",
+    "semantic_hash": "0453b432ae499d93e2dd79016faef84e"
+  },
+  "openlab-3d/src/menu/GradeScreen.tsx": {
+    "mtime": 1793064254.8340874,
+    "seen": 1793178425.9073908,
+    "ast_hash": "0bac2750bb69e5dd7745c7cd5dc27283",
+    "semantic_hash": "0bac2750bb69e5dd7745c7cd5dc27283"
+  },
+  "openlab-3d/src/menu/HomeScreen.tsx": {
+    "mtime": 1793064254.8341458,
+    "seen": 1793178425.9073932,
+    "ast_hash": "18652399de06774b3510dfaeff25bb12",
+    "semantic_hash": "18652399de06774b3510dfaeff25bb12"
+  },
+  "openlab-3d/src/menu/LabMenu.tsx": {
+    "mtime": 1793064254.8342302,
+    "seen": 1793178425.907396,
+    "ast_hash": "d3db3988afcf7b2609e2ca12903f202a",
+    "semantic_hash": "d3db3988afcf7b2609e2ca12903f202a"
+  },
+  "openlab-3d/src/menu/ModeScreen.tsx": {
+    "mtime": 1793064254.834295,
+    "seen": 1793178425.9073987,
+    "ast_hash": "92fcdfc09f1e3c5172ac22e4a3e89a9f",
+    "semantic_hash": "92fcdfc09f1e3c5172ac22e4a3e89a9f"
+  },
+  "openlab-3d/src/menu/ProcedureBlock.tsx": {
+    "mtime": 1793153483.9560847,
+    "seen": 1793178425.9074013,
+    "ast_hash": "de30061dbfd3b39794bfe3ffdb642266",
+    "semantic_hash": "de30061dbfd3b39794bfe3ffdb642266"
+  },
+  "openlab-3d/src/menu/SettingsScreen.tsx": {
+    "mtime": 1793064254.8344622,
+    "seen": 1793178425.907404,
+    "ast_hash": "66733c183f340ee2d3961df11f650ce4",
+    "semantic_hash": "66733c183f340ee2d3961df11f650ce4"
+  },
+  "openlab-3d/src/menu/TextbookPreparation.tsx": {
+    "mtime": 1793157311.5154843,
+    "seen": 1793178425.9074066,
+    "ast_hash": "b8831b15a2994a228dec82aba26d4cbe",
+    "semantic_hash": "b8831b15a2994a228dec82aba26d4cbe"
+  },
+  "openlab-3d/src/menu/art.tsx": {
+    "mtime": 1793064254.8345351,
+    "seen": 1793178425.9074092,
+    "ast_hash": "6eee8abb95588cb5dcd323a186709e3b",
+    "semantic_hash": "6eee8abb95588cb5dcd323a186709e3b"
+  },
+  "openlab-3d/src/menu/catalogCount.ts": {
+    "mtime": 1793064254.8346026,
+    "seen": 1793178425.907412,
+    "ast_hash": "eadf48674245fd5e835b6d0c343a0a89",
+    "semantic_hash": "eadf48674245fd5e835b6d0c343a0a89"
+  },
+  "openlab-3d/src/menu/chapterBuild.ts": {
+    "mtime": 1793064254.8346837,
+    "seen": 1793178425.9074144,
+    "ast_hash": "86fb861e47f477dc617e8dd22e6796b9",
+    "semantic_hash": "86fb861e47f477dc617e8dd22e6796b9"
+  },
+  "openlab-3d/src/menu/controlsView.ts": {
+    "mtime": 1793155729.065331,
+    "seen": 1793178425.9074173,
+    "ast_hash": "5bc95af9a4fa42bc1a15fd17e81d949b",
+    "semantic_hash": "5bc95af9a4fa42bc1a15fd17e81d949b"
+  },
+  "openlab-3d/src/menu/gradeSummary.ts": {
+    "mtime": 1793064254.8348114,
+    "seen": 1793178425.90742,
+    "ast_hash": "3eefb6de82f107f178c4e56006684d03",
+    "semantic_hash": "3eefb6de82f107f178c4e56006684d03"
+  },
+  "openlab-3d/src/menu/labLinks.ts": {
+    "mtime": 1793064254.8348722,
+    "seen": 1793178425.9074228,
+    "ast_hash": "33486671749629433b68a0d738e802b4",
+    "semantic_hash": "33486671749629433b68a0d738e802b4"
+  },
+  "openlab-3d/src/menu/labProcedure.ts": {
+    "mtime": 1793153483.956181,
+    "seen": 1793178425.9074252,
+    "ast_hash": "45c4644ea86cdaa1b8a6f71f4026d35a",
+    "semantic_hash": "45c4644ea86cdaa1b8a6f71f4026d35a"
+  },
+  "openlab-3d/src/menu/labProcedureData.ts": {
+    "mtime": 1793153483.9563432,
+    "seen": 1793178425.907428,
+    "ast_hash": "ddb04712ae864729609ae2b1d2b62f84",
+    "semantic_hash": "ddb04712ae864729609ae2b1d2b62f84"
+  },
+  "openlab-3d/src/menu/launchText.ts": {
+    "mtime": 1793064254.834973,
+    "seen": 1793178425.9074306,
+    "ast_hash": "8a6493211a560e8d79e403f828a77695",
+    "semantic_hash": "8a6493211a560e8d79e403f828a77695"
+  },
+  "openlab-3d/src/menu/launchedProcedure.ts": {
+    "mtime": 1793157164.8433464,
+    "seen": 1793178425.9074335,
+    "ast_hash": "d65a6d29d8a495c928ba149499705ed3",
+    "semantic_hash": "d65a6d29d8a495c928ba149499705ed3"
+  },
+  "openlab-3d/src/menu/settingsOptions.ts": {
+    "mtime": 1793064254.835099,
+    "seen": 1793178425.9074361,
+    "ast_hash": "bd4382a81a25b6d716d9b3c9d5f67700",
+    "semantic_hash": "bd4382a81a25b6d716d9b3c9d5f67700"
+  },
+  "openlab-3d/src/menu/startExperiment.ts": {
+    "mtime": 1793157827.6547782,
+    "seen": 1793178425.9074388,
+    "ast_hash": "6a002aacf19ebd94bb9a110b9d78ce5f",
+    "semantic_hash": "6a002aacf19ebd94bb9a110b9d78ce5f"
+  },
+  "openlab-3d/src/menu/textbookEquipment.ts": {
+    "mtime": 1793157163.975286,
+    "seen": 1793178425.9074414,
+    "ast_hash": "8c004e7283aea478c733c083e51035b6",
+    "semantic_hash": "8c004e7283aea478c733c083e51035b6"
+  },
+  "openlab-3d/src/menu/useTheme.ts": {
+    "mtime": 1793064254.835162,
+    "seen": 1793178425.9074442,
+    "ast_hash": "40441cea7a6ac90cc0f64db1b460c910",
+    "semantic_hash": "40441cea7a6ac90cc0f64db1b460c910"
+  },
+  "openlab-3d/src/physics/breakage.ts": {
+    "mtime": 1792720971.9219794,
+    "seen": 1793178425.9074469,
+    "ast_hash": "f85362d329b91c4ef406cd97e531551c",
+    "semantic_hash": "f85362d329b91c4ef406cd97e531551c"
+  },
+  "openlab-3d/src/physics/collisionGroups.ts": {
+    "mtime": 1792982665.259731,
+    "seen": 1793178425.9074495,
+    "ast_hash": "ef70d093eb082b7c5627c4d998083b9b",
+    "semantic_hash": "ef70d093eb082b7c5627c4d998083b9b"
+  },
+  "openlab-3d/src/physics/stepHooks.ts": {
+    "mtime": 1792982665.259731,
+    "seen": 1793178425.907452,
+    "ast_hash": "5a44e4e10123aca0a75686d86405d033",
+    "semantic_hash": "5a44e4e10123aca0a75686d86405d033"
+  },
+  "openlab-3d/src/store/useChemStore.ts": {
+    "mtime": 1792720971.9219794,
+    "seen": 1793178425.907455,
+    "ast_hash": "a1b95c720d5891cc2933c98cba1f366c",
+    "semantic_hash": "a1b95c720d5891cc2933c98cba1f366c"
+  },
+  "openlab-3d/src/store/useExperimentStore.ts": {
+    "mtime": 1792650176.3507667,
+    "seen": 1793178425.9074576,
+    "ast_hash": "b60809c9409fd8059d72bdbc9a786ebc",
+    "semantic_hash": "b60809c9409fd8059d72bdbc9a786ebc"
+  },
+  "openlab-3d/src/store/useGameStore.ts": {
+    "mtime": 1793155729.0657177,
+    "seen": 1793178425.9074602,
+    "ast_hash": "31833c42ed67b8309d17f24a3530709e",
+    "semantic_hash": "31833c42ed67b8309d17f24a3530709e"
+  },
+  "openlab-3d/src/store/useInventoryStore.ts": {
+    "mtime": 1792671864.6234078,
+    "seen": 1793178425.9074628,
+    "ast_hash": "0d62a56049a4be116a9333434acded3e",
+    "semantic_hash": "0d62a56049a4be116a9333434acded3e"
+  },
+  "openlab-3d/src/store/useLabStore.ts": {
+    "mtime": 1793153483.9567988,
+    "seen": 1793178425.9074655,
+    "ast_hash": "b1b84beb4804e87042fd6e981604485f",
+    "semantic_hash": "b1b84beb4804e87042fd6e981604485f"
+  },
+  "openlab-3d/src/store/useLoadingStore.ts": {
+    "mtime": 1792982665.2602618,
+    "seen": 1793178425.9074683,
+    "ast_hash": "4c0b585bb3713e1a9558ed7f11dc0d22",
+    "semantic_hash": "4c0b585bb3713e1a9558ed7f11dc0d22"
+  },
+  "openlab-3d/src/store/usePerfStore.ts": {
+    "mtime": 1792987278.5353267,
+    "seen": 1793178425.9074712,
+    "ast_hash": "f2c847034f117e7563dae8df0ba8c029",
+    "semantic_hash": "f2c847034f117e7563dae8df0ba8c029"
+  },
+  "openlab-3d/src/store/useSettingsStore.ts": {
+    "mtime": 1793064254.835162,
+    "seen": 1793178425.9074736,
+    "ast_hash": "a36de042a2d6557153e30a3d9ae7e975",
+    "semantic_hash": "a36de042a2d6557153e30a3d9ae7e975"
+  },
+  "openlab-3d/src/theme/themes.ts": {
+    "mtime": 1793064254.8354983,
+    "seen": 1793178425.9074762,
+    "ast_hash": "48d4433fe15d8733e13a15348458a913",
+    "semantic_hash": "48d4433fe15d8733e13a15348458a913"
+  },
+  "openlab-3d/src/ui/ControlsHelp.tsx": {
+    "mtime": 1793155729.065935,
+    "seen": 1793178425.907479,
+    "ast_hash": "a075dbef7b93ecbd4817b8b96fa3393f",
+    "semantic_hash": "a075dbef7b93ecbd4817b8b96fa3393f"
+  },
+  "openlab-3d/src/ui/Crosshair.tsx": {
+    "mtime": 1792991282.703949,
+    "seen": 1793178425.907482,
+    "ast_hash": "9392993a96545625f31aeee29b5f1f47",
+    "semantic_hash": "9392993a96545625f31aeee29b5f1f47"
+  },
+  "openlab-3d/src/ui/EndButton.tsx": {
+    "mtime": 1792641306.1562204,
+    "seen": 1793178425.9074845,
+    "ast_hash": "559c78395250d2fc02a1eeca45a9fe67",
+    "semantic_hash": "559c78395250d2fc02a1eeca45a9fe67"
+  },
+  "openlab-3d/src/ui/ExperimentSuccess.tsx": {
+    "mtime": 1792975000.5991845,
+    "seen": 1793178425.9074872,
+    "ast_hash": "bfc5eda35f51411e4c35b90a4564bc62",
+    "semantic_hash": "bfc5eda35f51411e4c35b90a4564bc62"
+  },
+  "openlab-3d/src/ui/HUD.tsx": {
+    "mtime": 1793155729.0660925,
+    "seen": 1793178425.9074898,
+    "ast_hash": "addd76a786bb2520b380db150c2f41b2",
+    "semantic_hash": "addd76a786bb2520b380db150c2f41b2"
+  },
+  "openlab-3d/src/ui/InteractionPrompt.tsx": {
+    "mtime": 1792987116.0661402,
+    "seen": 1793178425.9074926,
+    "ast_hash": "106f9391512dd5cb0d1920fa62c932aa",
+    "semantic_hash": "106f9391512dd5cb0d1920fa62c932aa"
+  },
+  "openlab-3d/src/ui/LabHud.tsx": {
+    "mtime": 1793155729.066288,
+    "seen": 1793178425.9074955,
+    "ast_hash": "024d36e5314b3948285714fe09f93589",
+    "semantic_hash": "024d36e5314b3948285714fe09f93589"
+  },
+  "openlab-3d/src/ui/LoadingScreen.tsx": {
+    "mtime": 1793008001.1936774,
+    "seen": 1793178425.9074981,
+    "ast_hash": "90499a14d128679452b5996d93b8a409",
+    "semantic_hash": "90499a14d128679452b5996d93b8a409"
+  },
+  "openlab-3d/src/ui/MenuButton.tsx": {
+    "mtime": 1793064254.8361068,
+    "seen": 1793178425.9075007,
+    "ast_hash": "a4ff0a35a9df2b0d1c71b1acd01f800e",
+    "semantic_hash": "a4ff0a35a9df2b0d1c71b1acd01f800e"
+  },
+  "openlab-3d/src/ui/MenuPanel.tsx": {
+    "mtime": 1793064254.836347,
+    "seen": 1793178425.9075034,
+    "ast_hash": "b84eb3075502efbf93ac639186ac747a",
+    "semantic_hash": "b84eb3075502efbf93ac639186ac747a"
+  },
+  "openlab-3d/src/ui/MoleculeViewer.tsx": {
+    "mtime": 1792975000.5998023,
+    "seen": 1793178425.9075062,
+    "ast_hash": "c9e086f67737611a2890ab8fe9bfb4bd",
+    "semantic_hash": "c9e086f67737611a2890ab8fe9bfb4bd"
+  },
+  "openlab-3d/src/ui/NotesButton.tsx": {
+    "mtime": 1792641306.1562204,
+    "seen": 1793178425.9075089,
+    "ast_hash": "324c0c24f1615d642b229a25c466822a",
+    "semantic_hash": "324c0c24f1615d642b229a25c466822a"
+  },
+  "openlab-3d/src/ui/NotesPanel.tsx": {
+    "mtime": 1792641306.1562204,
+    "seen": 1793178425.9075115,
+    "ast_hash": "c70ccea9c9ce87b681f26699f6b1de40",
+    "semantic_hash": "c70ccea9c9ce87b681f26699f6b1de40"
+  },
+  "openlab-3d/src/ui/PauseMenu.tsx": {
+    "mtime": 1792991064.5805225,
+    "seen": 1793178425.907514,
+    "ast_hash": "cf915eb0f45d0ddcd8f35511284bc45a",
+    "semantic_hash": "cf915eb0f45d0ddcd8f35511284bc45a"
+  },
+  "openlab-3d/src/ui/RobotAssistant.tsx": {
+    "mtime": 1792991356.120534,
+    "seen": 1793178425.907517,
+    "ast_hash": "2ddbb8f946342efea6fc9be946f6d26e",
+    "semantic_hash": "2ddbb8f946342efea6fc9be946f6d26e"
+  },
+  "openlab-3d/src/ui/RoomToast.tsx": {
+    "mtime": 1792987278.5363166,
+    "seen": 1793178425.9075198,
+    "ast_hash": "7336856339b48a3c700c98bed32850ac",
+    "semantic_hash": "7336856339b48a3c700c98bed32850ac"
+  },
+  "openlab-3d/src/ui/SettingsPanel.tsx": {
+    "mtime": 1793155729.066473,
+    "seen": 1793178425.9075227,
+    "ast_hash": "52e08a5e2f10133331ef4f443810b4c8",
+    "semantic_hash": "52e08a5e2f10133331ef4f443810b4c8"
+  },
+  "openlab-3d/src/ui/SummaryScreen.tsx": {
+    "mtime": 1792975000.6004305,
+    "seen": 1793178425.907525,
+    "ast_hash": "e8d5174bd1155a61c704866b3ae709a1",
+    "semantic_hash": "e8d5174bd1155a61c704866b3ae709a1"
+  },
+  "openlab-3d/src/ui/ToolTab.tsx": {
+    "mtime": 1792975000.6006682,
+    "seen": 1793178425.907528,
+    "ast_hash": "9d8aa77cb457731870e38277ea0ae082",
+    "semantic_hash": "9d8aa77cb457731870e38277ea0ae082"
+  },
+  "openlab-3d/src/ui/TouchControls.tsx": {
+    "mtime": 1793155729.0667248,
+    "seen": 1793178425.9075308,
+    "ast_hash": "e6ca6675d34d43d51e91ed276212ee7b",
+    "semantic_hash": "e6ca6675d34d43d51e91ed276212ee7b"
+  },
+  "openlab-3d/src/ui/WelcomeCard.tsx": {
+    "mtime": 1793008001.194243,
+    "seen": 1793178425.9075334,
+    "ast_hash": "065181f72539f6bea3f45e4cfb7c2974",
+    "semantic_hash": "065181f72539f6bea3f45e4cfb7c2974"
+  },
+  "openlab-3d/src/utils/DebugBridge.tsx": {
+    "mtime": 1792987278.5359764,
+    "seen": 1793178425.9075358,
+    "ast_hash": "db8e7c414828284b882d5b51a2fd9c57",
+    "semantic_hash": "db8e7c414828284b882d5b51a2fd9c57"
+  },
+  "openlab-3d/src/utils/constants.ts": {
+    "mtime": 1792982665.2621775,
+    "seen": 1793178425.9075387,
+    "ast_hash": "f584e6788274e3ce4474d0f6d59ea9f4",
+    "semantic_hash": "f584e6788274e3ce4474d0f6d59ea9f4"
+  },
+  "openlab-3d/src/utils/device.ts": {
+    "mtime": 1792990486.8952644,
+    "seen": 1793178425.9075413,
+    "ast_hash": "dfd32a3e44b723d3b27748cbb49f5326",
+    "semantic_hash": "dfd32a3e44b723d3b27748cbb49f5326"
+  },
+  "openlab-3d/src/utils/fonts.ts": {
+    "mtime": 1792982665.2623394,
+    "seen": 1793178425.9075441,
+    "ast_hash": "046e0b1062599210acee71ad7040b3f3",
+    "semantic_hash": "046e0b1062599210acee71ad7040b3f3"
+  },
+  "openlab-3d/src/utils/lazy.ts": {
+    "mtime": 1792641306.1575034,
+    "seen": 1793178425.9075465,
+    "ast_hash": "875deb890902d646f3b9bcdc1b23bfd5",
+    "semantic_hash": "875deb890902d646f3b9bcdc1b23bfd5"
+  },
+  "openlab-3d/src/utils/sounds.ts": {
+    "mtime": 1792723056.2793958,
+    "seen": 1793178425.9075494,
+    "ast_hash": "fe1e9eaa63d310420d07a894338580b1",
+    "semantic_hash": "fe1e9eaa63d310420d07a894338580b1"
+  },
+  "openlab-3d/src/utils/spring.ts": {
+    "mtime": 1792722471.6921515,
+    "seen": 1793178425.907552,
+    "ast_hash": "a08dc5383fc2330def115576b66a6d20",
+    "semantic_hash": "a08dc5383fc2330def115576b66a6d20"
+  },
+  "openlab-3d/src/utils/textures.ts": {
+    "mtime": 1792975000.6010346,
+    "seen": 1793178425.9075549,
+    "ast_hash": "b952116eb142acf5971e0d35211a14c4",
+    "semantic_hash": "b952116eb142acf5971e0d35211a14c4"
+  },
+  "openlab-3d/src/visuals/ReactionCloud.tsx": {
+    "mtime": 1792993793.1443903,
+    "seen": 1793178425.9075575,
+    "ast_hash": "539ecbf299ffad39bd90ca83d988c517",
+    "semantic_hash": "539ecbf299ffad39bd90ca83d988c517"
+  },
+  "openlab-3d/src/vite-env.d.ts": {
+    "mtime": 1792641306.1575034,
+    "seen": 1793178425.9075599,
+    "ast_hash": "278da2288e8e4613333184359db4798d",
+    "semantic_hash": "278da2288e8e4613333184359db4798d"
+  },
+  "openlab-3d/src/world/ChemSim.tsx": {
+    "mtime": 1793156805.6976743,
+    "seen": 1793178425.9075625,
+    "ast_hash": "90a3dcad724e0c37b6319acee6253b0e",
+    "semantic_hash": "90a3dcad724e0c37b6319acee6253b0e"
+  },
+  "openlab-3d/src/world/Effects.tsx": {
+    "mtime": 1792978904.1285648,
+    "seen": 1793178425.9075654,
+    "ast_hash": "d3c74fa5a171d3cb209f94ad260b90ba",
+    "semantic_hash": "d3c74fa5a171d3cb209f94ad260b90ba"
+  },
+  "openlab-3d/src/world/Lab.tsx": {
+    "mtime": 1792982665.262505,
+    "seen": 1793178425.907568,
+    "ast_hash": "3297b480e1ee0b068e968c4099423d61",
+    "semantic_hash": "3297b480e1ee0b068e968c4099423d61"
+  },
+  "openlab-3d/src/world/LabFx.tsx": {
+    "mtime": 1792653596.7147806,
+    "seen": 1793178425.9075706,
+    "ast_hash": "827a270566795059ceceef08cbf04497",
+    "semantic_hash": "827a270566795059ceceef08cbf04497"
+  },
+  "openlab-3d/src/world/LabScene.tsx": {
+    "mtime": 1793071772.863087,
+    "seen": 1793178425.9075732,
+    "ast_hash": "4ed02f5db44e39363102dd06e101d75c",
+    "semantic_hash": "4ed02f5db44e39363102dd06e101d75c"
+  },
+  "openlab-3d/src/world/Lighting.tsx": {
+    "mtime": 1792641306.1589837,
+    "seen": 1793178425.907576,
+    "ast_hash": "c59732c2885f134b7c4dd279769b84c6",
+    "semantic_hash": "c59732c2885f134b7c4dd279769b84c6"
+  },
+  "openlab-3d/src/world/Performance.tsx": {
+    "mtime": 1793071761.1140664,
+    "seen": 1793178425.9075787,
+    "ast_hash": "49edbc1d8a98c0cd9619a41266a86952",
+    "semantic_hash": "49edbc1d8a98c0cd9619a41266a86952"
+  },
+  "openlab-3d/src/world/ReactionEffects.tsx": {
+    "mtime": 1792975000.6014493,
+    "seen": 1793178425.9075813,
+    "ast_hash": "87731e4ba5462af972556b761d4f14d8",
+    "semantic_hash": "87731e4ba5462af972556b761d4f14d8"
+  },
+  "openlab-3d/src/world/SkyDome.tsx": {
+    "mtime": 1792641306.1589837,
+    "seen": 1793178425.9075842,
+    "ast_hash": "bd9c8e7c46cff42f9e8d4da3b829ba39",
+    "semantic_hash": "bd9c8e7c46cff42f9e8d4da3b829ba39"
+  },
+  "openlab-3d/src/world/StaticBatch.tsx": {
+    "mtime": 1792979835.2441156,
+    "seen": 1793178425.9075868,
+    "ast_hash": "1f1f7864a7e31a0a76e1eb37355a781c",
+    "semantic_hash": "1f1f7864a7e31a0a76e1eb37355a781c"
+  },
+  "openlab-3d/src/world/architecture/Ceiling.tsx": {
+    "mtime": 1792641306.1589837,
+    "seen": 1793178425.9075894,
+    "ast_hash": "5d4c4de9041173b133eae33af85ca58c",
+    "semantic_hash": "5d4c4de9041173b133eae33af85ca58c"
+  },
+  "openlab-3d/src/world/architecture/CeilingLight.tsx": {
+    "mtime": 1792641306.1595526,
+    "seen": 1793178425.9075923,
+    "ast_hash": "4a8ed6ca7af51c0ed501a4b7cb893377",
+    "semantic_hash": "4a8ed6ca7af51c0ed501a4b7cb893377"
+  },
+  "openlab-3d/src/world/architecture/Floor.tsx": {
+    "mtime": 1792641306.1595526,
+    "seen": 1793178425.9075947,
+    "ast_hash": "a63412b3f5fd53bb3e6f3ac4294c6756",
+    "semantic_hash": "a63412b3f5fd53bb3e6f3ac4294c6756"
+  },
+  "openlab-3d/src/world/architecture/Wall.tsx": {
+    "mtime": 1792641306.1595526,
+    "seen": 1793178425.9075975,
+    "ast_hash": "b7d1b31a9f6cfdabe6caced4ef864717",
+    "semantic_hash": "b7d1b31a9f6cfdabe6caced4ef864717"
+  },
+  "openlab-3d/src/world/architecture/Window.tsx": {
+    "mtime": 1792641306.1595526,
+    "seen": 1793178425.9076002,
+    "ast_hash": "0c8e2198059b65dd76cf66fa815f6731",
+    "semantic_hash": "0c8e2198059b65dd76cf66fa815f6731"
+  },
+  "openlab-3d/src/world/furniture/BenchParts.tsx": {
+    "mtime": 1793070943.0417283,
+    "seen": 1793178425.907603,
+    "ast_hash": "90be76dd214f48f61f91c122a82e2d6f",
+    "semantic_hash": "90be76dd214f48f61f91c122a82e2d6f"
+  },
+  "openlab-3d/src/world/furniture/Decor.tsx": {
+    "mtime": 1792653615.4192743,
+    "seen": 1793178425.9076054,
+    "ast_hash": "1a1fd532791a0b2e9c8ec340f780d765",
+    "semantic_hash": "1a1fd532791a0b2e9c8ec340f780d765"
+  },
+  "openlab-3d/src/world/furniture/FireExtinguisher.tsx": {
+    "mtime": 1792650176.3527668,
+    "seen": 1793178425.9076083,
+    "ast_hash": "4f9e615cb78284d36b3300f810935a0e",
+    "semantic_hash": "4f9e615cb78284d36b3300f810935a0e"
+  },
+  "openlab-3d/src/world/furniture/FumeHood.tsx": {
+    "mtime": 1792653615.4196196,
+    "seen": 1793178425.907611,
+    "ast_hash": "d29de3da5cb736389c1da676d67919d5",
+    "semantic_hash": "d29de3da5cb736389c1da676d67919d5"
+  },
+  "openlab-3d/src/world/furniture/LabBench.tsx": {
+    "mtime": 1792979875.0220468,
+    "seen": 1793178425.9076138,
+    "ast_hash": "b8ad929ff7c19bae2e2aea6d44620899",
+    "semantic_hash": "b8ad929ff7c19bae2e2aea6d44620899"
+  },
+  "openlab-3d/src/world/furniture/SafetyShower.tsx": {
+    "mtime": 1792641306.160034,
+    "seen": 1793178425.9076161,
+    "ast_hash": "dc36414d5ce27fe439a9fbdc236f64f8",
+    "semantic_hash": "dc36414d5ce27fe439a9fbdc236f64f8"
+  },
+  "openlab-3d/src/world/furniture/Shelf.tsx": {
+    "mtime": 1792980018.0336049,
+    "seen": 1793178425.907619,
+    "ast_hash": "0619c2af57def992d229a062036ebdfe",
+    "semantic_hash": "0619c2af57def992d229a062036ebdfe"
+  },
+  "openlab-3d/src/world/furniture/Sink.tsx": {
+    "mtime": 1792653597.7948549,
+    "seen": 1793178425.9076219,
+    "ast_hash": "6b33b549a30b3788c55c1758b56d3f3d",
+    "semantic_hash": "6b33b549a30b3788c55c1758b56d3f3d"
+  },
+  "openlab-3d/src/world/furniture/Stool.tsx": {
+    "mtime": 1792641306.160034,
+    "seen": 1793178425.9076245,
+    "ast_hash": "2c277e7eae8f13f9d19b3149b18db875",
+    "semantic_hash": "2c277e7eae8f13f9d19b3149b18db875"
+  },
+  "openlab-3d/src/world/furniture/Whiteboard.tsx": {
+    "mtime": 1792641306.160034,
+    "seen": 1793178425.9076273,
+    "ast_hash": "ba51b00f255c080e13ba715ca47f8873",
+    "semantic_hash": "ba51b00f255c080e13ba715ca47f8873"
+  },
+  "openlab-3d/src/world/furniture/swing.ts": {
+    "mtime": 1792723053.0846648,
+    "seen": 1793178425.9076297,
+    "ast_hash": "a3b7fdcd9a2550c767c59b8126b681bf",
+    "semantic_hash": "a3b7fdcd9a2550c767c59b8126b681bf"
+  },
+  "openlab-3d/src/world/itemsLayout.ts": {
+    "mtime": 1792975000.6021545,
+    "seen": 1793178425.9076326,
+    "ast_hash": "6ac91b4d980c1ce4896232071ae14420",
+    "semantic_hash": "6ac91b4d980c1ce4896232071ae14420"
+  },
+  "openlab-3d/src/world/layout.ts": {
+    "mtime": 1792641306.160034,
+    "seen": 1793178425.9076352,
+    "ast_hash": "67e4879ffe9eec98899659b84a8e9974",
+    "semantic_hash": "67e4879ffe9eec98899659b84a8e9974"
+  },
+  "openlab-3d/src/world/qualityGovernor.ts": {
+    "mtime": 1792981422.6121225,
+    "seen": 1793178425.9076378,
+    "ast_hash": "3b2b4aada88abbbe22165c2c6a5948d8",
+    "semantic_hash": "3b2b4aada88abbbe22165c2c6a5948d8"
+  },
+  "openlab-3d/src/world/rooms/ChemistryLab.tsx": {
+    "mtime": 1792723180.034969,
+    "seen": 1793178425.9076402,
+    "ast_hash": "f5686dc7e40b235e0b72e29af91440f2",
+    "semantic_hash": "f5686dc7e40b235e0b72e29af91440f2"
+  },
+  "openlab-3d/tailwind.config.js": {
+    "mtime": 1793064254.8364978,
+    "seen": 1793178425.907643,
+    "ast_hash": "243f034ecc6500534ddbae269a0033ae",
+    "semantic_hash": "243f034ecc6500534ddbae269a0033ae"
+  },
+  "openlab-3d/tests/book-supplies.test.mjs": {
+    "mtime": 1793164608.031397,
+    "seen": 1793178425.9076457,
+    "ast_hash": "1c2cd03b2dec3239ad013fe3e81b76b6",
+    "semantic_hash": "1c2cd03b2dec3239ad013fe3e81b76b6"
+  },
+  "openlab-3d/tests/menu-chapters.test.mjs": {
+    "mtime": 1793064254.8366344,
+    "seen": 1793178425.9076486,
+    "ast_hash": "2e80fab2d19a891bb54114b95faa41cb",
+    "semantic_hash": "2e80fab2d19a891bb54114b95faa41cb"
+  },
+  "openlab-3d/tests/menu-grades.test.mjs": {
+    "mtime": 1793064254.836731,
+    "seen": 1793178425.9076514,
+    "ast_hash": "8745c055e7822cdb85e9dc9308d7d828",
+    "semantic_hash": "8745c055e7822cdb85e9dc9308d7d828"
+  },
+  "openlab-3d/tests/menu-labprocedure.test.mjs": {
+    "mtime": 1793153483.957119,
+    "seen": 1793178425.9076538,
+    "ast_hash": "17af263a2f103790afc1b1fa0a03bcb3",
+    "semantic_hash": "17af263a2f103790afc1b1fa0a03bcb3"
+  },
+  "openlab-3d/tests/menu-links.test.mjs": {
+    "mtime": 1793064254.836823,
+    "seen": 1793178425.9076567,
+    "ast_hash": "63aee8fcc7040e2c29cb9b61a293a702",
+    "semantic_hash": "63aee8fcc7040e2c29cb9b61a293a702"
+  },
+  "openlab-3d/tests/menu-procedure.test.mjs": {
+    "mtime": 1793153483.9572523,
+    "seen": 1793178425.9076595,
+    "ast_hash": "5619d519169f3b07bcac35b5f6531008",
+    "semantic_hash": "5619d519169f3b07bcac35b5f6531008"
+  },
+  "openlab-3d/tests/menu-settings.test.mjs": {
+    "mtime": 1793155729.066967,
+    "seen": 1793178425.9076622,
+    "ast_hash": "588ce3075e5a84eea73c7d6567e87b4a",
+    "semantic_hash": "588ce3075e5a84eea73c7d6567e87b4a"
+  },
+  "openlab-3d/tests/mobile-interaction.test.mjs": {
+    "mtime": 1792982665.2629516,
+    "seen": 1793178425.907665,
+    "ast_hash": "bf950689042a057e1fc4d1845227f1ae",
+    "semantic_hash": "bf950689042a057e1fc4d1845227f1ae"
+  },
+  "openlab-3d/tests/molecules.test.mjs": {
+    "mtime": 1793155729.0676703,
+    "seen": 1793178425.9076674,
+    "ast_hash": "f04625ec76107d0ff1991501926d5675",
+    "semantic_hash": "f04625ec76107d0ff1991501926d5675"
+  },
+  "openlab-3d/tests/quality-governor.test.mjs": {
+    "mtime": 1792981449.4237707,
+    "seen": 1793178425.90767,
+    "ast_hash": "9b9213427bb8987a081d69f9ebf2f168",
+    "semantic_hash": "9b9213427bb8987a081d69f9ebf2f168"
+  },
+  "openlab-3d/tests/still-batch.test.mjs": {
+    "mtime": 1793074663.478928,
+    "seen": 1793178425.907673,
+    "ast_hash": "c7f895d3fc61a672f0b0df027895369f",
+    "semantic_hash": "c7f895d3fc61a672f0b0df027895369f"
+  },
+  "openlab-3d/tests/textbook-chemistry.test.mjs": {
+    "mtime": 1793165000.6639645,
+    "seen": 1793178425.9076755,
+    "ast_hash": "746febafd3f160fb6ddc058dbcb769e6",
+    "semantic_hash": "746febafd3f160fb6ddc058dbcb769e6"
+  },
+  "openlab-3d/tsconfig.app.json": {
+    "mtime": 1792720971.9278796,
+    "seen": 1793178425.9076781,
+    "ast_hash": "88af2cba9aa1345f3cb3bd088c391e9b",
+    "semantic_hash": "88af2cba9aa1345f3cb3bd088c391e9b"
+  },
+  "openlab-3d/tsconfig.json": {
+    "mtime": 1792641306.1605036,
+    "seen": 1793178425.9076807,
+    "ast_hash": "cebcd0aef9a53b9c724ac53266f03437",
+    "semantic_hash": "cebcd0aef9a53b9c724ac53266f03437"
+  },
+  "openlab-3d/tsconfig.node.json": {
+    "mtime": 1792641306.1605036,
+    "seen": 1793178425.9076836,
+    "ast_hash": "7e3e878c7437db630baba8676283b128",
+    "semantic_hash": "7e3e878c7437db630baba8676283b128"
+  },
+  "openlab-3d/vite.config.ts": {
+    "mtime": 1792993793.1457405,
+    "seen": 1793178425.9076865,
+    "ast_hash": "e20f5b79ae6e2d56ae8384accf9f2545",
+    "semantic_hash": "e20f5b79ae6e2d56ae8384accf9f2545"
+  },
+  "package.json": {
+    "mtime": 1793078670.6783834,
+    "seen": 1793178425.9076889,
+    "ast_hash": "170b280dbce5a9c9ead44d82ccf9c692",
+    "semantic_hash": "170b280dbce5a9c9ead44d82ccf9c692"
+  },
+  "scripts/ai-tutor.test.mjs": {
+    "mtime": 1793083743.8776605,
+    "seen": 1793178425.9077237,
+    "ast_hash": "e5f7f564070352ce04f9329943b483fc",
+    "semantic_hash": "e5f7f564070352ce04f9329943b483fc"
+  },
+  "scripts/catalyst-journey.test.mjs": {
+    "mtime": 1792975000.6472454,
+    "seen": 1793178425.9077263,
+    "ast_hash": "12f3dad1aaab50df7216863d5df862b9",
+    "semantic_hash": "12f3dad1aaab50df7216863d5df862b9"
+  },
+  "scripts/check-catalyst-journey.cjs": {
+    "mtime": 1792975000.6473675,
+    "seen": 1793178425.9077291,
+    "ast_hash": "2efc233e812c2caad86b99a6998111e8",
+    "semantic_hash": "2efc233e812c2caad86b99a6998111e8"
+  },
+  "scripts/check-periodic-study.cjs": {
+    "mtime": 1792975000.647454,
+    "seen": 1793178425.907732,
+    "ast_hash": "3c4fa273a6da96fe5d9bca9b8d69699b",
+    "semantic_hash": "3c4fa273a6da96fe5d9bca9b8d69699b"
+  },
+  "scripts/check-revision-study.cjs": {
+    "mtime": 1792975000.647454,
+    "seen": 1793178425.9077346,
+    "ast_hash": "902b018a1d115c053242aacc09fb5b9f",
+    "semantic_hash": "902b018a1d115c053242aacc09fb5b9f"
+  },
+  "scripts/experiment-catalog.test.mjs": {
+    "mtime": 1792720971.9621727,
+    "seen": 1793178425.907737,
+    "ast_hash": "36dfbf34f0b622aa4a8f4340996a4e22",
+    "semantic_hash": "36dfbf34f0b622aa4a8f4340996a4e22"
+  },
+  "scripts/generate-curriculum-lab-sql.mjs": {
+    "mtime": 1792993793.1941333,
+    "seen": 1793178425.9077399,
+    "ast_hash": "48f23bd5b22ed32a720ae4647ed8c318",
+    "semantic_hash": "48f23bd5b22ed32a720ae4647ed8c318"
+  },
+  "scripts/generate-experiment-sql.mjs": {
+    "mtime": 1792720971.962679,
+    "seen": 1793178425.9077425,
+    "ast_hash": "ec19aecda781e0f5b03be70123ed1555",
+    "semantic_hash": "ec19aecda781e0f5b03be70123ed1555"
+  },
+  "scripts/generate-grade10-sql.mjs": {
+    "mtime": 1792993793.1942518,
+    "seen": 1793178425.9077454,
+    "ast_hash": "6c2b1fb5c04493ef786ccec310dbe18f",
+    "semantic_hash": "6c2b1fb5c04493ef786ccec310dbe18f"
+  },
+  "scripts/generate-grade7-sql.mjs": {
+    "mtime": 1792993793.1942518,
+    "seen": 1793178425.907748,
+    "ast_hash": "248df9b5cd6fe8bcb00be3f9a7bb64c4",
+    "semantic_hash": "248df9b5cd6fe8bcb00be3f9a7bb64c4"
+  },
+  "scripts/generate-grade8-hub-sql.mjs": {
+    "mtime": 1792982665.2639306,
+    "seen": 1793178425.9077506,
+    "ast_hash": "15235d40908f78cc14c1efaf447d9da2",
+    "semantic_hash": "15235d40908f78cc14c1efaf447d9da2"
+  },
+  "scripts/generate-learning-sql.mjs": {
+    "mtime": 1792993793.1943839,
+    "seen": 1793178425.9077535,
+    "ast_hash": "dae86208e1e5957d3fcaaf39d8394360",
+    "semantic_hash": "dae86208e1e5957d3fcaaf39d8394360"
+  },
+  "scripts/grade10-content.test.mjs": {
+    "mtime": 1792993793.1945047,
+    "seen": 1793178425.907756,
+    "ast_hash": "ab263777943a542307754216067c787c",
+    "semantic_hash": "ab263777943a542307754216067c787c"
+  },
+  "scripts/grade7-content.test.mjs": {
+    "mtime": 1792993793.1945047,
+    "seen": 1793178425.907759,
+    "ast_hash": "ec4ffacbc4363b9f1ac43ce79502248f",
+    "semantic_hash": "ec4ffacbc4363b9f1ac43ce79502248f"
+  },
+  "scripts/grade9-content.test.mjs": {
+    "mtime": 1792975000.6475658,
+    "seen": 1793178425.9077613,
+    "ast_hash": "70c634e37fde42ad371e439263f70b95",
+    "semantic_hash": "70c634e37fde42ad371e439263f70b95"
+  },
+  "scripts/learning-database.test.mjs": {
+    "mtime": 1793068224.941881,
+    "seen": 1793178425.9077642,
+    "ast_hash": "ae5259628bdc6ad5feb2d110870c75d6",
+    "semantic_hash": "ae5259628bdc6ad5feb2d110870c75d6"
+  },
+  "scripts/periodic-learning.test.mjs": {
+    "mtime": 1792975000.6476312,
+    "seen": 1793178425.907767,
+    "ast_hash": "4b5f2da18ead696e79482021a3af9b10",
+    "semantic_hash": "4b5f2da18ead696e79482021a3af9b10"
+  },
+  "scripts/revision-hub.test.mjs": {
+    "mtime": 1792975000.6477232,
+    "seen": 1793178425.907773,
+    "ast_hash": "37330d1aab84cd36e7fbddb3d17a6cad",
+    "semantic_hash": "37330d1aab84cd36e7fbddb3d17a6cad"
+  },
+  "scripts/revision-study.test.mjs": {
+    "mtime": 1792975000.6478143,
+    "seen": 1793178425.9077754,
+    "ast_hash": "552b1de8c9a9cb67e213b5a06517ef0c",
+    "semantic_hash": "552b1de8c9a9cb67e213b5a06517ef0c"
+  },
+  "scripts/school-district.test.mjs": {
+    "mtime": 1793000808.8277054,
+    "seen": 1793178425.9077783,
+    "ast_hash": "b8d92e2565de46f73e7e3ccc5a3ace31",
+    "semantic_hash": "b8d92e2565de46f73e7e3ccc5a3ace31"
+  },
+  "src/app/(auth)/_layout.tsx": {
+    "mtime": 1792545159.737653,
+    "seen": 1793178425.907781,
+    "ast_hash": "e6995b617c40a29d4f3758d0fb6c2d7a",
+    "semantic_hash": "e6995b617c40a29d4f3758d0fb6c2d7a"
+  },
+  "src/app/(auth)/sign-in.tsx": {
+    "mtime": 1792671922.5170422,
+    "seen": 1793178425.9077837,
+    "ast_hash": "0a9b0088a2424599ada3cea4cc7548c8",
+    "semantic_hash": "0a9b0088a2424599ada3cea4cc7548c8"
+  },
+  "src/app/(auth)/sign-up.tsx": {
+    "mtime": 1793176836.8163962,
+    "seen": 1793178425.9077861,
+    "ast_hash": "e805a9dccfd4d843f724931bb41316e9",
+    "semantic_hash": "e805a9dccfd4d843f724931bb41316e9"
+  },
+  "src/app/(auth)/welcome.tsx": {
+    "mtime": 1792672429.0414617,
+    "seen": 1793178425.9077888,
+    "ast_hash": "e78addf9224b428a3229c186a6ec8d58",
+    "semantic_hash": "e78addf9224b428a3229c186a6ec8d58"
+  },
+  "src/app/(game)/_layout.tsx": {
+    "mtime": 1793064254.8741522,
+    "seen": 1793178425.9077916,
+    "ast_hash": "8efefd41b0c1cff3c8fecd5d9ad47d5a",
+    "semantic_hash": "8efefd41b0c1cff3c8fecd5d9ad47d5a"
+  },
+  "src/app/(game)/hub/g10-chem/_layout.tsx": {
+    "mtime": 1792993793.1947978,
+    "seen": 1793178425.9077942,
+    "ast_hash": "b91c8fb6a20f50646f29eeaf2efe2783",
+    "semantic_hash": "b91c8fb6a20f50646f29eeaf2efe2783"
+  },
+  "src/app/(game)/hub/g10-chem/course.tsx": {
+    "mtime": 1792993793.1948593,
+    "seen": 1793178425.907797,
+    "ast_hash": "a825e7ec49cba98aee10d269de5bc7cf",
+    "semantic_hash": "a825e7ec49cba98aee10d269de5bc7cf"
+  },
+  "src/app/(game)/hub/g10-chem/index.tsx": {
+    "mtime": 1792993793.1948593,
+    "seen": 1793178425.9077997,
+    "ast_hash": "bf8480195e1f22f717b0bdb970be0a5e",
+    "semantic_hash": "bf8480195e1f22f717b0bdb970be0a5e"
+  },
+  "src/app/(game)/hub/g10-chem/investigations.tsx": {
+    "mtime": 1792993793.1948593,
+    "seen": 1793178425.9078023,
+    "ast_hash": "985d1169820c7311ab24c63726832456",
+    "semantic_hash": "985d1169820c7311ab24c63726832456"
+  },
+  "src/app/(game)/hub/g10-chem/topic/[topicId]/[tab].tsx": {
+    "mtime": 1792993793.1951087,
+    "seen": 1793178425.907805,
+    "ast_hash": "f98d9abca84aa8b710c6af786b667a72",
+    "semantic_hash": "f98d9abca84aa8b710c6af786b667a72"
+  },
+  "src/app/(game)/hub/g7-chem/_layout.tsx": {
+    "mtime": 1792993793.1951087,
+    "seen": 1793178425.9078078,
+    "ast_hash": "3d5c451b963a68a862e007fa81fe71c5",
+    "semantic_hash": "3d5c451b963a68a862e007fa81fe71c5"
+  },
+  "src/app/(game)/hub/g7-chem/course.tsx": {
+    "mtime": 1792993793.195328,
+    "seen": 1793178425.9078102,
+    "ast_hash": "a825e7ec49cba98aee10d269de5bc7cf",
+    "semantic_hash": "a825e7ec49cba98aee10d269de5bc7cf"
+  },
+  "src/app/(game)/hub/g7-chem/index.tsx": {
+    "mtime": 1792993793.195328,
+    "seen": 1793178425.9078128,
+    "ast_hash": "bf8480195e1f22f717b0bdb970be0a5e",
+    "semantic_hash": "bf8480195e1f22f717b0bdb970be0a5e"
+  },
+  "src/app/(game)/hub/g7-chem/investigations.tsx": {
+    "mtime": 1792993793.1954408,
+    "seen": 1793178425.9078155,
+    "ast_hash": "985d1169820c7311ab24c63726832456",
+    "semantic_hash": "985d1169820c7311ab24c63726832456"
+  },
+  "src/app/(game)/hub/g7-chem/topic/[topicId]/[tab].tsx": {
+    "mtime": 1792993793.1955678,
+    "seen": 1793178425.907818,
+    "ast_hash": "f98d9abca84aa8b710c6af786b667a72",
+    "semantic_hash": "f98d9abca84aa8b710c6af786b667a72"
+  },
+  "src/app/(game)/hub/g8-chem/[reference].tsx": {
+    "mtime": 1792975000.6484766,
+    "seen": 1793178425.9078207,
+    "ast_hash": "b625ba8dc7e850c94f8d9f5afb52080d",
+    "semantic_hash": "b625ba8dc7e850c94f8d9f5afb52080d"
+  },
+  "src/app/(game)/hub/g8-chem/_layout.tsx": {
+    "mtime": 1792975000.6485686,
+    "seen": 1793178425.9078233,
+    "ast_hash": "0aacdfb0e581a6c3e7531dec6dc2099e",
+    "semantic_hash": "0aacdfb0e581a6c3e7531dec6dc2099e"
+  },
+  "src/app/(game)/hub/g8-chem/course.tsx": {
+    "mtime": 1792975000.6485686,
+    "seen": 1793178425.9078262,
+    "ast_hash": "a825e7ec49cba98aee10d269de5bc7cf",
+    "semantic_hash": "a825e7ec49cba98aee10d269de5bc7cf"
+  },
+  "src/app/(game)/hub/g8-chem/index.tsx": {
+    "mtime": 1792975000.6485686,
+    "seen": 1793178425.9078288,
+    "ast_hash": "4249c7e1b799c0138c38d66c22204564",
+    "semantic_hash": "4249c7e1b799c0138c38d66c22204564"
+  },
+  "src/app/(game)/hub/g8-chem/investigations.tsx": {
+    "mtime": 1792975000.6485686,
+    "seen": 1793178425.9078317,
+    "ast_hash": "985d1169820c7311ab24c63726832456",
+    "semantic_hash": "985d1169820c7311ab24c63726832456"
+  },
+  "src/app/(game)/hub/g8-chem/topic/[topicId]/[tab].tsx": {
+    "mtime": 1792975000.6488767,
+    "seen": 1793178425.9078343,
+    "ast_hash": "f98d9abca84aa8b710c6af786b667a72",
+    "semantic_hash": "f98d9abca84aa8b710c6af786b667a72"
+  },
+  "src/app/(game)/hub/g9-chem/_layout.tsx": {
+    "mtime": 1792975000.6488767,
+    "seen": 1793178425.9078372,
+    "ast_hash": "01dcee51ec0e645f5dd612f710816f53",
+    "semantic_hash": "01dcee51ec0e645f5dd612f710816f53"
+  },
+  "src/app/(game)/hub/g9-chem/course.tsx": {
+    "mtime": 1792975000.6490917,
+    "seen": 1793178425.9078398,
+    "ast_hash": "a825e7ec49cba98aee10d269de5bc7cf",
+    "semantic_hash": "a825e7ec49cba98aee10d269de5bc7cf"
+  },
+  "src/app/(game)/hub/g9-chem/index.tsx": {
+    "mtime": 1792975000.6490917,
+    "seen": 1793178425.9078426,
+    "ast_hash": "bf8480195e1f22f717b0bdb970be0a5e",
+    "semantic_hash": "bf8480195e1f22f717b0bdb970be0a5e"
+  },
+  "src/app/(game)/hub/g9-chem/investigations.tsx": {
+    "mtime": 1792975000.6491687,
+    "seen": 1793178425.907845,
+    "ast_hash": "985d1169820c7311ab24c63726832456",
+    "semantic_hash": "985d1169820c7311ab24c63726832456"
+  },
+  "src/app/(game)/hub/g9-chem/topic/[topicId]/[tab].tsx": {
+    "mtime": 1792975000.649279,
+    "seen": 1793178425.907848,
+    "ast_hash": "f98d9abca84aa8b710c6af786b667a72",
+    "semantic_hash": "f98d9abca84aa8b710c6af786b667a72"
+  },
+  "src/app/(game)/index.tsx": {
+    "mtime": 1793176852.282697,
+    "seen": 1793178425.9078505,
+    "ast_hash": "8e03dc95edc074377fcdf3bdf173fc4d",
+    "semantic_hash": "8e03dc95edc074377fcdf3bdf173fc4d"
+  },
+  "src/app/(game)/lessons/[lessonId].tsx": {
+    "mtime": 1793068184.7329469,
+    "seen": 1793178425.9078534,
+    "ast_hash": "6c4476eb6cf49910eb1323164eb77432",
+    "semantic_hash": "6c4476eb6cf49910eb1323164eb77432"
+  },
+  "src/app/(game)/lessons/basics.tsx": {
+    "mtime": 1792975000.649279,
+    "seen": 1793178425.907856,
+    "ast_hash": "2d8f2e291bdd3db786b83674794768b6",
+    "semantic_hash": "2d8f2e291bdd3db786b83674794768b6"
+  },
+  "src/app/(game)/lessons/catalyst.tsx": {
+    "mtime": 1792975000.649279,
+    "seen": 1793178425.9078586,
+    "ast_hash": "66cd54d80b9f6b02a78e8b29cba99abc",
+    "semantic_hash": "66cd54d80b9f6b02a78e8b29cba99abc"
+  },
+  "src/app/(game)/lessons/index.tsx": {
+    "mtime": 1792975000.6496794,
+    "seen": 1793178425.9078612,
+    "ast_hash": "d86081c52da2cebcf4bf5125d38a9dcf",
+    "semantic_hash": "d86081c52da2cebcf4bf5125d38a9dcf"
+  },
+  "src/app/(game)/openlab.tsx": {
+    "mtime": 1792641306.2000325,
+    "seen": 1793178425.9078724,
+    "ast_hash": "98ef5196de6c7cec04d464f9d1971c18",
+    "semantic_hash": "98ef5196de6c7cec04d464f9d1971c18"
+  },
+  "src/app/(game)/periodic.tsx": {
+    "mtime": 1792975000.6508172,
+    "seen": 1793178425.9078753,
+    "ast_hash": "eac23b76314f3424b5cd4c5cbdd44925",
+    "semantic_hash": "eac23b76314f3424b5cd4c5cbdd44925"
+  },
+  "src/app/(game)/ranking.tsx": {
+    "mtime": 1793009191.7292914,
+    "seen": 1793178425.9078782,
+    "ast_hash": "b021898c2c4f50c6e7837a3b50ffe6dd",
+    "semantic_hash": "b021898c2c4f50c6e7837a3b50ffe6dd"
+  },
+  "src/app/(game)/versus.tsx": {
+    "mtime": 1792641608.7096572,
+    "seen": 1793178425.907881,
+    "ast_hash": "d13f7d0c88b2d8f4b6c8173c8a9a7019",
+    "semantic_hash": "d13f7d0c88b2d8f4b6c8173c8a9a7019"
+  },
+  "src/app/_layout.tsx": {
+    "mtime": 1792975000.6510518,
+    "seen": 1793178425.907884,
+    "ast_hash": "f7d4f526612215ad578af6ea44f86b50",
+    "semantic_hash": "f7d4f526612215ad578af6ea44f86b50"
+  },
+  "src/components/auth/avatar-preview.tsx": {
+    "mtime": 1792671970.4042246,
+    "seen": 1793178425.9078863,
+    "ast_hash": "b759b16076e46822d3c8b4c4db2b2093",
+    "semantic_hash": "b759b16076e46822d3c8b4c4db2b2093"
+  },
+  "src/components/auth/form-section.tsx": {
+    "mtime": 1792544546.7073061,
+    "seen": 1793178425.9078891,
+    "ast_hash": "644b899c3f8c8034884c77a88ae1f205",
+    "semantic_hash": "644b899c3f8c8034884c77a88ae1f205"
+  },
+  "src/components/auth/hero-lab.tsx": {
+    "mtime": 1792544493.111263,
+    "seen": 1793178425.9078918,
+    "ast_hash": "00e3e74cdf72a7a7aa733f4e5c75a878",
+    "semantic_hash": "00e3e74cdf72a7a7aa733f4e5c75a878"
+  },
+  "src/components/auth/location-school-picker.tsx": {
+    "mtime": 1793176836.816082,
+    "seen": 1793178425.9078946,
+    "ast_hash": "f981396e82995c9c62c9a3e30c21f84f",
+    "semantic_hash": "f981396e82995c9c62c9a3e30c21f84f"
+  },
+  "src/components/avatar/player-portrait.tsx": {
+    "mtime": 1792543696.157019,
+    "seen": 1793178425.907897,
+    "ast_hash": "214c2d7cf56ed7894ded58f0c5a4e8e0",
+    "semantic_hash": "214c2d7cf56ed7894ded58f0c5a4e8e0"
+  },
+  "src/components/avatar/scientist.tsx": {
+    "mtime": 1792543686.1769288,
+    "seen": 1793178425.9078996,
+    "ast_hash": "d2bf0b7644c349a623602e49bd751369",
+    "semantic_hash": "d2bf0b7644c349a623602e49bd751369"
+  },
+  "src/components/hub/door-transition.tsx": {
+    "mtime": 1792544321.8612385,
+    "seen": 1793178425.9079025,
+    "ast_hash": "598d57df6c4c759ec6b1a4187bfc7318",
+    "semantic_hash": "598d57df6c4c759ec6b1a4187bfc7318"
+  },
+  "src/components/hub/hub-hud.tsx": {
+    "mtime": 1792979217.6147594,
+    "seen": 1793178425.9079053,
+    "ast_hash": "1f5b73e9257b773ceffd1cfe9bccf4ea",
+    "semantic_hash": "1f5b73e9257b773ceffd1cfe9bccf4ea"
+  },
+  "src/components/hub/player-card.tsx": {
+    "mtime": 1792545397.410791,
+    "seen": 1793178425.9079077,
+    "ast_hash": "591ddc8033318dffd6aed68839561b5f",
+    "semantic_hash": "591ddc8033318dffd6aed68839561b5f"
+  },
+  "src/components/hub/profile-sheet.tsx": {
+    "mtime": 1793064254.8744698,
+    "seen": 1793178425.9079106,
+    "ast_hash": "b6ce793e84898811869115b4ffe1c5d7",
+    "semantic_hash": "b6ce793e84898811869115b4ffe1c5d7"
+  },
+  "src/components/hub/versus-game.tsx": {
+    "mtime": 1793084708.6584845,
+    "seen": 1793178425.9079132,
+    "ast_hash": "7629c298f5455e1e95d16c2d1f7a6d31",
+    "semantic_hash": "7629c298f5455e1e95d16c2d1f7a6d31"
+  },
+  "src/components/lessons/lesson-complete.tsx": {
+    "mtime": 1792560659.482847,
+    "seen": 1793178425.907916,
+    "ast_hash": "53a80af2e3eb7662242365daff18df0d",
+    "semantic_hash": "53a80af2e3eb7662242365daff18df0d"
+  },
+  "src/components/lessons/lesson-hall.tsx": {
+    "mtime": 1793064254.8746073,
+    "seen": 1793178425.9079187,
+    "ast_hash": "34328fa8d057c88a9e3aedefdb918868",
+    "semantic_hash": "34328fa8d057c88a9e3aedefdb918868"
+  },
+  "src/components/lessons/lesson-steps.tsx": {
+    "mtime": 1792544755.6545687,
+    "seen": 1793178425.9079213,
+    "ast_hash": "3471b18d2009516b0a18a6d2e5cd8abe",
+    "semantic_hash": "3471b18d2009516b0a18a6d2e5cd8abe"
+  },
+  "src/components/lessons/study-tools.tsx": {
+    "mtime": 1793064254.8747392,
+    "seen": 1793178425.9079242,
+    "ast_hash": "a23363ae34dc1e421e7f0c1a9a6999f7",
+    "semantic_hash": "a23363ae34dc1e421e7f0c1a9a6999f7"
+  },
+  "src/components/openlab/openlab-3d-screen.tsx": {
+    "mtime": 1792991886.627831,
+    "seen": 1793178425.907927,
+    "ast_hash": "3589f90515ca7a0f96bcd1c769ee6f33",
+    "semantic_hash": "3589f90515ca7a0f96bcd1c769ee6f33"
+  },
+  "src/components/periodic/element-details.tsx": {
+    "mtime": 1792975000.652137,
+    "seen": 1793178425.9079297,
+    "ast_hash": "229abc898d0ceb1c407c70d9f613193f",
+    "semantic_hash": "229abc898d0ceb1c407c70d9f613193f"
+  },
+  "src/components/periodic/element-visuals.tsx": {
+    "mtime": 1792975000.6523376,
+    "seen": 1793178425.9079325,
+    "ast_hash": "bb82eba3a86160dc61195b4fb7b12d59",
+    "semantic_hash": "bb82eba3a86160dc61195b4fb7b12d59"
+  },
+  "src/components/periodic/periodic-grid.tsx": {
+    "mtime": 1792975000.6524866,
+    "seen": 1793178425.907935,
+    "ast_hash": "0e79f27502afa210e7f6c7f9e9acc048",
+    "semantic_hash": "0e79f27502afa210e7f6c7f9e9acc048"
+  },
+  "src/components/periodic/periodic-memory.tsx": {
+    "mtime": 1792975000.6525884,
+    "seen": 1793178425.9079378,
+    "ast_hash": "6d8de3d3c6e6a3f059a341ba06392113",
+    "semantic_hash": "6d8de3d3c6e6a3f059a341ba06392113"
+  },
+  "src/components/periodic/periodic-understand.tsx": {
+    "mtime": 1792975000.6526694,
+    "seen": 1793178425.9079404,
+    "ast_hash": "d5f9f364253ca1055f64ea6cd84e1c93",
+    "semantic_hash": "d5f9f364253ca1055f64ea6cd84e1c93"
+  },
+  "src/components/ranking/podium.tsx": {
+    "mtime": 1792544809.6038265,
+    "seen": 1793178425.907943,
+    "ast_hash": "9df53449235eba77386a375f6db4033a",
+    "semantic_hash": "9df53449235eba77386a375f6db4033a"
+  },
+  "src/components/ranking/rank-row.tsx": {
+    "mtime": 1792544810.6471646,
+    "seen": 1793178425.9079456,
+    "ast_hash": "ec739ea11f57e646c8bb31717e9cf4a4",
+    "semantic_hash": "ec739ea11f57e646c8bb31717e9cf4a4"
+  },
+  "src/components/revision-hub/catalyst-figure.tsx": {
+    "mtime": 1792975000.6526694,
+    "seen": 1793178425.9079483,
+    "ast_hash": "2dc250d0aaf2b3e0699bb79505537df7",
+    "semantic_hash": "2dc250d0aaf2b3e0699bb79505537df7"
+  },
+  "src/components/revision-hub/catalyst-journey.tsx": {
+    "mtime": 1793067304.7305436,
+    "seen": 1793178425.9079509,
+    "ast_hash": "10fb7041cdddf8ef2085e5aa29b07c93",
+    "semantic_hash": "10fb7041cdddf8ef2085e5aa29b07c93"
+  },
+  "src/components/revision-hub/chemistry-doodle.tsx": {
+    "mtime": 1793064254.8748336,
+    "seen": 1793178425.9079537,
+    "ast_hash": "feecb5f9951193e4d4a62cb2adaa78ca",
+    "semantic_hash": "feecb5f9951193e4d4a62cb2adaa78ca"
+  },
+  "src/components/revision-hub/investigation-diagram.tsx": {
+    "mtime": 1792975000.6528158,
+    "seen": 1793178425.9079564,
+    "ast_hash": "f37ca0d2e9db1bd1abe5aef2bf32c9fd",
+    "semantic_hash": "f37ca0d2e9db1bd1abe5aef2bf32c9fd"
+  },
+  "src/components/revision-hub/note-block.tsx": {
+    "mtime": 1792975000.6530716,
+    "seen": 1793178425.9079592,
+    "ast_hash": "b628d1ff8fec433acc0df6cf4540f6e3",
+    "semantic_hash": "b628d1ff8fec433acc0df6cf4540f6e3"
+  },
+  "src/components/revision-hub/periodic-study.tsx": {
+    "mtime": 1792975000.6531558,
+    "seen": 1793178425.9079618,
+    "ast_hash": "c76324ae12010c6b50de883df5ba7ab1",
+    "semantic_hash": "c76324ae12010c6b50de883df5ba7ab1"
+  },
+  "src/components/revision-hub/practical-investigation.tsx": {
+    "mtime": 1792993793.1960552,
+    "seen": 1793178425.9079645,
+    "ast_hash": "93fe9748b3db8783ee93d9240e41ca07",
+    "semantic_hash": "93fe9748b3db8783ee93d9240e41ca07"
+  },
+  "src/components/revision-hub/revision-home.tsx": {
+    "mtime": 1793078621.755033,
+    "seen": 1793178425.9079673,
+    "ast_hash": "b25b6d7c2bc2bbd620abcd12a89b33b2",
+    "semantic_hash": "b25b6d7c2bc2bbd620abcd12a89b33b2"
+  },
+  "src/components/revision-hub/revision-reference.tsx": {
+    "mtime": 1792975000.653434,
+    "seen": 1793178425.9079697,
+    "ast_hash": "010f785058bd6163233c0e05a4938cd9",
+    "semantic_hash": "010f785058bd6163233c0e05a4938cd9"
+  },
+  "src/components/revision-hub/rich-text.tsx": {
+    "mtime": 1792975000.6534977,
+    "seen": 1793178425.9079726,
+    "ast_hash": "32d34dd158a565c9f7e2b25da507b19e",
+    "semantic_hash": "32d34dd158a565c9f7e2b25da507b19e"
+  },
+  "src/components/revision-hub/study-advisor.tsx": {
+    "mtime": 1793080989.9914522,
+    "seen": 1793178425.9079752,
+    "ast_hash": "81635396e2d7facb5f762b6cebc5b070",
+    "semantic_hash": "81635396e2d7facb5f762b6cebc5b070"
+  },
+  "src/components/revision-hub/study-figures.tsx": {
+    "mtime": 1792975000.6536162,
+    "seen": 1793178425.9079778,
+    "ast_hash": "75c39f579d654c56e5276e39528e57b5",
+    "semantic_hash": "75c39f579d654c56e5276e39528e57b5"
+  },
+  "src/components/revision-hub/study-modes.tsx": {
+    "mtime": 1792975000.653737,
+    "seen": 1793178425.9079802,
+    "ast_hash": "45df681f2e32c8b10f32c4bb5857dcfe",
+    "semantic_hash": "45df681f2e32c8b10f32c4bb5857dcfe"
+  },
+  "src/components/revision-hub/study-ui.tsx": {
+    "mtime": 1793065962.85708,
+    "seen": 1793178425.907983,
+    "ast_hash": "a3c453f458f97cee87edfc63925859fb",
+    "semantic_hash": "a3c453f458f97cee87edfc63925859fb"
+  },
+  "src/components/revision-hub/textbook-course.tsx": {
+    "mtime": 1793078620.0012941,
+    "seen": 1793178425.9079857,
+    "ast_hash": "17af17693f2aab4e1b3cc6f426a0b710",
+    "semantic_hash": "17af17693f2aab4e1b3cc6f426a0b710"
+  },
+  "src/components/revision-hub/textbook-investigations.tsx": {
+    "mtime": 1793064254.8751168,
+    "seen": 1793178425.9079885,
+    "ast_hash": "5574734f68553b4a8b0cfff420989e3e",
+    "semantic_hash": "5574734f68553b4a8b0cfff420989e3e"
+  },
+  "src/components/revision-hub/topic-study.tsx": {
+    "mtime": 1792993793.196664,
+    "seen": 1793178425.9079914,
+    "ast_hash": "6ff1df87aa5bde9071b5b04beaaff218",
+    "semantic_hash": "6ff1df87aa5bde9071b5b04beaaff218"
+  },
+  "src/components/ui/app-text.tsx": {
+    "mtime": 1792543565.4887357,
+    "seen": 1793178425.907994,
+    "ast_hash": "6ea3f4aed64714e1bbb8e5e26c84e316",
+    "semantic_hash": "6ea3f4aed64714e1bbb8e5e26c84e316"
+  },
+  "src/components/ui/bottom-sheet.tsx": {
+    "mtime": 1793000875.225808,
+    "seen": 1793178425.907997,
+    "ast_hash": "3afe27052064655a0c4988e3a4e5389a",
+    "semantic_hash": "3afe27052064655a0c4988e3a4e5389a"
+  },
+  "src/components/ui/class-badge.tsx": {
+    "mtime": 1792671970.4040165,
+    "seen": 1793178425.9079995,
+    "ast_hash": "0fab39bea0c0474f4690d6b9334928b3",
+    "semantic_hash": "0fab39bea0c0474f4690d6b9334928b3"
+  },
+  "src/components/ui/class-medallion.tsx": {
+    "mtime": 1792543594.6287634,
+    "seen": 1793178425.9080024,
+    "ast_hash": "d65a373f817c7b33b000a5a64460b533",
+    "semantic_hash": "d65a373f817c7b33b000a5a64460b533"
+  },
+  "src/components/ui/game-button.tsx": {
+    "mtime": 1792544855.0713906,
+    "seen": 1793178425.9080048,
+    "ast_hash": "cbcf78bea40a5b0a2d70fc55c39e2312",
+    "semantic_hash": "cbcf78bea40a5b0a2d70fc55c39e2312"
+  },
+  "src/components/ui/icon-button.tsx": {
+    "mtime": 1792543567.568918,
+    "seen": 1793178425.9080076,
+    "ast_hash": "ff8d5c2a990ebf44b56145aab9d3e648",
+    "semantic_hash": "ff8d5c2a990ebf44b56145aab9d3e648"
+  },
+  "src/components/ui/lab-background.tsx": {
+    "mtime": 1792979217.614049,
+    "seen": 1793178425.9080102,
+    "ast_hash": "c2aec7acd72a4b3b26d11c55ee94c063",
+    "semantic_hash": "c2aec7acd72a4b3b26d11c55ee94c063"
+  },
+  "src/components/ui/progress-bar.tsx": {
+    "mtime": 1792543628.146219,
+    "seen": 1793178425.908013,
+    "ast_hash": "06070f4f1130f17a307c21140a114bc2",
+    "semantic_hash": "06070f4f1130f17a307c21140a114bc2"
+  },
+  "src/components/ui/screen-header.tsx": {
+    "mtime": 1792543627.105769,
+    "seen": 1793178425.9080157,
+    "ast_hash": "4d6e1adaf7b2e57d66ceead1999d4979",
+    "semantic_hash": "4d6e1adaf7b2e57d66ceead1999d4979"
+  },
+  "src/components/ui/select-field.tsx": {
+    "mtime": 1793001015.8920257,
+    "seen": 1793178425.908018,
+    "ast_hash": "cf0212a7dad7b0f974459f5dd5364077",
+    "semantic_hash": "cf0212a7dad7b0f974459f5dd5364077"
+  },
+  "src/components/ui/stat-tile.tsx": {
+    "mtime": 1792544360.1243398,
+    "seen": 1793178425.908021,
+    "ast_hash": "f48bc501f3195451ab6b92f68f9f544f",
+    "semantic_hash": "f48bc501f3195451ab6b92f68f9f544f"
+  },
+  "src/components/ui/text-field.tsx": {
+    "mtime": 1792671970.4044487,
+    "seen": 1793178425.9080236,
+    "ast_hash": "66023941e0cd89744f27c865384924bd",
+    "semantic_hash": "66023941e0cd89744f27c865384924bd"
+  },
+  "src/components/ui/xp-chip.tsx": {
+    "mtime": 1792544637.2941597,
+    "seen": 1793178425.9080262,
+    "ast_hash": "8e3d29a275081521b2d2a94d5a7bdc6e",
+    "semantic_hash": "8e3d29a275081521b2d2a94d5a7bdc6e"
+  },
+  "src/components/world/buildings.tsx": {
+    "mtime": 1792992122.7991188,
+    "seen": 1793178425.9080288,
+    "ast_hash": "c4139f315f1b3a7316804bc303536bf5",
+    "semantic_hash": "c4139f315f1b3a7316804bc303536bf5"
+  },
+  "src/components/world/ground.tsx": {
+    "mtime": 1792636774.027692,
+    "seen": 1793178425.9080315,
+    "ast_hash": "c8dd6aed7d9b7079925ba2544fd8a952",
+    "semantic_hash": "c8dd6aed7d9b7079925ba2544fd8a952"
+  },
+  "src/components/world/live-player.tsx": {
+    "mtime": 1793176844.2789338,
+    "seen": 1793178425.9080343,
+    "ast_hash": "d5b370882af0a13e4d3d37cb92d74d0a",
+    "semantic_hash": "d5b370882af0a13e4d3d37cb92d74d0a"
+  },
+  "src/components/world/nav-grid.ts": {
+    "mtime": 1792543946.5617595,
+    "seen": 1793178425.908037,
+    "ast_hash": "ff6b6cccefd3719b5e94a0308e21ea1d",
+    "semantic_hash": "ff6b6cccefd3719b5e94a0308e21ea1d"
+  },
+  "src/components/world/scenery.tsx": {
+    "mtime": 1792979217.614382,
+    "seen": 1793178425.9080396,
+    "ast_hash": "22c5434eb83671ed1834f7a8479cfd17",
+    "semantic_hash": "22c5434eb83671ed1834f7a8479cfd17"
+  },
+  "src/components/world/walker.tsx": {
+    "mtime": 1792979217.6108658,
+    "seen": 1793178425.9080422,
+    "ast_hash": "3164a2edbd55833e8e0786f91cfd2fd0",
+    "semantic_hash": "3164a2edbd55833e8e0786f91cfd2fd0"
+  },
+  "src/components/world/world-config.ts": {
+    "mtime": 1793064254.8753319,
+    "seen": 1793178425.908045,
+    "ast_hash": "ee647ae940a02ca5c66d12b91cc84c9c",
+    "semantic_hash": "ee647ae940a02ca5c66d12b91cc84c9c"
+  },
+  "src/components/world/world-markers.tsx": {
+    "mtime": 1792979217.6150634,
+    "seen": 1793178425.9080477,
+    "ast_hash": "af2c241e3357777d7aabe12334e991c9",
+    "semantic_hash": "af2c241e3357777d7aabe12334e991c9"
+  },
+  "src/constants/theme.ts": {
+    "mtime": 1792672081.3841796,
+    "seen": 1793178425.9080505,
+    "ast_hash": "ee043fd06322386beaa9f12a3c43ffef",
+    "semantic_hash": "ee043fd06322386beaa9f12a3c43ffef"
+  },
+  "src/context/revision.tsx": {
+    "mtime": 1793065992.8604224,
+    "seen": 1793178425.908053,
+    "ast_hash": "dfbbec7a4de08a1ea71a16a8a84a03cb",
+    "semantic_hash": "dfbbec7a4de08a1ea71a16a8a84a03cb"
+  },
+  "src/context/session.tsx": {
+    "mtime": 1793068193.330286,
+    "seen": 1793178425.9080558,
+    "ast_hash": "20e163ac47e5099636ca903f66f593c9",
+    "semantic_hash": "20e163ac47e5099636ca903f66f593c9"
+  },
+  "src/data/classes.ts": {
+    "mtime": 1792671970.4033108,
+    "seen": 1793178425.9080586,
+    "ast_hash": "d89f10486e4ea35c9e7479c140335a03",
+    "semantic_hash": "d89f10486e4ea35c9e7479c140335a03"
+  },
+  "src/data/g10-investigations.json": {
+    "mtime": 1792993793.1977746,
+    "seen": 1793178425.9080613,
+    "ast_hash": "23685a0a1050e523961701480520edb3",
+    "semantic_hash": "23685a0a1050e523961701480520edb3"
+  },
+  "src/data/g7-investigations.json": {
+    "mtime": 1792993793.198567,
+    "seen": 1793178425.9080644,
+    "ast_hash": "37893d6978c251a697edab6b24daa58d",
+    "semantic_hash": "37893d6978c251a697edab6b24daa58d"
+  },
+  "src/data/g9-investigations.json": {
+    "mtime": 1792975000.6546793,
+    "seen": 1793178425.9080667,
+    "ast_hash": "9ea4e583dc56f3176dbfaf7c24580ec5",
+    "semantic_hash": "9ea4e583dc56f3176dbfaf7c24580ec5"
+  },
+  "src/data/regions.ts": {
+    "mtime": 1792992122.8011131,
+    "seen": 1793178425.9080696,
+    "ast_hash": "7cb60ca1256e5ba8bf785e63f51df45e",
+    "semantic_hash": "7cb60ca1256e5ba8bf785e63f51df45e"
+  },
+  "src/data/revision-hub/g10-chem/content.json": {
+    "mtime": 1792993793.1992006,
+    "seen": 1793178425.9080722,
+    "ast_hash": "3d1342466bed7fe6a109f103a395bc5f",
+    "semantic_hash": "3d1342466bed7fe6a109f103a395bc5f"
+  },
+  "src/data/revision-hub/g7-chem/content.json": {
+    "mtime": 1792993793.1993687,
+    "seen": 1793178425.9080749,
+    "ast_hash": "ca95969f975a1a861b8eca1bd14f5191",
+    "semantic_hash": "ca95969f975a1a861b8eca1bd14f5191"
+  },
+  "src/data/revision-hub/g8-chem/content.json": {
+    "mtime": 1792975000.6569247,
+    "seen": 1793178425.9080775,
+    "ast_hash": "70e367886a60c7b1f61d010b09a1426b",
+    "semantic_hash": "70e367886a60c7b1f61d010b09a1426b"
+  },
+  "src/data/revision-hub/g8-chem/glossary-additions.json": {
+    "mtime": 1792975000.657079,
+    "seen": 1793178425.9080803,
+    "ast_hash": "b68663f432f531d11e0933d5c9b31484",
+    "semantic_hash": "b68663f432f531d11e0933d5c9b31484"
+  },
+  "src/data/revision-hub/g9-chem/content.json": {
+    "mtime": 1792975000.6573024,
+    "seen": 1793178425.9080832,
+    "ast_hash": "7f7415233da552172f774a235cf94220",
+    "semantic_hash": "7f7415233da552172f774a235cf94220"
+  },
+  "src/data/revision-hub/index.ts": {
+    "mtime": 1792993793.1999378,
+    "seen": 1793178425.908086,
+    "ast_hash": "97301718e383df289f51f20573db1b99",
+    "semantic_hash": "97301718e383df289f51f20573db1b99"
+  },
+  "src/data/revision-hub/types.ts": {
+    "mtime": 1792975000.6573763,
+    "seen": 1793178425.9080887,
+    "ast_hash": "e87aa208c6f66ed44b06770aef85e3ff",
+    "semantic_hash": "e87aa208c6f66ed44b06770aef85e3ff"
+  },
+  "src/data/textbook-investigations.json": {
+    "mtime": 1792975000.6575706,
+    "seen": 1793178425.9080913,
+    "ast_hash": "91bd360afd5bce6135be314722252137",
+    "semantic_hash": "91bd360afd5bce6135be314722252137"
+  },
+  "src/data/versus-problems.json": {
+    "mtime": 1793084708.6610198,
+    "seen": 1793178425.908094,
+    "ast_hash": "9564b013c0808458713098ceb0438ad1",
+    "semantic_hash": "9564b013c0808458713098ceb0438ad1"
+  },
+  "src/hooks/use-catalyst-journey.ts": {
+    "mtime": 1793067303.0563383,
+    "seen": 1793178425.9080966,
+    "ast_hash": "eff503d2985f6c53b70db579f272f3c0",
+    "semantic_hash": "eff503d2985f6c53b70db579f272f3c0"
+  },
+  "src/hooks/use-cloud-sync.ts": {
+    "mtime": 1793067270.3613384,
+    "seen": 1793178425.9080994,
+    "ast_hash": "597c6c264b0c201afe265ae2df3a15a0",
+    "semantic_hash": "597c6c264b0c201afe265ae2df3a15a0"
+  },
+  "src/hooks/use-element-memory.ts": {
+    "mtime": 1793067318.2008932,
+    "seen": 1793178425.9081018,
+    "ast_hash": "95b7c9029fee4912d645ec2d98189195",
+    "semantic_hash": "95b7c9029fee4912d645ec2d98189195"
+  },
+  "src/hooks/use-openlab-catalog.ts": {
+    "mtime": 1792975000.657736,
+    "seen": 1793178425.9081047,
+    "ast_hash": "7581c4ca663c33b4ddd20e403bd5e1e9",
+    "semantic_hash": "7581c4ca663c33b4ddd20e403bd5e1e9"
+  },
+  "src/hooks/use-screen-loop.ts": {
+    "mtime": 1792979106.759303,
+    "seen": 1793178425.9081073,
+    "ast_hash": "aa62ea0ccb34f8f1074205e3575eb6fa",
+    "semantic_hash": "aa62ea0ccb34f8f1074205e3575eb6fa"
+  },
+  "src/lib/avatar-look.ts": {
+    "mtime": 1792543482.7409678,
+    "seen": 1793178425.9081101,
+    "ast_hash": "e7cae160dea6eb01cf89e278e6c3e9b3",
+    "semantic_hash": "e7cae160dea6eb01cf89e278e6c3e9b3"
+  },
+  "src/lib/catalyst-journey.ts": {
+    "mtime": 1792975000.6580124,
+    "seen": 1793178425.9081125,
+    "ast_hash": "3a241baf8c365738f30bf74d831f530d",
+    "semantic_hash": "3a241baf8c365738f30bf74d831f530d"
+  },
+  "src/lib/catalyst-sync.ts": {
+    "mtime": 1793067135.6814926,
+    "seen": 1793178425.9081151,
+    "ast_hash": "8d790a2bb6df42cd95c8f4743de6a0be",
+    "semantic_hash": "8d790a2bb6df42cd95c8f4743de6a0be"
+  },
+  "src/lib/chemistry-text.ts": {
+    "mtime": 1792975000.6580975,
+    "seen": 1793178425.908118,
+    "ast_hash": "8c6342e3455946e18a4777072a46ce4e",
+    "semantic_hash": "8c6342e3455946e18a4777072a46ce4e"
+  },
+  "src/lib/element-sync.ts": {
+    "mtime": 1793068167.8932846,
+    "seen": 1793178425.9081209,
+    "ast_hash": "d544637ca5171663be51e1697268122b",
+    "semantic_hash": "d544637ca5171663be51e1697268122b"
+  },
+  "src/lib/field-clocks.ts": {
+    "mtime": 1793067134.0457973,
+    "seen": 1793178425.9081235,
+    "ast_hash": "d3cef0e28ae44a9b0b74b234c47a2643",
+    "semantic_hash": "d3cef0e28ae44a9b0b74b234c47a2643"
+  },
+  "src/lib/grade10-diagram.ts": {
+    "mtime": 1792993793.1999378,
+    "seen": 1793178425.908126,
+    "ast_hash": "65fde0e667e0c6c5ef3f001080fce877",
+    "semantic_hash": "65fde0e667e0c6c5ef3f001080fce877"
+  },
+  "src/lib/grade10-models.ts": {
+    "mtime": 1792993793.2003877,
+    "seen": 1793178425.908129,
+    "ast_hash": "28e1788cdb70473984c39d6d944f28e2",
+    "semantic_hash": "28e1788cdb70473984c39d6d944f28e2"
+  },
+  "src/lib/grade7-diagram.ts": {
+    "mtime": 1792993793.2004962,
+    "seen": 1793178425.9081316,
+    "ast_hash": "503d7f65768304059a54fb1ee36166ca",
+    "semantic_hash": "503d7f65768304059a54fb1ee36166ca"
+  },
+  "src/lib/grade7-models.ts": {
+    "mtime": 1792993793.2006743,
+    "seen": 1793178425.9081345,
+    "ast_hash": "1b208ca1c1d0c15eea48621ee3d0a079",
+    "semantic_hash": "1b208ca1c1d0c15eea48621ee3d0a079"
+  },
+  "src/lib/grade9-models.ts": {
+    "mtime": 1792975000.6582353,
+    "seen": 1793178425.9081368,
+    "ast_hash": "a933484427bf52237da4e19a0e06691e",
+    "semantic_hash": "a933484427bf52237da4e19a0e06691e"
+  },
+  "src/lib/haptics.ts": {
+    "mtime": 1792543483.7831085,
+    "seen": 1793178425.9081397,
+    "ast_hash": "94715db9106cf9f6c2112b7859326bba",
+    "semantic_hash": "94715db9106cf9f6c2112b7859326bba"
+  },
+  "src/lib/investigation-diagram.ts": {
+    "mtime": 1792993793.2008858,
+    "seen": 1793178425.9081426,
+    "ast_hash": "3742262d739668157e06810488521f81",
+    "semantic_hash": "3742262d739668157e06810488521f81"
+  },
+  "src/lib/investigation-storage.ts": {
+    "mtime": 1793066616.0275586,
+    "seen": 1793178425.9081452,
+    "ast_hash": "d0594ed8bd765a98fc866a12a033e8af",
+    "semantic_hash": "d0594ed8bd765a98fc866a12a033e8af"
+  },
+  "src/lib/investigation-sync.ts": {
+    "mtime": 1793067134.8508453,
+    "seen": 1793178425.908148,
+    "ast_hash": "cf3593ff3ef968099aad07e9d79f8650",
+    "semantic_hash": "cf3593ff3ef968099aad07e9d79f8650"
+  },
+  "src/lib/learning-content.ts": {
+    "mtime": 1792993793.2009754,
+    "seen": 1793178425.9081504,
+    "ast_hash": "5cdbeef8711bcfe99d62c01a68ca92ef",
+    "semantic_hash": "5cdbeef8711bcfe99d62c01a68ca92ef"
+  },
+  "src/lib/lesson-attempts.ts": {
+    "mtime": 1793068168.716786,
+    "seen": 1793178425.9081533,
+    "ast_hash": "1c06649a40dadfcfbcf05363aede9778",
+    "semantic_hash": "1c06649a40dadfcfbcf05363aede9778"
+  },
+  "src/lib/measurement-format.ts": {
+    "mtime": 1792993793.2010508,
+    "seen": 1793178425.908156,
+    "ast_hash": "0b965c757ca1a1846da82011ac471163",
+    "semantic_hash": "0b965c757ca1a1846da82011ac471163"
+  },
+  "src/lib/periodic-learning.ts": {
+    "mtime": 1792975000.6585562,
+    "seen": 1793178425.9081585,
+    "ast_hash": "1bae0d8fbee6196b9c3badb7dc486bf6",
+    "semantic_hash": "1bae0d8fbee6196b9c3badb7dc486bf6"
+  },
+  "src/lib/progress.ts": {
+    "mtime": 1792543481.6949549,
+    "seen": 1793178425.9081612,
+    "ast_hash": "7076143119a36427931fcf43e58311ce",
+    "semantic_hash": "7076143119a36427931fcf43e58311ce"
+  },
+  "src/lib/random.ts": {
+    "mtime": 1793068166.2322195,
+    "seen": 1793178425.9081638,
+    "ast_hash": "a00a06f4dda231076f7bd1eeebd4a6d9",
+    "semantic_hash": "a00a06f4dda231076f7bd1eeebd4a6d9"
+  },
+  "src/lib/revision-progress.ts": {
+    "mtime": 1792975000.6586628,
+    "seen": 1793178425.9081666,
+    "ast_hash": "7b7785bb416ce29b5f3369ce14600a8c",
+    "semantic_hash": "7b7785bb416ce29b5f3369ce14600a8c"
+  },
+  "src/lib/revision-sync.ts": {
+    "mtime": 1793068146.8267872,
+    "seen": 1793178425.9081695,
+    "ast_hash": "dc95efed4205e4ea4d737e7cbd48930c",
+    "semantic_hash": "dc95efed4205e4ea4d737e7cbd48930c"
+  },
+  "src/lib/school-district.ts": {
+    "mtime": 1793000783.4530044,
+    "seen": 1793178425.9081721,
+    "ast_hash": "348b2afb9cfdab26218e95cba7610a1a",
+    "semantic_hash": "348b2afb9cfdab26218e95cba7610a1a"
+  },
+  "src/lib/supabase.ts": {
+    "mtime": 1792564663.7973278,
+    "seen": 1793178425.9081745,
+    "ast_hash": "ef98070b1e7523aa457bb68118510d84",
+    "semantic_hash": "ef98070b1e7523aa457bb68118510d84"
+  },
+  "src/lib/textbook-investigations.ts": {
+    "mtime": 1792993793.201376,
+    "seen": 1793178425.9081771,
+    "ast_hash": "85f73f53bd8177eb1b02a119371fc324",
+    "semantic_hash": "85f73f53bd8177eb1b02a119371fc324"
+  },
+  "src/lib/validation.ts": {
+    "mtime": 1792671953.095469,
+    "seen": 1793178425.90818,
+    "ast_hash": "ba530a7782fcd6e0cc8da3386942c987",
+    "semantic_hash": "ba530a7782fcd6e0cc8da3386942c987"
+  },
+  "src/services/advisor.ts": {
+    "mtime": 1793080988.325862,
+    "seen": 1793178425.9081829,
+    "ast_hash": "ce181fc27288aaed4f6aada6b0d1dc41",
+    "semantic_hash": "ce181fc27288aaed4f6aada6b0d1dc41"
+  },
+  "src/services/auth.ts": {
+    "mtime": 1793009191.7298982,
+    "seen": 1793178425.9081852,
+    "ast_hash": "b33ef49137e14e2ccb2a80fc71341d6a",
+    "semantic_hash": "b33ef49137e14e2ccb2a80fc71341d6a"
+  },
+  "src/services/experiments.ts": {
+    "mtime": 1792720971.964159,
+    "seen": 1793178425.908188,
+    "ast_hash": "0200371e015a71c9e141a1a1ab486121",
+    "semantic_hash": "0200371e015a71c9e141a1a1ab486121"
+  },
+  "src/services/leaderboard.ts": {
+    "mtime": 1792975000.6590626,
+    "seen": 1793178425.9081907,
+    "ast_hash": "3f3bad737e3f6d8bdd6cf9111dfa2226",
+    "semantic_hash": "3f3bad737e3f6d8bdd6cf9111dfa2226"
+  },
+  "src/services/learning.ts": {
+    "mtime": 1793068169.5163484,
+    "seen": 1793178425.9081936,
+    "ast_hash": "07caac4266527c8b3f3f19260bb4a3bb",
+    "semantic_hash": "07caac4266527c8b3f3f19260bb4a3bb"
+  },
+  "src/services/presence.ts": {
+    "mtime": 1792564663.7986057,
+    "seen": 1793178425.9081962,
+    "ast_hash": "d6394d3038012dbf3ea03e7b682fabd1",
+    "semantic_hash": "d6394d3038012dbf3ea03e7b682fabd1"
+  },
+  "src/types.ts": {
+    "mtime": 1793176828.7712054,
+    "seen": 1793178425.9081988,
+    "ast_hash": "fd094e08fc327f3f33b53827e2f52388",
+    "semantic_hash": "fd094e08fc327f3f33b53827e2f52388"
+  },
+  "supabase/.temp/linked-project.json": {
+    "mtime": 1793000207.3201566,
+    "seen": 1793178425.9082015,
+    "ast_hash": "e20eed9314a814066df61ea5f40f2e83",
+    "semantic_hash": "e20eed9314a814066df61ea5f40f2e83"
+  },
+  "supabase/curriculum-workbenches.sql": {
+    "mtime": 1792993793.2047749,
+    "seen": 1793178425.9082043,
+    "ast_hash": "2c10b3c8877284e8b6c0493912b6baf1",
+    "semantic_hash": "2c10b3c8877284e8b6c0493912b6baf1"
+  },
+  "supabase/elephant-toothpaste.example.json": {
+    "mtime": 1792720971.9649007,
+    "seen": 1793178425.9082072,
+    "ast_hash": "557af4bea40140b91638da621d2056b4",
+    "semantic_hash": "557af4bea40140b91638da621d2056b4"
+  },
+  "supabase/experiments.sql": {
+    "mtime": 1792720971.9652505,
+    "seen": 1793178425.9082096,
+    "ast_hash": "5f6547eed7d05539a12379f16b49c206",
+    "semantic_hash": "5f6547eed7d05539a12379f16b49c206"
+  },
+  "supabase/functions/_shared/advisor.ts": {
+    "mtime": 1793078570.1481876,
+    "seen": 1793178425.9082124,
+    "ast_hash": "432512e0abe4a2da8f832af378ee0aec",
+    "semantic_hash": "432512e0abe4a2da8f832af378ee0aec"
+  },
+  "supabase/functions/_shared/ai-text.ts": {
+    "mtime": 1793083743.03132,
+    "seen": 1793178425.908215,
+    "ast_hash": "a1ae3c33ae97e72dee41a7f02761447a",
+    "semantic_hash": "a1ae3c33ae97e72dee41a7f02761447a"
+  },
+  "supabase/functions/_shared/ai.ts": {
+    "mtime": 1793082878.9883044,
+    "seen": 1793178425.908218,
+    "ast_hash": "02eeda27e1ed9bb5a65a0856bb5d7222",
+    "semantic_hash": "02eeda27e1ed9bb5a65a0856bb5d7222"
+  },
+  "supabase/functions/_shared/cors.ts": {
+    "mtime": 1793078413.1728513,
+    "seen": 1793178425.9082205,
+    "ast_hash": "41f741246d8531169f2c46fb4022f6e0",
+    "semantic_hash": "41f741246d8531169f2c46fb4022f6e0"
+  },
+  "supabase/functions/_shared/student.ts": {
+    "mtime": 1793082511.1508882,
+    "seen": 1793178425.908223,
+    "ast_hash": "5fb667dc07d512abddb1e3d3bba5a820",
+    "semantic_hash": "5fb667dc07d512abddb1e3d3bba5a820"
+  },
+  "supabase/functions/_shared/tutor-context.ts": {
+    "mtime": 1793078454.2914166,
+    "seen": 1793178425.9082258,
+    "ast_hash": "529af922f2983b039f7b186a01c387ce",
+    "semantic_hash": "529af922f2983b039f7b186a01c387ce"
+  },
+  "supabase/functions/openlab-tutor/index.ts": {
+    "mtime": 1793082901.7125142,
+    "seen": 1793178425.9082289,
+    "ast_hash": "2e339d8eb136199686e25102f8533912",
+    "semantic_hash": "2e339d8eb136199686e25102f8533912"
+  },
+  "supabase/functions/study-advisor/index.ts": {
+    "mtime": 1793082916.990835,
+    "seen": 1793178425.9082317,
+    "ast_hash": "fef5a43937688d69f082d68f484a7e7d",
+    "semantic_hash": "fef5a43937688d69f082d68f484a7e7d"
+  },
+  "supabase/grade10-learning-content.sql": {
+    "mtime": 1792993793.2054453,
+    "seen": 1793178425.9082344,
+    "ast_hash": "38e27c535c423f2457aabdce5291767c",
+    "semantic_hash": "38e27c535c423f2457aabdce5291767c"
+  },
+  "supabase/grade7-learning-content.sql": {
+    "mtime": 1792993793.206576,
+    "seen": 1793178425.9082367,
+    "ast_hash": "8a97ff79f6041988eda30cdbaeb87f06",
+    "semantic_hash": "8a97ff79f6041988eda30cdbaeb87f06"
+  },
+  "supabase/grade8-hub.sql": {
+    "mtime": 1792982665.2730734,
+    "seen": 1793178425.9082396,
+    "ast_hash": "9bdc813ea233fe91b4c5ee9ab9f734e0",
+    "semantic_hash": "9bdc813ea233fe91b4c5ee9ab9f734e0"
+  },
+  "supabase/learning-content.sql": {
+    "mtime": 1792993793.2089608,
+    "seen": 1793178425.9082422,
+    "ast_hash": "241e9851a75300e1614f93d18fe60adb",
+    "semantic_hash": "241e9851a75300e1614f93d18fe60adb"
+  },
+  "supabase/migrations/202610220001_experiments.sql": {
+    "mtime": 1792720971.9654408,
+    "seen": 1793178425.9082448,
+    "ast_hash": "d88e9b15d7a2c42f427ee79d743d573a",
+    "semantic_hash": "d88e9b15d7a2c42f427ee79d743d573a"
+  },
+  "supabase/migrations/202610240001_learning_content.sql": {
+    "mtime": 1792993793.2091448,
+    "seen": 1793178425.9082475,
+    "ast_hash": "6f409b6fcfa4cf192e758610574cbeed",
+    "semantic_hash": "6f409b6fcfa4cf192e758610574cbeed"
+  },
+  "supabase/migrations/202610250001_grade10_learning.sql": {
+    "mtime": 1792993793.2092805,
+    "seen": 1793178425.9082503,
+    "ast_hash": "f3bf1a0300fd168ee18c73d566f0286e",
+    "semantic_hash": "f3bf1a0300fd168ee18c73d566f0286e"
+  },
+  "supabase/migrations/202610250002_grade7_learning.sql": {
+    "mtime": 1792993793.2092805,
+    "seen": 1793178425.908253,
+    "ast_hash": "0fe823ee653c3fd7e091f38614504da7",
+    "semantic_hash": "0fe823ee653c3fd7e091f38614504da7"
+  },
+  "supabase/migrations/202610250003_curriculum_workbenches.sql": {
+    "mtime": 1792993793.210194,
+    "seen": 1793178425.9082558,
+    "ast_hash": "91d4d8cde8257dba512b4b114510a1f7",
+    "semantic_hash": "91d4d8cde8257dba512b4b114510a1f7"
+  },
+  "supabase/migrations/202610250004_grade8_hub.sql": {
+    "mtime": 1792982665.2734795,
+    "seen": 1793178425.9082582,
+    "ast_hash": "3390f8acf2a8fe1e2b5561dc761b5b0e",
+    "semantic_hash": "3390f8acf2a8fe1e2b5561dc761b5b0e"
+  },
+  "supabase/migrations/202610260001_ranking_regions.sql": {
+    "mtime": 1792992122.802926,
+    "seen": 1793178425.908261,
+    "ast_hash": "98fd3e17016099c7c98e615401590b29",
+    "semantic_hash": "98fd3e17016099c7c98e615401590b29"
+  },
+  "supabase/migrations/202610260002_schools.sql": {
+    "mtime": 1792999809.5016644,
+    "seen": 1793178425.908264,
+    "ast_hash": "c39bede87b5175dcc27859cc5a5e6e3b",
+    "semantic_hash": "c39bede87b5175dcc27859cc5a5e6e3b"
+  },
+  "supabase/migrations/202610260003_seed_schools.sql": {
+    "mtime": 1793064254.8753319,
+    "seen": 1793178425.9082668,
+    "ast_hash": "d41d8cd98f00b204e9800998ecf8427e",
+    "semantic_hash": "d41d8cd98f00b204e9800998ecf8427e"
+  },
+  "supabase/migrations/202610260004_ranking_subregions.sql": {
+    "mtime": 1793009191.730456,
+    "seen": 1793178425.9082694,
+    "ast_hash": "d4e5b8d3af478c8e04b5f9ae41d1e3d0",
+    "semantic_hash": "d4e5b8d3af478c8e04b5f9ae41d1e3d0"
+  },
+  "supabase/migrations/202610270001_investigation_attempts.sql": {
+    "mtime": 1793066573.1947377,
+    "seen": 1793178425.9082718,
+    "ast_hash": "87b294bbe8cd2d7f850d7d9e0887cf50",
+    "semantic_hash": "87b294bbe8cd2d7f850d7d9e0887cf50"
+  },
+  "supabase/migrations/202610270002_journey_and_element_memory.sql": {
+    "mtime": 1793067390.3278563,
+    "seen": 1793178425.9082747,
+    "ast_hash": "a1d67844c40db4b40334456661bfbcbc",
+    "semantic_hash": "a1d67844c40db4b40334456661bfbcbc"
+  },
+  "supabase/migrations/202610270003_wrong_answers_and_lesson_attempts.sql": {
+    "mtime": 1793068123.8715677,
+    "seen": 1793178425.9082775,
+    "ast_hash": "68b763767ce6070a7d11604237d11504",
+    "semantic_hash": "68b763767ce6070a7d11604237d11504"
+  },
+  "supabase/migrations/202610270004_ai_tutor.sql": {
+    "mtime": 1793078514.2512898,
+    "seen": 1793178425.9082801,
+    "ast_hash": "bdf791c1b4a4f270095dfa9705506020",
+    "semantic_hash": "bdf791c1b4a4f270095dfa9705506020"
+  },
+  "supabase/schema.sql": {
+    "mtime": 1792999809.5026162,
+    "seen": 1793178425.9082825,
+    "ast_hash": "8b8adfb9e8fc7e46c0250c87fcefe2c9",
+    "semantic_hash": "8b8adfb9e8fc7e46c0250c87fcefe2c9"
+  },
+  "supabase/textbook-experiments.json": {
+    "mtime": 1792720971.968574,
+    "seen": 1793178425.9082851,
+    "ast_hash": "77c09e3a6bb0c87129c6854f918fa3e3",
+    "semantic_hash": "77c09e3a6bb0c87129c6854f918fa3e3"
+  },
+  "supabase/textbook-experiments.sql": {
+    "mtime": 1792720971.969087,
+    "seen": 1793178425.908288,
+    "ast_hash": "75bbb9519d315bd8f43701101d406d5c",
+    "semantic_hash": "75bbb9519d315bd8f43701101d406d5c"
+  },
+  "tsconfig.json": {
+    "mtime": 1792975000.6598558,
+    "seen": 1793178425.9082909,
+    "ast_hash": "6470086959e204e54dc07b175c3fc0f6",
+    "semantic_hash": "6470086959e204e54dc07b175c3fc0f6"
+  },
+  "vercel.json": {
+    "mtime": 1792647143.5174491,
+    "seen": 1793178425.9082937,
+    "ast_hash": "e6f6b1df0edf5def8f5f61fcffcbe1e7",
+    "semantic_hash": "e6f6b1df0edf5def8f5f61fcffcbe1e7"
+  },
+  "docs/hub-g8/chemquest-g8-hub.html": {
+    "mtime": 1792975000.5794868,
+    "seen": 1793178425.908299,
+    "ast_hash": "a66bb9ecaaf64787f20c542d6d5f926b",
+    "semantic_hash": "a66bb9ecaaf64787f20c542d6d5f926b"
+  },
+  "openlab-3d/index.html": {
+    "mtime": 1792641306.1479547,
+    "seen": 1793178425.9083018,
+    "ast_hash": "83a327209e76f4842f12ba03c9c2cd4f",
+    "semantic_hash": "83a327209e76f4842f12ba03c9c2cd4f"
+  },
+  "assets/icon-source/android-background.svg": {
+    "mtime": 1792545260.636731,
+    "seen": 1793178425.9083073,
+    "ast_hash": "8d761f777ee19f511dd86a68e5278d1d",
+    "semantic_hash": "8d761f777ee19f511dd86a68e5278d1d"
+  },
+  "assets/icon-source/android-foreground.svg": {
+    "mtime": 1792545260.6370893,
+    "seen": 1793178425.9083097,
+    "ast_hash": "da16ced750eadfe5b936e5e2001620e5",
+    "semantic_hash": "da16ced750eadfe5b936e5e2001620e5"
+  },
+  "assets/icon-source/android-monochrome.svg": {
+    "mtime": 1792545219.870362,
+    "seen": 1793178425.9083126,
+    "ast_hash": "7e436093b489fdb5fa5ad84e99a27663",
+    "semantic_hash": "7e436093b489fdb5fa5ad84e99a27663"
+  },
+  "assets/icon-source/icon.svg": {
+    "mtime": 1792545260.6362731,
+    "seen": 1793178425.9083152,
+    "ast_hash": "79f17b74734a7254dab7a69535d53022",
+    "semantic_hash": "79f17b74734a7254dab7a69535d53022"
+  },
+  "assets/icon-source/splash.svg": {
+    "mtime": 1792545260.637273,
+    "seen": 1793178425.908318,
+    "ast_hash": "c72171fe6b832804d5966c3094980d80",
+    "semantic_hash": "c72171fe6b832804d5966c3094980d80"
+  },
+  "assets/images/android-icon-background.png": {
+    "mtime": 1792545260.9108088,
+    "seen": 1793178425.9083204,
+    "ast_hash": "e60c7254714770b4e961cce233b8e658",
+    "semantic_hash": "e60c7254714770b4e961cce233b8e658"
+  },
+  "assets/images/android-icon-foreground.png": {
+    "mtime": 1792545260.8342776,
+    "seen": 1793178425.9083233,
+    "ast_hash": "1889743c28c668759bbb6884e5ea5255",
+    "semantic_hash": "1889743c28c668759bbb6884e5ea5255"
+  },
+  "assets/images/android-icon-monochrome.png": {
+    "mtime": 1792545220.1573684,
+    "seen": 1793178425.908326,
+    "ast_hash": "2042f3140937491451175c17bf88fc88",
+    "semantic_hash": "2042f3140937491451175c17bf88fc88"
+  },
+  "assets/images/favicon.png": {
+    "mtime": 1792545260.9872363,
+    "seen": 1793178425.9083288,
+    "ast_hash": "81f33dd314fc0c356956d675d826e876",
+    "semantic_hash": "81f33dd314fc0c356956d675d826e876"
+  },
+  "assets/images/icon.png": {
+    "mtime": 1792545260.7942767,
+    "seen": 1793178425.9083312,
+    "ast_hash": "59a4dac274a696609ca346f7fb977f18",
+    "semantic_hash": "59a4dac274a696609ca346f7fb977f18"
+  },
+  "assets/images/splash-icon.png": {
+    "mtime": 1792545260.9692805,
+    "seen": 1793178425.9083338,
+    "ast_hash": "b2531a2a750876a5f9ed034182d6234e",
+    "semantic_hash": "b2531a2a750876a5f9ed034182d6234e"
+  },
+  "openlab-3d/docs/workbench-round3/live-inspection.png": {
+    "mtime": 1792720971.8962445,
+    "seen": 1793178425.9083366,
+    "ast_hash": "e987a9a4579ba02691939c5396a74c0e",
+    "semantic_hash": "e987a9a4579ba02691939c5396a74c0e"
+  },
+  "openlab-3d/docs/workbench-round3/neutralisation.png": {
+    "mtime": 1792720971.8978684,
+    "seen": 1793178425.9083395,
+    "ast_hash": "1a080110c1ec9e480a8bbd6db0f31a39",
+    "semantic_hash": "1a080110c1ec9e480a8bbd6db0f31a39"
+  },
+  "openlab-3d/docs/workbench-round3/peroxide.png": {
+    "mtime": 1792720971.8990724,
+    "seen": 1793178425.9083421,
+    "ast_hash": "8295880dbf57eb32867af39d738ebf3a",
+    "semantic_hash": "8295880dbf57eb32867af39d738ebf3a"
+  },
+  "openlab-3d/docs/workbench-round3/precipitation.png": {
+    "mtime": 1792720971.9005992,
+    "seen": 1793178425.9083447,
+    "ast_hash": "8fe2757ae3e3d34a8c8dea0f99930559",
+    "semantic_hash": "8fe2757ae3e3d34a8c8dea0f99930559"
+  },
+  "openlab-3d/docs/workbench-round3/shelf-delivery.png": {
+    "mtime": 1792720971.9013784,
+    "seen": 1793178425.9083476,
+    "ast_hash": "f5a0e8453ae512791021866965ca12b5",
+    "semantic_hash": "f5a0e8453ae512791021866965ca12b5"
+  },
+  "openlab-3d/docs/workbench-round3/touch-drawer.png": {
+    "mtime": 1792720971.9017665,
+    "seen": 1793178425.9083502,
+    "ast_hash": "db537aa86ecaa38bdb6db915b03f37d9",
+    "semantic_hash": "db537aa86ecaa38bdb6db915b03f37d9"
+  },
+  "openlab-3d/docs/workbench-round3/touch-inspection.png": {
+    "mtime": 1792720971.9022162,
+    "seen": 1793178425.9083529,
+    "ast_hash": "eed21ae4220a37958d87c378c9ba202f",
+    "semantic_hash": "eed21ae4220a37958d87c378c9ba202f"
+  },
+  "openlab-3d/docs/workbench-round4/bench-zoom.png": {
+    "mtime": 1792720971.902396,
+    "seen": 1793178425.9083555,
+    "ast_hash": "d4fe1378bd188da625a5dc3ee21d5fbd",
+    "semantic_hash": "d4fe1378bd188da625a5dc3ee21d5fbd"
+  },
+  "openlab-3d/docs/workbench-round4/experiment-cleanup.png": {
+    "mtime": 1792720971.90303,
+    "seen": 1793178425.9083583,
+    "ast_hash": "0264990c72eda874279b317b8fb20196",
+    "semantic_hash": "0264990c72eda874279b317b8fb20196"
+  },
+  "openlab-3d/docs/workbench-round4/molecule-viewer.png": {
+    "mtime": 1792720971.903978,
+    "seen": 1793178425.908361,
+    "ast_hash": "51f2012cf216af0f35e46dd53c15cec6",
+    "semantic_hash": "51f2012cf216af0f35e46dd53c15cec6"
+  },
+  "openlab-3d/docs/workbench-round4/peroxide-catalysis.png": {
+    "mtime": 1792720971.9058292,
+    "seen": 1793178425.9083638,
+    "ast_hash": "42917400f1042d5e1a4358c442d680d6",
+    "semantic_hash": "42917400f1042d5e1a4358c442d680d6"
+  },
+  "openlab-3d/docs/workbench-round4/phone-controls.png": {
+    "mtime": 1792720971.9061759,
+    "seen": 1793178425.9083664,
+    "ast_hash": "da8c22f4e4fdced62b09b6e2d81687c1",
+    "semantic_hash": "da8c22f4e4fdced62b09b6e2d81687c1"
+  },
+  "openlab-3d/docs/workbench-round4/phone-teacher.png": {
+    "mtime": 1792720971.9065404,
+    "seen": 1793178425.908369,
+    "ast_hash": "3799898d2668a8be49ea86dae50eba4d",
+    "semantic_hash": "3799898d2668a8be49ea86dae50eba4d"
+  },
+  "openlab-3d/docs/workbench-round4/phone-tooltab.png": {
+    "mtime": 1792720971.9070458,
+    "seen": 1793178425.9083717,
+    "ast_hash": "ca927f9ac618b8f25fc56e7491d9c177",
+    "semantic_hash": "ca927f9ac618b8f25fc56e7491d9c177"
+  },
+  "openlab-3d/docs/workbench-round4/restart.png": {
+    "mtime": 1792720971.9075892,
+    "seen": 1793178425.9083745,
+    "ast_hash": "f2e7129bd1d048397037916fd9de7366",
+    "semantic_hash": "f2e7129bd1d048397037916fd9de7366"
+  },
+  "openlab-3d/docs/workbench-round4/shelf-found.png": {
+    "mtime": 1792720971.9087698,
+    "seen": 1793178425.9083772,
+    "ast_hash": "38d6d0823b82c658e1cb9fac1efda7ce",
+    "semantic_hash": "38d6d0823b82c658e1cb9fac1efda7ce"
+  },
+  "openlab-3d/docs/workbench-round4/shelf-placed.png": {
+    "mtime": 1792720971.9089785,
+    "seen": 1793178425.9083798,
+    "ast_hash": "bf348df1fa27d8097570dcf56c2aa542",
+    "semantic_hash": "bf348df1fa27d8097570dcf56c2aa542"
+  },
+  "openlab-3d/docs/workbench-round4/soap-observation.png": {
+    "mtime": 1792720971.9103806,
+    "seen": 1793178425.9083827,
+    "ast_hash": "b9aa93e1af506c8b55d253d4bb23a63c",
+    "semantic_hash": "b9aa93e1af506c8b55d253d4bb23a63c"
+  },
+  "openlab-3d/docs/workbench-round4/success.png": {
+    "mtime": 1792720971.911764,
+    "seen": 1793178425.9083853,
+    "ast_hash": "fd90d7469f7d53f792b69aa24bd7c1c4",
+    "semantic_hash": "fd90d7469f7d53f792b69aa24bd7c1c4"
+  },
+  "openlab-3d/docs/workbench-round4/tooltab.png": {
+    "mtime": 1792720971.9119787,
+    "seen": 1793178425.908388,
+    "ast_hash": "d66f56319e220c993b1968b6bcb3e93d",
+    "semantic_hash": "d66f56319e220c993b1968b6bcb3e93d"
+  },
+  "openlab-3d/docs/workbench-round4/zinc-hydrogen.png": {
+    "mtime": 1792720971.9139268,
+    "seen": 1793178425.9083908,
+    "ast_hash": "b60b90784457c4fa459e7923dd8444ba",
+    "semantic_hash": "b60b90784457c4fa459e7923dd8444ba"
+  }
+}

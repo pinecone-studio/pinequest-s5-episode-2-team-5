@@ -17,8 +17,7 @@ import { ProfileSheet } from '@/components/hub/profile-sheet';
 import { BuildingSprite, BuildingWindowLights } from '@/components/world/buildings';
 import { Ground } from '@/components/world/ground';
 import { buildNavGrid, findPath, nearestWalkable } from '@/components/world/nav-grid';
-import { LivePlayer } from '@/components/world/live-player';
-import type { RemoteHandle } from '@/components/world/remote-player';
+import { LivePlayer, type RemoteHandle } from '@/components/world/live-player';
 import { Bench, Fountain, Lamp, Tree } from '@/components/world/scenery';
 import { useWalker, WalkerView } from '@/components/world/walker';
 import {

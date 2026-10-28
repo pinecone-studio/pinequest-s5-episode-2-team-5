@@ -49,7 +49,9 @@ function itemTitle(item: WorldItem, tool?: ToolState): { name: string; detail?: 
   if (!isContainer(item.kind)) return { name: def.name };
   const summary = summarize(m);
   const hot = m.temp > 35 ? ` · ${Math.round(m.temp)} °C` : m.temp < 15 ? ` · ${Math.round(m.temp)} °C` : '';
-  return { name: def.name, detail: summary ? summary + hot : hot.replace(' · ', '') || undefined };
+  // Room moisture condensed on the cold outside (not leaking from inside).
+  const dew = (m.dew ?? 0) > 0.01 ? ' · гадна талд усан дусал' : '';
+  return { name: def.name, detail: summary ? summary + hot + dew : (hot + dew).replace(/^ · /, '') || undefined };
 }
 
 function ItemColliders({ shape, mass }: { shape: ColliderShape; mass: number }) {

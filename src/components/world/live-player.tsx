@@ -3,8 +3,17 @@ import { useEffect, useState } from 'react';
 import { lookFor } from '@/lib/avatar-look';
 import { WALK_SPEED, useWalker, WalkerView } from './walker';
 import type { HubPeer, MoveHandler } from '@/services/presence';
+import type { PublicPlayer } from '@/types';
 
-import type { RemoteHandle } from './remote-player';
+import type { Point } from './world-config';
+
+/** What the hub can ask of another player's avatar. */
+export interface RemoteHandle {
+  player: PublicPlayer;
+  position: () => Point;
+  isVisible: () => boolean;
+  say: (text: string) => void;
+}
 
 /** World units. Beyond this a peer is teleported to the newest position. */
 const SNAP_DISTANCE = 220;
