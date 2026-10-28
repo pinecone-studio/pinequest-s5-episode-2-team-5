@@ -1,5 +1,6 @@
 /** Lightweight procedural models for Grade 8 textbook apparatus. */
 import type { ReactNode } from 'react';
+import { MeshBasicMaterial } from 'three';
 import { metalAluminum, metalBrushed, metalDark, metalSteel } from '../materials/metal';
 import { plastic, plasticBlack, plasticBlue, plasticGreen, plasticWhite, wood } from '../materials/plastic';
 import { decorGlass } from '../materials/glass';
@@ -14,12 +15,21 @@ const brown = plastic('#79472e', 0.8);
 const soil = plastic('#493525', 0.95);
 const paper = plastic('#fffdf3', 0.95);
 const sand = plastic('#c69b62', 0.95);
+const spirit = decorGlass('#cfe8ff');
+const porcelain = plastic('#f4f3ee', 0.35);
+const pencilYellow = plastic('#e8b730', 0.5);
+const plasticPink = plastic('#e88aa0', 0.7);
+const film = decorGlass('#eef4f8');
+const flame = new MeshBasicMaterial({ color: '#ffb347', transparent: true, opacity: 0.85, toneMapped: false });
+const bulb = new MeshBasicMaterial({ color: '#fff4c2', toneMapped: false });
 
 export interface TextbookEquipmentModelProps extends ModelProps {
   kind: TextbookEquipmentKind;
+  /** Alcohol lamp flame. */
+  lit?: boolean;
 }
 
-export function TextbookEquipmentModel({ kind, modelUrl, ...props }: TextbookEquipmentModelProps) {
+export function TextbookEquipmentModel({ kind, modelUrl, lit = false, ...props }: TextbookEquipmentModelProps) {
   let model: ReactNode;
   switch (kind) {
     case 'stopwatch':
@@ -250,6 +260,140 @@ export function TextbookEquipmentModel({ kind, modelUrl, ...props }: TextbookEqu
         <mesh material={paper} position={[0, 0.002, 0]}><cylinderGeometry args={[0.044, 0.044, 0.003, 32]} /></mesh>
         <mesh material={plasticWhite} position={[0, 0.004, 0]} rotation={[-Math.PI / 2, 0, 0]}><circleGeometry args={[0.04, 32]} /></mesh>
         <mesh material={paper} position={[0, 0.006, 0]} rotation={[0.06, 0, 0]}><coneGeometry args={[0.035, 0.018, 32, 1, true]} /></mesh>
+      </>;
+      break;
+    case 'alcoholLamp':
+      model = <>
+        <mesh material={glassBlue} position={[0, 0.032, 0]}><cylinderGeometry args={[0.03, 0.036, 0.064, 24]} /></mesh>
+        <mesh material={spirit} position={[0, 0.022, 0]}><cylinderGeometry args={[0.028, 0.033, 0.04, 24]} /></mesh>
+        <mesh material={metalBrushed} position={[0, 0.072, 0]}><cylinderGeometry args={[0.011, 0.014, 0.018, 16]} /></mesh>
+        <mesh material={paper} position={[0, 0.088, 0]}><cylinderGeometry args={[0.003, 0.003, 0.016, 8]} /></mesh>
+        {lit && <mesh material={flame} position={[0, 0.112, 0]}><coneGeometry args={[0.009, 0.036, 12]} /></mesh>}
+      </>;
+      break;
+    case 'electrode':
+      model = <>
+        <mesh material={metalDark} position={[0, 0.07, 0]}><cylinderGeometry args={[0.005, 0.005, 0.14, 12]} /></mesh>
+        <mesh material={red} position={[0, 0.142, 0]}><boxGeometry args={[0.012, 0.012, 0.016]} /></mesh>
+      </>;
+      break;
+    case 'powerSupply':
+      model = <>
+        <mesh material={plasticBlack} position={[0, 0.035, 0]}><boxGeometry args={[0.14, 0.07, 0.1]} /></mesh>
+        <mesh material={plasticWhite} position={[0, 0.04, 0.051]}><boxGeometry args={[0.1, 0.04, 0.002]} /></mesh>
+        <mesh material={red} position={[-0.035, 0.076, 0.02]}><cylinderGeometry args={[0.007, 0.007, 0.012, 12]} /></mesh>
+        <mesh material={rubber} position={[0.035, 0.076, 0.02]}><cylinderGeometry args={[0.007, 0.007, 0.012, 12]} /></mesh>
+        <mesh material={metalBrushed} position={[0.04, 0.04, 0.055]} rotation={[Math.PI / 2, 0, 0]}><cylinderGeometry args={[0.009, 0.009, 0.008, 16]} /></mesh>
+      </>;
+      break;
+    case 'voltmeter':
+      model = <>
+        <mesh material={plasticWhite} position={[0, 0.045, 0]}><boxGeometry args={[0.11, 0.09, 0.06]} /></mesh>
+        <mesh material={paper} position={[0, 0.055, 0.031]}><boxGeometry args={[0.08, 0.045, 0.002]} /></mesh>
+        <mesh material={red} position={[0.01, 0.06, 0.033]} rotation={[0, 0, -0.5]}><boxGeometry args={[0.002, 0.034, 0.001]} /></mesh>
+        <mesh material={red} position={[-0.03, 0.094, 0]}><cylinderGeometry args={[0.006, 0.006, 0.01, 12]} /></mesh>
+        <mesh material={rubber} position={[0.03, 0.094, 0]}><cylinderGeometry args={[0.006, 0.006, 0.01, 12]} /></mesh>
+      </>;
+      break;
+    case 'led':
+      model = <>
+        <mesh material={plasticBlack} position={[0, 0.004, 0]}><boxGeometry args={[0.02, 0.008, 0.02]} /></mesh>
+        <mesh material={metalSteel} position={[-0.003, 0.018, 0]}><cylinderGeometry args={[0.0007, 0.0007, 0.022, 6]} /></mesh>
+        <mesh material={metalSteel} position={[0.003, 0.018, 0]}><cylinderGeometry args={[0.0007, 0.0007, 0.022, 6]} /></mesh>
+        <mesh material={red} position={[0, 0.034, 0]}><sphereGeometry args={[0.005, 12, 10]} /></mesh>
+        <mesh material={red} position={[0, 0.03, 0]}><cylinderGeometry args={[0.005, 0.005, 0.008, 12]} /></mesh>
+      </>;
+      break;
+    case 'deskLamp':
+      model = <>
+        <mesh material={plasticBlack} position={[0, 0.008, 0]}><cylinderGeometry args={[0.06, 0.065, 0.016, 24]} /></mesh>
+        <mesh material={metalSteel} position={[0, 0.12, 0]}><cylinderGeometry args={[0.006, 0.006, 0.22, 10]} /></mesh>
+        <mesh material={plasticWhite} position={[0, 0.25, 0.03]} rotation={[0.9, 0, 0]}><coneGeometry args={[0.05, 0.07, 24, 1, true]} /></mesh>
+        <mesh material={bulb} position={[0, 0.235, 0.045]}><sphereGeometry args={[0.018, 14, 10]} /></mesh>
+      </>;
+      break;
+    case 'barometer':
+      model = <>
+        <mesh material={metalBrushed} position={[0, 0.06, 0]} rotation={[Math.PI / 2, 0, 0]}><cylinderGeometry args={[0.055, 0.055, 0.035, 32]} /></mesh>
+        <mesh material={paper} position={[0, 0.06, 0.018]} rotation={[Math.PI / 2, 0, 0]}><cylinderGeometry args={[0.047, 0.047, 0.002, 32]} /></mesh>
+        <mesh material={metalDark} position={[0.01, 0.07, 0.02]} rotation={[0, 0, -0.6]}><boxGeometry args={[0.002, 0.04, 0.001]} /></mesh>
+        <mesh material={metalDark} position={[0, 0.004, 0]}><boxGeometry args={[0.08, 0.008, 0.04]} /></mesh>
+      </>;
+      break;
+    case 'hammer':
+      model = <>
+        <mesh material={wood} position={[0, 0.011, 0.02]}><boxGeometry args={[0.02, 0.02, 0.22]} /></mesh>
+        <mesh material={metalDark} position={[0, 0.015, -0.1]}><boxGeometry args={[0.1, 0.028, 0.03]} /></mesh>
+      </>;
+      break;
+    case 'brush':
+      model = <>
+        <mesh material={wood} position={[0, 0.008, 0.03]} rotation={[Math.PI / 2, 0, 0]}><cylinderGeometry args={[0.006, 0.006, 0.15, 10]} /></mesh>
+        <mesh material={metalSteel} position={[0, 0.008, -0.05]} rotation={[Math.PI / 2, 0, 0]}><cylinderGeometry args={[0.008, 0.007, 0.02, 10]} /></mesh>
+        <mesh material={brown} position={[0, 0.008, -0.075]}><boxGeometry args={[0.016, 0.01, 0.03]} /></mesh>
+      </>;
+      break;
+    case 'straw':
+      model = <mesh material={red} position={[0, 0.004, 0]} rotation={[Math.PI / 2, 0, 0]}><cylinderGeometry args={[0.004, 0.004, 0.2, 10, 1, true]} /></mesh>;
+      break;
+    case 'ruler':
+      model = <>
+        <mesh material={plasticWhite} position={[0, 0.0015, 0]}><boxGeometry args={[0.035, 0.003, 0.3]} /></mesh>
+        {Array.from({ length: 30 }, (_, i) => <mesh key={i} material={metalDark} position={[0.012, 0.0031, -0.145 + i * 0.01]}><boxGeometry args={[i % 5 === 0 ? 0.01 : 0.005, 0.0004, 0.0008]} /></mesh>)}
+      </>;
+      break;
+    case 'pencil':
+      model = <>
+        <mesh material={pencilYellow} position={[0, 0.004, 0.01]} rotation={[Math.PI / 2, 0, 0]}><cylinderGeometry args={[0.004, 0.004, 0.15, 6]} /></mesh>
+        <mesh material={wood} position={[0, 0.004, -0.072]} rotation={[-Math.PI / 2, 0, 0]}><coneGeometry args={[0.004, 0.014, 6]} /></mesh>
+        <mesh material={plasticPink} position={[0, 0.004, 0.088]} rotation={[Math.PI / 2, 0, 0]}><cylinderGeometry args={[0.004, 0.004, 0.008, 10]} /></mesh>
+      </>;
+      break;
+    case 'balloon':
+      model = <>
+        <mesh material={red} position={[0, 0.052, 0]} scale={[1, 1.2, 1]}><sphereGeometry args={[0.038, 20, 16]} /></mesh>
+        <mesh material={red} position={[0, 0.006, 0]}><coneGeometry args={[0.006, 0.012, 10]} /></mesh>
+      </>;
+      break;
+    case 'crucible':
+      model = <>
+        <mesh material={porcelain} position={[0, 0.02, 0]}><cylinderGeometry args={[0.025, 0.017, 0.04, 24, 1, true]} /></mesh>
+        <mesh material={porcelain} position={[0, 0.001, 0]}><cylinderGeometry args={[0.017, 0.017, 0.002, 24]} /></mesh>
+        <mesh material={porcelain} position={[0.03, 0.043, 0]} rotation={[0, 0, 0.3]}><cylinderGeometry args={[0.026, 0.026, 0.003, 24]} /></mesh>
+      </>;
+      break;
+    case 'trough':
+      model = <>
+        <mesh material={glassBlue} position={[0, 0.002, 0]}><boxGeometry args={[0.3, 0.004, 0.2]} /></mesh>
+        <mesh material={glassBlue} position={[0, 0.05, 0.098]}><boxGeometry args={[0.3, 0.1, 0.004]} /></mesh>
+        <mesh material={glassBlue} position={[0, 0.05, -0.098]}><boxGeometry args={[0.3, 0.1, 0.004]} /></mesh>
+        <mesh material={glassBlue} position={[0.148, 0.05, 0]}><boxGeometry args={[0.004, 0.1, 0.2]} /></mesh>
+        <mesh material={glassBlue} position={[-0.148, 0.05, 0]}><boxGeometry args={[0.004, 0.1, 0.2]} /></mesh>
+      </>;
+      break;
+    case 'magnet':
+      model = <>
+        <mesh material={red} position={[-0.015, 0.006, 0]}><boxGeometry args={[0.03, 0.012, 0.03]} /></mesh>
+        <mesh material={plasticBlue} position={[0.015, 0.006, 0]}><boxGeometry args={[0.03, 0.012, 0.03]} /></mesh>
+      </>;
+      break;
+    case 'plasticBag':
+      model = <>
+        <mesh material={film} position={[0, 0.004, 0]}><boxGeometry args={[0.16, 0.008, 0.2]} /></mesh>
+        <mesh material={plasticBlue} position={[0, 0.009, -0.09]}><boxGeometry args={[0.16, 0.002, 0.006]} /></mesh>
+      </>;
+      break;
+    case 'glassTube':
+      model = <mesh material={glassBlue} position={[0, 0.007, 0]} rotation={[Math.PI / 2, 0, 0]}><cylinderGeometry args={[0.007, 0.007, 0.3, 14, 1, true]} /></mesh>;
+      break;
+    case 'rubberBand':
+      model = <mesh material={rubber} position={[0, 0.002, 0]} rotation={[Math.PI / 2, 0, 0]}><torusGeometry args={[0.022, 0.0018, 8, 32]} /></mesh>;
+      break;
+    case 'wires':
+      model = <>
+        <mesh material={red} position={[0, 0.003, -0.015]} rotation={[0, 0, Math.PI / 2]}><cylinderGeometry args={[0.0018, 0.0018, 0.1, 8]} /></mesh>
+        <mesh material={rubber} position={[0, 0.003, 0.015]} rotation={[0, 0, Math.PI / 2]}><cylinderGeometry args={[0.0018, 0.0018, 0.1, 8]} /></mesh>
+        {[[-0.055, -0.015], [0.055, -0.015], [-0.055, 0.015], [0.055, 0.015]].map(([x, z], i) => <mesh key={i} material={metalSteel} position={[x, 0.004, z]}><boxGeometry args={[0.012, 0.006, 0.008]} /></mesh>)}
       </>;
       break;
     default: {

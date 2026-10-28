@@ -9,7 +9,7 @@ import { memo, useEffect, useLayoutEffect, useRef, useState } from 'react';
 import type { Group } from 'three';
 import { useFrame } from '@react-three/fiber';
 import { CuboidCollider, CylinderCollider, RigidBody, type CollisionEnterPayload, type RapierRigidBody } from '@react-three/rapier';
-import { CATALOG, isContainer, type ColliderShape } from '../equipment/equipmentCatalog';
+import { CATALOG, isContainer, isHeater, type ColliderShape } from '../equipment/equipmentCatalog';
 import { EquipmentModel } from '../equipment/registry';
 import { REAGENTS } from '../chemistry/reagents';
 import { fmtMl, summarize } from '../chemistry/describe';
@@ -105,7 +105,7 @@ export const Pickable = memo(function Pickable({ item }: { item: WorldItem }) {
   const def = CATALOG[item.kind];
   const body = useRef<RapierRigidBody>(null);
   const focused = useGameStore((s) => s.focus?.id === item.id);
-  const lit = useExperimentStore((s) => item.kind === 'bunsenBurner' && !!s.toggles[item.id]);
+  const lit = useExperimentStore((s) => isHeater(item.kind) && !!s.toggles[item.id]);
   const tare = useExperimentStore((s) => s.values[`tare-${item.id}`] ?? 0);
   const mixture = useChemStore((s) => s.mixtures[item.id]);
   const tool = useChemStore((s) => s.tools[item.id]);
@@ -129,7 +129,7 @@ export const Pickable = memo(function Pickable({ item }: { item: WorldItem }) {
   const grab = () => {
     if (!mayTake(item.id, item.variant)) return;
     const exp = useExperimentStore.getState();
-    if (item.kind === 'bunsenBurner' && exp.toggles[item.id]) exp.toggle(item.id);
+    if (isHeater(item.kind) && exp.toggles[item.id]) exp.toggle(item.id);
     if (useInventoryStore.getState().pickUp(item.id)) sounds.play('pickup');
   };
 
@@ -137,7 +137,7 @@ export const Pickable = memo(function Pickable({ item }: { item: WorldItem }) {
   let verb = heldGrip ? 'хавчиж авах' : 'авах';
   let label = detail ? `${name} · ${detail}` : name;
   let onWheel: ((d: number) => void) | undefined;
-  if (item.kind === 'bunsenBurner') {
+  if (isHeater(item.kind)) {
     verb = lit ? 'унтраах' : 'асаах';
     onInteract = () => {
       const exp = useExperimentStore.getState();
@@ -146,7 +146,7 @@ export const Pickable = memo(function Pickable({ item }: { item: WorldItem }) {
         exp.markSkill('burner');
         emitLab({ key: 'burner:on', quiet: true, itemId: item.id });
       }
-      useGameStore.getState().logEvent(on ? 'Бунзены горелк асаалаа.' : 'Бунзены горелк унтраалаа.');
+      useGameStore.getState().logEvent(`${CATALOG[item.kind].name} ${on ? 'асаалаа' : 'унтраалаа'}.`);
       sounds.play('puff', 0.7);
     };
   } else if (item.kind === 'scale') {

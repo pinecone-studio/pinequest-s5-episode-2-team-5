@@ -12,7 +12,7 @@ import { recordTransfer } from '../lab/measurements';
 import { create } from 'zustand';
 import { useSandbox } from '../experiments/nacl/sandbox';
 import { useBenchView } from '../experiments/nacl/view';
-import { CATALOG, STOCK_KINDS, isContainer, type EquipmentKind } from '../equipment/equipmentCatalog';
+import { CATALOG, STOCK_KINDS, isContainer, isHeater, type EquipmentKind } from '../equipment/equipmentCatalog';
 import { CATIONS, FLAME_COLORS, SOLIDS, type Cation } from '../chemistry/species';
 import { REAGENTS } from '../chemistry/reagents';
 import { emptyMixture, heatCapacity, isEmptyMixture, gasMl, liquidMl, merge, reagentMixture, solidMassG, solidVolumeMl, takeLiquid, takeSolid, type Mixture } from '../chemistry/mixture';
@@ -148,7 +148,7 @@ function describeResolved(held: HeldItem | null, target: UseTarget | null): UseI
   const tk = target.kind;
   const tm = mixtureOf(target.id, target.variant);
   const tHas = !isEmptyMixture(tm);
-  if (tk === 'bunsenBurner') {
+  if (tk && isHeater(tk)) {
     if (!isLit(target.id)) return null;
     if (hk === 'wireLoop') return info('flame', 'дөлөнд барих');
     if (isContainer(hk) && !STOCK_KINDS.includes(hk) && hk !== 'pipette') return info('heat', 'дөлөн дээр халаах');
@@ -190,7 +190,7 @@ function explain(held: HeldItem | null, target: UseTarget | null): [string, stri
   if (!held) return ['Гартаа юу ч алга', 'Эхлээд сав эсвэл багаж аваад (E) зүйл рүү хараад R дар'];
   if (!target) return ['Юу ч онилоогүй байна', 'Сав, горелк эсвэл угаалтуур руу хараад R дар'];
   if (target.type === 'item') {
-    if (target.kind === 'bunsenBurner' && !isLit(target.id)) return ['Горелк асаагүй байна', 'Эхлээд горелк дээр E дарж асаа'];
+    if (isHeater(target.kind) && !isLit(target.id)) return ['Горелк асаагүй байна', 'Эхлээд горелк дээр E дарж асаа'];
     if (STOCK_KINDS.includes(target.kind) && isContainer(held.kind)) return ['Урвалжийн лонх руу бүү асга', 'Урвалж бохирдоно. Хоосон саваар лонхноос авна'];
     if (held.kind === 'spatula') return ['Халбагаар хатуу бодис авна', 'Хатуу бодисын сав руу хараад R дар'];
     if (target.kind === 'funnel') return ['Юүлүүрийн доор сав алга', 'Юүлүүрийг колб эсвэл аяганы аманд тавиад (Q) дахин асга'];

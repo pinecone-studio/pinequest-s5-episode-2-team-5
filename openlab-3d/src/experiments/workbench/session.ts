@@ -31,7 +31,8 @@ import { interactables, isVisibleInScene } from '../../interaction/registry';
 import { restoreScenePortable, usePortableStore } from '../../interaction/portable';
 import { clearReactionViews } from '../../lab/reaction-view';
 import { sounds } from '../../utils/sounds';
-import { isWorkbenchPosition,grade9SupplyPosition } from './placement';
+import { isWorkbenchPosition,grade9SupplyPosition,freeBenchSpot,turnedFootprint,type BenchRect } from './placement';
+import { launchedBookSupplies } from './bookSupplies';
 import { GUIDED_OVERLAYS } from './guidance/overlays';
 
 export interface BenchSupply { key: string; name: string; use: string; kind?: EquipmentKind; reagent?: ReagentId; part?: PartKey }
@@ -59,7 +60,23 @@ const RECIPES: Record<string, BenchSupply[]> = {
   thermo: list(['beaker', 'thermometer', 'glassRod', 'spatula'], ['s_nh4no3', 's_naoh', 'water']),
   fire: list(['evaporatingDish', 'tripod', 'bunsenBurner', 'watchGlass', 'fireExtinguisher'], ['ethanol']),
 };
-export const suppliesFor = (id: string | null) => id ? RECIPES[id] ?? [] : [];
+const merged = new Map<string, { base: BenchSupply[]; book: BenchSupply[]; list: BenchSupply[] }>();
+/**
+ * The lab guide's recipe plus whatever the textbook experiment launched from the menu lists and
+ * the recipe lacks (bookSupplies.ts), so the bench holds everything the book shows.
+ */
+export const suppliesFor = (id: string | null): BenchSupply[] => {
+  if (!id) return [];
+  const base = RECIPES[id] ?? [], book = launchedBookSupplies(id);
+  if (!book.length) return base;
+  const cached = merged.get(id);
+  if (cached && cached.base === base && cached.book === book) return cached.list;
+  const kinds = new Set(base.filter((s) => !s.reagent).map((s) => s.kind ?? (s.part ? PART_KINDS[s.part] : undefined)));
+  const reagents = new Set(base.map((s) => s.reagent).filter(Boolean));
+  const list = [...base, ...book.filter((s) => s.reagent ? !reagents.has(s.reagent) : !kinds.has(s.kind))];
+  merged.set(id, { base, book, list });
+  return list;
+};
 export const supplySubstance = (supply: BenchSupply) => supply.part === 'bottle' ? SUBSTANCES.hcl : supply.part === 'jar' ? SUBSTANCES.na2co3 : supply.part === 'lamp' ? SUBSTANCES.ethanol : null;
 export interface BenchSession { found: string[]; placed: string[]; owned: string[]; teacher: boolean; objects: Record<string, string>; ready: boolean; previouslyComplete?: boolean; stepOverride: number | null }
 export interface SupplyItem { id: string; kind?: EquipmentKind; reagent?: ReagentId; part?: PartKey }
@@ -133,6 +150,29 @@ export function supplyObject(supply: BenchSupply): string | null {
   for (const entry of interactables.values()) if (exists(entry.id) && entry.enabled && matchesSupply(supply, itemDescription(entry.id)) && onWorkbench(itemPosition(entry.id)) && isVisibleInScene(entry.object)) return entry.id;
   return null;
 }
+/**
+ * A free place on the worktop for a new `kind`: around everything already standing there (room
+ * apparatus, spawned stock, the NaCl station's visible parts), or null when nothing fits.
+ */
+function benchSpot(kind: EquipmentKind, primary: boolean): [number, number, number] | null {
+  const occupied: BenchRect[] = [];
+  for (const w of useInventoryStore.getState().worldItems) {
+    const p = livePose(w);
+    if (!onWorkbench(p)) continue;
+    const [sx, , sz] = CATALOG[w.kind].size;
+    occupied.push({ x: p.x, z: p.z, ...turnedFootprint(sx, sz, p.yaw) });
+  }
+  for (const part of useWorkbench.getState().availableParts) {
+    const object = interactables.get(`nacl-${part}`)?.object;
+    if (!object || !isVisibleInScene(object)) continue;
+    const box = new Box3().setFromObject(object);
+    if (box.isEmpty() || !onWorkbench(box.getCenter(new Vector3()).setY(box.min.y))) continue;
+    occupied.push({ x: (box.min.x + box.max.x) / 2, z: (box.min.z + box.max.z) / 2, w: box.max.x - box.min.x, d: box.max.z - box.min.z });
+  }
+  const [w, , d] = CATALOG[kind].size;
+  const spot = freeBenchSpot(w, d, occupied, primary ? [8.25, -14.36] : undefined);
+  return spot ? [spot[0], BENCH_HEIGHT + .015, spot[1]] : null;
+}
 /** A card can always add stock. Merely spawning it does NOT complete preparation. */
 export function collectSupply(supply: BenchSupply, pickup = false): boolean {
   beginPreparation();
@@ -148,7 +188,9 @@ export function collectSupply(supply: BenchSupply, pickup = false): boolean {
       const occupied = [...new Set(Object.values(useWorkbench.getState().loose))].length;
       const grade9=(INVESTIGATIONS.find(x=>x.id===useLabStore.getState().active)?.grade??8)!==8;
       const slot = grade9?Math.max(0,required.findIndex(s=>s.key===supply.key)):occupied % 24;
-      id = useInventoryStore.getState().spawn(supply.kind, grade9?grade9SupplyPosition(slot):[7.56 + slot % 8 * .19, BENCH_HEIGHT + .015, -14.78 + Math.floor(slot / 8) * .22], 0, supply.reagent ? stock(supply.reagent) : undefined);
+      // A free spot that fits this item; the old fixed slots only if the worktop is full.
+      const at = benchSpot(supply.kind, grade9 && slot === 0) ?? (grade9?grade9SupplyPosition(slot):[7.56 + slot % 8 * .19, BENCH_HEIGHT + .015, -14.78 + Math.floor(slot / 8) * .22] as [number, number, number]);
+      id = useInventoryStore.getState().spawn(supply.kind, at, 0, supply.reagent ? stock(supply.reagent) : undefined);
     }
     if (!id) { warn('Ширээнд зай хүрэхгүй байна. Нэг хэрэгслээ хураагаад дахин сонго.'); return false; }
     useWorkbench.setState((s) => ({ loose: { ...s.loose, [supply.key]: id! } }));
@@ -247,7 +289,8 @@ function prepareSupplies(teacher: boolean) {
   }
   for (const supply of suppliesFor(useLabStore.getState().active)) {
     if (currentSession()?.placed.includes(supply.key)) continue;
-    if (!collectSupply(supply)) break;
+    // One that cannot be put out must not keep the rest of the recipe off the bench.
+    if (!collectSupply(supply)) continue;
     const id = supplyObject(supply);
     if (id) recordBenchPlacement(itemDescription(id), itemPosition(id), true);
   }
@@ -269,6 +312,27 @@ export function clearExperimentSession(id: string, worktopOnly = false) {
   if (!session) return;
   const ids = new Set([...(session.owned??[]), ...Object.values(session.objects)]);
   for (const [key, object] of Object.entries(useWorkbench.getState().loose)) if (suppliesFor(id).some((s) => s.key === key)) ids.add(object);
+  clearObjects(ids, worktopOnly, id);
+}
+/**
+ * What a textbook experiment without a lab guide put out (menu «Бэлтгэлээ хийе»). It has no
+ * session, so its spawned stock is only in `loose`, under `textbook-…` keys.
+ */
+export function clearTextbookSupplies() {
+  const ids = new Set(Object.entries(useWorkbench.getState().loose).filter(([key]) => key.startsWith('textbook-')).map(([, object]) => object));
+  if (ids.size) clearObjects(ids, false, null);
+}
+/** A textbook experiment without a lab guide: the previous guide's apparatus goes back too. */
+export function leaveBenchExperiment() {
+  const previous = useLabStore.getState().active;
+  if (previous) {
+    clearExperimentSession(previous);
+    useGameStore.getState().showToast('Өмнөх туршилтын багажийг хураалаа.');
+  }
+  useLabStore.getState().setActive(null);
+  updateStationVisibility();
+}
+function clearObjects(ids: Set<string>, worktopOnly: boolean, id: string | null) {
   endHeldUse();
   cleaning = true;
   try {
