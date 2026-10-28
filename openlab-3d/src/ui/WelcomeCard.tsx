@@ -1,310 +1,360 @@
 /**
- * Шинэ нээлтийн дэлгэц: Pip робот, 3 алхам, үндсэн удирдлага.
+ * Нээлтийн дэлгэц: "OpenLab — туршилт сонгох" дизайн (Pip, Анги / Чөлөөт горим карт, "Лабораторид орох" товч).
+ * Алхам 1 — зөвхөн харагдах байдал. "Анги" карт (Анги → Бүлэг → Туршилт сонголт) дараагийн алхамд идэвхжинэ.
  * LoadingScreen-ийн хуучин картыг устгаагүй — LoadingScreen дотор NEW_START_DESIGN-ээр сольж харуулна.
  */
-import { useEffect, useRef, useState, type ReactNode } from 'react';
-import { useSettingsStore } from '../store/useSettingsStore';
-import { keyLabel, promptKey } from '../controls/keyMap';
+import { useState, type CSSProperties, type ReactNode } from 'react';
+import type { TextbookExperiment } from '../menu/chapterBuild';
 import { isTouchDevice } from '../utils/device';
+import { LessonPicker } from './LessonPicker';
 
-// Өнгөнүүд (зурагнаас авсан)
-const INK = '#1b1640'; // хар хөх бичиг
-const PURPLE = '#6b4eff'; // үндсэн нил ягаан
-const LINE = '#e9e4fb'; // зөөлөн хүрээ
+// Өнгөнүүд (дизайны самбараас авсан)
+const INK = '#1C1A3A'; // хар хөх бичиг
+const NIGHT = '#1F1B4D'; // бараан хөх
+const PURPLE = '#5B3DF5'; // үндсэн нил ягаан
+const MUTED = '#6E6A88'; // сул бичиг
 
 interface WelcomeCardProps {
   onEnter: () => void;
-  onShowKeys: () => void;
-  onOpenSettings: () => void;
+  /** Шинэ загварт эдгээр товч байхгүй; LoadingScreen-ийн хуучин карт л ашиглана */
+  onShowKeys?: () => void;
+  onOpenSettings?: () => void;
   /** 0..1 — 3D лаборатори ард ачаалагдаж буй хувь */
   progress: number;
   label: string;
   complete: boolean;
 }
 
+// Хөдөлгөөн. "Хөдөлгөөн багасгах" сонгосон үед бүгд зогсоно.
+const CSS = `
+@keyframes wc-bob{0%,100%{transform:translateY(0)}50%{transform:translateY(-10px)}}
+@keyframes wc-blink{0%,90%,100%{transform:scaleY(1)}94%{transform:scaleY(.1)}}
+@keyframes wc-glow{0%,100%{box-shadow:0 0 0 0 rgba(255,201,60,.7)}50%{box-shadow:0 0 0 10px rgba(255,201,60,0)}}
+@keyframes wc-wave{0%,60%,100%{transform:rotate(0)}70%{transform:rotate(-25deg)}80%{transform:rotate(10deg)}90%{transform:rotate(-20deg)}}
+@keyframes wc-rise{0%{transform:translateY(0) scale(.5);opacity:0}15%{opacity:1}100%{transform:translateY(-90px) scale(1.1);opacity:0}}
+@keyframes wc-float{0%,100%{transform:translateY(0) rotate(0)}50%{transform:translateY(-16px) rotate(8deg)}}
+@keyframes wc-liquid{0%,100%{transform:translateX(0)}50%{transform:translateX(-6px)}}
+@keyframes wc-pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.02)}}
+@keyframes wc-pop{from{opacity:0;transform:translateY(14px) scale(.98)}to{opacity:1;transform:none}}
+.wc-bob{animation:wc-bob 3s ease-in-out infinite}
+.wc-blink{animation:wc-blink 4s infinite;transform-origin:center}
+.wc-glow{animation:wc-glow 1.8s ease-out infinite}
+.wc-wave{animation:wc-wave 3.2s ease-in-out infinite;transform-origin:top center}
+.wc-rise{animation:wc-rise 2.4s ease-in infinite}
+.wc-float{animation:wc-float 6s ease-in-out infinite}
+.wc-liquid{animation:wc-liquid 2s ease-in-out infinite}
+.wc-pulse{animation:wc-pulse 1.6s ease-in-out infinite}
+.wc-pop{animation:wc-pop .45s cubic-bezier(.2,.9,.3,1.3) both}
+.wc-lift{transition:transform .18s cubic-bezier(.2,.9,.3,1.4),box-shadow .18s}
+.wc-lift:hover:not(:disabled):not([aria-disabled='true']){transform:translateY(-4px)}
+.wc-lift:active:not(:disabled):not([aria-disabled='true']){transform:translateY(2px)}
+@media (prefers-reduced-motion: reduce){.wc-bob,.wc-blink,.wc-glow,.wc-wave,.wc-rise,.wc-float,.wc-liquid,.wc-pulse,.wc-pop{animation:none}.wc-lift{transition:none}}
+`;
+
 /* ---------- Жижиг зургууд (SVG) ---------- */
 
-function Icon({ children }: { children: ReactNode }) {
+function Svg({ size, stroke, strokeWidth, children }: { size: number; stroke: string; strokeWidth: number; children: ReactNode }) {
   return (
-    <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+    <svg aria-hidden="true" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={stroke} strokeWidth={strokeWidth} strokeLinecap="round" strokeLinejoin="round">
       {children}
     </svg>
   );
 }
 
-const ShieldIcon = () => (
-  <Icon>
-    <path d="M12 3l7 3v5c0 5-3.5 8.5-7 10-3.5-1.5-7-5-7-10V6l7-3z" />
-    <path d="M9 12l2 2 4-4" />
-  </Icon>
-);
-const SearchIcon = () => (
-  <Icon>
-    <circle cx="11" cy="11" r="6.5" />
-    <path d="M20 20l-4.5-4.5" />
-  </Icon>
+const BookIcon = () => (
+  <Svg size={30} stroke="#D93A68" strokeWidth={2.2}>
+    <path d="M2 5.5A2.5 2.5 0 0 1 4.5 3H10a2 2 0 0 1 2 2v15a2 2 0 0 0-2-2H2z" />
+    <path d="M22 5.5A2.5 2.5 0 0 0 19.5 3H14a2 2 0 0 0-2 2v15a2 2 0 0 1 2-2h8z" />
+  </Svg>
 );
 const FlaskIcon = () => (
-  <Icon>
-    <path d="M9 3h6M10 3v6l-5 9a2 2 0 0 0 1.8 3h10.4a2 2 0 0 0 1.8-3l-5-9V3M8 15h8" />
-  </Icon>
+  <Svg size={30} stroke="#14907A" strokeWidth={2.2}>
+    <path d="M9 3h6" />
+    <path d="M10 3v6.5L4.5 19a1.5 1.5 0 0 0 1.3 2h12.4a1.5 1.5 0 0 0 1.3-2L14 9.5V3" />
+    <path d="M7.5 15h9" />
+  </Svg>
+);
+const ChevronIcon = () => (
+  <Svg size={20} stroke="#D93A68" strokeWidth={3}>
+    <path d="M9 6l6 6-6 6" />
+  </Svg>
+);
+const CheckIcon = () => (
+  <Svg size={22} stroke="#14907A" strokeWidth={3}>
+    <path d="M5 12.5l4.5 4.5L19 7.5" />
+  </Svg>
 );
 const ArrowIcon = () => (
-  <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-    <path d="M5 12h14M13 6l6 6-6 6" />
-  </svg>
-);
-const MouseIcon = () => (
-  <svg viewBox="0 0 32 40" width="34" height="42" fill="none" stroke={PURPLE} strokeWidth="3" strokeLinecap="round" aria-hidden="true">
-    <rect x="6" y="5" width="20" height="30" rx="10" />
-    <path d="M16 11v7" />
-    <path d="M1 14c-1 5 0 10 2 14M31 14c1 5 0 10-2 14" />
-  </svg>
-);
-const JoystickIcon = () => (
-  <svg viewBox="0 0 40 40" width="42" height="42" fill="none" stroke={PURPLE} strokeWidth="3" aria-hidden="true">
-    <circle cx="20" cy="20" r="16" />
-    <circle cx="20" cy="20" r="6" fill={PURPLE} />
-  </svg>
-);
-const DragIcon = () => (
-  <svg viewBox="0 0 40 40" width="42" height="42" fill="none" stroke={PURPLE} strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-    <path d="M6 20h28M12 13l-6 7 6 7M28 13l6 7-6 7" />
-  </svg>
-);
-const TapIcon = ({ fill = false }: { fill?: boolean }) => (
-  <svg viewBox="0 0 40 40" width="42" height="42" fill="none" stroke={PURPLE} strokeWidth="3" aria-hidden="true">
-    <circle cx="20" cy="20" r="15" strokeDasharray="4 5" />
-    <circle cx="20" cy="20" r="6" fill={fill ? PURPLE : 'none'} />
-  </svg>
+  <Svg size={24} stroke="currentColor" strokeWidth={3}>
+    <path d="M5 12h14" />
+    <path d="M13 6l6 6-6 6" />
+  </Svg>
 );
 
-/** Pip робот: толгой нь цагаан хүрээтэй, дотор нь хар хөх нүүр, цэнхэрлэг нүд, дээр нь антен */
-function PipFace() {
+/* ---------- Pip робот, колбо ---------- */
+
+const EYE = { width: 12, height: 20, borderRadius: 7, background: '#5CF2C8' } as const;
+
+function PipHero() {
   return (
-    <svg viewBox="0 0 80 84" width="78" height="82" aria-hidden="true">
-      <circle cx="40" cy="9" r="6.5" fill="#5bb8a8" />
-      <rect x="3" y="16" width="74" height="64" rx="24" fill="#fff" stroke="#e1dafa" strokeWidth="4" />
-      <rect x="14" y="29" width="52" height="40" rx="17" fill={INK} />
-      <rect x="26" y="42" width="9" height="14" rx="4.5" fill="#6ee7d0" />
-      <rect x="45" y="42" width="9" height="14" rx="4.5" fill="#6ee7d0" />
-    </svg>
-  );
-}
-
-/* ---------- Алхам, товчны картууд ---------- */
-
-function StepCard({ n, title, text, bg, tile, tileText, numColor, icon }: { n: number; title: string; text: string; bg: string; tile: string; tileText: string; numColor: string; icon: ReactNode }) {
-  return (
-    <li className="rounded-2xl p-4" style={{ background: bg }}>
-      <div className="flex items-start justify-between">
-        <span className="flex h-11 w-11 items-center justify-center rounded-xl" style={{ background: tile, color: tileText }}>
-          {icon}
-        </span>
-        <span className="font-display text-2xl font-extrabold" style={{ color: numColor }}>
-          {n}
-        </span>
+    <div aria-hidden="true" style={{ position: 'relative', display: 'flex', alignItems: 'flex-end', gap: 18, flexShrink: 0 }}>
+      <div className="wc-bob" style={{ position: 'relative', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+        <div style={{ position: 'relative', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+          <div className="wc-glow" style={{ width: 16, height: 16, borderRadius: '50%', background: '#FFC93C' }} />
+          <div style={{ width: 4, height: 12, background: '#FFFFFF' }} />
+        </div>
+        <div style={{ position: 'relative', width: 104, height: 84, borderRadius: 28, background: '#FFFFFF', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 6px 0 #C9BDFF' }}>
+          <div style={{ width: 82, height: 56, borderRadius: 20, background: NIGHT, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
+            <div style={{ display: 'flex', gap: 16 }}>
+              <div className="wc-blink" style={EYE} />
+              <div className="wc-blink" style={EYE} />
+            </div>
+            <div style={{ width: 18, height: 8, borderRadius: '0 0 10px 10px', background: '#FF8FB0' }} />
+          </div>
+          <div className="wc-wave" style={{ position: 'absolute', right: -16, top: 36, width: 14, height: 34, borderRadius: 8, background: '#FFFFFF' }} />
+          <div style={{ position: 'absolute', left: -12, top: 40, width: 14, height: 28, borderRadius: 8, background: '#FFFFFF' }} />
+        </div>
       </div>
-      <div className="mt-3 font-display text-base font-bold" style={{ color: INK }}>
-        {title}
+
+      <div style={{ position: 'relative', width: 70, height: 96 }}>
+        <div className="wc-rise" style={{ position: 'absolute', left: 22, bottom: 60, width: 12, height: 12, borderRadius: '50%', background: '#5CF2C8' }} />
+        <div className="wc-rise" style={{ position: 'absolute', left: 38, bottom: 60, width: 9, height: 9, borderRadius: '50%', background: '#FFC93C', animationDelay: '-.8s' }} />
+        <div className="wc-rise" style={{ position: 'absolute', left: 30, bottom: 60, width: 7, height: 7, borderRadius: '50%', background: '#FF8FB0', animationDelay: '-1.6s' }} />
+        <svg width="70" height="96" viewBox="0 0 70 96" style={{ position: 'absolute', left: 0, bottom: 0 }}>
+          <defs>
+            <clipPath id="wc-flask-clip">
+              <path d="M25 30h20v18l18 34a8 8 0 0 1-7 12H14a8 8 0 0 1-7-12l18-34z" />
+            </clipPath>
+          </defs>
+          <g clipPath="url(#wc-flask-clip)">
+            <g className="wc-liquid">
+              <path d="M0 64 Q10 58 20 64 T40 64 T60 64 T80 64 V100 H0z" fill="#2BC6A0" />
+            </g>
+          </g>
+          <path d="M25 30h20v18l18 34a8 8 0 0 1-7 12H14a8 8 0 0 1-7-12l18-34z" fill="none" stroke="#FFFFFF" strokeWidth="4" strokeLinejoin="round" />
+          <path d="M21 30h28" stroke="#FFFFFF" strokeWidth="4" strokeLinecap="round" />
+        </svg>
       </div>
-      <p className="mt-1 text-xs leading-snug text-slate-500">{text}</p>
-    </li>
+    </div>
   );
 }
 
-/** Гарын товч (товчлуурын хэлбэртэй) */
-function Cap({ children, accent = false }: { children: ReactNode; accent?: boolean }) {
-  return (
-    <span
-      className="inline-flex h-8 min-w-[2rem] items-center justify-center rounded-lg border-2 px-2 font-display text-sm font-bold"
-      style={accent ? { background: '#f7c357', borderColor: '#d9a03b', color: INK, boxShadow: '0 2px 0 #d9a03b' } : { background: '#fff', borderColor: '#ddd6f6', color: INK, boxShadow: '0 2px 0 #ddd6f6' }}
-    >
-      {children}
-    </span>
-  );
-}
-
-function KeyCard({ label, children }: { label: string; children: ReactNode }) {
-  return (
-    <li className="flex flex-col items-center justify-between gap-2 rounded-2xl border-2 bg-white px-2 pb-3 pt-3" style={{ borderColor: LINE }}>
-      <div className="flex min-h-[5rem] flex-col items-center justify-center gap-1">{children}</div>
-      <span className="font-display text-sm font-bold" style={{ color: INK }}>
-        {label}
-      </span>
-    </li>
-  );
-}
-
-/** Дэвсгэрийн чимэглэл (молекул, колбо) — зөвхөн өргөн дэлгэцэн дээр харагдана */
+/** Дэвсгэрийн чимэглэл (хөвөх дугуй) — зөвхөн өргөн дэлгэцэн дээр харагдана */
 function Decor() {
+  const dots: { s: CSSProperties; d?: string }[] = [
+    { s: { left: -130, top: 60, width: 84, height: 84, borderRadius: '50%', background: '#FF5C8A' } },
+    { s: { left: -80, top: 190, width: 44, height: 44, borderRadius: '50%', background: '#FFC93C' }, d: '-2s' },
+    { s: { right: -120, top: 380, width: 72, height: 72, borderRadius: '50%', background: '#2BC6A0' }, d: '-3s' },
+    { s: { right: -80, top: 500, width: 38, height: 38, borderRadius: 12, background: '#3D8BFF' }, d: '-1s' },
+    { s: { left: -110, top: 600, width: 52, height: 52, borderRadius: 16, background: '#FF8A3D' }, d: '-4s' },
+  ];
   return (
     <div className="pointer-events-none absolute inset-0 hidden xl:block" aria-hidden="true">
-      <svg className="absolute -left-44 top-24" viewBox="0 0 150 170" width="150" height="170">
-        <path d="M28 28L104 74L76 138" stroke="#d3c9fb" strokeWidth="7" strokeLinecap="round" fill="none" />
-        <circle cx="28" cy="28" r="28" fill="#f29ca8" />
-        <circle cx="104" cy="74" r="38" fill="#8e7bfa" />
-        <circle cx="76" cy="138" r="22" fill="#93e7d6" />
-      </svg>
-      <svg className="absolute -right-32 bottom-28" viewBox="0 0 170 160" width="150" height="141">
-        <path d="M30 50L115 40L125 125" stroke="#d3c9fb" strokeWidth="7" strokeLinecap="round" fill="none" />
-        <circle cx="30" cy="50" r="26" fill="#f7c95f" />
-        <circle cx="115" cy="40" r="36" fill="#5fbaab" />
-        <circle cx="125" cy="125" r="28" fill="#f29ca8" />
-      </svg>
-      <svg className="absolute -right-14 top-2" viewBox="0 0 90 120" width="86" height="115">
-        <path d="M20 90H70L77 100Q80 106 72 106H18Q10 106 13 100Z" fill="#a8e4e0" />
-        <path d="M30 14V46L10 98Q6 108 18 108H72Q84 108 80 98L60 46V14M24 14H66" fill="none" stroke="#b9aaf9" strokeWidth="8" strokeLinecap="round" strokeLinejoin="round" />
-      </svg>
+      {dots.map((x, i) => (
+        <div key={i} className="wc-float" style={{ position: 'absolute', ...x.s, animationDelay: x.d }} />
+      ))}
     </div>
+  );
+}
+
+/* ---------- Горимын карт ---------- */
+
+interface ModeCardProps {
+  title: string;
+  titleColor: string;
+  bg: string;
+  shade: string;
+  blob: string;
+  dot: CSSProperties;
+  icon: ReactNode;
+  trailing?: ReactNode;
+  selected?: boolean;
+  pressed?: boolean;
+  onClick: () => void;
+}
+
+function ModeCard({ title, titleColor, bg, shade, blob, dot, icon, trailing, selected = false, pressed, onClick }: ModeCardProps) {
+  return (
+    <button
+      type="button"
+      className="wc-lift focus-ring"
+      aria-pressed={pressed}
+      onClick={onClick}
+      style={{
+        position: 'relative',
+        overflow: 'hidden',
+        boxSizing: 'border-box',
+        minHeight: 200,
+        padding: 26,
+        borderRadius: 28,
+        display: 'flex',
+        flexDirection: 'column',
+        justifyContent: 'space-between',
+        alignItems: 'flex-start',
+        textAlign: 'left',
+        cursor: 'pointer',
+        color: titleColor,
+        background: bg,
+        border: `4px solid ${selected ? NIGHT : 'transparent'}`,
+        boxShadow: `0 8px 0 ${selected ? NIGHT : shade}`,
+      }}
+    >
+      <span aria-hidden="true" style={{ position: 'absolute', right: -30, bottom: -30, width: 130, height: 130, borderRadius: '50%', background: blob }} />
+      <span aria-hidden="true" style={{ position: 'absolute', right: 70, top: 22, width: 18, height: 18, ...dot }} />
+      <span style={{ position: 'relative', width: 60, height: 60, borderRadius: 20, background: '#FFFFFF', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>{icon}</span>
+      <span style={{ position: 'relative', display: 'flex', width: '100%', justifyContent: 'space-between', alignItems: 'center', gap: 12 }}>
+        <span style={{ fontSize: 28, fontWeight: 900, lineHeight: 1.15 }}>{title}</span>
+        <span style={{ width: 40, height: 40, flexShrink: 0, borderRadius: '50%', background: '#FFFFFF', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>{trailing}</span>
+      </span>
+    </button>
   );
 }
 
 /* ---------- Үндсэн карт ---------- */
 
-export function WelcomeCard({ onEnter, onShowKeys, onOpenSettings, progress, label, complete }: WelcomeCardProps) {
-  const bindings = useSettingsStore((s) => s.bindings);
-  const lookMode = useSettingsStore((s) => s.lookMode);
-  // Утас/таблет дээр "Мэдрэгч дэлгэц" автоматаар сонгогдоно
-  const [input, setInput] = useState<'keyboard' | 'touch'>(isTouchDevice() ? 'touch' : 'keyboard');
-  const touch = input === 'touch';
-  // "Лабораторид орох" товч дээр фокус тавина (Enter дарахад орно), гэхдээ дэлгэцийг доош гүйлгэхгүй —
-  // утсан дээр Pip-ийн толгой хэсэг эхэндээ харагдах ёстой
-  const enterRef = useRef<HTMLButtonElement>(null);
-  useEffect(() => {
-    enterRef.current?.focus({ preventScroll: true });
-  }, []);
+export function WelcomeCard({ onEnter, progress, label, complete }: WelcomeCardProps) {
+  // mode: null = юу ч сонгоогүй, 'free' = Чөлөөт туршилт, 'grade' = Хичээлийн туршилт (Анги → Бүлэг → Сэдэв → Туршилт)
+  const [mode, setMode] = useState<'free' | 'grade' | null>(null);
+  const [grade, setGrade] = useState<number | null>(null);
+  const [chapter, setChapter] = useState<number | null>(null);
+  const [experiment, setExperiment] = useState<TextbookExperiment | null>(null);
+  const freeOn = mode === 'free';
+  const gradeOpen = mode === 'grade';
+  // Хичээлийн туршилтыг эхлүүлэхэд 3D лаборатори бүрэн ачаалагдсан (багажийн хөдөлгүүр бэлэн) байх ёстой
+  const canEnter = freeOn || (gradeOpen && experiment !== null && complete);
+  const waitingForLab = gradeOpen && experiment !== null && !complete;
+
+  const openGrade = () => {
+    setMode('grade');
+    setGrade(null);
+    setChapter(null);
+    setExperiment(null);
+  };
+  const back = () => {
+    setMode(null);
+    setGrade(null);
+    setChapter(null);
+    setExperiment(null);
+  };
+  const enter = () => {
+    onEnter();
+    if (gradeOpen && experiment) {
+      // Лабын хүнд кодыг (багаж, ширээ) нээлтийн дэлгэцийн үндсэн багцад оруулахгүйн тулд дарсан үед л ачаална
+      void import('../menu/startExperiment').then((m) => m.startTextbookExperiment(experiment));
+    }
+  };
 
   return (
-    <div className="relative my-auto w-full max-w-3xl self-start">
+    <div className="relative my-auto w-full max-w-[920px] self-start font-display" style={{ color: INK }}>
+      <style>{CSS}</style>
       <Decor />
       <section
-        className="relative rounded-[28px] bg-white p-5 sm:p-10"
-        style={{ boxShadow: '0 28px 70px -24px rgba(76,52,190,0.4)', color: INK }}
+        className="relative flex flex-col"
+        style={{ gap: 26, background: '#FFFFFF', borderRadius: 36, boxShadow: '0 12px 0 #DCD3FF, 0 40px 80px rgba(91,61,245,0.16)', padding: 18, boxSizing: 'border-box' }}
         aria-labelledby="welcome-title"
       >
         {/* Толгой хэсэг */}
-        <header className="flex items-center gap-4 sm:gap-5">
-          <div className="shrink-0">
-            <PipFace />
-          </div>
-          <div>
-            <div className="text-xs font-extrabold uppercase tracking-wider" style={{ color: PURPLE }}>
-              OpenLab 3D · Анхан шат
-            </div>
-            <h1 id="welcome-title" className="font-display text-2xl font-extrabold leading-tight sm:text-[2rem]">
-              Химийн лабораторид тавтай морил!
-            </h1>
-          </div>
+        <header style={{ position: 'relative', overflow: 'hidden', borderRadius: 28, background: PURPLE, padding: '28px clamp(20px, 4vw, 40px)', display: 'flex', alignItems: 'center', gap: 24, flexWrap: 'wrap', minHeight: 180, boxSizing: 'border-box' }}>
+          <div aria-hidden="true" style={{ position: 'absolute', right: -40, top: -50, width: 200, height: 200, borderRadius: '50%', background: '#7A60FF' }} />
+          <div aria-hidden="true" style={{ position: 'absolute', left: '40%', bottom: -60, width: 140, height: 140, borderRadius: '50%', background: '#6C51FB' }} />
+          <div aria-hidden="true" className="wc-float" style={{ position: 'absolute', left: '52%', top: 22, width: 14, height: 14, borderRadius: '50%', background: '#FFC93C' }} />
+          <div aria-hidden="true" className="wc-float" style={{ position: 'absolute', left: '60%', bottom: 26, width: 10, height: 10, borderRadius: '50%', background: '#FF8FB0', animationDelay: '-2s' }} />
+          <h1 id="welcome-title" style={{ position: 'relative', margin: 0, flex: '1 1 300px', fontSize: 'clamp(30px, 5vw, 46px)', lineHeight: 1.08, fontWeight: 900, color: '#FFFFFF' }}>
+            Туршилтын төрлөө
+            <br />
+            сонгоно уу
+          </h1>
+          <PipHero />
         </header>
-        <p className="mt-2 text-sm text-slate-500 sm:ml-[6.1rem]">Би Pip байна. Багаж олж, бодис холиод, урвалыг өөрийн нүдээр харцгаая.</p>
 
-        {/* 3 алхам */}
-        <ol className="mt-6 grid gap-3 sm:grid-cols-3">
-          <StepCard n={1} title="Хамгаалалт өмс" text="Нүдний шил, бээлийгээ хамгийн түрүүнд" bg="#fef3d6" tile="#f7c357" tileText="#6b4a00" numColor="#a77a12" icon={<ShieldIcon />} />
-          <StepCard n={2} title="Багаж ол" text="Шар өнгөөр гэрэлтэж буй зүйлийг дага" bg="#dff4f1" tile="#5bb8a8" tileText="#164a41" numColor="#2f7f72" icon={<SearchIcon />} />
-          <StepCard n={3} title="Туршилт хий" text="Холи, халаа, өнгө ба хийг ажигла" bg="#ebe6fd" tile={PURPLE} tileText="#ffffff" numColor={PURPLE} icon={<FlaskIcon />} />
-        </ol>
-
-        {/* Үндсэн удирдлага */}
-        <div className="mt-6 flex flex-wrap items-center justify-between gap-3">
-          <h2 className="font-display text-base font-extrabold">Үндсэн удирдлага</h2>
-          <div className="flex rounded-full p-1" style={{ background: '#f1eefd' }} role="group" aria-label="Удирдлагын төрөл">
-            {(
-              [
-                ['keyboard', 'Гар, хулгана'],
-                ['touch', 'Мэдрэгч дэлгэц'],
-              ] as const
-            ).map(([key, text]) => (
-              <button
-                key={key}
-                type="button"
-                aria-pressed={input === key}
-                onClick={() => setInput(key)}
-                className="focus-ring rounded-full px-4 py-2 font-display text-xs font-bold transition"
-                style={input === key ? { background: PURPLE, color: '#fff', boxShadow: '0 4px 12px -2px rgba(107,78,255,0.5)' } : { color: '#5b557d' }}
-              >
-                {text}
-              </button>
-            ))}
-          </div>
-        </div>
-
-        <ul className="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-4">
-          {touch ? (
-            <>
-              <KeyCard label="Алхах">
-                <JoystickIcon />
-              </KeyCard>
-              <KeyCard label="Эргэн харах">
-                <DragIcon />
-              </KeyCard>
-              <KeyCard label="Авах / тавих">
-                <TapIcon />
-              </KeyCard>
-              <KeyCard label="Ашиглах">
-                <TapIcon fill />
-              </KeyCard>
-            </>
+        <div style={{ padding: '0 clamp(4px, 2vw, 22px) 22px', display: 'flex', flexDirection: 'column', gap: 26 }}>
+          {/* Горим сонгох. "Хичээлийн туршилт" дарахад хоёр карт алга болж, оронд нь Анги сонголт гарна */}
+          {!gradeOpen ? (
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: 18 }}>
+              <ModeCard
+                title="Хичээлийн туршилт"
+                titleColor="#3A0B1C"
+                bg="#FF5C8A"
+                shade="#D93A68"
+                blob="#FF7FA3"
+                dot={{ borderRadius: '50%', background: '#FFC93C' }}
+                icon={<BookIcon />}
+                trailing={<ChevronIcon />}
+                onClick={openGrade}
+              />
+              <ModeCard
+                title="Чөлөөт туршилт"
+                titleColor="#06302A"
+                bg="#2BC6A0"
+                shade="#14907A"
+                blob="#5ED8B9"
+                dot={{ borderRadius: 6, background: '#FFFFFF' }}
+                icon={<FlaskIcon />}
+                trailing={freeOn ? <CheckIcon /> : null}
+                selected={freeOn}
+                pressed={freeOn}
+                onClick={() => setMode(freeOn ? null : 'free')}
+              />
+            </div>
           ) : (
-            <>
-              <KeyCard label="Алхах">
-                <Cap>{keyLabel(bindings.forward[0])}</Cap>
-                <div className="flex gap-1">
-                  <Cap>{keyLabel(bindings.left[0])}</Cap>
-                  <Cap>{keyLabel(bindings.backward[0])}</Cap>
-                  <Cap>{keyLabel(bindings.right[0])}</Cap>
-                </div>
-              </KeyCard>
-              <KeyCard label="Эргэн харах">
-                {lookMode === 'mouse' ? (
-                  <MouseIcon />
-                ) : (
-                  <div className="flex gap-1">
-                    <Cap>{keyLabel(bindings.turnLeft[0])}</Cap>
-                    <Cap>{keyLabel(bindings.turnRight[0])}</Cap>
-                  </div>
-                )}
-              </KeyCard>
-              <KeyCard label="Авах / тавих">
-                <Cap>{promptKey('interact', bindings, lookMode)}</Cap>
-              </KeyCard>
-              <KeyCard label="Ашиглах">
-                <Cap accent>{keyLabel(bindings.pour[0])}</Cap>
-              </KeyCard>
-            </>
+            <LessonPicker
+              grade={grade}
+              chapter={chapter}
+              experiment={experiment}
+              onBack={back}
+              onGrade={(picked) => {
+                setGrade(picked);
+                setChapter(null);
+                setExperiment(null);
+              }}
+              onChapter={(index) => {
+                setChapter(index);
+                setExperiment(null);
+              }}
+              onExperiment={setExperiment}
+            />
           )}
-        </ul>
-        <p className="mt-3 text-xs text-slate-500">Бусад товчийг лабораторид хэрэгтэй үед нь Pip зааж өгнө.</p>
 
-        {/* Орох товч */}
-        <button
-          type="button"
-          className="focus-ring mt-5 flex w-full items-center justify-center gap-2 rounded-2xl py-4 font-display text-lg font-extrabold transition hover:brightness-105 active:translate-y-[3px]"
-          style={{ background: '#f7c357', color: INK, boxShadow: '0 5px 0 #d9a03b' }}
-          onClick={onEnter}
-          ref={enterRef}
-        >
-          Лабораторид орох
-          <ArrowIcon />
-        </button>
-        <div className="mt-3 grid grid-cols-2 gap-3">
-          <button type="button" className="focus-ring rounded-xl border-2 bg-white py-3 font-display text-sm font-bold transition hover:bg-[#f7f5ff]" style={{ borderColor: LINE }} onClick={onShowKeys}>
-            Бүх товчлуур харах
+          {/* Орох товч */}
+          <button
+            type="button"
+            disabled={!canEnter}
+            onClick={enter}
+            className={`focus-ring ${canEnter ? 'wc-lift wc-pulse' : ''}`}
+            style={{
+              height: 72,
+              width: '100%',
+              borderRadius: 24,
+              border: 'none',
+              fontSize: 22,
+              fontWeight: 900,
+              fontFamily: 'inherit',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: 12,
+              ...(canEnter
+                ? { background: '#FFC93C', color: INK, boxShadow: '0 8px 0 #D9A21C', cursor: 'pointer' }
+                : { background: '#F1EEF8', color: MUTED, boxShadow: '0 8px 0 #E2DEEE', cursor: 'not-allowed' }),
+            }}
+          >
+            {waitingForLab ? 'Лаборатори ачаалж байна…' : 'Лабораторид орох'}
+            <ArrowIcon />
           </button>
-          <button type="button" className="focus-ring rounded-xl border-2 bg-white py-3 font-display text-sm font-bold transition hover:bg-[#f7f5ff]" style={{ borderColor: LINE }} onClick={onOpenSettings}>
-            Тохиргоо
-          </button>
-        </div>
 
-        {/* 3D лаборатори ард ачаалагдаж буй явц (хуучин картад байсан) */}
-        <div className="mt-4 flex items-center gap-3 text-xs text-slate-400" aria-live="polite">
-          <div className="h-1.5 flex-1 overflow-hidden rounded-full" style={{ background: '#eeeaf9' }} role="progressbar" aria-valuemin={0} aria-valuemax={100} aria-valuenow={Math.round(progress * 100)} aria-label="3D лабораторийг ард ачаалж байна">
-            <div className="h-full rounded-full transition-[width] duration-300 ease-out" style={{ background: '#f7c357', width: `${Math.max(4, progress * 100)}%` }} />
+          {/* 3D лаборатори ард ачаалагдаж буй явц */}
+          <div>
+            <div className="flex items-center gap-3 text-xs" style={{ color: MUTED }} aria-live="polite">
+              <div className="h-1.5 flex-1 overflow-hidden rounded-full" style={{ background: '#EFEAFF' }} role="progressbar" aria-valuemin={0} aria-valuemax={100} aria-valuenow={Math.round(progress * 100)} aria-label="3D лабораторийг ард ачаалж байна">
+                <div className="h-full rounded-full transition-[width] duration-300 ease-out" style={{ background: '#FFC93C', width: `${Math.max(4, progress * 100)}%` }} />
+              </div>
+              <span>{complete ? 'Бэлэн' : `${label}…`}</span>
+            </div>
+            <p className="mt-2 text-center text-xs" style={{ color: MUTED }}>
+              {isTouchDevice() ? 'Зүүн доод талын joystick-оор алхаж, баруун талд чирж эргэн харна.' : 'Эргэн харахад хулгана түгжигдэнэ — хүссэн үедээ Esc дарж чөлөөлнө.'}
+            </p>
           </div>
-          <span>{complete ? 'Бэлэн' : `${label}…`}</span>
         </div>
-        <p className="mt-2 text-center text-xs text-slate-400">{isTouchDevice() ? 'Зүүн доод талын joystick-оор алхаж, баруун талд чирж эргэн харна.' : 'Эргэн харахад хулгана түгжигдэнэ — хүссэн үедээ Esc дарж чөлөөлнө.'}</p>
       </section>
     </div>
   );
