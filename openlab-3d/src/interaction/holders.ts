@@ -29,25 +29,26 @@ export type StorageCategory =
 
 export type HolderType = 'drawer' | 'cabinet' | 'rack';
 
+// Шошгоны өнгө: пастел загвар (ХҮЧИЛ, ШҮЛТ, ЗААГЧ нь дизайны самбараас; бусад нь өөрийн өнгөний цайвар хувилбар)
 export const STORAGE_INFO: Record<StorageCategory, { label: string; color: string; type: HolderType; hint: string }> = {
-  smallTools: { label: 'Жижиг багаж', color: '#64748b', type: 'drawer', hint: 'Спатель, хутгуур, пипетк, хавчаар, нихром утас, pH цаас' },
-  glassware: { label: 'Шилэн сав', color: '#0ea5e9', type: 'drawer', hint: 'Химийн аяга, колб, цагийн шил, юүлүүр' },
-  heating: { label: 'Халаах', color: '#ea580c', type: 'drawer', hint: 'Гурван хөлт тавиур, ууршуулах аяга, хавчаар' },
-  measuring: { label: 'Хэмжих багаж', color: '#7c3aed', type: 'drawer', hint: 'Термометр, хэмжээст цилиндр, хэмжээст колб, pH цаас' },
-  tubes: { label: 'Хуруу шил', color: '#0891b2', type: 'drawer', hint: 'Хуруу шил ба тавиур' },
-  safety: { label: 'Хамгаалалт', color: '#16a34a', type: 'drawer', hint: 'Хамгаалалтын шил, бээлий' },
-  filtration: { label: 'Шүүх, нунтаглах', color: '#a16207', type: 'drawer', hint: 'Юүлүүр, нунтаглуур, хутгуур' },
-  dishes: { label: 'Аяга, таваг', color: '#0d9488', type: 'drawer', hint: 'Петрийн аяга, цагийн шил, ууршуулах аяга' },
-  acids: { label: 'ХҮЧИЛ', color: '#dc2626', type: 'cabinet', hint: 'HCl, H₂SO₄, CH₃COOH' },
-  bases: { label: 'ШҮЛТ', color: '#2563eb', type: 'cabinet', hint: 'NaOH, NH₃, Ca(OH)₂, Na₂CO₃' },
-  salts: { label: 'ДАВСНЫ УУСМАЛ', color: '#16a34a', type: 'cabinet', hint: 'NaCl, KCl, CuSO₄, FeCl₃, KI …' },
-  indicators: { label: 'ЗААГЧ', color: '#db2777', type: 'cabinet', hint: 'Фенолфталеин, метилоранж, БТЦ, универсаль, цардуул, иод' },
-  solidSalts: { label: 'ХАТУУ ДАВС', color: '#78716c', type: 'cabinet', hint: 'NaCl, CuSO₄, сод, гантиг, NH₄NO₃, элсэн чихэр' },
-  metals: { label: 'МЕТАЛЛ, ХАТУУ', color: '#475569', type: 'cabinet', hint: 'Zn, Mg, Fe, Cu, MnO₂, KMnO₄, NaOH' },
-  special: { label: 'ТУСГАЙ УРВАЛЖ', color: '#7e22ce', type: 'cabinet', hint: 'AgNO₃, Pb(NO₃)₂, KSCN, KMnO₄, H₂O₂, саван' },
-  waterDyes: { label: 'УС, БУДАГ', color: '#0284c7', type: 'cabinet', hint: 'Нэрмэл ус, угаалгын сав, хүнсний будаг' },
-  flammables: { label: 'ШАТАМХАЙ', color: '#ca8a04', type: 'cabinet', hint: 'Этанол' },
-  rack: { label: 'Тавиур', color: '#64748b', type: 'rack', hint: 'Хуруу шил' },
+  smallTools: { label: 'Жижиг багаж', color: '#a3adbf', type: 'drawer', hint: 'Спатель, хутгуур, пипетк, хавчаар, нихром утас, pH цаас' },
+  glassware: { label: 'Шилэн сав', color: '#8fcbe8', type: 'drawer', hint: 'Химийн аяга, колб, цагийн шил, юүлүүр' },
+  heating: { label: 'Халаах', color: '#f4b08a', type: 'drawer', hint: 'Гурван хөлт тавиур, ууршуулах аяга, хавчаар' },
+  measuring: { label: 'Хэмжих багаж', color: '#c3b0e6', type: 'drawer', hint: 'Термометр, хэмжээст цилиндр, хэмжээст колб, pH цаас' },
+  tubes: { label: 'Хуруу шил', color: '#8fd0d8', type: 'drawer', hint: 'Хуруу шил ба тавиур' },
+  safety: { label: 'Хамгаалалт', color: '#a6dcb4', type: 'drawer', hint: 'Хамгаалалтын шил, бээлий' },
+  filtration: { label: 'Шүүх, нунтаглах', color: '#ddbf8a', type: 'drawer', hint: 'Юүлүүр, нунтаглуур, хутгуур' },
+  dishes: { label: 'Аяга, таваг', color: '#93d6c9', type: 'drawer', hint: 'Петрийн аяга, цагийн шил, ууршуулах аяга' },
+  acids: { label: 'ХҮЧИЛ', color: '#f6cfb6', type: 'cabinet', hint: 'HCl, H₂SO₄, CH₃COOH' },
+  bases: { label: 'ШҮЛТ', color: '#6f97b4', type: 'cabinet', hint: 'NaOH, NH₃, Ca(OH)₂, Na₂CO₃' },
+  salts: { label: 'ДАВСНЫ УУСМАЛ', color: '#b2dfbb', type: 'cabinet', hint: 'NaCl, KCl, CuSO₄, FeCl₃, KI …' },
+  indicators: { label: 'ЗААГЧ', color: '#f2dc7c', type: 'cabinet', hint: 'Фенолфталеин, метилоранж, БТЦ, универсаль, цардуул, иод' },
+  solidSalts: { label: 'ХАТУУ ДАВС', color: '#c5bdb6', type: 'cabinet', hint: 'NaCl, CuSO₄, сод, гантиг, NH₄NO₃, элсэн чихэр' },
+  metals: { label: 'МЕТАЛЛ, ХАТУУ', color: '#97a1b1', type: 'cabinet', hint: 'Zn, Mg, Fe, Cu, MnO₂, KMnO₄, NaOH' },
+  special: { label: 'ТУСГАЙ УРВАЛЖ', color: '#c9a6e3', type: 'cabinet', hint: 'AgNO₃, Pb(NO₃)₂, KSCN, KMnO₄, H₂O₂, саван' },
+  waterDyes: { label: 'УС, БУДАГ', color: '#8fc0e0', type: 'cabinet', hint: 'Нэрмэл ус, угаалгын сав, хүнсний будаг' },
+  flammables: { label: 'ШАТАМХАЙ', color: '#edcf7f', type: 'cabinet', hint: 'Этанол' },
+  rack: { label: 'Тавиур', color: '#a3adbf', type: 'rack', hint: 'Хуруу шил' },
 };
 
 export const HOLDER_CAPACITY: Record<HolderType, number> = { drawer: 8, cabinet: 12, rack: 6 };

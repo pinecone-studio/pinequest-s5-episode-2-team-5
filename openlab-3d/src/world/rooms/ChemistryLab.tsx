@@ -178,6 +178,7 @@ export default function ChemistryLab() {
       <FlammablesCabinet position={[9.65, 0, -7.3]} rotY={-Math.PI / 2} />
       <SafetyShower id="chem-shower" position={[9.35, 0, -4.1]} rotY={-Math.PI / 2} />
       <Stools
+        color="#ff8be9"
         positions={[
           [0.6, -6.15],
           [2.6, -6.15],
