@@ -104,7 +104,7 @@ export function Player() {
     const game = useGameStore.getState();
     const settings = useSettingsStore.getState();
     const canMove = game.mode === 'walk' && !usePresentation.getState().modal;
-    // drei's key state also sees letters typed into Pip's chat or the notebook: those are text, not walking or jumping.
+    // drei's key state also sees letters typed into Star's chat or the notebook: those are text, not walking or jumping.
     const keys = isTyping(document.activeElement) ? NO_KEYS : getKeys();
 
     // Keyboard turning (keyboard-turn look mode).

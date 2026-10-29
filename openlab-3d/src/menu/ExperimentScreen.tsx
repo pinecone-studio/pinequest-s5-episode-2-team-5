@@ -67,7 +67,7 @@ export function ExperimentScreen({ experiment, guided, onStart }: ExperimentScre
 
         {!guided && (
           <p className="mt-4 rounded-2xl bg-t-card p-4 text-sm leading-relaxed text-t-ink-soft">
-            Энэ туршилтын алхамчилсан заавар удахгүй нэмэгдэнэ. Одоохондоо чөлөөт лабораторид өөрөө туршиж үзэхэд Pip бодис, хэрэгслийг хэлж өгнө.
+            Энэ туршилтын алхамчилсан заавар удахгүй нэмэгдэнэ. Одоохондоо чөлөөт лабораторид өөрөө туршиж үзэхэд Star бодис, хэрэгслийг хэлж өгнө.
           </p>
         )}
       </div>

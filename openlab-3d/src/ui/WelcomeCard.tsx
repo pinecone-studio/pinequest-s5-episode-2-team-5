@@ -1,5 +1,5 @@
 /**
- * Нээлтийн дэлгэц: "OpenLab — туршилт сонгох" дизайн (Pip, Анги / Чөлөөт горим карт, "Лабораторид орох" товч).
+ * Нээлтийн дэлгэц: "OpenLab — туршилт сонгох" дизайн (Star туслах, Анги / Чөлөөт горим карт, "Лабораторид орох" товч).
  * Алхам 1 — зөвхөн харагдах байдал. "Анги" карт (Анги → Бүлэг → Туршилт сонголт) дараагийн алхамд идэвхжинэ.
  * LoadingScreen-ийн хуучин картыг устгаагүй — LoadingScreen дотор NEW_START_DESIGN-ээр сольж харуулна.
  */
@@ -7,6 +7,7 @@ import { useState, type CSSProperties, type ReactNode } from 'react';
 import type { TextbookExperiment } from '../menu/chapterBuild';
 import { isTouchDevice } from '../utils/device';
 import { LessonPicker } from './LessonPicker';
+import { StarFace } from './StarFace';
 
 // Өнгөнүүд (дизайны самбараас авсан)
 const INK = '#1C1A3A'; // хар хөх бичиг
@@ -28,18 +29,14 @@ interface WelcomeCardProps {
 // Хөдөлгөөн. "Хөдөлгөөн багасгах" сонгосон үед бүгд зогсоно.
 const CSS = `
 @keyframes wc-bob{0%,100%{transform:translateY(0)}50%{transform:translateY(-10px)}}
-@keyframes wc-blink{0%,90%,100%{transform:scaleY(1)}94%{transform:scaleY(.1)}}
 @keyframes wc-glow{0%,100%{box-shadow:0 0 0 0 rgba(255,201,60,.7)}50%{box-shadow:0 0 0 10px rgba(255,201,60,0)}}
-@keyframes wc-wave{0%,60%,100%{transform:rotate(0)}70%{transform:rotate(-25deg)}80%{transform:rotate(10deg)}90%{transform:rotate(-20deg)}}
 @keyframes wc-rise{0%{transform:translateY(0) scale(.5);opacity:0}15%{opacity:1}100%{transform:translateY(-90px) scale(1.1);opacity:0}}
 @keyframes wc-float{0%,100%{transform:translateY(0) rotate(0)}50%{transform:translateY(-16px) rotate(8deg)}}
 @keyframes wc-liquid{0%,100%{transform:translateX(0)}50%{transform:translateX(-6px)}}
 @keyframes wc-pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.02)}}
 @keyframes wc-pop{from{opacity:0;transform:translateY(14px) scale(.98)}to{opacity:1;transform:none}}
 .wc-bob{animation:wc-bob 3s ease-in-out infinite}
-.wc-blink{animation:wc-blink 4s infinite;transform-origin:center}
 .wc-glow{animation:wc-glow 1.8s ease-out infinite}
-.wc-wave{animation:wc-wave 3.2s ease-in-out infinite;transform-origin:top center}
 .wc-rise{animation:wc-rise 2.4s ease-in infinite}
 .wc-float{animation:wc-float 6s ease-in-out infinite}
 .wc-liquid{animation:wc-liquid 2s ease-in-out infinite}
@@ -48,7 +45,7 @@ const CSS = `
 .wc-lift{transition:transform .18s cubic-bezier(.2,.9,.3,1.4),box-shadow .18s}
 .wc-lift:hover:not(:disabled):not([aria-disabled='true']){transform:translateY(-4px)}
 .wc-lift:active:not(:disabled):not([aria-disabled='true']){transform:translateY(2px)}
-@media (prefers-reduced-motion: reduce){.wc-bob,.wc-blink,.wc-glow,.wc-wave,.wc-rise,.wc-float,.wc-liquid,.wc-pulse,.wc-pop{animation:none}.wc-lift{transition:none}}
+@media (prefers-reduced-motion: reduce){.wc-bob,.wc-glow,.wc-rise,.wc-float,.wc-liquid,.wc-pulse,.wc-pop{animation:none}.wc-lift{transition:none}}
 `;
 
 /* ---------- Жижиг зургууд (SVG) ---------- */
@@ -91,29 +88,13 @@ const ArrowIcon = () => (
   </Svg>
 );
 
-/* ---------- Pip робот, колбо ---------- */
+/* ---------- Star туслах, колбо ---------- */
 
-const EYE = { width: 12, height: 20, borderRadius: 7, background: '#5CF2C8' } as const;
-
-function PipHero() {
+function StarHero() {
   return (
     <div aria-hidden="true" style={{ position: 'relative', display: 'flex', alignItems: 'flex-end', gap: 18, flexShrink: 0 }}>
-      <div className="wc-bob" style={{ position: 'relative', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-        <div style={{ position: 'relative', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-          <div className="wc-glow" style={{ width: 16, height: 16, borderRadius: '50%', background: '#FFC93C' }} />
-          <div style={{ width: 4, height: 12, background: '#FFFFFF' }} />
-        </div>
-        <div style={{ position: 'relative', width: 104, height: 84, borderRadius: 28, background: '#FFFFFF', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 6px 0 #C9BDFF' }}>
-          <div style={{ width: 82, height: 56, borderRadius: 20, background: NIGHT, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
-            <div style={{ display: 'flex', gap: 16 }}>
-              <div className="wc-blink" style={EYE} />
-              <div className="wc-blink" style={EYE} />
-            </div>
-            <div style={{ width: 18, height: 8, borderRadius: '0 0 10px 10px', background: '#FF8FB0' }} />
-          </div>
-          <div className="wc-wave" style={{ position: 'absolute', right: -16, top: 36, width: 14, height: 34, borderRadius: 8, background: '#FFFFFF' }} />
-          <div style={{ position: 'absolute', left: -12, top: 40, width: 14, height: 28, borderRadius: 8, background: '#FFFFFF' }} />
-        </div>
+      <div className="wc-bob">
+        <StarFace size={112} />
       </div>
 
       <div style={{ position: 'relative', width: 70, height: 96 }}>
@@ -264,7 +245,7 @@ export function WelcomeCard({ onEnter, progress, label, complete }: WelcomeCardP
             <br />
             сонгоно уу
           </h1>
-          <PipHero />
+          <StarHero />
         </header>
 
         <div style={{ padding: '0 clamp(4px, 2vw, 22px) 22px', display: 'flex', flexDirection: 'column', gap: 26 }}>
