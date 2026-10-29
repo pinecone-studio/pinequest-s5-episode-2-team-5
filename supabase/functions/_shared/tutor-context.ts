@@ -34,7 +34,9 @@ export function compactContext(raw: string, question: string, budget = CONTEXT_B
   const current = data.currentExperiment ?? null;
   const currentId = idOf(current);
   const progress = data.completedSteps && typeof data.completedSteps === 'object' ? (data.completedSteps as Record<string, unknown>) : {};
-  const core = { app: data.app, controls: data.controls, currentExperiment: current, completedSteps: typeof currentId === 'string' ? progress[currentId] ?? [] : [] };
+  // mode and recent say what the student is doing now (free lab or an experiment, and the last few actions).
+  const recent = Array.isArray(data.recent) ? data.recent.slice(-10) : [];
+  const core = { app: data.app, controls: data.controls, mode: data.mode, currentExperiment: current, completedSteps: typeof currentId === 'string' ? progress[currentId] ?? [] : [], recent };
   const base = JSON.stringify({ ...core, related: [] });
   if (base.length >= budget) return base.slice(0, budget);
 

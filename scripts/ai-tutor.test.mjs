@@ -4,6 +4,7 @@ import { allowedOrigin, corsHeaders } from '../supabase/functions/_shared/cors.t
 import { compactContext } from '../supabase/functions/_shared/tutor-context.ts';
 import { factsHash, packTopics, parseAdvice, pickTopics, restoreProgress, templateAdvice } from '../supabase/functions/_shared/advisor.ts';
 import { AiHttpError, DEFAULT_GEMINI_MODEL, aiConfig, aiFailure, openAiCompatibleText } from '../supabase/functions/_shared/ai-text.ts';
+import { cleanComment, commentTone, starCommentPrompt } from '../supabase/functions/_shared/star-comment.ts';
 
 test('secrets choose the AI: Gemini by default, any OpenAI-compatible service on request', () => {
   const env = (vars) => (name) => vars[name];
@@ -41,6 +42,30 @@ test('Groq gpt-oss models think briefly and return only the answer', async () =>
   assert.equal(body.max_tokens, 800);
 });
 
+test('Star\'s one-line comments get a smaller length limit', async () => {
+  let body;
+  const capture = async (_url, init) => { body = JSON.parse(init.body); return new Response(JSON.stringify({ choices: [{ message: { content: 'ok' } }] }), { status: 200 }); };
+  await openAiCompatibleText({ provider: 'openai', apiKey: 'k', model: 'openai/gpt-oss-120b', baseUrl: 'https://api.groq.com/openai/v1' }, 's', 'q', capture, true);
+  assert.equal(body.max_tokens, 700); assert.equal(body.reasoning_effort, 'low');
+  await openAiCompatibleText({ provider: 'openai', apiKey: 'k', model: 'm', baseUrl: 'https://ai.example/v1' }, 's', 'q', capture, true);
+  assert.equal(body.max_tokens, 200);
+});
+
+test('Star comments only cheer or comfort, stick to the lab context and fit in a bubble', () => {
+  assert.equal(commentTone('good'), 'good');
+  assert.equal(commentTone('oops'), 'oops');
+  assert.equal(commentTone('danger'), null, '"Stop!" is never written by the AI');
+  assert.equal(commentTone(undefined), null);
+  const context = JSON.stringify({ mode: 'free lab', recent: ['Цэнхэр тунадас үүслээ'] });
+  const good = starCommentPrompt('good', context);
+  assert.ok(good.includes('Star') && good.includes('магтаж') && good.includes('Цэнхэр тунадас үүслээ'));
+  assert.ok(starCommentPrompt('oops', context).includes('Бүү загна'));
+  assert.ok(starCommentPrompt('good', 'x'.repeat(10000)).length < 5000, 'the context is cut to keep each call cheap');
+  assert.equal(cleanComment('**Хөөх!**  Зэсийн\n гидроксид үүслээ. 🌟'), 'Хөөх! Зэсийн гидроксид үүслээ. 🌟');
+  const long = cleanComment(`${'Сайн байна. '.repeat(40)}`);
+  assert.ok(long.length <= 280 && long.endsWith('.'));
+});
+
 test('a failed AI call says why: key, model, rate limit or other', () => {
   assert.equal(aiFailure({ status: 403, message: 'Forbidden' }).code, 'ai_key');
   assert.equal(aiFailure(new Error('API key not valid. Please pass a valid API key.')).code, 'ai_key');
@@ -74,6 +99,8 @@ test('the tutor keeps the current experiment and adds the lessons that match the
   assert.equal(out.currentExperiment.id, 'e59');
   assert.deepEqual(out.completedSteps, ['s1']);
   assert.equal(out.controls, 'E interact');
+  assert.equal(JSON.parse(compactContext(JSON.stringify({ mode: 'free lab', recent: ['a', 'b'] }), 'q')).mode, 'free lab', 'the tutor knows whether the student is in free lab');
+  assert.deepEqual(JSON.parse(compactContext(JSON.stringify({ recent: Array.from({ length: 15 }, (_, i) => i) }), 'q')).recent, [5, 6, 7, 8, 9, 10, 11, 12, 13, 14]);
   const related = out.related.map((r) => r.id);
   assert.ok(related.includes('cat') && related.includes('l1'), 'matching lessons and experiments are included');
   assert.ok(!related.includes('e59'), 'the current experiment is not repeated');

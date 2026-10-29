@@ -30,17 +30,20 @@ export function useOpenLabCatalog(frame: RefObject<HTMLIFrameElement | null>, re
       if (event.origin !== window.location.origin || event.source !== frame.current?.contentWindow) return;
       const data = event.data;
       if (!data || typeof data !== 'object' || !('type' in data)) return;
-      const message = data as { type?: unknown; version?: unknown; id?: unknown; question?: unknown; history?: unknown; context?: unknown };
+      const message = data as { type?: unknown; version?: unknown; id?: unknown; question?: unknown; history?: unknown; context?: unknown; tone?: unknown; event?: unknown };
       if (message.type === 'openlab:catalog-ready' && message.version === 1) { sendCatalog(frame.current?.contentWindow ?? null); return; }
-      if (message.type !== 'openlab:ask-pip' || message.version !== 1 || typeof message.id !== 'string' || typeof message.question !== 'string' || !Array.isArray(message.history) || typeof message.context !== 'string') return;
+      if (message.version !== 1 || typeof message.id !== 'string' || typeof message.context !== 'string') return;
+      // Star's chat questions, and its short comments on lab moments: both answered by openlab-tutor.
+      let body: Record<string, unknown>;
+      if (message.type === 'openlab:ask-pip' && typeof message.question === 'string' && Array.isArray(message.history)) body = { question: message.question, history: message.history, context: message.context };
+      else if (message.type === 'openlab:star-comment' && typeof message.tone === 'string' && typeof message.event === 'string') body = { kind: 'comment', tone: message.tone, event: message.event, context: message.context };
+      else return;
       const id = message.id;
-      void supabase.functions.invoke('openlab-tutor', {
-        body: { question: message.question, history: message.history, context: message.context },
-      }).then(({ data: result, error }) => {
+      void supabase.functions.invoke('openlab-tutor', { body }).then(({ data: result, error }) => {
         frame.current?.contentWindow?.postMessage({
           type: 'chemquest:pip-answer', version: 1, id,
           answer: !error && result && typeof result.answer === 'string' ? result.answer : null,
-          error: error ? 'Pip түр хариулж чадсангүй. Дахин оролдоно уу.' : null,
+          error: error ? 'Star түр хариулж чадсангүй. Дахин оролдоно уу.' : null,
         }, window.location.origin);
       }).catch(() => frame.current?.contentWindow?.postMessage({ type: 'chemquest:pip-answer', version: 1, id, answer: null }, window.location.origin));
     };
