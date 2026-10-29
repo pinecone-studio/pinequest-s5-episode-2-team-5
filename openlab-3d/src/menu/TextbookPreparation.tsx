@@ -1,7 +1,8 @@
 /**
  * «Бэлтгэлээ хийе»: лаб ширээн дээрх хэрэгслийг өөрөө хянаж чадахгүй туршилтад (лабын заавар олдоогүй,
  * эсвэл хэрэгслийн жагсаалтгүй) сурах бичгийн бодис, хэрэгслийн жагсаалтыг харуулна.
- * Мөр бүрийг дарахад тэр хэрэгсэл/бодис ширээн дээр гарна; «Бэлэн боллоо» дарахад карт «Туршилт» болж алхмаа харуулна.
+ * Мөр бүрийг дарахад тэр хэрэгсэл/бодис ширээн дээр гарна; «Бэлэн боллоо» эсвэл «Багш: багаж хэрэгслээ бэлдүүлэх» дарахад
+ * карт баруун доод буланд «Туршилтын заавар» (StepGuide) болж алхмаа нэг нэгээр харуулна.
  * Харагдах байдал нь лабын өөрийн бэлтгэл (PreparationChecklist)-тэй адил.
  */
 import { useLaunchedProcedure } from './launchedProcedure';
@@ -46,6 +47,7 @@ export function TextbookPreparation() {
       <p className="mt-1 text-[11px] text-indigo-100">Хэрэгсэл, бодис бүрийг дарж ширээнд гарга → бүгд бэлэн болмогц туршилт эхэлнэ.</p>
     </header>
     <div className="space-y-2.5 p-3">
+      <button type="button" className="focus-ring min-h-9 w-full rounded-lg border-2 border-indigo-700 bg-indigo-50 px-2.5 text-[11px] font-bold text-indigo-800 hover:bg-indigo-100" onClick={skipPrep}>Багш: багаж хэрэгслээ бэлдүүлэх</button>
       {groups.length === 0 && <p className="rounded-lg bg-slate-50 px-2 py-1.5 text-xs text-slate-700">Энэ туршилтад тусгай хэрэгсэл, бодис заагаагүй байна.</p>}
       {groups.map((group) => (
         <div key={group.label}>
@@ -61,8 +63,7 @@ export function TextbookPreparation() {
         </div>
       ))}
       {prep.safety && <p className="rounded-md bg-amber-50 px-2 py-1.5 text-[11px] font-semibold text-amber-950">⚠ {prep.safety}</p>}
-      <div className="flex items-center justify-between gap-2 border-t border-slate-200 pt-2">
-        <button type="button" className="min-h-8 rounded-lg border border-indigo-700 px-2.5 text-[10px] font-bold text-indigo-800 hover:bg-indigo-50" onClick={skipPrep}>Багш: бэлтгэл алгасах</button>
+      <div className="flex items-center justify-end gap-2 border-t border-slate-200 pt-2">
         <button type="button" disabled={!all} className="focus-ring min-h-8 rounded-lg bg-indigo-700 px-3 text-[11px] font-bold text-white disabled:bg-slate-300 disabled:text-slate-500" onClick={finishPrep}>Бэлэн боллоо</button>
       </div>
     </div>

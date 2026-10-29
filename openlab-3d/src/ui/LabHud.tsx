@@ -17,7 +17,8 @@ import { PreparationChecklist } from '../experiments/workbench/PreparationHints'
 import { sounds } from '../utils/sounds';
 import { isTouchDevice } from '../utils/device';
 import { mobileizeControlHint } from '../controls/mobileInteraction';
-import { ProcedureBlock, ProcedureList } from '../menu/ProcedureBlock';
+import { ProcedureBlock } from '../menu/ProcedureBlock';
+import { StepGuide } from '../menu/StepGuide';
 import { TextbookPreparation } from '../menu/TextbookPreparation';
 import { SHOW_LAB_STEPS_IN_CARD, cardTitle, groupsToShow, unlinkedCard, useLaunchedProcedure } from '../menu/launchedProcedure';
 import { procedureGroupsForLab } from '../menu/labProcedureData';
@@ -104,8 +105,11 @@ export function SafetyBadges() {
   );
 }
 
-/** The active experiment, its next step and progress (top left, under the menu button). */
-export function ExperimentCard() {
+/**
+ * The active experiment, its next step and progress (top left, under the menu button).
+ * `guideOnly`: ажлын ширээнд суусан үед зөвхөн баруун доод булангийн «Туршилтын заавар» (StepGuide) үлдэнэ.
+ */
+export function ExperimentCard({ guideOnly = false }: { guideOnly?: boolean } = {}) {
   const experiments = useExperimentCatalog((s) => s.experiments);
   const active = useLabStore((s) => s.active);
   const progress = useLabStore((s) => s.progress);
@@ -118,6 +122,7 @@ export function ExperimentCard() {
   const x = active ? experiments.find((experiment) => experiment.id === active) : undefined;
   // «Туршилтын бэлтгэл» самбар: туршилтын нэр + «Бэлтгэлээ хийе» хэсэг. Бүх туршилтад ижил хүрээтэй гарна.
   const prepCard = (title: string, body: ReactNode) => {
+    if (guideOnly) return null;
     const closed = touch ? prepCollapsed : collapsed;
     const toggle = () => (touch ? setPrepCollapsed((c) => !c) : setCollapsed((c) => !c));
     // Утас: зүүн талын Star туслах, чатнаас зай аваад бэлтгэлийн картыг дэлгэцийн баруун зах хүртэл сунгана.
@@ -133,24 +138,11 @@ export function ExperimentCard() {
     </div>;
   };
   if (!x) {
-    // Лабын заавартай холбоогүй туршилтыг цэснээс сонгосон бол эхлээд бэлтгэл, дараа нь нэр, алхмыг нь "Туршилт" картаар харуулна
+    // Лабын заавартай холбоогүй туршилтыг цэснээс сонгосон бол эхлээд бэлтгэл, дараа нь алхмыг нь баруун доод буланд «Туршилтын заавар» картаар харуулна
     if (launched.labId === null && launched.prep) return prepCard(launched.title, <TextbookPreparation />);
     const picked = unlinkedCard(launched);
     if (!picked) return null;
-    return (
-      <div className="pointer-events-auto fixed left-4 top-[76px] z-30 w-[min(300px,calc(100vw-120px))] ">
-        <div className="rounded-2xl bg-white/90 p-3 text-lab-ink shadow-hud backdrop-blur">
-          <button type="button" className="focus-ring flex w-full items-center justify-between gap-2 text-left" onClick={() => setCollapsed((c) => !c)} aria-expanded={!collapsed}>
-            <span>
-              <span className="block text-[10px] font-bold uppercase tracking-wider text-emerald-600">Туршилт</span>
-              <span className="block font-display text-sm font-bold leading-tight">{picked.title}</span>
-            </span>
-            <span className="text-xs text-slate-400">{collapsed ? '▼' : '▲'}</span>
-          </button>
-          {!collapsed && <ProcedureList groups={[picked]} />}
-        </div>
-      </div>
-    );
+    return <StepGuide id="unlinked" title={picked.title} groups={[picked]} />;
   }
   const heading = cardTitle(x.id, launched, x.title);
   const done = progress[x.id] ?? [];
@@ -158,20 +150,21 @@ export function ExperimentCard() {
   if (!currentSession()?.ready) return prepCard(heading, <PreparationChecklist />);
   // Лаб ширээн дээрх хэрэгслийг хянадаггүй туршилт: сурах бичгийн бодис, хэрэгслийн жагсаалтаар бэлтгэнэ
   if (launched.labId === x.id && launched.prep) return prepCard(heading, <TextbookPreparation />);
-  // Сурах бичгийн "Хэрхэн хийх" алхамтай бол картыг цэвэр «Туршилт» болгоно (лабын ерөнхий 3 алхам, 0/3, зөвлөгөөг нууна)
+  // Сурах бичгийн "Хэрхэн хийх" алхамтай бол баруун доод буланд «Туршилтын заавар» болгож нэг нэгээр харуулна (лабын ерөнхий 3 алхам, 0/3, зөвлөгөөг нууна)
   const groups = groupsToShow(x.id, launched, procedureGroupsForLab(x.id));
-  const clean = !SHOW_LAB_STEPS_IN_CARD && groups.length > 0;
+  if (!SHOW_LAB_STEPS_IN_CARD && groups.length > 0) return <StepGuide id={x.id} title={heading} groups={groups} />;
+  if (guideOnly) return null;
   return (
     <div className="pointer-events-auto fixed left-4 top-[76px] z-30 w-[min(300px,calc(100vw-120px))] ">
       <div className="rounded-2xl bg-white/90 p-3 text-lab-ink shadow-hud backdrop-blur">
         <button type="button" className="focus-ring flex w-full items-center justify-between gap-2 text-left" onClick={() => setCollapsed((c) => !c)} aria-expanded={!collapsed}>
           <span>
-            <span className="block text-[10px] font-bold uppercase tracking-wider text-emerald-600">{clean ? 'Туршилт' : <>Туршилт · {done.length}/{x.steps.length}</>}</span>
+            <span className="block text-[10px] font-bold uppercase tracking-wider text-emerald-600">Туршилт · {done.length}/{x.steps.length}</span>
             <span className="block font-display text-sm font-bold leading-tight">{heading}</span>
           </span>
           <span className="text-xs text-slate-400">{collapsed ? '▼' : '▲'}</span>
         </button>
-        {!collapsed && (clean ? <ProcedureList groups={groups} /> : (
+        {!collapsed && (
           <>
             <ol className="mt-2 space-y-1">
               {x.steps.map((s, i) => {
@@ -196,7 +189,7 @@ export function ExperimentCard() {
             )}
             <ProcedureBlock labId={x.id} />
           </>
-        ))}
+        )}
       </div>
     </div>
   );

@@ -55,6 +55,8 @@ export function PreparationChecklist() {
       <p className="mt-1 text-[11px] text-indigo-100">Хэрэгслийг ол → ажлын ширээнд тавь → бүгд бэлэн болмогц туршилт эхэлнэ.</p>
     </header>
     <div className="space-y-2.5 p-3">
+      {/* Багш бүх хэрэгслийг ширээнд гаргаж бэлдүүлнэ → карт баруун доод буланд «Туршилтын заавар» болно */}
+      <button type="button" className="focus-ring min-h-9 w-full rounded-lg border-2 border-indigo-700 bg-indigo-50 px-2.5 text-[11px] font-bold text-indigo-800 hover:bg-indigo-100" onClick={demonstratePreparation}>Багш: багаж хэрэгслээ бэлдүүлэх</button>
       {target ? <div className="rounded-lg border-2 border-amber-300 bg-amber-50 p-2.5">
         <div className="text-[10px] font-black uppercase tracking-wide text-amber-900">{next ? 'Дараагийн хэрэгсэл · олох' : 'Олдсон · одоо ширээнд тавих'}</div>
         <div className="mt-0.5 text-sm font-extrabold">{target.name}</div>
@@ -71,9 +73,8 @@ export function PreparationChecklist() {
         })}
       </div>
       {warning && <p role="status" className="rounded-md bg-sky-50 px-2 py-1.5 text-[11px] font-semibold text-sky-900">{warning}</p>}
-      <div className="flex items-center justify-between gap-2 border-t border-slate-200 pt-2">
+      <div className="border-t border-slate-200 pt-2">
         <span className="text-[10px] font-medium text-slate-600">Олдсон {foundCount}/{required.length}</span>
-        <button className="min-h-8 rounded-lg border border-indigo-700 px-2.5 text-[10px] font-bold text-indigo-800 hover:bg-indigo-50" onClick={demonstratePreparation}>Багш: бэлтгэл алгасах</button>
       </div>
     </div>
   </section>;
