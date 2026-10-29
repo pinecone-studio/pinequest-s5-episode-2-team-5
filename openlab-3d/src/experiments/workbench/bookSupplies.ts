@@ -113,20 +113,38 @@ export const PROCEDURE_TOOLS: Record<string, SupplyRef[]> = {
   '7-23': [...HEAT, 'evaporatingDish'], // «уусмалыг ууршуулж»
   '7-29': ['alcoholLamp', 'spatula'], // «төмрийн үртсийг шатааж үз»
   '7-30': ['exposureRack'], // давстай ус, хүчил, халуун усанд зэврэлтийг харьцуулна
+  '7-33': ['beaker', 'heatingBath'], // Ус буцалгаж термометрээр уншина; банн газрын өндрийн даралтыг сонгоно
+  '7-35': ['bunsenBurner'], // «90°С температурт халаасан»
   '8-14': ['scale'], // «2 г … жинлэж ав»
   '8-17': ['funnel', 'filterPaper'], // «Катализаторыг шүүж»
   '8-24': ['soilBench'], // Ургамал гэрэлд: гэрэлтэй тавцан ялгарсан O₂-ийг хуруу шилэнд хураана
   '8-25': ['exposureRack'], // Вазелинтай таваг ил/хучсан үүрэнд тоос цуглуулна
   '8-27': ['soilBench'], // Үрийг өөр өөр усаар услаж ургалтыг хэмжинэ
   '8-28': ['soilBench'], // Элс, нүүрс, хайргатай шүүлтүүрийн үе
-  '8-30': ['gasTrain'], // Тамхины утааг усаар нэвтрүүлнэ
+  '8-30': ['gasTrain', 'phPaper'], // Тамхины утааг усаар нэвтрүүлж, усны pH-г шалгана
   '9-07': ['scale'], // «5 г жинлэж»
   '9-12': [...HEAT], // «шувтан колбонд хийж халаа»
+  // Gas sources for each test: CO₂ from marble, O₂ from peroxide and MnO₂, NH₃ from ammonia water.
+  '10-10': ['gasTrain', 'reagent:s_caco3', 'reagent:h2o2', 'reagent:s_mno2', 'reagent:nh3'],
   '10-20': ['electrolysisCell'], // Хайлмал PbBr₂ (373 °C) — the cell heats to 400 °C
   '10-21': ['electrolysisCell'], // 2HCl → H₂ + Cl₂
   '10-24': ['combustionFurnace'], // Халсан CuO дээгүүр H₂ нэвтрүүлнэ: the furnace holds the gas hot
   '10-35': ['crackingTube'], // Парафиныг катализатор дээр задлах
 };
+
+/**
+ * How many of one vessel the procedure uses side by side («Гурван шилэн аяга», «6 хуруу шил»,
+ * «I–IV сав»). tests/book-supplies.test.mjs reads every procedure to keep this complete.
+ */
+export const BOOK_COUNTS: Record<string, Partial<Record<EquipmentKind, number>>> = {
+  '7-01': { beaker: 3 }, '7-15': { beaker: 2 }, '7-25': { testTube: 2 }, '7-26': { beaker: 2 }, '7-29': { testTube: 3 },
+  '7-31': { testTube: 4 }, '7-32': { testTube: 6 }, '7-36': { plasticBottle: 3 }, '7-38': { plasticBottle: 3 }, '7-39': { plasticCup: 3 },
+  '8-07': { beaker: 2, testTube: 2 }, '8-10': { testTube: 6 }, '8-11': { testTube: 6 }, '8-26': { testTube: 4 }, '8-27': { seedPot: 4 },
+  '9-06': { beaker: 3 }, '9-08': { beaker: 2 }, '9-12': { testTube: 5 }, '9-15': { beaker: 4 }, '9-16': { beaker: 2 },
+  '10-08': { testTube: 6 }, '10-09': { testTube: 6 }, '10-39': { testTube: 2 }, '10-40': { testTube: 2 },
+};
+/** A test-tube rack comes with this many clean tubes standing in it (it holds six). */
+export const RACK_TUBES = 4;
 
 export interface BookSupply { key: string; name: string; use: string; kind?: EquipmentKind; reagent?: ReagentId }
 
@@ -162,8 +180,18 @@ export function bookSupplies(experiment: { id: string; equipment: string[]; subs
   };
   add(experiment.equipment, BOOK_EQUIPMENT);
   put(PROCEDURE_TOOLS[experiment.id] ?? []);
+  // Side-by-side vessels: beaker, beaker#2, beaker#3. Tubes beyond the rack's own four.
+  for (const [kind, n] of Object.entries(BOOK_COUNTS[experiment.id] ?? {}) as [EquipmentKind, number][]) {
+    if (!supplies.has(kind)) continue;
+    const more = kind === 'testTube' ? Math.max(0, n - RACK_TUBES - 1) : n - 1;
+    for (let i = 2; i <= more + 1; i++) supplies.set(`${kind}#${i}`, { ...supplyOf(kind), key: `${kind}#${i}` });
+  }
   // A test tube needs a rack to stand in before anything is poured into it.
   if (supplies.has('testTube')) put(['testTubeRack']);
+  // Heating needs its stand: glassware goes on a tripod with gauze over the flame, a test tube is held in a holder.
+  const heats = supplies.has('bunsenBurner') || supplies.has('alcoholLamp');
+  if (heats && ['beaker', 'erlenmeyer', 'evaporatingDish', 'crucible', 'crystallizingDish'].some((k) => supplies.has(k))) put(['tripod', 'wireGauze']);
+  if (heats && supplies.has('testTube')) put(['testTubeHolder']);
   add(experiment.substances, BOOK_SUBSTANCES);
   return { supplies: [...supplies.values()], unmatched };
 }

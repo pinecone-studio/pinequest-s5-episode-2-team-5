@@ -167,7 +167,8 @@ export function step(input: Mixture, dtRaw: number, env: StepEnv): StepResult {
       const [key, nu] = Object.entries(d.products)[0] as [AqId, number];
       const room = Math.max(0, (solubilityAt(d, m.temp) * nu * V - get(m, key)) / nu);
       if (room <= 0) continue;
-      const k = 0.22 * (m.fine ? 3 : 1) * (1 + 3 * env.stir) * warm;
+      // Dissolving speeds up about twofold per 20 °C — and slows in ice-cold water.
+      const k = 0.22 * (m.fine ? 3 : 1) * (1 + 3 * env.stir) * Math.min(4, Math.max(0.3, 2 ** ((T - 22) / 20)));
       const dn = Math.min(n * (1 - Math.exp(-k * dt)) + Math.min(n, 2e-6), room, n);
       if (dn <= 0) continue;
       addS(m, id, -dn);
@@ -230,13 +231,16 @@ export function step(input: Mixture, dtRaw: number, env: StepEnv): StepResult {
   // 3. Metals: acid → H₂, and displacement of less active metals.
   if (V > 5e-5) {
     let acidLeft = Math.max(0, acidityToNeutral(m)) * 0.45;
+    // Undissociated weak acid also attacks the metal surface: vinegar fizzes on Mg, about 10× slower than HCl.
+    const weakAcid = ((get(m, 'Ac') + get(m, 'aceticNeat')) * h / (h + 1.75e-5) + get(m, 'Cit') * h / (h + 10 ** -3.13)) / V;
+    const attack = Math.min(h, 2) + 0.08 * Math.min(weakAcid, 5);
     for (let i = 0; i < ACTIVITY.length; i++) {
       const metal = ACTIVITY[i];
       const n = m.s[metal.solid] ?? 0;
       if (n <= 1e-10) continue;
       const surface = Math.min(1.6, Math.pow((n * SOLIDS[metal.solid].molarMass) / 1, 2 / 3)) * (m.fine ? 2 : 1);
       if (metal.acidRate > 0 && acidLeft > 0) {
-        const rate = metal.acidRate * 0.0022 * surface * Math.min(h, 2) * warm;
+        const rate = metal.acidRate * 0.0022 * surface * attack * warm;
         const dn = Math.min(n, rate * dt, acidLeft / metal.charge);
         if (dn > 1e-11) {
           addS(m, metal.solid, -dn);
@@ -394,10 +398,11 @@ export function step(input: Mixture, dtRaw: number, env: StepEnv): StepResult {
     changed = true;
   }
 
-  // 6. Burning ethanol: its vapour catches once the liquid is at its flash point (17 °C for 96%).
+  // 6. Burning ethanol: its vapour catches once the liquid is at its flash point (17 °C for 96%);
+  // below about 22% ethanol the flame cannot keep going, so dilute solutions do not catch at all.
   const liquid = liquidMl(m);
   const ethFrac = liquid > 0 ? m.ethanol / liquid : 0;
-  if (!m.burning && env.flame && m.ethanol > 0.5 && T >= flashPoint(ethFrac)) {
+  if (!m.burning && env.flame && m.ethanol > 0.5 && ethFrac >= 0.22 && T >= flashPoint(ethFrac)) {
     m.burning = true;
     notes.push('ignite');
   }

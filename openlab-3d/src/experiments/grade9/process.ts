@@ -58,10 +58,12 @@ export function tickRig(r:RigState,dt:number):RigState {
   let boiling=false;
   for(let i=0;i<2;i++){
    const sample=n.chambers[i];
-   if(solidMassG(sample)<=0.001&&liquidMl(sample)<1)continue;
+   // An empty well only drifts back to room temperature; anything in it, even a last drop, keeps heating and cooling.
+   if(solidMassG(sample)<=1e-6&&liquidMl(sample)<.005){sample.temp+=(22-sample.temp)*-Math.expm1(-dt*(n.cooling?.1:.02));continue;}
    // The two wells are independent comparison samples. Heat only the selected well
    // so its counterpart stays as a valid control while the reading is taken.
-   const result=step(sample,dt,{...DEFAULT_ENV,heatW:n.heating&&i===n.port?150:0,glassJK:20,lossWK:n.cooling?2:.05,pressureKPa:n.pressure*101.325});
+   // The hot plate's thermostat cuts out at 350 °C.
+   const result=step(sample,dt,{...DEFAULT_ENV,heatW:n.heating&&i===n.port&&sample.temp<350?150:0,glassJK:20,lossWK:n.cooling?2:.05,pressureKPa:n.pressure*101.325});
    n.chambers[i]=result.m;boiling=boiling||result.boiling;
   }
   n.temperature=n.chambers[n.port]?.temp??n.temperature;
@@ -94,7 +96,10 @@ export function tickRig(r:RigState,dt:number):RigState {
    else n.gas+=co2*24000;
    n.escaped+=g;}
   const res=step(a,dt,env);n.chambers[0]=res.m;const mol=(res.gas.CO2+res.gas.H2+res.gas.O2+res.gas.NH3)*dt;n.gas+=mol*24000;n.escaped+=(res.gas.CO2*44.01+res.gas.H2*2.016+res.gas.O2*32+res.gas.NH3*17.03)*dt;
-  if(res.gas.CO2>0&&n.chambers[2].water>0){n.chambers[2].aq.CO3=(n.chambers[2].aq.CO3??0)+res.gas.CO2*dt;n.chambers[2]=equilibrate(n.chambers[2]).m;}
+  // Bubbles of CO₂ through the receiver: an alkaline liquid (limewater) takes up about half of
+  // each bubble, plain water only a little, and never past saturation under 1 atm of CO₂ (0.033 M).
+  // So limewater turns milky first and only clears again after long bubbling (Ca(HCO₃)₂).
+  if(res.gas.CO2>0&&n.chambers[2].water>0){const w=n.chambers[2],V=liquidMl(w)/1000,base=Math.max(0,-acidityToNeutral(w)),room=base+Math.max(0,.033*V-(w.aq.CO3??0)*acidState(w).co2Fraction),bubbled=res.gas.CO2*dt,taken=Math.min(room,bubbled*(base>1e-9?.5:.1));w.aq.CO3=(w.aq.CO3??0)+taken;n.chambers[2]=equilibrate(w).m;}
   n.temperature=res.m.temp;n.color=(n.chambers[2].s.CaCO3??0)>0?'#e5edf0':'#c5eaff';n.message=n.gas>0?'Хий хоолойгоор цугларч байна. Хий, тунадас, температур ба масс өөрчлөлтийг харьцуул.':'Эх бодис ба халаалтын нөхцөлөө шалга. Бодис нэмээгүй бол хий зохиомлоор үүсэхгүй.';break;
  }
  }

@@ -110,3 +110,27 @@ test('хуруу шил бүхий туршилтад тавиур гарна (�
     if (kinds.includes('testTube')) assert.ok(kinds.includes('testTubeRack'), e.id);
   }
 });
+
+test('заавар хэдэн сав зэрэг хэрэглэнэ, ширээнд тэр тоогоор гарна («Гурван шилэн аяга», «6 хуруу шил»)', () => {
+  const NOUN = { 'шилэн аяга': 'beaker', 'хуруу шил': 'testTube', 'хуванцар сав': 'plasticBottle', 'хуванцар аяга': 'plasticCup', 'шил': 'testTube', 'сав': 'beaker' };
+  const WORD = { хоёр: 2, гурав: 3, гурван: 3, дөрөв: 4, дөрвөн: 4, тав: 5, таван: 5, зургаа: 6, зургаан: 6 };
+  const re = /(\d+|хоёр|гурав|гурван|дөрөв|дөрвөн|тав|таван|зургаа|зургаан)\s+(ширхэг\s+)?(шилэн аяга|хуруу шил|хуванцар сав|хуванцар аяга|шил|сав)(?![а-яөүё])/gi;
+  const short = [];
+  for (const e of experiments) {
+    const need = {};
+    for (const m of (e.procedure ?? []).join(' ').matchAll(re)) {
+      const n = Number(m[1]) || WORD[m[1].toLowerCase()];
+      const kind = NOUN[m[3].toLowerCase()];
+      if (n && kind) need[kind] = Math.max(need[kind] ?? 0, n);
+    }
+    if (e.id === '8-27') need.seedPot = 4; // I–IV сав
+    const kinds = bookSupplies(e).supplies.map((s) => s.kind);
+    for (const [kind, n] of Object.entries(need)) {
+      const have = kinds.filter((k) => k === kind).length + (kind === 'testTube' && kinds.includes('testTubeRack') ? 4 : 0);
+      if (have < n) short.push(`${e.id}: ${kind} ${have}/${n}`);
+    }
+  }
+  assert.deepEqual(short, []);
+  const keys = bookSupplies(experiments.find((e) => e.id === '7-01')).supplies.map((s) => s.key);
+  assert.ok(['beaker', 'beaker#2', 'beaker#3'].every((k) => keys.includes(k)), keys.join(' '));
+});

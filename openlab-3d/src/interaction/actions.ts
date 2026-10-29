@@ -86,13 +86,17 @@ function capacityOf(kind: EquipmentKind): number {
   return CATALOG[kind].capacityMl ?? 0;
 }
 
-/** Does `vessel` stand under `funnel`, with the funnel's stem in its neck? */
-function underFunnel(vessel: WorldItem, funnel: WorldItem): boolean {
+/**
+ * Does `vessel` catch what runs out of `funnel`: its mouth right under the stem tip, with the stem
+ * in its neck or up to 12 cm above it (a funnel in a stand's ring over a beaker on the base)?
+ */
+export function underFunnel(vessel: WorldItem, funnel: WorldItem): boolean {
   if (vessel.id === funnel.id || !isContainer(vessel.kind) || STOCK_KINDS.includes(vessel.kind)) return false;
   const p = livePose(vessel);
   const f = livePose(funnel);
+  if (f.upY < 0.8) return false;
   const top = p.y + CATALOG[vessel.kind].size[1];
-  return Math.hypot(p.x - f.x, p.z - f.z) < 0.05 && top > f.y - 0.07 && top < f.y + 0.09;
+  return Math.hypot(p.x - f.x, p.z - f.z) < Math.max(0.03, Math.min(0.05, CATALOG[vessel.kind].size[0] / 2)) && top > f.y - 0.12 && top < f.y + 0.09;
 }
 
 /**
@@ -263,7 +267,14 @@ export function transfer(src: Vessel, dst: Vessel, amount: number, viaFunnel?: s
     }
     into = { ...taken, s: {}, cloud: 0 };
   }
-  if (liquid && take > room) {
+  if (liquid && liquidMl(sm) <= 1e-9) {
+    // A gas fills only the space left above the contents; the rest escapes into the air (no puddle).
+    const space = Math.max(0, room - gasMl(dm));
+    if (take > space) {
+      into = takeLiquid(taken, space).taken;
+      take = space;
+    }
+  } else if (liquid && take > room) {
     // The vessel brims over: what does not fit runs down the outside.
     overflow = true;
     const keep = Math.max(0, room);

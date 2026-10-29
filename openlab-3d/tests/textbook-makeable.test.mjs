@@ -59,9 +59,34 @@ function rig(kind, ports, { seconds = 200, set = {} } = {}) {
   for (let t = 0; t < seconds; t += 0.5) r = E.tickRig(r, 0.5);
   return r;
 }
+/** The live room's heater power and the vessel heat loss ChemSim uses (W, W/K). */
+const LAMP = 650, BUNSEN = 1300;
+const LOSS = (capacityMl) => 1.2 + 5 * (capacityMl / 250) ** (2 / 3);
 const filtrate = (m) => ({ ...E.takeLiquid(m, E.liquidMl(m)).taken, s: {}, cloud: 0 });
 
+/** Seconds until a stirred-free lump of `solid` in this beaker is gone (beaker loss, room 22 °C). */
+function dissolveTime(m, solid, env = {}) {
+  for (let t = 0; t < 1200; t += 0.5) {
+    if (!(m.s[solid] > 1e-7)) return t;
+    m = E.advanceChemistry(m, 0.5, { ...E.DEFAULT_ENV, lossWK: LOSS(250), glassJK: 130, stir: 0, ...env }).m;
+  }
+  return Infinity;
+}
+
 const SCENARIOS = {
+  '7-01·': () => {
+    // Three beakers of 50 mL — room, ice-cooled and hot water — and a 1 g sugar lump in each.
+    const room = dissolveTime(pour(['water', 50], ['s_sugar', 1]), 'sucrose');
+    const cold = dissolveTime(pour(['cold_water', 50], ['s_ice', 25], ['s_sugar', 1]), 'sucrose');
+    const hot = dissolveTime(pour(['hot_water', 50], ['s_sugar', 1]), 'sucrose');
+    assert.ok(hot < room && room < cold && cold < Infinity, `халуун ${hot} с, тасалгааны ${room} с, хүйтэн ${cold} с`);
+  },
+  '9-06·': () => {
+    const room = dissolveTime(pour(['s_cuso4', 5], ['water', 100]), 'CuSO4_5');
+    const cold = dissolveTime(pour(['s_cuso4', 5], ['cold_water', 100]), 'CuSO4_5');
+    const hot = dissolveTime(pour(['s_cuso4', 5], ['hot_water', 100]), 'CuSO4_5');
+    assert.ok(hot < room && room < cold, `халуун ${hot} с, тасалгааны ${room} с, хүйтэн ${cold} с`);
+  },
   '7-12': () => {
     // Hydrogen from the cylinder fills a tube held mouth-down; CO₂ a tube held mouth-up.
     assert.ok(E.reagentMixture('gas_h2', 20).g.H2 > 0);
@@ -79,7 +104,8 @@ const SCENARIOS = {
   '7-18': () => {
     const mix = wait(pour(['water', 30], ['s_sand', 3], ['s_nacl', 2]), 60, { stir: 1 }).m;
     assert.ok(mix.s.sand > 0 && !(mix.s.NaCl > 1e-6), 'давс уусна, элс үлдэнэ');
-    const dry = wait(filtrate(mix), 400, { heatW: 1300 }).m;
+    // Book: a spirit lamp under the evaporating dish.
+    const dry = wait(filtrate(mix), 600, { heatW: LAMP, glassJK: 110, lossWK: LOSS(60) }).m;
     assert.ok(dry.s.NaCl > 0.02 && !(dry.s.sand > 0), 'шүүгдэс ууршаад давс үлдэнэ');
   },
   '7-22': () => {
@@ -130,7 +156,7 @@ const SCENARIOS = {
   '8-03': () => {
     const { m } = wait(pour(['na2co3', 20], ['hcl', 20]), 30);
     assert.ok(m.aq.Na > 0 && m.aq.Cl > 0);
-    const dry = wait(filtrate(m), 400, { heatW: 1300 }).m;
+    const dry = wait(filtrate(m), 400, { heatW: BUNSEN, glassJK: 110, lossWK: LOSS(60) }).m;
     assert.ok(dry.s.NaCl > 0.005, 'NaCl талст');
   },
   '8-24': () => {
@@ -223,7 +249,7 @@ const SCENARIOS = {
   '10-23': () => {
     const cold = wait(pour(['water', 100], ['s_mg', 0.2]), 60).gas.H2;
     // Mineral wool soaked in water and the ribbon, heated in a test tube by the spirit lamp.
-    const steam = wait(pour(['water', 2], ['s_mineral_wool', 0.5], ['s_mg', 0.2]), 240, { heatW: 420, glassJK: 17, lossWK: 0.6 });
+    const steam = wait(pour(['water', 2], ['s_mineral_wool', 0.5], ['s_mg', 0.2]), 240, { heatW: 420 * LAMP / BUNSEN, glassJK: 17, lossWK: LOSS(20) });
     assert.ok(steam.gas.H2 > 10 * cold, `уур ${steam.gas.H2} > хүйтэн ус ${cold}`);
     assert.ok(steam.m.s.MgO > 0, 'MgO үүснэ');
   },
@@ -252,6 +278,8 @@ const SCENARIOS = {
     const hcl = wait(pour(['hcl', 10], ['s_mg', 0.05]), 10).gas.H2;
     const acetic = wait(pour(['acetic', 10], ['s_mg', 0.05]), 10).gas.H2;
     assert.ok(acetic > 0 && hcl > 2 * acetic, `HCl ${hcl} хурдан, цууны хүчил ${acetic}`);
+    // Vinegar still fizzes visibly on magnesium (undissociated acid attacks the surface too).
+    assert.ok(hcl < 30 * acetic, `цууны хүчил хэт удаан: HCl ${hcl}, цуу ${acetic}`);
   },
   '10-42': () => {
     const start = pour(['h2so4', 10], ['kmno4', 10], ['ethanol', 2]);
@@ -263,10 +291,11 @@ const SCENARIOS = {
 test('сурах бичгийн 145 туршилт бүр лабын заавартай эсвэл энд шалгагдсан', () => {
   assert.equal(BOOK.length, 145);
   const uncovered = BOOK.filter((e) => !(LINKS[e.id] && E.GUIDED_PLANS[LINKS[e.id]]) && !SCENARIOS[e.id]).map((e) => e.id);
+  // '7-01·'-style keys check a guided experiment's own comparison on top of its demonstration.
   assert.deepEqual(uncovered, []);
 });
 
 for (const [id, scenario] of Object.entries(SCENARIOS)) {
-  const e = BOOK.find((x) => x.id === id);
+  const e = BOOK.find((x) => x.id === id.replace('·', ''));
   test(`${id} ${e?.title ?? ''}`, scenario);
 }
