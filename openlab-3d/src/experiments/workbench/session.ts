@@ -316,7 +316,9 @@ function prepareSupplies(teacher: boolean) {
   const held=heldObjectId();
   if(held) {
     const slot=Math.max(0,suppliesFor(active).findIndex((s)=>matchesSupply(s,itemDescription(held))));
-    const at=(INVESTIGATIONS.find(x=>x.id===active)?.grade??8)!==8?new Vector3(...grade9SupplyPosition(slot)):new Vector3(7.55+slot%8*.2,BENCH_HEIGHT+.015,-14.78+Math.floor(slot/8)*.22);
+    // In the middle of the worktop like the rest of the stock; the old corner slots only when it is full.
+    const kind=itemDescription(held).kind, spot=kind?benchSpot(kind,false):null;
+    const at=(INVESTIGATIONS.find(x=>x.id===active)?.grade??8)!==8?new Vector3(...grade9SupplyPosition(slot)):spot?new Vector3(...spot):new Vector3(7.55+slot%8*.2,BENCH_HEIGHT+.015,-14.78+Math.floor(slot/8)*.22);
     if(useInventoryStore.getState().held)useInventoryStore.getState().place([at.x,at.y,at.z],0);
     else {usePortableStore.getState().held?.move(at,0,0);usePortableStore.setState({held:null});useSandbox.setState({heldId:null});}
   }
