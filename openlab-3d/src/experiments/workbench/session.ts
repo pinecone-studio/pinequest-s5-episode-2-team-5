@@ -195,8 +195,8 @@ function benchSpot(kind: EquipmentKind, primary: boolean): [number, number, numb
     if (box.isEmpty() || !onWorkbench(box.getCenter(new Vector3()).setY(box.min.y))) continue;
     occupied.push({ x: (box.min.x + box.max.x) / 2, z: (box.min.z + box.max.z) / 2, w: box.max.x - box.min.x, d: box.max.z - box.min.z });
   }
-  const [w, , d] = CATALOG[kind].size;
-  const spot = freeBenchSpot(w, d, occupied, primary ? [8.25, -14.36] : undefined);
+  const [w, h, d] = CATALOG[kind].size;
+  const spot = freeBenchSpot(w, d, occupied, primary ? [8.25, -14.36] : undefined, h);
   return spot ? [spot[0], BENCH_HEIGHT + .015, spot[1]] : null;
 }
 let anotherCount = 0;
