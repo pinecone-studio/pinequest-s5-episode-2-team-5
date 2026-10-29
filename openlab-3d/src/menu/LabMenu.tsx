@@ -16,7 +16,7 @@ import { GradeScreen } from './GradeScreen';
 import { HomeScreen } from './HomeScreen';
 import { ModeScreen } from './ModeScreen';
 import { SettingsScreen } from './SettingsScreen';
-import { guideFor, startTextbookExperiment } from './startExperiment';
+import { guideFor, hasDemo, startTextbookExperiment, watchTextbookDemo } from './startExperiment';
 import { useTheme } from './useTheme';
 
 /** Хуучин цэсний таб (шинэ цэсэнд бүх дэлгэц бэлэн болсон тул одоо ашиглагдахгүй; MenuPanel-ийн хуучин цэсэнд үлдсэн) */
@@ -140,7 +140,12 @@ export function LabMenu({ onClose }: LabMenuProps) {
       )}
       {screen === 'settings' && <SettingsScreen />}
       {screen === 'experiment' && experiment && (
-        <ExperimentScreen experiment={experiment} guided={guideFor(experiment) !== undefined} onStart={() => startTextbookExperiment(experiment)} />
+        <ExperimentScreen
+          experiment={experiment}
+          guided={guideFor(experiment) !== undefined}
+          onStart={() => startTextbookExperiment(experiment)}
+          onDemo={hasDemo(experiment) ? () => watchTextbookDemo(experiment) : undefined}
+        />
       )}
     </div>
   );

@@ -55,7 +55,7 @@ function primary(id:string):Check[]{
   'g9-element-types':[check('extent',.9)],'g9-chromatography':[check('extent',12)],'g9-filtration':[check('liquid',9.9,undefined,{target:'erlenmeyer'}),check('solidMass',.99,undefined,{target:'funnel'})],
   'g9-crystallisation':[s('NaCl',1e-5,undefined,'evaporatingDish')],'g9-mass-conservation':[check('solid',undefined,1e-7,{species:'Na2CO3'})],'g9-reaction-types':[s('CuO',1e-5),s('CaCO3',1e-5,2)],
   'g9-precipitation':[s('CuOH2',1e-5)],'g9-thermal-pairs':[a('NH3',1e-5)],'g9-fuel-energy':[check('temperature',30)],'g9-citric-endotherm':[check('solid',undefined,1e-7,{species:'NaHCO3'}),a('Cit',1e-5)],
-  'g9-litmus':[check('ph',undefined,3,{port:0}),check('ph',11,undefined,{port:1})],'g9-ph-ranking':[check('ph',0,7)],'g9-zinc-hcl':[check('solid',undefined,1e-7,{species:'Zn'})],
+  'g9-litmus':[check('ph',undefined,3,{port:0}),check('ph',11,undefined,{port:1})],'g9-ph-ranking':[check('ph',0,7)],'g9-zinc-hcl':[data('pops',1),check('ph',4,undefined,{port:0})],
   'g9-carbonate-co2':[check('solid',undefined,1e-7,{species:'CaCO3'}),s('CaCO3',1e-5,2)],'g9-antacid':[check('acid',undefined,1e-6)],'g9-air-oxygen':[s('CuO',.0015)],
   'g9-corrosion':[s('FeOH3',1e-5)],'g9-ammonia-preparation':[check('volume',20)],'g9-water-tests':[a('Cu',1e-6)],'g9-air-distillation':[check('volume',99)],
   'reaction-timing':[check('solid',undefined,1e-7,{species:'CaCO3'})],'melting-point':[check('solid',undefined,1e-7,{species:'ice',port:0}),check('solid',undefined,1e-7,{species:'ice',port:1})],'group2-water':[s('Mg',.004),check('volume',undefined,.1)],'group2-acid':[check('volume',55)],
@@ -99,6 +99,27 @@ export function completeProtocol(id:string,starter:GuideStep[]):GuideStep[]{
    wait('Тасалгааны температуртай усанд уусахыг ажигла.',[gone('beaker')],{speed:2,timeout:300,minimum:0}),record('Тасалгааны ус: ёотон уусав.','beaker'),
    wait('Мөстэй хүйтэн усанд уусахыг ажигла.',[gone('beaker#2')],{speed:4,timeout:600,minimum:0}),record('Хүйтэн ус: ёотон хамгийн сүүлд уусав.','beaker#2'),
    {type:'finish',label:'Ус халуун байх тусам ёотон хурдан уусна: хэсгүүд хурдан хөдөлдөг.',target:'beaker',until:{label:'Гурван аяганд ёотон уусав.',checks:[gone('beaker'),gone('beaker#2'),gone('beaker#3')]}},
+  ];
+ }
+ // 9-27: dilute acid, its pH, then excess zinc in the stoppered tube; the hydrogen blows soap bubbles
+ // that pop at a burning splint, and the acid is used up so the pH rises (docs/lab-reference/grade9).
+ if(id==='g9-zinc-hcl'){
+  const acidGone=check('ph',4,undefined,{port:0});
+  return [
+   dose('water',100,2),dose('soap',5,2),
+   dose('hcl',5,0),
+   config('Хүчилд универсал индикаторын цаас дүрж pH-г тодорхойл.',{operation:'ph'}),
+   record('Сулруулсан хүчлийн pH ≈ 0–1: цаас улаан.',undefined,0),
+   dose('s_zn',1,1),
+   {type:'start',label:'Цайрыг (илүүдэлтэй) хүчилд нэмж, хий дамжуулах хоолойтой бөглөөгөөр бөглө.'},
+   wait('Цайрын гадаргуугаас устөрөгчийн бөмбөлөг ялгарч, хуруу шил халуу оргино.',[data('soapH2',8)],{speed:1,timeout:120,minimum:3}),
+   record('Устөрөгч савангийн уусмалд хөөсөн бөмбөлөг үүсгэж, дээш хөөрөв.',undefined,2),
+   config('Хөөрч буй бөмбөлөгт галтай зомгол ойртуул.',{operation:'splint'}),
+   wait('Пөк! дуу гарлаа: бөмбөлөгт устөрөгч байна.',[data('pops',1)],{minimum:1,timeout:10}),
+   wait('Цайр илүүдэлтэй тул хүчил дуустал урвал үргэлжилнэ.',[acidGone],{timeout:300}),
+   config('Урвалын дараах уусмалын pH-г тодорхойл.',{operation:'ph'}),
+   record('Бүтээгдэхүүний pH ≈ 5–6: хүчил цайрын хлорид болж, устөрөгч ялгарав.',undefined,0),
+   {type:'finish',label:'Zn + 2HCl → ZnCl₂ + H₂↑. Хүчил дуусч pH өсөв; устөрөгч пөк дуугаар батлагдав.',until:{label:'Устөрөгч ба pH-ийн өсөлт батлагдлаа.',checks:[data('pops',1),acidGone]}},
   ];
  }
  // 9-15: four mixtures in four beakers, each filtered: sand and tomato pulp stay on the paper, salt and alcohol pass.
@@ -188,7 +209,7 @@ export function completeProtocol(id:string,starter:GuideStep[]):GuideStep[]{
   p.push(config('Эхний температур хүртэл хөргө.',{heating:false,cooling:true}),wait('Эхний температур дахь эзлэхүүн.',[check('temperature',undefined,23)]),config('Хөргүүрийг унтраа.',{cooling:false}),wait('Температур тогтворжив.',[check('temperature',20,24)]),record('Ижил температурт буцааж хэмжсэн эзлэхүүн.'));
   lastChecks=id==='g9-gas-expansion'?[check('volume',9.5,10.5)]:[check('volume',75,86),s('CuO',.0015)];
  }
- if(['rate-concentration','g10-rate-concentration','g10-rate-zinc','g9-zinc-hcl'].includes(id))again('Хүчлийн хэмжээ бага нөхцөл',variant(s=>s.type==='dose'&&s.reagent==='hcl'?{...s,amount:1}:s),['g9-zinc-hcl'].includes(id)?[check('acid',undefined,1e-5)]:[check('volume',11)]);
+ if(['rate-concentration','g10-rate-concentration','g10-rate-zinc'].includes(id))again('Хүчлийн хэмжээ бага нөхцөл',variant(s=>s.type==='dose'&&s.reagent==='hcl'?{...s,amount:1}:s),['g9-zinc-hcl'].includes(id)?[check('acid',undefined,1e-5)]:[check('volume',11)]);
  // 8-07/8-08: the same mass of calcium, which is more reactive than magnesium.
  if(id==='group2-water')again('Кальци хүйтэн устай хүчтэй урвалд орно',[dose('s_ca',.1),dose('water',10,1),{type:'start',label:'Кальцийг устай холь.'}],[check('volume',40)]);
  if(id==='group2-acid')again('Кальци давсны хүчилтэй',[dose('s_ca',.1),dose('hcl',5,1),{type:'start',label:'Кальцийг хүчилтэй холь.'}],[check('volume',40)]);

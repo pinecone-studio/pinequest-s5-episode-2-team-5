@@ -25,7 +25,7 @@ import type {InvestigationDefinition} from '../../../../../src/lib/textbook-inve
 import type {GuideStep} from './plans';
 export type Point=[number,number,number];
 export const useShowcase=create<{operationValue:number;carried:number;targetId:string|null;operation:Operation;progress:number;viscosity:number;materialPhase:string;key:string;status:'idle'|'playing'|'paused'|'done'|'failed';phase:string;delivered:number;amount:number;source:string|null;cap:Point|null;toolAnchor:Point|null;tip:Point|null;mouth:Point|null;flow:boolean;tool:'pour'|'spoon'|'pipette'|'hose'|'dial'|'magnet';color:string;message:string}>(()=>({operationValue:1,carried:0,targetId:null,operation:'none',progress:0,viscosity:1,materialPhase:'liquid',key:'',status:'idle',phase:'',delivered:0,amount:0,source:null,cap:null,toolAnchor:null,tip:null,mouth:null,flow:false,tool:'pour',color:'#87c8eb',message:''}));
-export const showcasePort=(kind:string,i:number):Point=>portLayout(kind,i).mouth;
+export const showcasePort=(kind:string,i:number,experiment?:string):Point=>portLayout(kind,i,experiment).mouth;
 export const showcaseDuration=(step:GuideStep)=>step.type==='dose'&&step.stopWhen?105:step.type==='dose'?5+Math.max(2,transferAppearance(reagentMixture(step.reagent,1)).viscosity>1?Math.min(8,step.amount/2):Math.min(5,step.amount/12.5)):step.type==='move'?7:step.type==='observe'?(step.duration??24):step.type==='record'?.4:['start','configure','portion'].includes(step.type)?6:3;
 export function showcaseMotion(from:Point,to:Point,t:number):{position:Point;tilt:number;fraction:number;phase:string}{
  const smooth=(x:number)=>{x=Math.max(0,Math.min(1,x));return x*x*(3-2*x);};
@@ -49,7 +49,7 @@ export function beginShowcase(def:InvestigationDefinition,step:GuideStep,key:str
  if(!id){useShowcase.setState({key,status:'failed',message:'Багаж, бодисоо эхлээд бэлтгэ.'});return;}
  const operation=operationFor(kind,step);
  const source=step.type==='dose'?currentSession()?.objects[`reagent-${step.reagent}`]:step.type==='move'?currentSession()?.objects[step.from]:step.type==='flame'?currentSession()?.objects.wireLoop:step.type==='place'?currentSession()?.objects[step.item]:operation==='stir'?currentSession()?.objects.glassRod:undefined;
- const at=itemPosition(id),local:Point=step.type==='dose'||step.type==='move'||operation==='stir'?showcasePort(kind,step.type==='dose'?step.port:0):step.type==='configure'&&step.change.operation==='draw'?[.04,.19,.03]:step.type==='configure'&&step.change.operation==='magnet'?[-.06,.15,0]:['electrolysisCell','galvanicCell','migrationTube'].includes(def.labRig!)?[0,.21,.03]:[0,.04,.08];
+ const at=itemPosition(id),local:Point=step.type==='dose'||step.type==='move'||operation==='stir'?showcasePort(kind,step.type==='dose'?step.port:0,def.id):step.type==='configure'&&step.change.operation==='draw'?[.04,.19,.03]:step.type==='configure'&&step.change.operation==='magnet'?[-.06,.15,0]:['electrolysisCell','galvanicCell','migrationTube'].includes(def.labRig!)?[0,.21,.03]:[0,.04,.08];
  const body=bodies.get(id),rot=body?new Quaternion().copy(body.rotation()):interactables.get(id)?.object.getWorldQuaternion(new Quaternion())??new Quaternion();
  if(operation==='stir')local[1]+=.025;
  if(step.type==='flame'){local[0]=0;local[1]=.17;local[2]=0;}
@@ -62,7 +62,7 @@ export function beginShowcase(def:InvestigationDefinition,step:GuideStep,key:str
  let center:Point=gas?[(at.x+stockAt.x)/2,at.y+.16,(at.z+stockAt.z)/2]:[at.x-.025,at.y+.15,at.z];
  let frameWidth=gas?Math.max(.46,Math.abs(stockAt.x-at.x)+.20):.34,frameHeight=.34;
  if(step.type==='observe'){
-  const rig=useGrade9Apparatus.getState().rigs[id],port=rig?.port??0,location=portLayout(kind,port),electrical=['galvanicCell','electrolysisCell','migrationTube'].includes(kind);
+  const rig=useGrade9Apparatus.getState().rigs[id],port=rig?.port??0,location=portLayout(kind,port,rig?.experiment),electrical=['galvanicCell','electrolysisCell','migrationTube'].includes(kind);
   const point=rig?new Vector3(location.x,location.bottom+location.height*.45,location.z).applyQuaternion(rot).add(at):new Vector3(at.x,at.y+.045,at.z);
   center=point.toArray() as Point;frameWidth=electrical?.28:rig?.24:.19;frameHeight=electrical?.30:rig?.24:.20;if(electrical)center[1]=at.y+.13;
  }

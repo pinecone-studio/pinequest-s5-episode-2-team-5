@@ -3,6 +3,8 @@ import {HotPlate,SpiritLamp,RigBurner,Electrode,IndicatorBulb,ColumnPlate,Chroma
 import {OperationVisual} from './OperationVisual';
 import {actionVisual} from '../../interaction/actions';
 import {ChamberContents} from './ChamberContents';
+import {GasTubeSetup} from './GasTubeSetup';
+import {gasLayout} from './gas-layouts';
 import {useShowcase} from '../workbench/guidance/showcase';
 import {useGuideCue} from '../workbench/guidance/runtime';
 import {ApparatusLabels} from './ApparatusLabels';
@@ -40,6 +42,8 @@ export function Grade9Apparatus({kind,itemId,...props}:GroupProps&{kind:RigKind;
  });
  const receiving=useGuideCue(s=>s.target===itemId),flow=useShowcase(s=>s.flow),stirring=useShowcase(s=>s.targetId===itemId&&s.operation==='stir'&&s.status==='playing');
  const selectedPort=rig?.port??0;
+ // The textbook's own apparatus replaces the generic wells for these experiments.
+ const bookSetup=kind==='gasTrain'&&gasLayout(rig?.experiment)?.layout==='tube';
  const well=(i:number,x:number,z=0)=>{
   const contents=rig?.chambers[i],look=contents?mixtureLook(contents):undefined;
   const litmus=contents&&((contents.s.litmus_red??0)+(contents.s.litmus_blue??0))>0;
@@ -57,7 +61,7 @@ export function Grade9Apparatus({kind,itemId,...props}:GroupProps&{kind:RigKind;
  <OperationVisual id={itemId} kind={kind} rig={rig}/>
  <ApparatusLabels id={itemId} kind={kind} rig={rig} onSelect={port=>{if(itemId){useGrade9Apparatus.getState().change(itemId,{port});const m=rig?.chambers[port];if(m)useChemStore.getState().setMixtures({[itemId]:m});}}}/>
  <Box at={[0,.006,0]} size={[.22,.012,.15]} color="#d2dce2"/>
- {isCurriculumRig(kind)?<CurriculumApparatus kind={kind} rig={rig} itemId={itemId} onSelect={port=>{if(itemId){useGrade9Apparatus.getState().change(itemId,{port});const m=rig?.chambers[port];if(m)useChemStore.getState().setMixtures({[itemId]:m});}}}/>:kind==='diffusionTube'?<>
+ {isCurriculumRig(kind)?<CurriculumApparatus kind={kind} rig={rig} itemId={itemId} onSelect={port=>{if(itemId){useGrade9Apparatus.getState().change(itemId,{port});const m=rig?.chambers[port];if(m)useChemStore.getState().setMixtures({[itemId]:m});}}}/>:bookSetup?<GasTubeSetup rig={rig} itemId={itemId} select={port=>{if(itemId){useGrade9Apparatus.getState().change(itemId,{port});const m=rig?.chambers[port];if(m)useChemStore.getState().setMixtures({[itemId]:m});}}}/>:kind==='diffusionTube'?<>
   <mesh material={glass} position={[0,.1,0]} rotation={[0,0,Math.PI/2]}><cylinderGeometry args={[.012,.012,.21,24,1,true]}/></mesh>
   <Box at={[-.095,.05,0]} size={[.012,.09,.03]} color={metal}/><Box at={[.095,.05,0]} size={[.012,.09,.03]} color={metal}/>
   {rig&&rig.extent>0&&<mesh position={[(rig.chambers[0].aq.NH3?1:-1)*.0195,.1,0]} rotation={[0,Math.PI/2,0]}><torusGeometry args={[.01,.0025,8,24]}/><meshStandardMaterial color="white"/></mesh>}
@@ -98,6 +102,6 @@ export function Grade9Apparatus({kind,itemId,...props}:GroupProps&{kind:RigKind;
   {kind==='heatingBath'&&(rig?.chambers[1].s.ice??0)>0&&<Box at={[.065,.06,0]} size={[.024,.025,.023]} color="#e1f5ff"/>}
  </>}
  {!isCurriculumRig(kind)&&!['gasTrain','heatingBath','reactionTile','corrosionRack','diffusionTube','fractionatingColumn'].includes(kind)&&well(2,0,.055)}
- {rig?.running&&(rig.kind==='gasTrain'&&rig.gas>0||rig.kind==='heatingBath'&&rig.temperature>=100)&&<group ref={particles}>{Array.from({length:12},(_,i)=><mesh key={i} position={[-.065+(i%3)*.004,.09+i*.009,0]}><sphereGeometry args={[.0018,8,6]}/><meshStandardMaterial color="#e2f4f8" transparent opacity={.7}/></mesh>)}</group>}
+ {rig?.running&&(rig.kind==='gasTrain'&&rig.gas>0&&!bookSetup||rig.kind==='heatingBath'&&rig.temperature>=100)&&<group ref={particles}>{Array.from({length:12},(_,i)=><mesh key={i} position={[-.065+(i%3)*.004,.09+i*.009,0]}><sphereGeometry args={[.0018,8,6]}/><meshStandardMaterial color="#e2f4f8" transparent opacity={.7}/></mesh>)}</group>}
  </group>;
 }

@@ -1,5 +1,6 @@
 /**
- * "Туршилтын карт": анги, бүлэг, сэдэв, гарчиг, сурах бичгийн хуудас, хугацаа, аюулгүй байдал, хийх дараалал, "Туршилтыг эхлэх" товч.
+ * "Туршилтын карт": анги, бүлэг, сэдэв, гарчиг, сурах бичгийн хуудас, хугацаа, аюулгүй байдал, хийх дараалал, "Туршилтыг эхлэх" товч,
+ * бүтэн 3D үзүүлбэртэй туршилтад "3D үзүүлбэр үзэх" товч.
  * Хийх дараалал нь JSON-ийн `procedure` баганаас (химичийн бичсэн). Бичээгүй туршилтад энэ хэсэг огт харагдахгүй.
  * Товч нь доор тогтмол байрлана (агуулга урт байвал дотроо гүйлгэнэ), ингэснээр нам дэлгэцтэй утсанд ч үргэлж харагдана.
  */
@@ -11,9 +12,11 @@ interface ExperimentScreenProps {
   /** 3D лабт алхамчилсан заавартай эсэх. false бол "удахгүй" гэж харуулж, чөлөөт лабт нээнэ */
   guided: boolean;
   onStart: () => void;
+  /** Бүтэн 3D үзүүлбэртэй туршилтад л өгнө; өгөөгүй бол товч гарахгүй */
+  onDemo?: () => void;
 }
 
-export function ExperimentScreen({ experiment, guided, onStart }: ExperimentScreenProps) {
+export function ExperimentScreen({ experiment, guided, onStart, onDemo }: ExperimentScreenProps) {
   return (
     <div className="flex min-h-0 flex-1 flex-col">
       <div className="scrollbar-thin flex-1 overflow-y-auto px-4 pb-4 pt-2">
@@ -72,7 +75,7 @@ export function ExperimentScreen({ experiment, guided, onStart }: ExperimentScre
         )}
       </div>
 
-      <div className="shrink-0 px-4 pb-4 pt-2">
+      <div className="shrink-0 space-y-2 px-4 pb-4 pt-2">
         <button
           type="button"
           onClick={() => {
@@ -83,6 +86,18 @@ export function ExperimentScreen({ experiment, guided, onStart }: ExperimentScre
         >
           ▶ Туршилтыг эхлэх
         </button>
+        {onDemo && (
+          <button
+            type="button"
+            onClick={() => {
+              sounds.play('ui');
+              onDemo();
+            }}
+            className="min-h-12 w-full rounded-2xl border-2 border-t-accent bg-t-card px-8 font-heading text-base font-extrabold text-t-ink transition active:translate-y-[2px] focus-visible:outline focus-visible:outline-4 focus-visible:outline-offset-2 focus-visible:outline-white"
+          >
+            🎬 3D үзүүлбэр үзэх
+          </button>
+        )}
       </div>
     </div>
   );

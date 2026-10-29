@@ -149,7 +149,9 @@ export function mixtureLook(m: Mixture | undefined): MixtureLook {
   const ml = liquidMl(m);
   const solids = solidsColor(m.s);
   const solidColor = solids.grams > 0.002 ? '#' + solids.color.getHexString() : null;
-  const sedimentMl = solidVolumeMl(m) * (1 - m.cloud * 0.85);
+  // Stirring and bubbling lift fine powder into the liquid, but never metal pieces.
+  const metalMl = Object.entries(m.s).reduce((v, [id, n]) => (SOLIDS[id as SolidId].metal ? v + ((n ?? 0) * SOLIDS[id as SolidId].molarMass) / 5 : v), 0);
+  const sedimentMl = metalMl + (solidVolumeMl(m) - metalMl) * (1 - m.cloud * 0.85);
   if (ml < 0.01) {
     return { liquid: null, liquidMl: 0, turbidity: 0, sedimentMl: solidVolumeMl(m), solidColor, solidMetal: solids.metal, foamMl: m.foam, burning: m.burning };
   }

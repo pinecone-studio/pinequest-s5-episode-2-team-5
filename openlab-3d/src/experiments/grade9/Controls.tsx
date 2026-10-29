@@ -26,7 +26,7 @@ export function Grade9Controls({id}:{id:string}){
  return <div className="my-3 space-y-2 border-t border-slate-200 pt-3" aria-label="Судалгааны багажийн удирдлага">
   <b className="block text-xs">{RIG_NAMES[kind]}</b>
   <p className="text-xs leading-relaxed">{apparatusPurpose(kind)}</p>
-  <div className="flex flex-wrap gap-1">{rig.chambers.map((m,i)=><button key={i} className={`${button} ${rig.port===i?'border-sky-600 bg-sky-100':''}`} aria-pressed={rig.port===i} onClick={()=>{change({port:i});useChemStore.getState().setMixtures({[id]:m});}}>{i+1}. {portLabel(kind,i)} · {liquidMl(m).toFixed(1)} мл / {solidMassG(m).toFixed(2)} г</button>)}</div>
+  <div className="flex flex-wrap gap-1">{rig.chambers.map((m,i)=><button key={i} className={`${button} ${rig.port===i?'border-sky-600 bg-sky-100':''}`} aria-pressed={rig.port===i} onClick={()=>{change({port:i});useChemStore.getState().setMixtures({[id]:m});}}>{i+1}. {portLabel(kind,i,rig.experiment)} · {liquidMl(m).toFixed(1)} мл / {solidMassG(m).toFixed(2)} г</button>)}</div>
   <div className="flex flex-wrap gap-1">
    <button className={button} onClick={start}>{kind==='gasTrain'?'② → ① Холих · урвалыг ажиглах':rig.running?'Ажиллаж байна · үргэлжлүүлэх':'Багажийг ажиллуулах'}</button>
    <button className={button} disabled={!rig.running} onClick={()=>change({running:false})}>Түр зогсоох</button>

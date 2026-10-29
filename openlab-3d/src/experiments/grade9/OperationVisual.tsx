@@ -3,6 +3,7 @@ import {useFrame} from '@react-three/fiber';
 import {Html} from '@react-three/drei';
 import {CatmullRomCurve3,Vector3,type Group,type Mesh} from 'three';
 import {useShowcase} from '../workbench/guidance/showcase';
+import {gasLayout} from './gas-layouts';
 import {portLayout} from './port-layout';
 import type {RigState} from './process';
 import type {Operation} from '../workbench/guidance/operation';
@@ -12,7 +13,7 @@ export function OperationVisual({id,kind,rig}:{id?:string;kind:string;rig?:RigSt
  const operation=useShowcase(s=>s.targetId===id?s.operation:'none'),active=useShowcase(s=>s.targetId===id&&['playing','paused'].includes(s.status));
  const grains=useRef<Group>(null);
  const rod=useRef<Group>(null),magnet=useRef<Group>(null),reel=useRef<Group>(null),dial=useRef<Group>(null),clamps=useRef<Group>(null),gas=useRef<Group>(null),arrow=useRef<Mesh>(null);
- const port=portLayout(kind,0),target=port.mouth;
+ const port=portLayout(kind,0,rig?.experiment),target=port.mouth;
  const electric=['galvanicCell','electrolysisCell','migrationTube','conductivityTester'].includes(kind);
  const circuit=useMemo(()=>new CatmullRomCurve3([new Vector3(-.06,.15,0),new Vector3(-.06,.22,0),new Vector3(.06,.22,0),new Vector3(.06,.15,0)]),[]);
  const t=useRef(0);
@@ -21,14 +22,14 @@ export function OperationVisual({id,kind,rig}:{id?:string;kind:string;rig?:RigSt
   if(!watching||s.status==='playing')t.current+=Math.min(dt,.1);
   const operating=watching?s.operation:'none';
   if(rod.current){rod.current.visible=operating==='stir'&&!s.source;rod.current.position.set(target[0]+Math.cos(t.current*5)*.008,target[1]+.018-.035*Math.sin(Math.PI*p),target[2]+Math.sin(t.current*5)*.008);rod.current.rotation.z=.15*Math.sin(t.current*5);}
-  if(magnet.current){magnet.current.visible=operating==='magnet';const destination=portLayout(kind,2).mouth,start=[target[0]-.075,target[1]+.04,target[2]],sample=[target[0],target[1]-.025,target[2]];const a=p<.3?start:p<.8?sample:destination,b=p<.3?sample:p<.8?destination:start,f=smooth(p<.3?p/.3:p<.8?(p-.3)/.5:(p-.8)/.2);magnet.current.position.set(a[0]+(b[0]-a[0])*f,a[1]+(b[1]-a[1])*f+(p>.3&&p<.8?.04*Math.sin(Math.PI*f):0),a[2]+(b[2]-a[2])*f);}
+  if(magnet.current){magnet.current.visible=operating==='magnet';const destination=portLayout(kind,2,rig?.experiment).mouth,start=[target[0]-.075,target[1]+.04,target[2]],sample=[target[0],target[1]-.025,target[2]];const a=p<.3?start:p<.8?sample:destination,b=p<.3?sample:p<.8?destination:start,f=smooth(p<.3?p/.3:p<.8?(p-.3)/.5:(p-.8)/.2);magnet.current.position.set(a[0]+(b[0]-a[0])*f,a[1]+(b[1]-a[1])*f+(p>.3&&p<.8?.04*Math.sin(Math.PI*f):0),a[2]+(b[2]-a[2])*f);}
 
   if(grains.current)grains.current.visible=operating==='magnet'&&p>.3&&p<.83&&(rig?.chambers[0].s.Fe??0)>1e-9;
   if(reel.current){reel.current.visible=operating==='wind'||!!rig&&(rig.chambers[3]?.s.nylon610??0)>0;reel.current.rotation.x=operating==='wind'?-p*Math.PI*8:0;}
   if(dial.current){const controlled=['heat','cool','power','connect-electric','compress'].includes(operating);dial.current.visible=controlled||electric;const f=controlled?(s.operationValue? smooth(p):1-smooth(p)):rig?.connected||rig?.heating?1:0;dial.current.rotation.z+=(-f*Math.PI*.8-dial.current.rotation.z)*(1-Math.exp(-dt*10));}
   if(clamps.current){const f=operating==='connect-electric'?smooth(p/.65):rig?.connected||rig?.running?1:.1;clamps.current.children.forEach(c=>{c.position.y=(1-f)*.075;c.position.x=0;});}
 
-  if(gas.current){const f=operating==='connect-gas'?smooth(p/.65):rig?.connected||rig?.running?1:0;gas.current.visible=['gasTrain','refluxReactor','refluxBath','dehydrationFlask','crackingTube','fermenter','gasWashTrain','gasSyringe'].includes(kind)&&(operating==='connect-gas'||!!rig?.running);gas.current.children.forEach((c,i)=>{c.position.y=(1-f)*.07;c.position.x=(i===0?-1:1)*(1-f)*.04;});}
+  if(gas.current){const f=operating==='connect-gas'?smooth(p/.65):rig?.connected||rig?.running?1:0;gas.current.visible=['gasTrain','refluxReactor','refluxBath','dehydrationFlask','crackingTube','fermenter','gasWashTrain','gasSyringe'].includes(kind)&&!gasLayout(rig?.experiment)&&(operating==='connect-gas'||!!rig?.running);gas.current.children.forEach((c,i)=>{c.position.y=(1-f)*.07;c.position.x=(i===0?-1:1)*(1-f)*.04;});}
   if(arrow.current){const current=(rig?.data.cellCurrent??rig?.current??0);arrow.current.visible=kind==='galvanicCell'&&!!rig?.connected&&!!rig.running&&current>1e-8;const f=(t.current*.4)%1;arrow.current.position.copy(circuit.getPoint(f));const direction=circuit.getTangent(f);arrow.current.quaternion.setFromUnitVectors(new Vector3(0,1,0),direction);}
  });
  const badge:Partial<Record<Operation,string>>={'connect-electric':'① электрод → ② утас → ③ хэлхээ','connect-gas':'Гаралт → хоолой → хүлээн авагч',stir:'Холих хөдөлгөөн',magnet:'Соронзон ялгалт',wind:'Хальс → утас → ороогч',heat:'Халаалтын удирдлага',cool:'Хөргөлтийн урсгал',compress:'Поршен / эзлэхүүн'};

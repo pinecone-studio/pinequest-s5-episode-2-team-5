@@ -27,7 +27,7 @@ try{
   const call=(method,params)=>send(method,params,sessionId);
   await call('Runtime.enable');await call('Page.enable');await call('Emulation.setDeviceMetricsOverride',{width,height:980,deviceScaleFactor:1,mobile:width===390});
   await call('Page.addScriptToEvaluateOnNewDocument',{source:"localStorage.setItem('openlab3d-settings',JSON.stringify({state:{quality:'low',lookMode:'keyboard',reducedMotion:true},version:1}))"});
-  await call('Page.navigate',{url:`http://127.0.0.1:${server.address().port}/openlab/index.html?experiment=${experiment}`});
+  await call('Page.navigate',{url:`http://127.0.0.1:${server.address().port}/openlab/index.html?experiment=${experiment}&demo=1`});
   const evaluate=async expression=>(await call('Runtime.evaluate',{expression,returnByValue:true})).result.value;
   const waitTimeout=Number(process.env.OPENLAB_SMOKE_WAIT_TIMEOUT_MS)||600000,verbose=!!process.env.OPENLAB_SMOKE_VERBOSE;
   const waitFor=async(expression,label)=>{if(verbose)console.log(`WAIT ${label}`);const deadline=Date.now()+waitTimeout;while(Date.now()<deadline){assert.deepEqual(exceptions,[],`Production JavaScript error: ${exceptions.join('\n')}`);if(await evaluate(`Boolean(${expression})`)){if(verbose)console.log(`PASS ${label}`);return;}await new Promise(r=>setTimeout(r,250));}const state=await evaluate("({text:document.body.innerText.slice(0,4000),buttons:Array.from(document.querySelectorAll('button')).map(b=>b.textContent.trim()).slice(0,50)})");throw Error(`Production page did not reach ${label}: ${JSON.stringify(state)}`);};
@@ -35,12 +35,7 @@ try{
   assert.equal(await evaluate(`!!document.querySelector('[aria-label="Энэ туршилтын 3D үзүүлбэр"]')`),false,'No demo option before entering an experiment');
   await evaluate("Array.from(document.querySelectorAll('button')).find(b=>b.textContent==='Лабораторид орох').click()");
   await waitFor("document.querySelector('canvas') && Array.from(document.querySelectorAll('button')).some(b=>b.textContent==='Ширээнээс гарах')",'3D bench');
-  const skippedPreparation=await evaluate("(()=>{const b=Array.from(document.querySelectorAll('button')).find(b=>b.textContent.includes('Багш: бэлтгэл алгасах'));if(b)b.click();return Boolean(b);})()");if(verbose)console.log(`Preparation skip available: ${skippedPreparation}`);
-  await waitFor("document.querySelector('[aria-label=\"Энэ туршилтын 3D үзүүлбэр\"]')",'showcase launch button');
-  const button=await evaluate("(()=>{const b=document.querySelector('[aria-label=\"Энэ туршилтын 3D үзүүлбэр\"]'),r=b.getBoundingClientRect();return {color:getComputedStyle(b).backgroundColor,top:r.top,bottom:r.bottom,height:r.height};})()");
   assert.equal(await evaluate(`!!document.querySelector('[aria-labelledby="showcase-chooser-title"]')`),false,'No cross-experiment chooser');
-  assert.equal(button.color,'rgb(245, 184, 0)');assert.ok(button.top>=0&&button.bottom<=980&&button.height>=56,'Bright button must be visible without scrolling');
-  await evaluate("document.querySelector('[aria-label=\"Энэ туршилтын 3D үзүүлбэр\"]').click()");
   await waitFor("Array.from(document.querySelectorAll('button')).some(b=>b.textContent==='Авто үзүүлбэрийг түр зогсоох')",'running physical showcase');
   if(experiment==='g10-nylon'){
    await waitFor("document.querySelector('[aria-label=\"Багажийн нэр ба идэвхтэй хэсэг\"]')",'readable apparatus labels');

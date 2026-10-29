@@ -21,6 +21,8 @@ import { useExperimentCatalog } from '../../lab/experiments';
 import { currentSession, jumpToStep, useWorkbench } from '../workbench/session';
 import { isTouchDevice } from '../../utils/device';
 import { PreparationChecklist } from '../workbench/PreparationHints';
+import { EquipmentTourCaption } from '../workbench/guidance/equipment-tour';
+import { RealTimeNote } from '../workbench/guidance/RealTimeNote';
 import { mobileizeControlHint } from '../../controls/mobileInteraction';
 import { ProcedureList } from '../../menu/ProcedureBlock';
 import { TextbookPreparation } from '../../menu/TextbookPreparation';
@@ -130,6 +132,8 @@ export function NaClHUD() {
   const receiverLabel = receiver ? describe(receiver).label : null;
   const r = promptKey('pour', settings.bindings, settings.lookMode);
   return <>
+    {closeup && !workbench.drawer && <EquipmentTourCaption />}
+    {closeup && !workbench.drawer && <RealTimeNote />}
     {closeup && held && !view.inspecting && !workbench.drawer && <div className={`pointer-events-none fixed inset-x-4 top-[34vh] z-30 rounded-xl border-2 px-3 py-2 text-xs shadow-hud sm:inset-x-auto sm:top-auto sm:bottom-20 sm:left-1/2 sm:max-w-lg sm:-translate-x-1/2 ${receiver ? 'border-sky-400 bg-sky-50 text-sky-950' : 'border-emerald-400 bg-emerald-50 text-emerald-950'}`} role="status" aria-label="Барьж буй багажийн үйлдэл">
       <b className="block">{receiver ? `↓ Цутгах / ашиглах сав: ${receiverLabel}` : '▣ Тавих: хоосон гадаргуу руу чиглүүл'}</b>
       <p className="mt-1">{receiver ? `${held} → ${receiverLabel} · ${r} дарж барьж ашиглана. Дарах нь зөвхөн савыг сонгоно.` : `Барьж буй: ${held} · Ногоон дүрс дээр дарж эсвэл ${q} дарж тавина.`}</p>

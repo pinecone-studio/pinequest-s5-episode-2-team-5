@@ -1077,7 +1077,11 @@ test('the tools drawer at the worktop gives another test tube instead of pointin
 test('clearing an experiment removes the tubes standing in its rack, so nothing keeps reacting unseen',()=>{
  stores.resetWorkbench();stores.useInventoryStore.getState().reset();stores.useChemStore.getState().reset();
  stores.selectBenchExperiment('g9-zinc-hcl',true);stores.demonstratePreparation();
- const session=stores.currentSession(),rack=session.objects.testTubeRack,tube=session.objects.testTube,acid=session.objects['reagent-hcl'],zinc=session.objects['reagent-s_zn'];
+ // A rack and tube set out for this experiment (its guide now uses the book's clamped tube instead).
+ const id='g9-zinc-hcl',rack=stores.useInventoryStore.getState().spawn('testTubeRack',[8.6,.915,-14.5]),tube=stores.useInventoryStore.getState().spawn('testTube',[8,.915,-14.5]);
+ const prepared=stores.useWorkbench.getState().sessions[id];
+ stores.useWorkbench.setState(s=>({sessions:{...s.sessions,[id]:{...prepared,owned:[...prepared.owned,rack,tube],objects:{...prepared.objects,testTubeRack:rack,testTube:tube}}}}));
+ const session=stores.currentSession(),acid=session.objects['reagent-hcl'],zinc=session.objects['reagent-s_zn'];
  assert.ok(rack&&tube&&acid&&zinc);
  stores.transfer({id:acid,kind:'reagentBottle',variant:{reagent:'hcl'}},{id:tube,kind:'testTube'},5);
  stores.transfer({id:zinc,kind:'reagentJar',variant:{reagent:'s_zn'}},{id:tube,kind:'testTube'},.1);

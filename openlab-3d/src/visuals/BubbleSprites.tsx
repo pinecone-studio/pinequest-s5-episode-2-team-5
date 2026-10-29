@@ -37,7 +37,9 @@ const texture = lazy(() => {
   t.anisotropy = 4;
   return t;
 });
-const material = lazy(() => new MeshBasicMaterial({ map: texture(), alphaToCoverage: true, side: DoubleSide, toneMapped: false }));
+// Bubbles rise inside the liquid, which is drawn nearly or fully opaque (liquid-fx): they are drawn
+// after it and on top, or a fizzing liquid would look still.
+const material = lazy(() => new MeshBasicMaterial({ map: texture(), transparent: true, depthTest: false, depthWrite: false, side: DoubleSide, toneMapped: false }));
 const plane = lazy(() => new PlaneGeometry(1, 1));
 
 function hash(i: number) {

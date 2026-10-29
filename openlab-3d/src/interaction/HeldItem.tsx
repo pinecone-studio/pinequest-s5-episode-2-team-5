@@ -229,7 +229,7 @@ export function HeldItem() {
         entry.object.getWorldPosition(end);
         const targetKind = useInventoryStore.getState().worldItems.find((w) => w.id === actionVisual.targetId)?.kind;
         const rig=actionVisual.targetId?useGrade9Apparatus.getState().rigs[actionVisual.targetId]:undefined;
-        if(rig)entry.object.localToWorld(end.set(...portLayout(rig.kind,rig.port).mouth));
+        if(rig)entry.object.localToWorld(end.set(...portLayout(rig.kind,rig.port,rig.experiment).mouth));
         else end.y += targetKind ? Math.min(0.08, CATALOG[targetKind].size[1] * 0.6) : 0.05;
         mid.copy(end).sub(spout);
         const len = mid.length();

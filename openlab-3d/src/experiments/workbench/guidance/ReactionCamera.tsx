@@ -26,6 +26,8 @@ export function ReactionCamera(){
    if(!r||key===framed)return;
    framed=key;
    const kind=itemDescription(r.vesselId).kind,size=kind?CATALOG[kind]?.size:undefined,at=itemPosition(r.vesselId);
+   // An item that cannot be located reports a far-away point; never send the camera there.
+   if(at.x>=900)return;
    const w=Math.max(size?.[0]??.08,size?.[2]??.08),h=size?.[1]??.1;
    // Room above the rim for foam, vapour and the gas label.
    benchView.frame([at.x,at.y+h*.55,at.z],Math.max(.16,w*2.2),Math.max(.16,h*1.6));

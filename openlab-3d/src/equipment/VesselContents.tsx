@@ -39,6 +39,17 @@ const flameGeometry = lazy(() => {
 });
 
 
+/**
+ * Metal pieces lie inside the liquid, which is drawn nearly or fully opaque (see liquid-fx), so
+ * they are drawn after it and on top: clear acid must not hide the zinc in it.
+ */
+function useImmersedMetal(color: string): MeshStandardMaterial {
+  const material = useMemo(() => new MeshStandardMaterial({ metalness: 0.75, roughness: 0.38, transparent: true, depthTest: false }), []);
+  useEffect(() => () => material.dispose(), [material]);
+  useEffect(() => void material.color.set(color), [material, color]);
+  return material;
+}
+
 function useSolidMaterial(color: string, metal: boolean): MeshStandardMaterial {
   const material = useMemo(() => new MeshStandardMaterial({ roughness: 0.85 }), []);
   useEffect(() => () => material.dispose(), [material]);
@@ -66,7 +77,8 @@ const granuleGeometry = lazy(() => new IcosahedronGeometry(1, 0));
 
 /** Metal pieces (granules, turnings) lie on the bottom as lumps, not as a flat layer. */
 function Granules({ profile, bottom, ml, material }: { profile: VesselProfile; bottom: number; ml: number; material: MeshStandardMaterial }) {
-  const size = Math.min(0.0028, radiusAt(profile, bottom + 0.004) * 0.42);
+  // Granules and turnings are 2–4 mm across: a gram of zinc is about eight pieces.
+  const size = Math.min(0.0016, radiusAt(profile, bottom + 0.004) * 0.3);
   const count = Math.max(1, Math.min(12, Math.round((ml * 1e-6) / ((4 / 3) * Math.PI * size ** 3))));
   const pieces = useMemo(
     () =>
@@ -82,7 +94,7 @@ function Granules({ profile, bottom, ml, material }: { profile: VesselProfile; b
   return (
     <group userData={{ noOutline: true, noBatch: true }}>
       {pieces.map((g, i) => (
-        <mesh key={i} geometry={granuleGeometry()} material={material} position={g.p} rotation={g.rot} scale={g.s} castShadow raycast={() => undefined} />
+        <mesh key={i} geometry={granuleGeometry()} material={material} position={g.p} rotation={g.rot} scale={g.s} castShadow renderOrder={3} raycast={() => undefined} />
       ))}
     </group>
   );
@@ -186,6 +198,7 @@ function LiveContents({ profile, look, itemId }: VesselContentsProps) {
   const liquidMat = useLiquidMaterial(look.liquid ?? '#cfe6f5', look.turbidity, { agitated, pouring: receiving && flow, fizz: () => (itemId ? gasIntensity(itemId) : 0), flash, cloud: precipitate ? phases!.suspension : 0, cloudColor: phases?.precipitateColor ?? null, bottom: sedimentTop, top: boundary, radius: radiusAt(profile, (sedimentTop + boundary) / 2) });
   const organicMat=useLiquidMaterial(phases?.organicColor??'#eff2e9',0,{ agitated, cloud: 0, cloudColor: null, bottom: boundary, top: liquidTop, radius: radiusAt(profile, liquidTop) });
   const solidMat = useSolidMaterial(look.solidColor ?? '#ffffff', look.solidMetal);
+  const metalMat = useImmersedMetal(look.solidColor ?? '#a2aab1');
   const rimR = radiusAt(profile, rim);
   const foamH = look.foamMl > 2 ? Math.min(0.12, (look.foamMl * 1e-6) / (Math.PI * rimR * rimR) + 0.003) : 0;
   const foamFrom = Math.max(liquidTop, sedimentTop);
@@ -193,7 +206,7 @@ function LiveContents({ profile, look, itemId }: VesselContentsProps) {
   const showLiquid = look.liquid && liquidTop - sedimentTop > 0.0006;
   return (
     <group userData={{ noBatch: true }}>
-      {look.solidMetal && look.solidColor ? <Granules profile={profile} bottom={bottom} ml={look.sedimentMl} material={solidMat} /> : showSediment && <mesh geometry={bandGeometry(profile, bottom, sedimentTop, 0.97)} material={solidMat} userData={{ noOutline: true, noBatch: true }} />}
+      {look.solidMetal && look.solidColor ? <Granules profile={profile} bottom={bottom} ml={look.sedimentMl} material={metalMat} /> : showSediment && <mesh geometry={bandGeometry(profile, bottom, sedimentTop, 0.97)} material={solidMat} userData={{ noOutline: true, noBatch: true }} />}
       {showLiquid && !pouring && <mesh geometry={bandGeometry(profile, sedimentTop, boundary)} material={liquidMat} userData={{ noOutline: true, noBatch: true }} />}
       {pouring&&showLiquid&&<HydrostaticLiquid profile={profile} ml={look.liquidMl} color={look.liquid??'#e2f0fa'}/>}
       {showLiquid&&!pouring&&phases?.layered&&<mesh geometry={bandGeometry(profile,boundary,liquidTop)} material={organicMat} userData={{noOutline:true,noBatch:true}}/>}

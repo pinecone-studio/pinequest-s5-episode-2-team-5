@@ -74,6 +74,7 @@ export function DebugBridge() {
       sandbox: { useSandbox, labUse, mixture, simulateLab, resetSandbox },
       restartSession, worktop: benchView, worktopView: useBenchView, placement: heldApi, tablePointer, guide: experimentGuide,
       camera: () => get().camera,
+      scene: () => get().scene,
       beginHeldUse, endHeldUse,
       teleport: (x: number, z: number, yaw = 0) => playerApi.teleport(x, z, yaw),
       look: (yaw: number, pitch = 0) => {

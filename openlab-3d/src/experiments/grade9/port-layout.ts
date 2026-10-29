@@ -1,10 +1,11 @@
 import {PROFILES,rimHeight} from '../../equipment/profiles';
 import {CURRICULUM_RIGS,isCurriculumRig} from '../curriculum/kinds';
 import {isGrade9Rig} from './kinds';
+import {gasLayout} from './gas-layouts';
 import {CATALOG,type EquipmentKind} from '../../equipment/equipmentCatalog';
 export type PortPoint=[number,number,number];
 /** Shared by the vessel model, labels and pouring animation. Dimensions are in metres. */
-export function portLayout(kind:string,i:number){
+export function portLayout(kind:string,i:number,experiment?:string){
  const shape=isCurriculumRig(kind)?CURRICULUM_RIGS[kind].shape:'';
  let x=0,z=0,bottom=.014,height=.1,radius=.025;
  if(['rack','enzyme','exposure','magnet'].includes(shape)){x=(i%3-1)*.06;z=(Math.floor(i/3)-1)*.052;height=.09;radius=.018;}
@@ -21,6 +22,8 @@ export function portLayout(kind:string,i:number){
  else if(['electrolysis','galvanic','migration'].includes(shape)){x=i===0?-.06:i===1?.06:shape==='galvanic'?0:.08;z=i===2?.045:0;height=i===2?.06:.1;radius=i===2?.013:.025;}
  else if(shape==='diffusion'){x=i===0?0:i===1?.08:-.08;z=i===0?0:.045;height=i===0?.17:.08;radius=.02;}
  else if(shape==='molecule'){x=i===0?-.06:i===1?.06:0;height=i===2?.2:.08;}
+ // The book's setup (gas-layouts.ts): clamped test tube, zinc dish in front, soap trough on the right.
+ else if(kind==='gasTrain'&&gasLayout(experiment)?.layout==='tube'){x=i===0?-.055:i===1?0:.06;z=i===0?-.02:i===1?.055:.02;bottom=i===0?.07:.014;height=i===0?.148:i===1?.012:.055;radius=i===0?.0075:i===1?.016:.045;}
  else if(kind==='gasTrain'){x=i===0?-.065:i===1?.065:0;z=i===2?.055:0;bottom=i===0?.094:.014;}
  else if(kind==='reactionTile'){x=(i%3-1)*.065;z=i<3?-.035:.035;}
  else if(kind==='corrosionRack'){x=(i%4-1.5)*.05;z=i<4?-.04:.035;}
@@ -31,7 +34,8 @@ export function portLayout(kind:string,i:number){
  const mouth:PortPoint=shape==='polymer'&&i===1?[-.025,.134,0]:shape==='polymer'&&i===2?[-.045,.075,0]:shape==='polymer'&&i===3?[.07,.04,.05]:isGrade9Rig(kind)?[x,bottom+height,z]:[0,kind in PROFILES?rimHeight(PROFILES[kind as keyof typeof PROFILES]):CATALOG[kind as EquipmentKind]?.size[1]??.1,0];
  return {x,z,bottom,height,radius,mouth};
 }
-export function portLabel(kind:string,i:number){
+export function portLabel(kind:string,i:number,experiment?:string){
+ const book=kind==='gasTrain'?gasLayout(experiment)?.ports[i]:undefined;if(book)return book;
  if(isCurriculumRig(kind))return CURRICULUM_RIGS[kind].ports[i]??`Дээж ${i+1}`;
  const parts:Record<string,string[]>={
   gasSyringe:['Хийн дээжийн оролт','Нэмэх дээж','Хяналтын дээж'],

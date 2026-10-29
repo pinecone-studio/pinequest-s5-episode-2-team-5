@@ -5,8 +5,8 @@
  */
 import { resumeWalk } from '../controls/useGameKeys';
 import { experimentById, type Experiment } from '../lab/experiments';
-import { clearTextbookSupplies, leaveBenchExperiment, selectBenchExperiment, suppliesFor, useWorkbench } from '../experiments/workbench/session';
-import { useGameStore } from '../store/useGameStore';
+import { clearTextbookSupplies, demonstratePreparation, leaveBenchExperiment, selectBenchExperiment, suppliesFor, useWorkbench } from '../experiments/workbench/session';
+import { playerApi, useGameStore } from '../store/useGameStore';
 import { useLabStore } from '../store/useLabStore';
 import { sounds } from '../utils/sounds';
 import type { TextbookExperiment } from './chapterBuild';
@@ -14,6 +14,9 @@ import { labIdFor } from './labLinks';
 import { guidedMessage, unguidedMessage } from './launchText';
 import { useLaunchedProcedure, type TextbookPrep } from './launchedProcedure';
 import { bookSupplies, setLaunchedBook } from '../experiments/workbench/bookSupplies';
+import { bench, enterBench } from '../experiments/nacl/bench';
+import { requestShowcase } from '../experiments/workbench/guidance/launch-store';
+import { physicalShowcasePlan } from '../experiments/workbench/guidance/plans';
 
 /** Энэ туршилтын 3D лабын алхамчилсан заавар. Холбоогүй эсвэл лабын жагсаалтад байхгүй бол undefined */
 export function guideFor(experiment: TextbookExperiment): Experiment | undefined {
@@ -57,4 +60,34 @@ export function startTextbookExperiment(experiment: TextbookExperiment): void {
   resumeWalk();
   const done = useLabStore.getState().progress[lab.id] ?? [];
   if (lab.steps.some((step) => !done.includes(step.id))) useGameStore.getState().say(guidedMessage(lab.title), 'wave');
+}
+
+/** Энэ туршилтад бүтэн 3D үзүүлбэр (алхам бүрийг өөрөө хийж үзүүлэх) байгаа эсэх */
+export function hasDemo(experiment: TextbookExperiment): boolean {
+  const lab = guideFor(experiment);
+  return !!lab && !!physicalShowcasePlan(lab.id);
+}
+
+/**
+ * "3D үзүүлбэр үзэх" — туршилтыг эхлүүлээд ажлын ширээнд суулгаж, бүтэн үзүүлбэрийг тоглуулна.
+ * Ширээний 3D хөдөлгүүр ачаалж дуусаагүй бол (удаан утсанд) хэдэн секунд хүлээнэ.
+ */
+export function watchTextbookDemo(experiment: TextbookExperiment): void {
+  const lab = guideFor(experiment);
+  if (!lab) return;
+  startTextbookExperiment(experiment);
+  requestShowcase(lab.id);
+  let frames = 0;
+  const sit = () => {
+    if (useGameStore.getState().mode !== 'walk') return;
+    if (!bench.engine) {
+      if (++frames < 600) window.requestAnimationFrame(sit);
+      return;
+    }
+    playerApi.teleport(8.25, -13.6, 0);
+    enterBench();
+    // Бэлтгэлийн жагсаалт харагдаж байхад үзүүлбэрийн заавар ширээнд гардаггүй: багшийн адил бэлтгэлийг гүйцээнэ
+    demonstratePreparation();
+  };
+  sit();
 }
