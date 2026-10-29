@@ -17,7 +17,8 @@ import { PreparationChecklist } from '../experiments/workbench/PreparationHints'
 import { sounds } from '../utils/sounds';
 import { isTouchDevice } from '../utils/device';
 import { mobileizeControlHint } from '../controls/mobileInteraction';
-import { ProcedureBlock, ProcedureList } from '../menu/ProcedureBlock';
+import { ProcedureBlock } from '../menu/ProcedureBlock';
+import { StepGuide } from '../menu/StepGuide';
 import { TextbookPreparation } from '../menu/TextbookPreparation';
 import { SHOW_LAB_STEPS_IN_CARD, cardTitle, groupsToShow, unlinkedCard, useLaunchedProcedure } from '../menu/launchedProcedure';
 import { procedureGroupsForLab } from '../menu/labProcedureData';
@@ -79,25 +80,36 @@ export function SafetyBadges() {
         />
       )}
       <div className="pointer-events-auto fixed right-4 top-[68px] z-30 flex flex-col items-end gap-1.5">
-        {(['goggles', 'gloves'] as const).map((what) => (
-          <button
-            key={what}
-            type="button"
-            onClick={() => worn[what] && take(what)}
-            title={worn[what] ? 'Дарж тайлах' : isTouchDevice() ? 'Ширээн дээрх эсвэл «Хамгаалалт» шургуулганаас аваад товшиж зүү' : 'Ширээн дээрх эсвэл «Хамгаалалт» шургуулганаас аваад E дарж зүү'}
-            className={`focus-ring flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-semibold shadow-hud backdrop-blur ${worn[what] ? 'bg-emerald-500/90 text-white' : 'bg-black/45 text-white/80'}`}
-          >
-            <span>{what === 'goggles' ? '🥽' : '🧤'}</span>
-            {what === 'goggles' ? (worn.goggles ? 'Нүдний шил зүүсэн' : 'Нүдний шилгүй') : worn.gloves ? 'Бээлий өмссөн' : 'Бээлийгүй'}
-          </button>
-        ))}
+        {(['goggles', 'gloves'] as const).map((what) => {
+          const label = what === 'goggles' ? (worn.goggles ? 'Нүдний шил зүүсэн' : 'Нүдний шилгүй') : worn.gloves ? 'Бээлий өмссөн' : 'Бээлийгүй';
+          const hint = worn[what] ? 'Дарж тайлах' : isTouchDevice() ? 'Ширээн дээрх эсвэл «Хамгаалалт» шургуулганаас аваад товшиж зүү' : 'Ширээн дээрх эсвэл «Хамгаалалт» шургуулганаас аваад E дарж зүү';
+          // Бичиггүй дүрс: зүүсэн бол ногоон дугуй + ✓, зүүгээгүй бол бүдэг дүрс + улаан !. Нэр нь aria-label, title-д үлдэнэ.
+          return (
+            <button
+              key={what}
+              type="button"
+              onClick={() => worn[what] && take(what)}
+              aria-label={label}
+              title={`${label}. ${hint}`}
+              className={`focus-ring relative flex h-10 w-10 items-center justify-center rounded-full text-xl shadow-hud backdrop-blur ${worn[what] ? 'bg-emerald-500/90' : 'bg-black/45'}`}
+            >
+              <span aria-hidden className={worn[what] ? '' : 'opacity-60 grayscale'}>{what === 'goggles' ? '🥽' : '🧤'}</span>
+              <span aria-hidden className={`absolute -right-0.5 -top-0.5 flex h-4 w-4 items-center justify-center rounded-full text-[10px] font-bold leading-none text-white ring-2 ring-white/80 ${worn[what] ? 'bg-emerald-600' : 'bg-red-500'}`}>
+                {worn[what] ? '✓' : '!'}
+              </span>
+            </button>
+          );
+        })}
       </div>
     </>
   );
 }
 
-/** The active experiment, its next step and progress (top left, under the menu button). */
-export function ExperimentCard() {
+/**
+ * The active experiment, its next step and progress (top left, under the menu button).
+ * `guideOnly`: ажлын ширээнд суусан үед зөвхөн баруун доод булангийн «Туршилтын заавар» (StepGuide) үлдэнэ.
+ */
+export function ExperimentCard({ guideOnly = false }: { guideOnly?: boolean } = {}) {
   const experiments = useExperimentCatalog((s) => s.experiments);
   const active = useLabStore((s) => s.active);
   const progress = useLabStore((s) => s.progress);
@@ -110,6 +122,7 @@ export function ExperimentCard() {
   const x = active ? experiments.find((experiment) => experiment.id === active) : undefined;
   // «Туршилтын бэлтгэл» самбар: туршилтын нэр + «Бэлтгэлээ хийе» хэсэг. Бүх туршилтад ижил хүрээтэй гарна.
   const prepCard = (title: string, body: ReactNode) => {
+    if (guideOnly) return null;
     const closed = touch ? prepCollapsed : collapsed;
     const toggle = () => (touch ? setPrepCollapsed((c) => !c) : setCollapsed((c) => !c));
     // Утас: зүүн талын Star туслах, чатнаас зай аваад бэлтгэлийн картыг дэлгэцийн баруун зах хүртэл сунгана.
@@ -125,24 +138,11 @@ export function ExperimentCard() {
     </div>;
   };
   if (!x) {
-    // Лабын заавартай холбоогүй туршилтыг цэснээс сонгосон бол эхлээд бэлтгэл, дараа нь нэр, алхмыг нь "Туршилт" картаар харуулна
+    // Лабын заавартай холбоогүй туршилтыг цэснээс сонгосон бол эхлээд бэлтгэл, дараа нь алхмыг нь баруун доод буланд «Туршилтын заавар» картаар харуулна
     if (launched.labId === null && launched.prep) return prepCard(launched.title, <TextbookPreparation />);
     const picked = unlinkedCard(launched);
     if (!picked) return null;
-    return (
-      <div className="pointer-events-auto fixed left-4 top-[76px] z-30 w-[min(300px,calc(100vw-120px))] ">
-        <div className="rounded-2xl bg-white/90 p-3 text-lab-ink shadow-hud backdrop-blur">
-          <button type="button" className="focus-ring flex w-full items-center justify-between gap-2 text-left" onClick={() => setCollapsed((c) => !c)} aria-expanded={!collapsed}>
-            <span>
-              <span className="block text-[10px] font-bold uppercase tracking-wider text-emerald-600">Туршилт</span>
-              <span className="block font-display text-sm font-bold leading-tight">{picked.title}</span>
-            </span>
-            <span className="text-xs text-slate-400">{collapsed ? '▼' : '▲'}</span>
-          </button>
-          {!collapsed && <ProcedureList groups={[picked]} />}
-        </div>
-      </div>
-    );
+    return <StepGuide id="unlinked" title={picked.title} groups={[picked]} />;
   }
   const heading = cardTitle(x.id, launched, x.title);
   const done = progress[x.id] ?? [];
@@ -150,20 +150,21 @@ export function ExperimentCard() {
   if (!currentSession()?.ready) return prepCard(heading, <PreparationChecklist />);
   // Лаб ширээн дээрх хэрэгслийг хянадаггүй туршилт: сурах бичгийн бодис, хэрэгслийн жагсаалтаар бэлтгэнэ
   if (launched.labId === x.id && launched.prep) return prepCard(heading, <TextbookPreparation />);
-  // Сурах бичгийн "Хэрхэн хийх" алхамтай бол картыг цэвэр «Туршилт» болгоно (лабын ерөнхий 3 алхам, 0/3, зөвлөгөөг нууна)
+  // Сурах бичгийн "Хэрхэн хийх" алхамтай бол баруун доод буланд «Туршилтын заавар» болгож нэг нэгээр харуулна (лабын ерөнхий 3 алхам, 0/3, зөвлөгөөг нууна)
   const groups = groupsToShow(x.id, launched, procedureGroupsForLab(x.id));
-  const clean = !SHOW_LAB_STEPS_IN_CARD && groups.length > 0;
+  if (!SHOW_LAB_STEPS_IN_CARD && groups.length > 0) return <StepGuide id={x.id} title={heading} groups={groups} />;
+  if (guideOnly) return null;
   return (
     <div className="pointer-events-auto fixed left-4 top-[76px] z-30 w-[min(300px,calc(100vw-120px))] ">
       <div className="rounded-2xl bg-white/90 p-3 text-lab-ink shadow-hud backdrop-blur">
         <button type="button" className="focus-ring flex w-full items-center justify-between gap-2 text-left" onClick={() => setCollapsed((c) => !c)} aria-expanded={!collapsed}>
           <span>
-            <span className="block text-[10px] font-bold uppercase tracking-wider text-emerald-600">{clean ? 'Туршилт' : <>Туршилт · {done.length}/{x.steps.length}</>}</span>
+            <span className="block text-[10px] font-bold uppercase tracking-wider text-emerald-600">Туршилт · {done.length}/{x.steps.length}</span>
             <span className="block font-display text-sm font-bold leading-tight">{heading}</span>
           </span>
           <span className="text-xs text-slate-400">{collapsed ? '▼' : '▲'}</span>
         </button>
-        {!collapsed && (clean ? <ProcedureList groups={groups} /> : (
+        {!collapsed && (
           <>
             <ol className="mt-2 space-y-1">
               {x.steps.map((s, i) => {
@@ -188,7 +189,7 @@ export function ExperimentCard() {
             )}
             <ProcedureBlock labId={x.id} />
           </>
-        ))}
+        )}
       </div>
     </div>
   );

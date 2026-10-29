@@ -10,5 +10,5 @@ export function RealTimeNote(){
  const active=useLabStore(s=>s.active),playing=useShowcase(s=>s.status==='playing'||s.status==='paused');
  const text=active?REAL_TIME[active]:undefined;
  if(!text||!playing)return null;
- return <div className="pointer-events-none fixed bottom-4 left-3 z-30 max-w-[calc(100vw-1.5rem)] rounded-full bg-white/95 px-3 py-1.5 text-xs font-medium text-lab-ink shadow-hud" role="note">⏱ {text}</div>;
+ return <div className="pointer-events-none fixed bottom-24 left-3 z-30 sm:bottom-4 max-w-[calc(100vw-1.5rem)] rounded-full bg-white/95 px-3 py-1.5 text-xs font-medium text-lab-ink shadow-hud" role="note">⏱ {text}</div>;
 }

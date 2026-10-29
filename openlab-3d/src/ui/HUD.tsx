@@ -59,6 +59,7 @@ export function HUD() {
         </>
       )}
       {(mode === 'walk' || bench) && <NaClHUD />}
+      {bench && <ExperimentCard guideOnly />}
       {inGame && <ToolTab />}
       {inGame && <RoomToast />}
       {inGame && <StarAssistant hidden={!showChrome} />}

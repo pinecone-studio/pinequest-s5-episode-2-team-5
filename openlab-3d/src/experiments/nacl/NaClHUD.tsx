@@ -24,7 +24,6 @@ import { PreparationChecklist } from '../workbench/PreparationHints';
 import { EquipmentTourCaption } from '../workbench/guidance/equipment-tour';
 import { RealTimeNote } from '../workbench/guidance/RealTimeNote';
 import { mobileizeControlHint } from '../../controls/mobileInteraction';
-import { ProcedureList } from '../../menu/ProcedureBlock';
 import { TextbookPreparation } from '../../menu/TextbookPreparation';
 import { SHOW_LAB_STEPS_IN_CARD, benchGroups, benchTitle, useLaunchedProcedure } from '../../menu/launchedProcedure';
 import { procedureGroupsForLab } from '../../menu/labProcedureData';
@@ -151,7 +150,7 @@ export function NaClHUD() {
       <div className="text-xs font-bold leading-snug">{topic ?? lesson?.title ?? 'Туршилт сонгоогүй байна'}{preparing || textbookPrep ? ' · Бэлтгэл' : ''}</div>
       {session?.teacher && !cohesiveGuide && <span className="mt-1 inline-block rounded-full bg-indigo-50 px-2 py-1 text-[11px] font-bold text-indigo-700">👩‍🏫 Багшийн горим</span>}
       {preparing ? <PreparationChecklist /> : textbookPrep ? <TextbookPreparation /> : <>
-        {clean && <ProcedureList groups={groups} />}
+        {/* Сурах бичгийн алхмууд баруун доод булангийн «Туршилтын заавар» (StepGuide) дээр нэг нэгээр гарна — энд давхар жагсаахгүй */}
         {lesson && <>
         {!cohesiveGuide&&!clean&&<p className="mt-1 text-xs font-semibold">{active === 'nacl' ? (isTouchDevice() ? mobileizeControlHint(guide.current.hint) : guide.current.hint) : lesson.steps[selectedStep]?.text ?? 'Туршилт дууслаа.'}</p>}
         {!cohesiveGuide && !clean && active === 'elephant' && selectedStep < lesson.steps.length && <p className="mt-1 rounded bg-sky-50 p-2 text-sm font-bold text-sky-950">{selectedStep === 0 ? 'H₂O₂: 20–30 мл → цилиндр' : selectedStep === 1 ? 'Саван: бага хэмжээ · нэмсэн мл-ээ тэмдэглэ' : `KI (0.5 М): ≈${KI_DOSE_ML?.toFixed(1) ?? '—'} мл → цилиндр`}</p>}
