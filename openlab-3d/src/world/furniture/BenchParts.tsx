@@ -34,8 +34,8 @@ const handleMaterial = metalChrome.clone();
 const boxMaterial = plasticLightGray.clone();
 const holderMaterial = metalBrushed.clone();
 
-/** Raised center panel of a front: a shade lighter than the frame around it. */
-const panelMaterial = new MeshStandardMaterial({ color: '#646a73', roughness: 0.45 });
+/** Raised center panel of a front: white base, painted with the same per-module pastel as its frame. */
+const panelMaterial = new MeshStandardMaterial({ color: '#ffffff', roughness: 0.45 });
 /** Ribbed rubber mat on the floor of a drawer tray. */
 const linerMaterial = new MeshStandardMaterial({ color: '#2b2f35', roughness: 0.95 });
 

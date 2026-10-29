@@ -7,7 +7,8 @@
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { CuboidCollider } from '@react-three/rapier';
 import { BoxGeometry, Color, CylinderGeometry, InstancedMesh, LatheGeometry, Matrix4, MeshBasicMaterial, Object3D, Vector2, type BufferGeometry, type Material } from 'three';
-import { metalPainted, metalAluminum } from '../../materials/metal';
+import { metalPainted } from '../../materials/metal';
+import { LAB } from '../../materials/labPalette';
 import { plastic } from '../../materials/plastic';
 import { decorGlass } from '../../materials/glass';
 import { lazy } from '../../utils/lazy';
@@ -166,7 +167,8 @@ export function ShelvingUnits({ units, width = 1.8, height = 2.0, depth = 0.5, l
   );
 }
 
-const BOTTLE_COLORS = ['#7a4a1c', '#7a4a1c', '#e9eef2', '#2b6fd6', '#7a4a1c', '#e9eef2', '#1f9d55'];
+// Пастел загвар: шаргал хүрэн, цайвар шар хүрэн, цагаан, цэнхэр, тоор, цагаан, ногоон
+const BOTTLE_COLORS = ['#cf9862', '#ddb17a', '#f1f1f0', '#8aaccf', '#f5cfb6', '#f1f1f0', '#bcd6b3'];
 
 /** Two-tier reagent rack centered on an island top (origin = bench top center). */
 export function ReagentShelf({ position, rotY = 0, width = 2.2, seed = 3 }: { position: [number, number, number]; rotY?: number; width?: number; seed?: number }) {
@@ -199,7 +201,7 @@ export function ReagentShelf({ position, rotY = 0, width = 2.2, seed = 3 }: { po
   const markCarried = useCallback((i: number) => setCarried((c) => (c.has(i) ? c : new Set(c).add(i))), []);
   return (
     <group>
-      <Instanced geometry={unit()} material={metalAluminum} items={data.frame} castShadow />
+      <Instanced geometry={unit()} material={plastic(LAB.reagentShelf, 0.45)} items={data.frame} castShadow />
       <Instanced geometry={bottleGeo()} material={plastic('#ffffff', 0.25)} items={data.bottles} hidden={carried} castShadow />
       <Instanced geometry={capGeo()} material={plastic('#ffffff', 0.5)} items={data.caps} hidden={carried} />
       {data.bottles.map(({ matrix, color }, i) => (
