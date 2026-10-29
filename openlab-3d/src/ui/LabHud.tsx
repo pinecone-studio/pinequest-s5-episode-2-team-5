@@ -112,7 +112,7 @@ export function ExperimentCard() {
   const prepCard = (title: string, body: ReactNode) => {
     const closed = touch ? prepCollapsed : collapsed;
     const toggle = () => (touch ? setPrepCollapsed((c) => !c) : setCollapsed((c) => !c));
-    // Утас: зүүн талын Pip робот, чатнаас зай аваад бэлтгэлийн картыг дэлгэцийн баруун зах хүртэл сунгана.
+    // Утас: зүүн талын Star туслах, чатнаас зай аваад бэлтгэлийн картыг дэлгэцийн баруун зах хүртэл сунгана.
     const box = touch
       ? 'pointer-events-auto fixed bottom-2 left-[192px] right-2 z-30 rounded-xl bg-white/95 p-2 text-lab-ink shadow-hud'
       : 'pointer-events-auto fixed left-3 top-[68px] z-30 w-[min(320px,calc(100vw-24px))] rounded-xl bg-white/95 p-3 text-lab-ink shadow-hud sm:left-4 sm:top-[76px] sm:w-[min(320px,calc(100vw-80px))]';

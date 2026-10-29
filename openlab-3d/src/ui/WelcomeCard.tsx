@@ -1,11 +1,12 @@
 /**
- * Шинэ нээлтийн дэлгэц: Pip робот, 3 алхам, үндсэн удирдлага.
+ * Шинэ нээлтийн дэлгэц: Star туслах, 3 алхам, үндсэн удирдлага.
  * LoadingScreen-ийн хуучин картыг устгаагүй — LoadingScreen дотор NEW_START_DESIGN-ээр сольж харуулна.
  */
 import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { useSettingsStore } from '../store/useSettingsStore';
 import { keyLabel, promptKey } from '../controls/keyMap';
 import { isTouchDevice } from '../utils/device';
+import { StarFace } from './StarFace';
 
 // Өнгөнүүд (зурагнаас авсан)
 const INK = '#1b1640'; // хар хөх бичиг
@@ -78,19 +79,6 @@ const TapIcon = ({ fill = false }: { fill?: boolean }) => (
     <circle cx="20" cy="20" r="6" fill={fill ? PURPLE : 'none'} />
   </svg>
 );
-
-/** Pip робот: толгой нь цагаан хүрээтэй, дотор нь хар хөх нүүр, цэнхэрлэг нүд, дээр нь антен */
-function PipFace() {
-  return (
-    <svg viewBox="0 0 80 84" width="78" height="82" aria-hidden="true">
-      <circle cx="40" cy="9" r="6.5" fill="#5bb8a8" />
-      <rect x="3" y="16" width="74" height="64" rx="24" fill="#fff" stroke="#e1dafa" strokeWidth="4" />
-      <rect x="14" y="29" width="52" height="40" rx="17" fill={INK} />
-      <rect x="26" y="42" width="9" height="14" rx="4.5" fill="#6ee7d0" />
-      <rect x="45" y="42" width="9" height="14" rx="4.5" fill="#6ee7d0" />
-    </svg>
-  );
-}
 
 /* ---------- Алхам, товчны картууд ---------- */
 
@@ -169,7 +157,7 @@ export function WelcomeCard({ onEnter, onShowKeys, onOpenSettings, progress, lab
   const [input, setInput] = useState<'keyboard' | 'touch'>(isTouchDevice() ? 'touch' : 'keyboard');
   const touch = input === 'touch';
   // "Лабораторид орох" товч дээр фокус тавина (Enter дарахад орно), гэхдээ дэлгэцийг доош гүйлгэхгүй —
-  // утсан дээр Pip-ийн толгой хэсэг эхэндээ харагдах ёстой
+  // утсан дээр Star-ын толгой хэсэг эхэндээ харагдах ёстой
   const enterRef = useRef<HTMLButtonElement>(null);
   useEffect(() => {
     enterRef.current?.focus({ preventScroll: true });
@@ -186,7 +174,7 @@ export function WelcomeCard({ onEnter, onShowKeys, onOpenSettings, progress, lab
         {/* Толгой хэсэг */}
         <header className="flex items-center gap-4 sm:gap-5">
           <div className="shrink-0">
-            <PipFace />
+            <StarFace />
           </div>
           <div>
             <div className="text-xs font-extrabold uppercase tracking-wider" style={{ color: PURPLE }}>
@@ -197,7 +185,7 @@ export function WelcomeCard({ onEnter, onShowKeys, onOpenSettings, progress, lab
             </h1>
           </div>
         </header>
-        <p className="mt-2 text-sm text-slate-500 sm:ml-[6.1rem]">Би Pip байна. Багаж олж, бодис холиод, урвалыг өөрийн нүдээр харцгаая.</p>
+        <p className="mt-2 text-sm text-slate-500 sm:ml-[6.1rem]">Би Star байна ⭐ Багаж олж, бодис холиод, урвалыг өөрийн нүдээр харцгаая. Би чамтай хамт байж, туслана!</p>
 
         {/* 3 алхам */}
         <ol className="mt-6 grid gap-3 sm:grid-cols-3">
@@ -275,7 +263,7 @@ export function WelcomeCard({ onEnter, onShowKeys, onOpenSettings, progress, lab
             </>
           )}
         </ul>
-        <p className="mt-3 text-xs text-slate-500">Бусад товчийг лабораторид хэрэгтэй үед нь Pip зааж өгнө.</p>
+        <p className="mt-3 text-xs text-slate-500">Бусад товчийг лабораторид хэрэгтэй үед нь Star зааж өгнө.</p>
 
         {/* Орох товч */}
         <button

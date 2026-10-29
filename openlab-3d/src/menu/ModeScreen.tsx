@@ -1,6 +1,6 @@
 /**
  * "Горим сонгох" дэлгэц: хоёр том карт.
- *  - Хичээлийн туршилт (нил ягаан, ном + колбо): сурах бичгийн туршилтыг Pip-тэй хамт хийнэ
+ *  - Хичээлийн туршилт (нил ягаан, ном + колбо): сурах бичгийн туршилтыг Star-тай хамт хийнэ
  *  - Чөлөөт лаборатори (шар, тавиур дээрх өнгөт шил): бодисыг өөрөө холино
  */
 import { sounds } from '../utils/sounds';
@@ -28,7 +28,7 @@ export function ModeScreen({ onLessons, onFree }: ModeScreenProps) {
         <BookFlaskArt className="w-24 shrink-0" />
         <span>
           <span className="block font-heading text-xl font-extrabold leading-tight">Хичээлийн туршилт</span>
-          <span className="mt-1 block text-sm leading-snug opacity-90">Сурах бичгийн туршилтыг Pip-тэй хамт алхам алхмаар хий</span>
+          <span className="mt-1 block text-sm leading-snug opacity-90">Сурах бичгийн туршилтыг Star-тай хамт алхам алхмаар хий</span>
         </span>
       </button>
 

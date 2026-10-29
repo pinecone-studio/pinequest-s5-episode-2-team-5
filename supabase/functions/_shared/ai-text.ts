@@ -1,5 +1,5 @@
 /**
- * Which AI writes Pip's answers and advice, and what went wrong when it fails. Free of Deno globals
+ * Which AI writes Star's answers and comments, the study advice, and what went wrong when it fails. Free of Deno globals
  * and SDKs so it can be tested in Node; the Gemini SDK call lives in ai.ts.
  *
  * Default: Gemini with GEMINI_API_KEY (GEMINI_MODEL optional).
@@ -36,18 +36,19 @@ export class AiHttpError extends Error {
 /**
  * Groq's gpt-oss models reason before answering, and the reasoning shares the length limit: keep it
  * short, leave it out of the reply and allow more room so the answer itself is not cut off.
+ * A short answer (Star's one-line comments) gets a smaller limit.
  */
-function reasoningOptions(config: Extract<AiConfig, { provider: 'openai' }>): Record<string, unknown> {
-  if (!/groq\.com/.test(config.baseUrl) || !/gpt-oss/.test(config.model)) return { max_tokens: 800 };
-  return { max_tokens: 2048, reasoning_effort: 'low', include_reasoning: false };
+function reasoningOptions(config: Extract<AiConfig, { provider: 'openai' }>, short: boolean): Record<string, unknown> {
+  if (!/groq\.com/.test(config.baseUrl) || !/gpt-oss/.test(config.model)) return { max_tokens: short ? 200 : 800 };
+  return { max_tokens: short ? 700 : 2048, reasoning_effort: 'low', include_reasoning: false };
 }
 
 /** One answer from an OpenAI-compatible /chat/completions endpoint. */
-export async function openAiCompatibleText(config: Extract<AiConfig, { provider: 'openai' }>, system: string, input: string, fetchImpl: typeof fetch = fetch): Promise<string> {
+export async function openAiCompatibleText(config: Extract<AiConfig, { provider: 'openai' }>, system: string, input: string, fetchImpl: typeof fetch = fetch, short = false): Promise<string> {
   const response = await fetchImpl(`${config.baseUrl}/chat/completions`, {
     method: 'POST',
     headers: { Authorization: `Bearer ${config.apiKey}`, 'Content-Type': 'application/json' },
-    body: JSON.stringify({ model: config.model, messages: [{ role: 'system', content: system }, { role: 'user', content: input }], temperature: 0.4, ...reasoningOptions(config) }),
+    body: JSON.stringify({ model: config.model, messages: [{ role: 'system', content: system }, { role: 'user', content: input }], temperature: 0.4, ...reasoningOptions(config, short) }),
   });
   const body = await response.json().catch(() => null) as { error?: { message?: unknown }; choices?: { message?: { content?: unknown } }[] } | null;
   if (!response.ok) throw new AiHttpError(response.status, typeof body?.error?.message === 'string' ? body.error.message : `HTTP ${response.status}`);

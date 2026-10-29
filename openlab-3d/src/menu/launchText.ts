@@ -1,4 +1,4 @@
-/** Туршилт эхлэхэд Pip-ийн хэлэх үг (цэвэр функц — тест хийхэд хялбар). */
+/** Туршилт эхлэхэд Star-ын хэлэх үг (цэвэр функц — тест хийхэд хялбар). */
 import type { TextbookExperiment } from './chapterBuild';
 
 const list = (items: string[], max = 6): string => (items.length > max ? `${items.slice(0, max).join(', ')} гэх мэт` : items.join(', '));

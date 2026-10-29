@@ -3,6 +3,7 @@ import { persist } from 'zustand/middleware';
 import { SPAWN } from '../world/layout';
 import type { EquipmentKind } from '../equipment/equipmentCatalog';
 import { emitLab } from '../lab/events';
+import type { StarMood } from '../lab/starLines';
 
 /**
  * walk        – free first-person movement
@@ -13,7 +14,7 @@ import { emitLab } from '../lab/events';
  */
 export type Mode = 'loading' | 'start' | 'walk' | 'paused' | 'ui' | 'inspect' | 'bench' | 'ended';
 export type Panel = 'none' | 'menu' | 'notes' | 'tools' | 'help' | 'endConfirm';
-export type RobotMood = 'idle' | 'wave' | 'happy' | 'think';
+export type RobotMood = StarMood;
 
 export interface FocusInfo {
   id: string;
