@@ -161,7 +161,8 @@ export function mixtureLook(m: Mixture | undefined): MixtureLook {
   // Metals sink at once; only fine precipitates and powders stay suspended.
   const floating = solidsColor(m.s, true);
   const suspendedGL = (floating.grams * m.cloud * 1000) / ml;
-  const turbidity = floating.grams > 0.0005 ? 1 - Math.exp(-suspendedGL) : 0;
+  // Fine precipitate scatters strongly: 0.3 g/L of chalk already looks milky, not faintly hazy.
+  const turbidity = floating.grams > 0.0005 ? 1 - Math.exp(-3 * suspendedGL) : 0;
   // Clear water is drawn faintly blue so it reads as liquid.
   absorb(t, '#e2f0fa', 1);
   if (turbidity > 0) t.lerp(floating.color, Math.min(0.92, turbidity * 0.92));

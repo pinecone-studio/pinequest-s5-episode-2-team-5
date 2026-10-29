@@ -116,7 +116,8 @@ export function tickRig(r:RigState,dt:number):RigState {
 export function changeRig(r:RigState,change:Partial<RigState>):RigState {
  const n={...r,...change};
  if(n.operation==='ph'){
-  const ph=phOf(n.chambers[0]);n.data={...n.data};
+  // Before the start the acid may still wait in the beaker (chamber 1) beside dry marble.
+  const ph=phOf(n.chambers[0])??phOf(n.chambers[1]);n.data={...n.data};
   if(ph!==null){if(n.data.phBefore===undefined)n.data.phBefore=ph;else n.data.phAfter=ph;}
   n.operation='observe';
  }

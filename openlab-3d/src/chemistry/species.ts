@@ -24,6 +24,7 @@ export type SolidId = ExtraSolidId | 'ice' | 'Al' | 'P' | 'S' | 'Si' | 'graphite
   | 'NaHCO3'
   | 'Na2CO3'
   | 'CaCO3'
+  | 'marble'
   | 'Zn'
   | 'Mg'
   | 'Fe'
@@ -163,6 +164,8 @@ export const SOLIDS: Record<SolidId, SolidDef> = {
   NaHCO3: { name: 'Натрийн гидрокарбонат', formula: 'NaHCO₃', color: '#f6f6f2', molarMass: 84.01, dissolve: { products: { Na: 1, CO3: 1 }, solubility: 1.14, dH: 16.7 } },
   Na2CO3: { name: 'Натрийн карбонат', formula: 'Na₂CO₃', color: '#f6f6f4', molarMass: 106, dissolve: { products: { Na: 2, CO3: 1 }, solubility: 2.0, dH: -26.7 } },
   CaCO3: { name: 'Кальцийн карбонат (гантиг)', formula: 'CaCO₃', color: '#e9e5dc', molarMass: 100.1 },
+  /** Marble chips: CaCO₃ in lumps, which acid attacks only at the surface (kinetics.ts). */
+  marble: { name: 'Гантиг (CaCO₃)', formula: 'CaCO₃', color: '#ece8e1', molarMass: 100.1 },
   Zn: { name: 'Цайр', formula: 'Zn', color: '#a2aab1', molarMass: 65.38, metal: true },
   Mg: { name: 'Магни', formula: 'Mg', color: '#cfd3d8', molarMass: 24.31, metal: true },
   Fe: { name: 'Төмөр', formula: 'Fe', color: '#5a5e63', molarMass: 55.85, metal: true },

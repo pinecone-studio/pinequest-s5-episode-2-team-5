@@ -28,7 +28,7 @@ export function reactCurriculum(m:Mixture,dt:number,air=false):ChemicalChange[]{
  for(const [metal,oxide,threshold,k] of [['Cu','CuO',250,.03],['Mg','MgO',500,.5]] as const){
   if(m.temp>=threshold){const dn=Math.min(sol(m,metal),air?Infinity:gaseous(m,'O2')*2)*fraction(air?k:.1);putS(m,metal,-dn);if(!air)putG(m,'O2',-dn/2);putS(m,oxide,dn);report(`2${metal} + O₂ → 2${oxide}`,dn/2,'precipitate');}
  }
- if(m.temp>=850&&sol(m,'CaCO3')>0){const dn=sol(m,'CaCO3')*fraction(.04);putS(m,'CaCO3',-dn);putS(m,'CaO',dn);putG(m,'CO2',dn);report('CaCO₃ → CaO + CO₂',dn,'gas');}
+ for(const id of ['CaCO3','marble'] as const)if(m.temp>=850&&sol(m,id)>0){const dn=sol(m,id)*fraction(.04);putS(m,id,-dn);putS(m,'CaO',dn);putG(m,'CO2',dn);report('CaCO₃ → CaO + CO₂',dn,'gas');}
  if(m.water>0&&sol(m,'CaO')>0){const dn=Math.min(sol(m,'CaO'),m.water/18.015)*fraction(.5);putS(m,'CaO',-dn);m.water-=dn*18.015;putS(m,'CaOH2',dn);m.temp+=dn*63000/(4.18*m.water+40);report('CaO + H₂O → Ca(OH)₂',dn,'precipitate');}
  if(m.water>0&&sol(m,'CaOH2')>0){const dn=Math.min(sol(m,'CaOH2'),Math.max(0,.02*m.water/1000-aq(m,'Ca')))*fraction(.3);putS(m,'CaOH2',-dn);putA(m,'Ca',dn);}
  // Loaded CO2 carbonates lime; gas in a receiver is not merely a decorative counter.

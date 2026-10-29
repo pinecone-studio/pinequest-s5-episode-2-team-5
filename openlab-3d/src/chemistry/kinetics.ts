@@ -288,6 +288,22 @@ export function step(input: Mixture, dtRaw: number, env: StepEnv): StepResult {
         notes.push(`displace:${other.solid}`);
       }
     }
+    // Marble chips: acid eats the chip surface, so CO₂ comes off over minutes, not at once
+    // (10 g chips in 1 M HCl give 2–3 ml/s at first; a 0.1 g chip lasts some 8 minutes). Powder has far more surface. The CO₃²⁻
+    // released turns into CO₂ in the acid and bubbles off below. CaCO₃ + 2H⁺: ΔH ≈ −15 kJ/mol.
+    const chips = m.s.marble ?? 0;
+    if (chips > 1e-10 && acidLeft > 0) {
+      const surface = Math.pow(chips * SOLIDS.marble.molarMass, 2 / 3) * (m.fine ? 6 : 1);
+      const dn = Math.min(chips, 2.5e-5 * surface * attack * warm * dt, acidLeft / 2);
+      if (dn > 1e-11) {
+        addS(m, 'marble', -dn);
+        add(m, 'Ca', dn);
+        add(m, 'CO3', dn);
+        acidLeft -= 2 * dn;
+        heat += 15200 * dn;
+        changed = true;
+      }
+    }
   }
 
   // 4. Redox and decomposition.

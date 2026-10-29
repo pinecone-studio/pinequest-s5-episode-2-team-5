@@ -23,6 +23,8 @@ export function portLayout(kind:string,i:number,experiment?:string){
  else if(shape==='diffusion'){x=i===0?0:i===1?.08:-.08;z=i===0?0:.045;height=i===0?.17:.08;radius=.02;}
  else if(shape==='molecule'){x=i===0?-.06:i===1?.06:0;height=i===2?.2:.08;}
  // The book's setup (gas-layouts.ts): clamped test tube, zinc dish in front, soap trough on the right.
+ // Round-bottom flask clamped at the neck, acid beaker in front, limewater cylinder on the right.
+ else if(kind==='gasTrain'&&gasLayout(experiment)?.layout==='flask'){x=i===0?-.05:i===1?.01:.075;z=i===0?-.015:i===1?.065:.01;bottom=i===0?.05:i===1?.014:.0135;height=i===0?.105:i===1?.05:.2315;radius=i===0?.029:i===1?.02:.0118;}
  else if(kind==='gasTrain'&&gasLayout(experiment)?.layout==='tube'){x=i===0?-.055:i===1?0:.06;z=i===0?-.02:i===1?.055:.02;bottom=i===0?.07:.014;height=i===0?.148:i===1?.012:.055;radius=i===0?.0075:i===1?.016:.045;}
  else if(kind==='gasTrain'){x=i===0?-.065:i===1?.065:0;z=i===2?.055:0;bottom=i===0?.094:.014;}
  else if(kind==='reactionTile'){x=(i%3-1)*.065;z=i<3?-.035:.035;}

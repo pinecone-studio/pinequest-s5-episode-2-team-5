@@ -43,7 +43,7 @@ export function Grade9Apparatus({kind,itemId,...props}:GroupProps&{kind:RigKind;
  const receiving=useGuideCue(s=>s.target===itemId),flow=useShowcase(s=>s.flow),stirring=useShowcase(s=>s.targetId===itemId&&s.operation==='stir'&&s.status==='playing');
  const selectedPort=rig?.port??0;
  // The textbook's own apparatus replaces the generic wells for these experiments.
- const bookSetup=kind==='gasTrain'&&gasLayout(rig?.experiment)?.layout==='tube';
+ const bookSetup=kind==='gasTrain'&&!!gasLayout(rig?.experiment);
  const well=(i:number,x:number,z=0)=>{
   const contents=rig?.chambers[i],look=contents?mixtureLook(contents):undefined;
   const litmus=contents&&((contents.s.litmus_red??0)+(contents.s.litmus_blue??0))>0;

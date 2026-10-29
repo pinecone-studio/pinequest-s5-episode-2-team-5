@@ -4,6 +4,7 @@ import {useLabStore} from '../../../store/useLabStore';
 /** How long the reaction takes at a real bench; the demo itself is kept short on purpose. */
 const REAL_TIME:Record<string,string>={
  'g9-zinc-hcl':'Бодит лабораторид: устөрөгч 5–15 минут жигд ялгарна.',
+ 'g9-carbonate-co2':'Бодит лабораторид: шохойн ус 10–20 секундэд булингартаж, хүчил 3–5 минутад дуусна.',
 };
 
 export function RealTimeNote(){

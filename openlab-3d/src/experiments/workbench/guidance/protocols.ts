@@ -36,11 +36,11 @@ function primary(id:string):Check[]{
   'g10-mole':[check('solidMass',.99)],'g10-solution':[a('Na',.0016),check('solid',undefined,1e-7,{species:'NaCl'})],
   'g10-melting':[a('benzoic',.007,0),a('benzoic',.007,1)],'g10-boiling':[check('liquid',4.8,undefined,{port:1})],
   'g10-chromatography':[check('extent',12)],'g10-cations':[s('CuOH2',1e-5,0),s('FeOH3',1e-5,2)],'g10-anions':[s('BaSO4',1e-5,0),s('AgCl',1e-5,1)],
-  'g10-gas-tests':[s('CaCO3',1e-5,2)],'g10-rate-zinc':[check('solid',undefined,1e-7,{species:'Zn'})],'g10-rate-concentration':[check('volume',55)],'g10-rate-surface':[check('solid',undefined,1e-7,{species:'CaCO3'})],
+  'g10-gas-tests':[s('CaCO3',1e-5,2)],'g10-rate-zinc':[check('solid',undefined,1e-7,{species:'Zn'})],'g10-rate-concentration':[check('volume',55)],'g10-rate-surface':[check('solid',undefined,1e-7,{species:'marble'})],
   'g10-thiosulfate':[check('data',undefined,0,{key:'crossVisible'}),s('S',1e-5)],'g10-catalysts':[check('aqueous',undefined,1e-5,{species:'H2O2'})],
   'g10-hydrate':[s('CuSO4',.0039),check('water',.35,undefined,{port:2})],'g10-equilibrium':[a('FeSCN',1e-5)],'g10-ion-migration':[data('migration',.95)],
   'g10-galvanic':[data('cellCurrent',1e-4)],'g10-electrolysis':[data('deposited',.0001)],'g10-electroplating':[data('deposited',.0001)],'g10-corrosion':[s('FeOH3',1e-5)],
-  'g10-limestone':[s('CaO',.00098)],'g10-carbonate':[check('solid',undefined,1e-7,{species:'CaCO3'})],'g10-sulfur-acid':[a('Cu',.0015)],
+  'g10-limestone':[s('CaO',.00098)],'g10-carbonate':[check('solid',undefined,1e-7,{species:'marble'})],'g10-sulfur-acid':[a('Cu',.0015)],
   'g10-combustion':[check('gas',.002,undefined,{species:'CO2'}),check('gas',undefined,1e-6,{species:'CH4'})],
   'g10-oil-distillation':[check('liquid',undefined,.1),...[1,2,3,4].map(port=>check('liquid',.1,undefined,{port}))],
   'g10-viscosity':[data('distance',.099)],'g10-cracking':[a('dibromoethane',1e-5,2),check('aqueous',undefined,1e-6,{species:'decane'})],'g10-isomers':[data('kitComplete',1)],
@@ -56,11 +56,11 @@ function primary(id:string):Check[]{
   'g9-crystallisation':[s('NaCl',1e-5,undefined,'evaporatingDish')],'g9-mass-conservation':[check('solid',undefined,1e-7,{species:'Na2CO3'})],'g9-reaction-types':[s('CuO',1e-5),s('CaCO3',1e-5,2)],
   'g9-precipitation':[s('CuOH2',1e-5)],'g9-thermal-pairs':[a('NH3',1e-5)],'g9-fuel-energy':[check('temperature',30)],'g9-citric-endotherm':[check('solid',undefined,1e-7,{species:'NaHCO3'}),a('Cit',1e-5)],
   'g9-litmus':[check('ph',undefined,3,{port:0}),check('ph',11,undefined,{port:1})],'g9-ph-ranking':[check('ph',0,7)],'g9-zinc-hcl':[data('pops',1),check('ph',4,undefined,{port:0})],
-  'g9-carbonate-co2':[check('solid',undefined,1e-7,{species:'CaCO3'}),s('CaCO3',1e-5,2)],'g9-antacid':[check('acid',undefined,1e-6)],'g9-air-oxygen':[s('CuO',.0015)],
+  'g9-carbonate-co2':[s('CaCO3',1e-4,2),check('ph',4,undefined,{port:0})],'g9-antacid':[check('acid',undefined,1e-6)],'g9-air-oxygen':[s('CuO',.0015)],
   'g9-corrosion':[s('FeOH3',1e-5)],'g9-ammonia-preparation':[check('volume',20)],'g9-water-tests':[a('Cu',1e-6)],'g9-air-distillation':[check('volume',99)],
-  'reaction-timing':[check('solid',undefined,1e-7,{species:'CaCO3'})],'melting-point':[check('solid',undefined,1e-7,{species:'ice',port:0}),check('solid',undefined,1e-7,{species:'ice',port:1})],'group2-water':[s('Mg',.004),check('volume',undefined,.1)],'group2-acid':[check('volume',55)],
+  'reaction-timing':[check('solid',undefined,1e-7,{species:'marble'})],'melting-point':[check('solid',undefined,1e-7,{species:'ice',port:0}),check('solid',undefined,1e-7,{species:'ice',port:1})],'group2-water':[s('Mg',.004),check('volume',undefined,.1)],'group2-acid':[check('volume',55)],
   'halogens':[a('Br2',1e-6),a('I2',1e-6,1)],'physical-change':[check('solid',undefined,1e-7,{species:'ice'})],
-  'rate-concentration':[check('solid',undefined,1e-7,{species:'CaCO3'})],'rate-temperature':[check('solid',undefined,1e-7,{species:'CaCO3'})],'rate-surface':[check('solid',undefined,1e-7,{species:'CaCO3'})],
+  'rate-concentration':[check('solid',undefined,1e-7,{species:'marble'})],'rate-temperature':[check('solid',undefined,1e-7,{species:'marble'})],'rate-surface':[check('solid',undefined,1e-7,{species:'marble'})],
   'candle-products':[check('gas',1e-6,undefined,{species:'CO2'})],'fuel-energy':[check('temperature',30)],
   'water-quality':[check('ph',6,8)],'water-treatment':[data('settled2',.005)],
   'nacl-solution':[a('Na',.001),check('acid',undefined,1e-5)],'copper-salt':[a('Cu',.0007),check('solid',undefined,1e-7,{species:'CuCO3'})],'zinc-salt':[a('Zn',.001),check('solid',undefined,1e-7,{species:'Zn'})],
@@ -120,6 +120,26 @@ export function completeProtocol(id:string,starter:GuideStep[]):GuideStep[]{
    config('Урвалын дараах уусмалын pH-г тодорхойл.',{operation:'ph'}),
    record('Бүтээгдэхүүний pH ≈ 5–6: хүчил цайрын хлорид болж, устөрөгч ялгарав.',undefined,0),
    {type:'finish',label:'Zn + 2HCl → ZnCl₂ + H₂↑. Хүчил дуусч pH өсөв; устөрөгч пөк дуугаар батлагдав.',until:{label:'Устөрөгч ба pH-ийн өсөлт батлагдлаа.',checks:[data('pops',1),acidGone]}},
+  ];
+ }
+ // 9-28: marble chips in a round-bottom flask, dilute acid (pH measured first), stopper and delivery
+ // tube into limewater, which turns milky; the marble is in excess, so the acid is used up and the
+ // pH rises (docs/lab-reference/grade9).
+ if(id==='g9-carbonate-co2'){
+  const acidGone=check('ph',4,undefined,{port:0}),milky=s('CaCO3',1e-4,2);
+  return [
+   dose('s_caco3',10,0),
+   dose('limewater',50,2),
+   dose('hcl',10,1),
+   config('Хүчилд универсал индикаторын цаас дүрж pH-г урьдчилан хэмж.',{operation:'ph'}),
+   record('Сулруулсан хүчлийн pH ≈ 0: цаас улаан.',undefined,1),
+   {type:'start',label:'Хүчлийг гантиг дээр нэмж, хий дамжуулах хоолойтой бөглөөгөөр тагла.'},
+   wait('Гантигийн гадаргуугаас CO₂ бөмбөлөг ялгарч, хоолойгоор шохойн ус руу орно.',[milky],{speed:1,timeout:120,minimum:3}),
+   record('Шохойн ус цагаан булингартай болов: CO₂ + Ca(OH)₂ → CaCO₃↓ + H₂O.',undefined,2),
+   wait('Гантиг илүүдэлтэй тул хүчил дуустал урвал үргэлжилнэ.',[acidGone],{timeout:300}),
+   config('Урвалын дараах уусмалын pH-г тодорхойл.',{operation:'ph'}),
+   record('Бүтээгдэхүүний pH ≈ 5–6: хүчил кальцийн хлорид болж, CO₂ ялгарав.',undefined,0),
+   {type:'finish',label:'CaCO₃ + 2HCl → CaCl₂ + CO₂↑ + H₂O. Шохойн ус булингартсан нь CO₂-ыг батлав; хүчил дуусч pH өсөв.',until:{label:'CO₂ ба pH-ийн өсөлт батлагдлаа.',checks:[milky,acidGone]}},
   ];
  }
  // 9-15: four mixtures in four beakers, each filtered: sand and tomato pulp stay on the paper, salt and alcohol pass.
@@ -213,7 +233,8 @@ export function completeProtocol(id:string,starter:GuideStep[]):GuideStep[]{
  // 8-07/8-08: the same mass of calcium, which is more reactive than magnesium.
  if(id==='group2-water')again('Кальци хүйтэн устай хүчтэй урвалд орно',[dose('s_ca',.1),dose('water',10,1),{type:'start',label:'Кальцийг устай холь.'}],[check('volume',40)]);
  if(id==='group2-acid')again('Кальци давсны хүчилтэй',[dose('s_ca',.1),dose('hcl',5,1),{type:'start',label:'Кальцийг хүчилтэй холь.'}],[check('volume',40)]);
- if(id==='rate-temperature')again('Халаалтгүй температурын хяналт',variant(s=>s.type==='configure'&&s.change.heating?{...s,change:{heating:false}}:s),initial);
+ // Unheated, the marble chip reacts more slowly, which is the point of the comparison: give it longer.
+ if(id==='rate-temperature')again('Халаалтгүй температурын хяналт',variant(s=>s.type==='configure'&&s.change.heating?{...s,change:{heating:false}}:s),initial,{timeout:180});
  if(id==='g10-electrolysis')again('Инерт анодтой электролиз',variant(s=>s.type==='dose'&&s.port===2&&s.reagent==='s_cu'?{...s,reagent:'s_graphite'}:s),[data('deposited',.0001),check('gas',1e-6,undefined,{species:'O2',port:2})]);
  if(id==='g10-combustion')again('Хүчилтөрөгч дутсан шаталт',variant(s=>s.type==='dose'&&s.reagent==='gas_o2'?{...s,amount:75}:s),[check('gas',.0018,undefined,{species:'CO'}),check('gas',undefined,1e-6,{species:'CH4'})]);
  if(id==='g10-viscosity')for(const reagent of ['water','corn_syrup'] as const)again(`${reagent}: ижил бөмбөлгийн уналт`,variant(s=>s.type==='dose'&&s.reagent==='oil'?{...s,reagent}:s),initial);
