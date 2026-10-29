@@ -70,7 +70,7 @@ export function hasDemo(experiment: TextbookExperiment): boolean {
 
 /**
  * "3D үзүүлбэр үзэх" — туршилтыг эхлүүлээд ажлын ширээнд суулгаж, бүтэн үзүүлбэрийг тоглуулна.
- * Ширээний 3D хөдөлгүүр ачаалж дуусаагүй бол (удаан утсанд) хэдэн секунд хүлээнэ.
+ * Ширээний 3D хөдөлгүүр ачаалж дуусаагүй, эсвэл нээлтийн дэлгэцээс лабораторид орж амжаагүй бол хэдэн секунд хүлээнэ.
  */
 export function watchTextbookDemo(experiment: TextbookExperiment): void {
   const lab = guideFor(experiment);
@@ -79,8 +79,9 @@ export function watchTextbookDemo(experiment: TextbookExperiment): void {
   requestShowcase(lab.id);
   let frames = 0;
   const sit = () => {
-    if (useGameStore.getState().mode !== 'walk') return;
-    if (!bench.engine) {
+    const mode = useGameStore.getState().mode;
+    if (mode === 'bench') return;
+    if (mode !== 'walk' || !bench.engine) {
       if (++frames < 600) window.requestAnimationFrame(sit);
       return;
     }

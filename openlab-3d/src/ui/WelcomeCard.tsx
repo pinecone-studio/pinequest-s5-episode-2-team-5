@@ -3,7 +3,7 @@
  * Алхам 1 — зөвхөн харагдах байдал. "Анги" карт (Анги → Бүлэг → Туршилт сонголт) дараагийн алхамд идэвхжинэ.
  * LoadingScreen-ийн хуучин картыг устгаагүй — LoadingScreen дотор NEW_START_DESIGN-ээр сольж харуулна.
  */
-import { useState, type CSSProperties, type ReactNode } from 'react';
+import { useEffect, useState, type CSSProperties, type ReactNode } from 'react';
 import type { TextbookExperiment } from '../menu/chapterBuild';
 import { isTouchDevice } from '../utils/device';
 import { LessonPicker } from './LessonPicker';
@@ -203,6 +203,15 @@ export function WelcomeCard({ onEnter, progress, label, complete }: WelcomeCardP
   const gradeOpen = mode === 'grade';
   // Хичээлийн туршилтыг эхлүүлэхэд 3D лаборатори бүрэн ачаалагдсан (багажийн хөдөлгүүр бэлэн) байх ёстой
   const canEnter = freeOn || (gradeOpen && experiment !== null && complete);
+  // Бүтэн 3D үзүүлбэртэй туршилтад "3D үзүүлбэр үзэх" товч гарна (лабын кодыг сонгосон үед л ачаална)
+  const [demo, setDemo] = useState(false);
+  useEffect(() => {
+    setDemo(false);
+    if (!experiment) return;
+    let live = true;
+    void import('../menu/startExperiment').then((start) => { if (live) setDemo(start.hasDemo(experiment)); });
+    return () => { live = false; };
+  }, [experiment]);
   const waitingForLab = gradeOpen && experiment !== null && !complete;
 
   const openGrade = () => {
@@ -227,6 +236,12 @@ export function WelcomeCard({ onEnter, progress, label, complete }: WelcomeCardP
         bench.openNaClExperiment();
       });
     }
+  };
+
+  const watchDemo = () => {
+    if (!experiment) return;
+    onEnter();
+    void import('../menu/startExperiment').then((start) => start.watchTextbookDemo(experiment));
   };
 
   return (
@@ -326,6 +341,28 @@ export function WelcomeCard({ onEnter, progress, label, complete }: WelcomeCardP
             {waitingForLab ? 'Лаборатори ачаалж байна…' : 'Лабораторид орох'}
             <ArrowIcon />
           </button>
+          {gradeOpen && experiment && demo && (
+            <button
+              type="button"
+              disabled={!canEnter}
+              onClick={watchDemo}
+              className={`focus-ring ${canEnter ? 'wc-lift' : ''}`}
+              style={{
+                height: 60,
+                width: '100%',
+                borderRadius: 24,
+                border: '3px solid #DCD3FF',
+                background: '#FFFFFF',
+                color: canEnter ? INK : MUTED,
+                fontSize: 19,
+                fontWeight: 800,
+                fontFamily: 'inherit',
+                cursor: canEnter ? 'pointer' : 'not-allowed',
+              }}
+            >
+              🎬 3D үзүүлбэр үзэх
+            </button>
+          )}
 
           {/* 3D лаборатори ард ачаалагдаж буй явц */}
           <div>
