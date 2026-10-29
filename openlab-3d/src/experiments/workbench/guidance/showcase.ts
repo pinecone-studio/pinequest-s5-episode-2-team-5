@@ -78,8 +78,10 @@ function prepare(j:Job){
  if(body){
   const p=body.translation(),q=body.rotation(),type=body.bodyType(),groups=Array.from({length:body.numColliders()},(_,i)=>body.collider(i).collisionGroups());
   j.from=[p.x,p.y,p.z];j.rotation.copy(q);body.setBodyType(2,true);groups.forEach((_,i)=>body.collider(i).setCollisionGroups(0));
-  j.move=(point,rotation)=>{body.setTranslation({x:point[0],y:point[1],z:point[2]},true);body.setNextKinematicTranslation({x:point[0],y:point[1],z:point[2]});body.setRotation(rotation,true);body.setNextKinematicRotation(rotation);};
-  j.restore=()=>{if(!bodies.has(j.source!))return;body.setTranslation(p,true);body.setRotation(q,true);body.setBodyType(type,true);groups.forEach((group,i)=>body.collider(i).setCollisionGroups(group));body.setLinvel({x:0,y:0,z:0},true);body.setAngvel({x:0,y:0,z:0},true);};
+  // A resting bottle's body may be asleep, and the renderer skips sleeping bodies: wake it on
+  // every move or the bottle stays drawn at home while the pour happens at the vessel.
+  j.move=(point,rotation)=>{body.setTranslation({x:point[0],y:point[1],z:point[2]},true);body.setNextKinematicTranslation({x:point[0],y:point[1],z:point[2]});body.setRotation(rotation,true);body.setNextKinematicRotation(rotation);body.wakeUp();};
+  j.restore=()=>{if(!bodies.has(j.source!))return;body.setTranslation(p,true);body.setRotation(q,true);body.setBodyType(type,true);groups.forEach((group,i)=>body.collider(i).setCollisionGroups(group));body.setLinvel({x:0,y:0,z:0},true);body.setAngvel({x:0,y:0,z:0},true);body.wakeUp();};
  }else{
   const p=object.position.clone(),q=object.quaternion.clone();j.from=object.getWorldPosition(new Vector3()).toArray() as Point;j.rotation.copy(object.getWorldQuaternion(new Quaternion()));
   j.move=(point,rotation)=>{const world=new Vector3(...point);object.position.copy(object.parent?object.parent.worldToLocal(world):world);const local=rotation.clone();if(object.parent)local.premultiply(object.parent.getWorldQuaternion(new Quaternion()).invert());object.quaternion.copy(local);object.updateWorldMatrix(true,true);};
@@ -128,7 +130,7 @@ export function tickShowcase(dt:number){
   const toolAnchor:Point=gas?[j.from[0]+.024,j.from[1]+.169,j.from[2]]:measuringTool?[tip[0]-.04,tip[1]+.035,tip[2]]:[p[0]-.025,p[1]+.06,p[2]];
   const cap:Point|null=gas||j.step.type==='move'?null:[j.from[0]+.06,j.from[1]+.01,j.from[2]+.025];
   // Once liquid flows, push in on the receiving vessel so the mixing fills the view.
-  if(!gas&&!j.focused&&motionTime>=3.2){j.focused=true;benchView.frame([j.to[0],j.to[1]-.03,j.to[2]],.2,.2);}
+  if(!gas&&!j.focused&&motionTime>=3.2){j.focused=true;benchView.frame([j.to[0],j.to[1]+.01,j.to[2]],.28,.28);}
   useShowcase.setState({cap,toolAnchor,tip,mouth:j.to,flow:motionTime>=3&&motionTime<5&&!(j.step.type==='dose'&&j.step.stopWhen&&endpointResult(j.def,j.step,j.step.stopWhen).ok),carried:j.buffer?Math.max(0,j.step.amount-j.delivered):0,delivered:j.delivered,phase:gas?'Хийн хаалтыг нээж хоолойгоор дамжуулж байна':motion.phase});
 
  }else{

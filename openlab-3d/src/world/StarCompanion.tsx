@@ -23,6 +23,9 @@ const NEAR = 0.95;
 const SCALE = 0.13;
 /** Largest size when far away, so Star stays easy to spot across the room. */
 const FAR_SCALE = 0.5;
+/** At the bench Star waits small at the screen edge, clear of the glassware in the middle. */
+const BENCH_SCALE = 0.08;
+const BENCH_SIDE = 0.82;
 /** Height above the thing Star points at. */
 const HOVER = 0.42;
 
@@ -75,14 +78,16 @@ function Companion({ calm }: { calm: boolean }) {
     }
     if (!guiding) {
       // Beside the view, a little above the work area and inside narrow screens: left of centre,
-      // or right on phones, where the speech bubble covers the top left.
+      // or right on phones, where the speech bubble covers the top left. At the bench the
+      // apparatus fills the middle, so Star moves out to the edge.
       const halfH = NEAR * Math.tan(MathUtils.degToRad(camera.fov / 2));
       const halfW = halfH * (size.width / Math.max(1, size.height));
       const drift = calm ? 0 : 1;
+      const atBench = mode === 'bench';
       goal.copy(eye)
         .addScaledVector(forward, NEAR)
-        .addScaledVector(right, side * Math.min(0.42, halfW * 0.55) + Math.sin(t * 0.5) * 0.03 * drift)
-        .addScaledVector(up, Math.min(0.1, halfH * 0.18) + Math.sin(t * 1.3) * 0.015 * drift);
+        .addScaledVector(right, side * (atBench ? halfW * BENCH_SIDE : Math.min(0.42, halfW * 0.55)) + Math.sin(t * 0.5) * 0.03 * drift)
+        .addScaledVector(up, (atBench ? halfH * 0.3 : Math.min(0.1, halfH * 0.18)) + Math.sin(t * 1.3) * 0.015 * drift);
     }
     if (!f.ready) {
       f.anchor.copy(eye);
@@ -111,7 +116,7 @@ function Companion({ calm }: { calm: boolean }) {
       star.current.position.copy(f.pos);
       star.current.lookAt(eye);
       const far = MathUtils.clamp(SCALE * Math.pow(nextDist / NEAR, 0.7), SCALE, FAR_SCALE);
-      f.scale = MathUtils.lerp(f.scale, guiding ? far : SCALE, ease(4));
+      f.scale = MathUtils.lerp(f.scale, guiding ? far : mode === 'bench' ? BENCH_SCALE : SCALE, ease(4));
       star.current.scale.setScalar(f.scale);
     }
     // Bank into sideways flight, like a little plane.

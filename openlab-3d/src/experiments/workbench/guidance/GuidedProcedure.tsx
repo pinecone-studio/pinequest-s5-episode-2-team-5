@@ -14,6 +14,8 @@ import {useGrade9Apparatus} from '../../grade9/store';
 import {REAGENTS} from '../../../chemistry/reagents';
 import {guidedPlan,physicalShowcasePlan} from './plans';
 import {useShowcase,beginShowcase,pauseShowcase,cancelShowcase} from './showcase';
+import {portLabel} from '../../grade9/port-layout';
+import {liquidMl,solidMassG} from '../../../chemistry/mixture';
 import {focusGuideStep,executeGuideStep,clearGuideCue,useGuideCue,stepLabel,portName,rigName,doseUnit} from './runtime';
 
 /** false бол ширээний заавар самбарт «Бүтэн төлөвлөгөө ба харьцуулах арга»-аас дээших бүх хэсэг (алхамын карт, товчнууд г.м) харагдахгүй; код хэвээр, true болгоход буцаж гарна */
@@ -64,6 +66,7 @@ export function GuidedProcedure({definition:def}:{definition:InvestigationDefini
  const lastRecord=protocol.experiment===def.id?protocol.records[protocol.records.length-1]:undefined;
  const progress=demonstrating&&mode==='bench'&&<DemoProgress state={demoState} index={index} total={plan.length} label={stepLabel(step,def.labRig!,def.id)}
   detail={finished&&protocol.experiment===def.id&&protocol.complete?'Эцсийн төлөвийг бодит хэмжилтээр шалгалаа.':finished||failed?message:`${showcase.phase}${step.type==='dose'&&showcase.key===animationKey?` · ${showcase.delivered.toFixed(1)} / ${step.amount} ${doseUnit(step.reagent)}`:''}`}
+  live={rig?`${rig.port+1}. ${portLabel(rig.kind,rig.port,rig.experiment)} · ${liquidMl(rig.chambers[rig.port]).toFixed(1)} мл · ${solidMassG(rig.chambers[rig.port]).toFixed(2)} г · ${rig.temperature.toFixed(1)}°C`:undefined}
   readings={lastRecord?.readings.filter(r=>r.label!=='Хугацаа').slice(0,6)} onPause={pause} onResume={()=>setAutomatic(true)} onReplay={begin} onClose={stop}/>;
  return <>{panel()}{progress}</>;
  function panel(){

@@ -15,6 +15,7 @@ import { endHeldUse } from '../../interaction/useHeld';
 import { portableApi, usePortableStore } from '../../interaction/portable';
 import { heldApi, tablePointer } from '../../interaction/heldApi';
 import { useSettingsStore } from '../../store/useSettingsStore';
+import { hudTop } from '../workbench/guidance/hud-space';
 import { benchView, useBenchView } from './view';
 import { experimentGuide } from './guidance';
 import { BENCH_HEIGHT } from '../../utils/constants';
@@ -149,8 +150,14 @@ export function NaClStation() {
     };
     benchView.frame = (center, width, height) => {
       const target=new Vector3(...center);
-      const distance=Math.max(.25,height/(2*Math.tan(42*Math.PI/360))*1.3,width/(2*Math.tan(42*Math.PI/360)*camera.aspect)*1.2);
-      move(target.clone().add(new Vector3(0,.12,1).normalize().multiplyScalar(distance)),target,.6);
+      // Fit the work into the part of the screen below the top overlays (demo strip, captions)
+      // and aim a little higher, so the work sits in the middle of that free area.
+      const free=Math.max(.5,1-hudTop()/Math.max(1,window.innerHeight));
+      const distance=Math.max(.25,height/(2*Math.tan(42*Math.PI/360))*1.3/free,width/(2*Math.tan(42*Math.PI/360)*camera.aspect)*1.2);
+      target.y+=(1-free)*distance*Math.tan(42*Math.PI/360);
+      // About 20° above the work: low enough to see liquid levels, high enough that a dish or a
+      // spoon on the bench is not seen edge-on or hidden behind the bench lip.
+      move(target.clone().add(new Vector3(0,.36,1).normalize().multiplyScalar(distance)),target,.6);
       useBenchView.setState({level:'detail',inspecting:false});
     };
     benchView.focus = (id) => { if (useBenchView.getState().inspecting) benchView.back(); focus(id); };
