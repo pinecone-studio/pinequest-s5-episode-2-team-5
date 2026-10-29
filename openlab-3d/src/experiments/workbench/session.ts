@@ -12,7 +12,7 @@ import { resetPresentation } from '../../lab/presentation';
 /** Bench preparation and selection. Session objects remain in the shared room. */
 import { create } from 'zustand';
 import { Box3, Quaternion, Vector3 } from 'three';
-import { CATALOG, SPAWNABLE_KINDS, type EquipmentKind } from '../../equipment/equipmentCatalog';
+import { CATALOG, SPAWNABLE_KINDS, baseKind, type EquipmentKind } from '../../equipment/equipmentCatalog';
 import { REAGENTS, REAGENT_LIST, type ReagentId } from '../../chemistry/reagents';
 import { reagentColor } from '../../chemistry/real-color';
 import { experimentDone, useLabStore } from '../../store/useLabStore';
@@ -31,16 +31,23 @@ import { interactables, isVisibleInScene } from '../../interaction/registry';
 import { restoreScenePortable, usePortableStore } from '../../interaction/portable';
 import { clearReactionViews } from '../../lab/reaction-view';
 import { sounds } from '../../utils/sounds';
-import { isWorkbenchPosition,grade9SupplyPosition } from './placement';
+import { isWorkbenchPosition,grade9SupplyPosition,freeBenchSpot,turnedFootprint,type BenchRect } from './placement';
+import { launchedBookSupplies } from './bookSupplies';
+import { GUIDED_OVERLAYS } from './guidance/overlays';
 
 export interface BenchSupply { key: string; name: string; use: string; kind?: EquipmentKind; reagent?: ReagentId; part?: PartKey }
-const apparatus = (kind: EquipmentKind): BenchSupply => ({ key: kind, kind, name: CATALOG[kind].name, use: CATALOG[kind].description });
+/** One piece of apparatus; `beaker#2` is a second beaker of its own. */
+const apparatus = (key: string): BenchSupply => { const kind = baseKind(key); return { key, kind, name: CATALOG[kind].name, use: CATALOG[kind].description }; };
 const reagent = (id: ReagentId): BenchSupply => ({ key: `reagent-${id}`, reagent: id, kind: REAGENTS[id].container, name: REAGENTS[id].name, use: REAGENTS[id].note });
 const list = (kinds: EquipmentKind[], reagents: ReagentId[] = []) => [...kinds.map(apparatus), ...reagents.map(reagent)];
 export const NACL_SUPPLIES = LABEL_KEYS.map((part): BenchSupply => ({ key: `nacl-${part}`, part, name: NAMES[part], use: USES[part] }));
 /** Executable apparatus lists complement the existing human-readable JSON materials. */
+/** Test tubes come with a rack to stand in: a loose tube lies on its side and cannot hold liquid. */
+const withRack = (supplies: BenchSupply[]): BenchSupply[] => supplies.some((s) => s.kind === 'testTube' && !s.reagent) && !supplies.some((s) => s.kind === 'testTubeRack') ? [...supplies, apparatus('testTubeRack')] : supplies;
+const fromRefs = (refs: string[]) => withRack(refs.map((s) => s.startsWith('reagent:') ? reagent(s.slice(8) as ReagentId) : apparatus(s)));
 const RECIPES: Record<string, BenchSupply[]> = {
-  ...Object.fromEntries(INVESTIGATIONS.map((x) => [x.id, x.supplies.map((s) => s.startsWith('reagent:') ? reagent(s.slice(8) as ReagentId) : apparatus(s as EquipmentKind))])),
+  ...Object.fromEntries(INVESTIGATIONS.map((x) => [x.id, fromRefs(x.supplies)])),
+  ...Object.fromEntries(Object.entries(GUIDED_OVERLAYS).map(([id, overlay]) => [id, fromRefs(overlay.supplies)])),
   nacl: NACL_SUPPLIES,
   safety: list(['goggles', 'gloves', 'fireExtinguisher']),
   boil: list(['beaker', 'bunsenBurner', 'tripod', 'thermometer'], ['water']),
@@ -57,7 +64,31 @@ const RECIPES: Record<string, BenchSupply[]> = {
   thermo: list(['beaker', 'thermometer', 'glassRod', 'spatula'], ['s_nh4no3', 's_naoh', 'water']),
   fire: list(['evaporatingDish', 'tripod', 'bunsenBurner', 'watchGlass', 'fireExtinguisher'], ['ethanol']),
 };
-export const suppliesFor = (id: string | null) => id ? RECIPES[id] ?? [] : [];
+const merged = new Map<string, { base: BenchSupply[]; book: BenchSupply[]; list: BenchSupply[] }>();
+/**
+ * The lab guide's recipe plus whatever the textbook experiment launched from the menu lists and
+ * the recipe lacks (bookSupplies.ts), so the bench holds everything the book shows.
+ */
+export const suppliesFor = (id: string | null): BenchSupply[] => {
+  if (!id) return [];
+  const base = RECIPES[id] ?? [], book = launchedBookSupplies(id);
+  if (!book.length) return base;
+  const cached = merged.get(id);
+  if (cached && cached.base === base && cached.book === book) return cached.list;
+  // The book's pieces join the guide's recipe: as many of each kind as the book uses (three beakers), never doubled.
+  const have = new Map<string, number>();
+  for (const s of base) if (!s.reagent) { const k = s.kind ?? (s.part ? PART_KINDS[s.part] : undefined); if (k) have.set(k, (have.get(k) ?? 0) + 1); }
+  const reagents = new Set(base.map((s) => s.reagent).filter(Boolean));
+  const wanted = new Map<string, number>();
+  const list = [...base, ...book.filter((s) => {
+    if (s.reagent) return !reagents.has(s.reagent);
+    const k = s.kind!, n = (wanted.get(k) ?? 0) + 1;
+    wanted.set(k, n);
+    return n > (have.get(k) ?? 0);
+  }).map((s) => { if (s.reagent) return s; const k = s.kind!, n = (have.get(k) ?? 0) + 1; have.set(k, n); return { ...s, key: n > 1 ? `${k}#${n}` : k }; })];
+  merged.set(id, { base, book, list });
+  return list;
+};
 export const supplySubstance = (supply: BenchSupply) => supply.part === 'bottle' ? SUBSTANCES.hcl : supply.part === 'jar' ? SUBSTANCES.na2co3 : supply.part === 'lamp' ? SUBSTANCES.ethanol : null;
 export interface BenchSession { found: string[]; placed: string[]; owned: string[]; teacher: boolean; objects: Record<string, string>; ready: boolean; previouslyComplete?: boolean; stepOverride: number | null }
 export interface SupplyItem { id: string; kind?: EquipmentKind; reagent?: ReagentId; part?: PartKey }
@@ -117,26 +148,70 @@ export function itemPosition(id: string): Vector3 {
 export function onWorkbench(at: { x: number; y: number; z: number }): boolean {
   return isWorkbenchPosition(at, BENCH_HEIGHT);
 }
-function exists(id: string): boolean {
+function exists(id: string | undefined): boolean {
+  if (!id) return false;
   const inv=useInventoryStore.getState();
   if(id.startsWith('spawn-'))return inv.held?.id===id||inv.worldItems.some(w=>w.id===id)||Object.values(inv.storage).some(items=>items.some(item=>item.id===id));
   return !!partKey(id) || useInventoryStore.getState().held?.id === id || useInventoryStore.getState().worldItems.some((w) => w.id === id) || interactables.has(id);
+}
+/** Pieces already standing for some other supply of this attempt (the first of three beakers). */
+function boundElsewhere(key: string): Set<string> {
+  const state = useWorkbench.getState(), objects = currentSession()?.objects ?? {};
+  return new Set([...Object.entries(objects), ...Object.entries(state.loose)].filter(([k, id]) => k !== key && !!id && exists(id)).map(([, id]) => id));
 }
 export function supplyObject(supply: BenchSupply): string | null {
   const state = useWorkbench.getState();
   const known = currentSession()?.objects[supply.key] ?? state.loose[supply.key];
   if (known && exists(known)) return known;
-  const world = useInventoryStore.getState().worldItems.find((w) => matchesSupply(supply, itemDescription(w.id)) && onWorkbench(itemPosition(w.id)));
+  const taken = boundElsewhere(supply.key);
+  const world = useInventoryStore.getState().worldItems.find((w) => !taken.has(w.id) && matchesSupply(supply, itemDescription(w.id)) && onWorkbench(itemPosition(w.id)));
   if (world) return world.id;
-  for (const entry of interactables.values()) if (exists(entry.id) && entry.enabled && matchesSupply(supply, itemDescription(entry.id)) && onWorkbench(itemPosition(entry.id)) && isVisibleInScene(entry.object)) return entry.id;
+  for (const entry of interactables.values()) if (!taken.has(entry.id) && exists(entry.id) && entry.enabled && matchesSupply(supply, itemDescription(entry.id)) && onWorkbench(itemPosition(entry.id)) && isVisibleInScene(entry.object)) return entry.id;
   return null;
 }
-/** A card can always add stock. Merely spawning it does NOT complete preparation. */
-export function collectSupply(supply: BenchSupply, pickup = false): boolean {
+/** The supply this piece stands for: the one it is already bound to, else the first matching one still free. */
+function supplyFor(required: BenchSupply[], session: BenchSession, item: SupplyItem): BenchSupply | undefined {
+  const loose = useWorkbench.getState().loose, bound = (s: BenchSupply) => session.objects[s.key] ?? loose[s.key];
+  return required.find((s) => bound(s) === item.id)
+    ?? required.find((s) => { const id = bound(s); return matchesSupply(s, item) && !(id && exists(id)); })
+    ?? required.find((s) => matchesSupply(s, item));
+}
+/**
+ * A free place on the worktop for a new `kind`: around everything already standing there (room
+ * apparatus, spawned stock, the NaCl station's visible parts), or null when nothing fits.
+ */
+function benchSpot(kind: EquipmentKind, primary: boolean): [number, number, number] | null {
+  const occupied: BenchRect[] = [];
+  for (const w of useInventoryStore.getState().worldItems) {
+    const p = livePose(w);
+    if (!onWorkbench(p)) continue;
+    const [sx, , sz] = CATALOG[w.kind].size;
+    occupied.push({ x: p.x, z: p.z, ...turnedFootprint(sx, sz, p.yaw) });
+  }
+  for (const part of useWorkbench.getState().availableParts) {
+    const object = interactables.get(`nacl-${part}`)?.object;
+    if (!object || !isVisibleInScene(object)) continue;
+    const box = new Box3().setFromObject(object);
+    if (box.isEmpty() || !onWorkbench(box.getCenter(new Vector3()).setY(box.min.y))) continue;
+    occupied.push({ x: (box.min.x + box.max.x) / 2, z: (box.min.z + box.max.z) / 2, w: box.max.x - box.min.x, d: box.max.z - box.min.z });
+  }
+  const [w, , d] = CATALOG[kind].size;
+  const spot = freeBenchSpot(w, d, occupied, primary ? [8.25, -14.36] : undefined);
+  return spot ? [spot[0], BENCH_HEIGHT + .015, spot[1]] : null;
+}
+let anotherCount = 0;
+/**
+ * A card can always add stock. Merely spawning it does NOT complete preparation. With `another`,
+ * apparatus is always a new piece (a second test tube or beaker from the drawer) instead of
+ * pointing at the one already on the worktop.
+ */
+export function collectSupply(input: BenchSupply, pickup = false, another = false): boolean {
   beginPreparation();
+  const fresh = another && !!input.kind && !input.reagent && !input.part;
+  const supply = fresh ? { ...input, key: `${input.key}#${++anotherCount}` } : input;
   const required = suppliesFor(useLabStore.getState().active);
-  const wrong = !!currentSession() && !currentSession()!.ready && !required.some((r) => r.key === supply.key || matchesSupply(r, { id: supply.key, kind: supply.kind, reagent: supply.reagent, part: supply.part }));
-  let id = supplyObject(supply);
+  const wrong = !!currentSession() && !currentSession()!.ready && !required.some((r) => r.key === input.key || matchesSupply(r, { id: input.key, kind: supply.kind, reagent: supply.reagent, part: supply.part }));
+  let id = fresh ? null : supplyObject(supply);
   if (!id) {
     if (supply.part) {
       id = `nacl-${supply.part}`;
@@ -146,7 +221,9 @@ export function collectSupply(supply: BenchSupply, pickup = false): boolean {
       const occupied = [...new Set(Object.values(useWorkbench.getState().loose))].length;
       const grade9=(INVESTIGATIONS.find(x=>x.id===useLabStore.getState().active)?.grade??8)!==8;
       const slot = grade9?Math.max(0,required.findIndex(s=>s.key===supply.key)):occupied % 24;
-      id = useInventoryStore.getState().spawn(supply.kind, grade9?grade9SupplyPosition(slot):[7.56 + slot % 8 * .19, BENCH_HEIGHT + .015, -14.78 + Math.floor(slot / 8) * .22], 0, supply.reagent ? stock(supply.reagent) : undefined);
+      // A free spot that fits this item; the old fixed slots only if the worktop is full.
+      const at = benchSpot(supply.kind, grade9 && slot === 0) ?? (grade9?grade9SupplyPosition(slot):[7.56 + slot % 8 * .19, BENCH_HEIGHT + .015, -14.78 + Math.floor(slot / 8) * .22] as [number, number, number]);
+      id = useInventoryStore.getState().spawn(supply.kind, at, 0, supply.reagent ? stock(supply.reagent) : undefined);
     }
     if (!id) { warn('Ширээнд зай хүрэхгүй байна. Нэг хэрэгслээ хураагаад дахин сонго.'); return false; }
     useWorkbench.setState((s) => ({ loose: { ...s.loose, [supply.key]: id! } }));
@@ -175,7 +252,7 @@ export function recordBenchPlacement(item: SupplyItem, at: { x: number; y: numbe
   const session = currentSession();
   if (!active || !session || cleaning || !onWorkbench(at) || (!teacher && !picked.has(item.id))) return;
   const required = suppliesFor(active);
-  const supply = required.find((s) => matchesSupply(s, item));
+  const supply = supplyFor(required, session, item);
   if (!supply) { warn('Энэ туршилтад хэрэггүй. Тавихыг хориглоогүй.'); return; }
   const objects = { ...session.objects, [supply.key]: item.id };
   const found = [...new Set([...session.found, supply.key])];
@@ -193,7 +270,7 @@ function notePickup(item: SupplyItem) {
   beginPreparation();
   const active = useLabStore.getState().active, session = currentSession();
   if (!active || !session) return;
-  const required = suppliesFor(active), supply = required.find((r) => matchesSupply(r, item));
+  const required = suppliesFor(active), supply = supplyFor(required, session, item);
   if (!supply) { useWorkbench.setState((s)=>({sessions:{...s.sessions,[active]:{...session,owned:[...new Set([...(session.owned??[]),item.id])]}}})); warn('Энэ туршилтад хэрэггүй. Чөлөөтэй ашиглаж болно.'); return; }
   const fresh = !session.found.includes(supply.key);
   const found = fresh ? [...session.found, supply.key] : session.found;
@@ -245,7 +322,8 @@ function prepareSupplies(teacher: boolean) {
   }
   for (const supply of suppliesFor(useLabStore.getState().active)) {
     if (currentSession()?.placed.includes(supply.key)) continue;
-    if (!collectSupply(supply)) break;
+    // One that cannot be put out must not keep the rest of the recipe off the bench.
+    if (!collectSupply(supply)) continue;
     const id = supplyObject(supply);
     if (id) recordBenchPlacement(itemDescription(id), itemPosition(id), true);
   }
@@ -267,6 +345,27 @@ export function clearExperimentSession(id: string, worktopOnly = false) {
   if (!session) return;
   const ids = new Set([...(session.owned??[]), ...Object.values(session.objects)]);
   for (const [key, object] of Object.entries(useWorkbench.getState().loose)) if (suppliesFor(id).some((s) => s.key === key)) ids.add(object);
+  clearObjects(ids, worktopOnly, id);
+}
+/**
+ * What a textbook experiment without a lab guide put out (menu «Бэлтгэлээ хийе»). It has no
+ * session, so its spawned stock is only in `loose`, under `textbook-…` keys.
+ */
+export function clearTextbookSupplies() {
+  const ids = new Set(Object.entries(useWorkbench.getState().loose).filter(([key]) => key.startsWith('textbook-')).map(([, object]) => object));
+  if (ids.size) clearObjects(ids, false, null);
+}
+/** A textbook experiment without a lab guide: the previous guide's apparatus goes back too. */
+export function leaveBenchExperiment() {
+  const previous = useLabStore.getState().active;
+  if (previous) {
+    clearExperimentSession(previous);
+    useGameStore.getState().showToast('Өмнөх туршилтын багажийг хураалаа.');
+  }
+  useLabStore.getState().setActive(null);
+  updateStationVisibility();
+}
+function clearObjects(ids: Set<string>, worktopOnly: boolean, id: string | null) {
   endHeldUse();
   cleaning = true;
   try {
@@ -275,6 +374,12 @@ export function clearExperimentSession(id: string, worktopOnly = false) {
       const origin = origins.get(object);
       if (usePortableStore.getState().held?.id === object && partKey(object)) { usePortableStore.setState({held:null}); useSandbox.setState({heldId:null}); }
       if (!partKey(object) && !restoreScenePortable(object)) {
+        // A rack that goes away takes its tubes and what is in them (otherwise they keep reacting unseen).
+        if (!origin) {
+          const inside = new Set([...storedIn(useInventoryStore.getState().storage, object).map((it) => it.id), ...Object.keys(useChemStore.getState().mixtures).filter((key) => key.startsWith(`${object}#`))]);
+          for (const tube of inside) { useChemStore.getState().removeMixture(tube); stirUntil.delete(tube); if (heldHeat.id === tube) heldHeat.id = null; forget(tube); vesselFx.delete(tube); }
+          if (inside.size) useInventoryStore.setState((s) => ({ storage: Object.fromEntries(Object.entries(s.storage).filter(([holder]) => holder !== object)) }));
+        }
         useInventoryStore.getState().consume(object);
         if (origin?.world) useInventoryStore.setState((s) => ({ worldItems: [...s.worldItems.filter((w) => w.id !== object), origin.world!] }));
         if (origin?.holder && origin.item) useInventoryStore.setState((s) => ({ storage: { ...s.storage, [origin.holder!]: [...(s.storage[origin.holder!] ?? []).filter((it) => it.id !== object), origin.item!].sort((a,b)=>{const order=storedIn({},origin.holder!);const rank=(id:string)=>{const index=order.findIndex((it)=>it.id===id);return index<0?Number.MAX_SAFE_INTEGER:index;};return rank(a.id)-rank(b.id);}) } }));

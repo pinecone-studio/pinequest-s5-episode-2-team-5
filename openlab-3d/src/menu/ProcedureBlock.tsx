@@ -2,6 +2,28 @@
 import { useState } from 'react';
 import { isTouchDevice } from '../utils/device';
 import { procedureFor, useLaunchedProcedure } from './launchedProcedure';
+import type { ProcedureGroup } from './labProcedure';
+
+/** Цэвэр "Туршилт" картын алхмууд — шууд нээлттэй, дугаарласан. Нэгээс олон бүлэг бол туршилтын нэрээр ялгана */
+export function ProcedureList({ groups }: { groups: ProcedureGroup[] }) {
+  return (
+    <div className="mt-2 max-h-[42dvh] space-y-3 overflow-y-auto overscroll-contain pr-1">
+      {groups.map((group, g) => (
+        <div key={g}>
+          {groups.length > 1 && group.title && <p className="mb-1 text-[11px] font-bold leading-tight text-slate-800">{group.title}</p>}
+          <ol className="space-y-1.5">
+            {group.steps.map((text, i) => (
+              <li key={i} className="flex items-start gap-2 text-xs leading-snug text-slate-700">
+                <span className="mt-0.5 flex h-4 w-4 shrink-0 items-center justify-center rounded-full bg-emerald-100 text-[10px] font-bold text-emerald-800">{i + 1}</span>
+                {text}
+              </li>
+            ))}
+          </ol>
+        </div>
+      ))}
+    </div>
+  );
+}
 
 export function ProcedureBlock({ labId }: { labId: string }) {
   const state = useLaunchedProcedure();

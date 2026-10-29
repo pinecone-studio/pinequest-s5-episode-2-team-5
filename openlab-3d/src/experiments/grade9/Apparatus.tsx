@@ -91,12 +91,13 @@ export function Grade9Apparatus({kind,itemId,...props}:GroupProps&{kind:RigKind;
   {['gasTrain','convectionCell'].includes(kind)&&<Box at={[0,.14,0]} size={[.13,.006,.006]} color="#9ac2cd"/>}
   {kind==='gasTrain'&&<><mesh geometry={hose}><meshStandardMaterial color="#90bac8" transparent opacity={.75}/></mesh>{well(2,0,.055)}<mesh material={glass} position={[0,.17,.045]}><cylinderGeometry args={[.012,.012,.08,20,1,true]}/></mesh></>}
   {kind==='conductivityTester'&&<><Electrode at={[-.075,.09,0]} height={.08} color="#9aa5ad" clip={null}/><Electrode at={[-.055,.09,0]} height={.08} color="#9aa5ad" clip={null}/><IndicatorBulb at={[.06,.15,0]} on={(rig?.extent??0)>.5}/></>}
-  {kind==='heatingBath'&&<HotPlate at={[-.065,.026,0]} size={[.065,.028,.065]} heating={!!rig?.heating}/>}
+  {kind==='heatingBath'&&<><HotPlate at={[-.065,.026,0]} size={[.065,.028,.065]} heating={!!rig?.heating&&rig.port===0}/><HotPlate at={[.065,.026,0]} size={[.065,.028,.065]} heating={!!rig?.heating&&rig.port===1}/></>}
   {kind==='calorimeter'&&<SpiritLamp at={[-.065,.012,0]} lit={!!rig?.heating&&(rig?.chambers[1].ethanol??0)>0} fuel={Math.min(1,(rig?.chambers[1].ethanol??0)/10)}/>}
   {kind==='gasTrain'&&<RigBurner at={[-.065,.012,0]} lit={!!rig?.heating}/>}
   {kind==='heatingBath'&&(rig?.chambers[0].s.ice??0)>0&&<Box at={[-.065,.06,0]} size={[.024,.025,.023]} color="#e1f5ff"/>}
+  {kind==='heatingBath'&&(rig?.chambers[1].s.ice??0)>0&&<Box at={[.065,.06,0]} size={[.024,.025,.023]} color="#e1f5ff"/>}
  </>}
- {!isCurriculumRig(kind)&&!['gasTrain','reactionTile','corrosionRack','diffusionTube','fractionatingColumn'].includes(kind)&&well(2,0,.055)}
+ {!isCurriculumRig(kind)&&!['gasTrain','heatingBath','reactionTile','corrosionRack','diffusionTube','fractionatingColumn'].includes(kind)&&well(2,0,.055)}
  {rig?.running&&(rig.kind==='gasTrain'&&rig.gas>0||rig.kind==='heatingBath'&&rig.temperature>=100)&&<group ref={particles}>{Array.from({length:12},(_,i)=><mesh key={i} position={[-.065+(i%3)*.004,.09+i*.009,0]}><sphereGeometry args={[.0018,8,6]}/><meshStandardMaterial color="#e2f4f8" transparent opacity={.7}/></mesh>)}</group>}
  </group>;
 }

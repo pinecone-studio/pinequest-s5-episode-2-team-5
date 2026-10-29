@@ -92,6 +92,5 @@ test('iconFor: үйлдэл бүрт дүрс, мэдэгдэхгүйд "▸"', 
   assert.equal(iconFor('Шидэх'), '🎯');
   assert.equal(iconFor('Үсрэх'), '🦘');
   assert.equal(iconFor('Багажны шургуулга'), '🧰');
-  assert.equal(iconFor('Газрын зураг'), '🗺️');
   assert.equal(iconFor('Огт өөр зүйл'), '▸');
 });

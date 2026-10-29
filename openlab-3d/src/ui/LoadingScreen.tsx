@@ -10,7 +10,7 @@ import { SettingsPanel } from './SettingsPanel';
 import { isTouchDevice } from '../utils/device';
 import { WelcomeCard } from './WelcomeCard';
 
-// true = шинэ загвар (Pip, 3 алхам). false болговол хуучин карт буцаж гарна.
+// true = шинэ загвар (Star, 3 алхам). false болговол хуучин карт буцаж гарна.
 const NEW_START_DESIGN: boolean = true;
 
 function Logo() {

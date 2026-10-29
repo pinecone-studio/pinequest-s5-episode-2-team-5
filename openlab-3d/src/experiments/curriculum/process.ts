@@ -1,7 +1,7 @@
 import { AQ, SOLIDS, type AqId, type SolidId } from '../../chemistry/species';
 import { emptyMixture, merge, liquidMl, solidMassG, contentMassG, gasMl, takeSolid, type Mixture } from '../../chemistry/mixture';
-import { equilibrate, phOf } from '../../chemistry/equilibrium';
-import { step, DEFAULT_ENV } from '../../chemistry/kinetics';
+import { acidityToNeutral, equilibrate, phOf } from '../../chemistry/equilibrium';
+import { step, DEFAULT_ENV, photosynthesisRate } from '../../chemistry/kinetics';
 import type { RigState } from '../grade9/process';
 import { isCurriculumRig } from './kinds';
 import { aq,sol,gaseous,putA,putS,putG,reactCurriculum,MATERIAL_PROPERTIES } from './reactions';
@@ -14,7 +14,8 @@ function reaction(r:RigState,equation:string,dn:number){if(dn>EPS){r.equation=eq
 export function startCurriculum(r:RigState):RigState {
  if(!r.chambers.some(has))return {...r,running:false,message:'Эхлээд шаардлагатай дээж, шингэн эсвэл хийг хэмжиж багажид хий. Хоосон багаж бүтээгдэхүүн үүсгэхгүй.'};
  if(r.kind==='electrolysisCell'){
-  if(liquidMl(r.chambers[0])<1||!Object.keys(r.chambers[1].s).length||!Object.keys(r.chambers[2].s).length)return {...r,running:false,message:'① Электролит, ② катодын металл/графит, ③ анодын металл/графитыг тус тус хий. Дараа нь DC хэлхээг залга.'};
+  // A solid charge of PbBr₂ is the electrolyte once the cell melts it.
+  if((liquidMl(r.chambers[0])<1&&!(sol(r.chambers[0],'PbBr2')>0))||!Object.keys(r.chambers[1].s).length||!Object.keys(r.chambers[2].s).length)return {...r,running:false,message:'① Электролит, ② катодын металл/графит, ③ анодын металл/графитыг тус тус хий. Дараа нь DC хэлхээг залга.'};
  }
  if(r.kind==='galvanicCell'&&(!(sol(r.chambers[0],'Zn')>0)||!(sol(r.chambers[1],'Cu')>0)||aq(r.chambers[0],'Zn')<=0||aq(r.chambers[1],'Cu')<=0||liquidMl(r.chambers[2])<1))return {...r,running:false,message:'Zn/ZnSO₄, Cu/CuSO₄ хагас хэлхээ болон NaCl давсан гүүрийг тусдаа тасалгаанд бэлтгэ.'};
  if(r.kind==='migrationTube'&&(aq(r.chambers[0],'Cu')<=0||aq(r.chambers[0],'CrO4')<=0))return {...r,running:false,message:'U хоолойд CuCrO₄-ийн өнгөт уусмал хий. Хүчдэлгүй үед чиглэсэн шилжилт явагдахгүй.'};
@@ -27,21 +28,52 @@ export function startCurriculum(r:RigState):RigState {
  return r;
 }
 function soilMass(m:Mixture){return (sol(m,'sand')*60.08)+sol(m,'silt')+sol(m,'clay')+sol(m,'humus');}
+/** Metals below hydrogen plate out of solution; above it, water or acid gives H₂ instead. */
+const PLATING=[['Ni',2],['Cu',2],['Ag',1],['Pb',2]] as const;
+/** At an inert anode a halide is oxidised before water. */
+const HALIDES=[['Cl','Cl2','2Cl⁻ → Cl₂ + 2e⁻'],['Br','Br2','2Br⁻ → Br₂ + 2e⁻'],['I','I2','2I⁻ → I₂ + 2e⁻']] as const;
 function plate(r:RigState,dt:number){
  const [e,cathode,anode]=r.chambers;
- const metal=aq(e,'Ni')>0?'Ni':aq(e,'Cu')>0?'Cu':null;
- if(!metal||r.current<=0||r.voltage<=0||!r.connected){r.message='Металлын ион эсвэл гүйдэл байхгүй. Шинээр металл ялгарахгүй.';return;}
- const desired=r.current*dt/96485.33212/2;
- let dn=Math.min(desired,aq(e,metal));
- const soluble=sol(anode,metal)>EPS;
- if(soluble)dn=Math.min(desired,sol(anode,metal));
- if(dn<=0)return;
- putS(cathode,metal,dn);
- if(soluble)putS(anode,metal,-dn);else {putA(e,metal,-dn);e.water=Math.max(0,e.water-dn*18.015);putG(anode,'O2',dn/2);}
- // Soluble anodes replenish exactly the ions consumed at the cathode.
- r.data.deposited=(r.data.deposited??0)+dn;r.data.charge=(r.data.charge??0)+2*dn*96485.33212;
- reaction(r,`${metal}²⁺ + 2e⁻ → ${metal}; ${soluble?`${metal} → ${metal}²⁺ + 2e⁻`:'2H₂O → O₂ + 4H⁺ + 4e⁻'}`,dn);
- r.message='100% металлын гүйдлийн гарцын сургалтын хэлхээ. Ионы нөөц, гүйдэл ба анодын материал хэмжилтэд нөлөөлнө.';
+ // Lead(II) bromide conducts once molten (373 °C): Pb at the cathode, Br₂ at the anode.
+ const melt=e.temp>=373&&sol(e,'PbBr2')>EPS;
+ const plated=melt?null:PLATING.find(([id])=>aq(e,id)>0)??null;
+ // Pure water or sugar solution has no ions to carry the current.
+ const ionic=e.water>EPS&&(Object.entries(e.aq) as [AqId,number][]).some(([id,n])=>AQ[id].charge!==0&&n>1e-7)||acidityToNeutral(e)>EPS;
+ if((!melt&&!plated&&!ionic)||r.current<=0||r.voltage<=0||!r.connected){r.message='Ион агуулсан электролит (уусмал эсвэл хайлмал) эсвэл гүйдэл байхгүй. Электролиз явагдахгүй.';return;}
+ const electrons=r.current*dt/96485.33212;
+ if(melt){
+  const dn=Math.min(electrons/2,sol(e,'PbBr2'));if(dn<=0)return;
+  putS(e,'PbBr2',-dn);putS(cathode,'Pb',dn);putA(anode,'Br2',dn);
+  r.data.deposited=(r.data.deposited??0)+dn;r.data.halogen=(r.data.halogen??0)+dn;r.data.charge=(r.data.charge??0)+2*dn*96485.33212;
+  reaction(r,'Pb²⁺ + 2e⁻ → Pb; 2Br⁻ → Br₂ + 2e⁻',dn);
+  r.message='Хайлмал PbBr₂: катодод хар тугалга, анодод хүрэн бром ялгарна.';return;
+ }
+ if(plated){
+  const [metal,z]=plated,halide=HALIDES.find(([x])=>aq(e,x)>0);
+  let dn=Math.min(electrons/z,aq(e,metal));
+  const soluble=sol(anode,metal)>EPS;
+  if(soluble)dn=Math.min(electrons/z,sol(anode,metal));
+  if(dn<=0)return;
+  putS(cathode,metal,dn);
+  // Soluble anodes replenish exactly the ions consumed at the cathode.
+  let anodeText:string=`${metal} → ${metal}${z===2?'²⁺':'⁺'} + ${z}e⁻`;
+  if(soluble)putS(anode,metal,-dn);
+  else if(halide){const [x,x2,text]=halide,n=Math.min(z*dn/2,aq(e,x)/2);putA(e,metal,-dn);putA(e,x,-2*n);putA(e,x2,n);r.data.halogen=(r.data.halogen??0)+n;anodeText=text;}
+  else {putA(e,metal,-dn);e.water=Math.max(0,e.water-z*dn/2*18.015);putG(anode,'O2',z*dn/4);anodeText='2H₂O → O₂ + 4H⁺ + 4e⁻';}
+  r.data.deposited=(r.data.deposited??0)+dn;r.data.charge=(r.data.charge??0)+z*dn*96485.33212;
+  reaction(r,`${metal}${z===2?'²⁺':'⁺'} + ${z}e⁻ → ${metal}; ${anodeText}`,dn);
+  r.message='100% металлын гүйдлийн гарцын сургалтын хэлхээ. Ионы нөөц, гүйдэл ба анодын материал хэмжилтэд нөлөөлнө.';return;
+ }
+ // No plating metal: hydrogen at the cathode (from acid, or water leaving OH⁻ behind).
+ const acidic=acidityToNeutral(e)>EPS,halide=HALIDES.find(([x])=>aq(e,x)>0);
+ const h2=electrons/2;
+ putG(cathode,'H2',h2);if(!acidic)e.water=Math.max(0,e.water-electrons*18.015);
+ let anodeText='2H₂O → O₂ + 4H⁺ + 4e⁻';
+ if(halide){const [x,x2,text]=halide,n=Math.min(h2,aq(e,x)/2);putA(e,x,-2*n);putA(e,x2,n);r.data.halogen=(r.data.halogen??0)+n;anodeText=text;if(n<h2){putG(anode,'O2',(h2-n)/2);e.water=Math.max(0,e.water-(h2-n)*18.015);}}
+ else {putG(anode,'O2',h2/2);e.water=Math.max(0,e.water-h2*18.015);}
+ r.data.hydrogen=(r.data.hydrogen??0)+h2;r.data.charge=(r.data.charge??0)+electrons*96485.33212;
+ reaction(r,`${acidic?'2H⁺ + 2e⁻ → H₂':'2H₂O + 2e⁻ → H₂ + 2OH⁻'}; ${anodeText}`,h2);
+ r.message=halide?'Катодод устөрөгч, анодод галоген ялгарна. Хлор лакмусын цаасыг цайруулна.':'Катодод устөрөгч, анодод хүчилтөрөгч ялгарна.';
 }
 function gasEquilibrium(r:RigState,dt:number){
  const m=r.chambers[0],v=r.volumeMl/1000,t=r.temperature+273.15;
@@ -92,15 +124,22 @@ function distil(r:RigState,dt:number){
  r.message='Хөргөгч бодит шилжсэн хэсгийг хүлээн авагчид цуглуулна. Энэ нь тусгаарлах сургалтын нэрлэг; бүх фракц цэвэр нэг бодис болохгүй.';
 }
 function expose(r:RigState,dt:number){
- r.chambers.forEach((m,i)=>{
+ r.chambers.forEach((input,i)=>{
+  // Salt dissolves and acid attacks the metal in each cell as in any vessel.
+  const m=has(input)?step(input,Math.min(.3,dt),{...DEFAULT_ENV,lossWK:0}).m:input;r.chambers[i]=m;
+  // Sticky vaseline in an uncovered cell catches the airborne dust settling on it (8-25).
+  if(sol(m,'vaseline')>EPS&&!r.covers[i]){putS(m,'dust',2e-6*dt);r.data[`dust${i}`]=sol(m,'dust')*1000;}
   const metal=(['Fe','Zn','Cu','Al','Ag'] as const).find(id=>sol(m,id)>EPS);if(!metal||m.water<=0)return;
-  const barrier=aq(m,'oilFluid')>EPS||aq(m,'dyeB')>EPS||sol(m,'plastic')>EPS;
+  // Oil, grease, paint and plastic keep water and air off the metal.
+  const barrier=(['oilFluid','hexadecane','waxLiquid','dyeB'] as const).some(id=>aq(m,id)>EPS)||(['plastic','wax','vaseline'] as const).some(id=>sol(m,id)>EPS);
   const blocked=(barrier&&!r.scratched)||r.covers[i];
   const rate=({Fe:.000002,Zn:.0000008,Cu:.0000003,Al:.0000001,Ag:.00000002})[metal];
   const salinity=aq(m,'Na')+aq(m,'Cl')>1e-8?1.8:1;
+  // Warm water rusts iron faster (roughly double per 30 °C while air can reach it).
+  const warmth=2**((Math.min(80,Math.max(0,m.temp))-22)/30);
   const oxygen=(aq(m,'dissolvedO2')+gaseous(m,'O2'));
   const external=blocked?0:1;
-  const desired=sol(m,metal)*(-Math.expm1(-rate*salinity*dt));
+  const desired=sol(m,metal)*(-Math.expm1(-rate*salinity*warmth*dt));
   if(metal==='Fe'){
    const dn=Math.min(desired,external?desired:oxygen/0.75,m.water/18.015/1.5);
    putS(m,'Fe',-dn);putS(m,'FeOH3',dn);m.water-=dn*1.5*18.015;
@@ -110,27 +149,39 @@ function expose(r:RigState,dt:number){
  });
  r.message='Шууд төмрийн зарцуулалт ба зэвний бүтээгдэхүүнийг бүртгэнэ. Бусад металлын гадаргын индекс нь пассивацийн сургалтын ойролцоо, төмрийн зэв биш. Нээлттэй үүр O₂-ийг орчноос авна.';
 }
+/** How much what is in the water holds seedlings back: soap, an oil film, heavy metals, brine. */
+function pollution(m:Mixture){
+ const V=Math.max(EPS,liquidMl(m)/1000),oil=(aq(m,'hexadecane')*226.448/.773+aq(m,'oilFluid')*885.45/.91+aq(m,'octane')*114.23/.703)/Math.max(EPS,liquidMl(m));
+ const metals=(aq(m,'Cu')+aq(m,'Pb')+aq(m,'Cd')+aq(m,'Ni')+aq(m,'Ag'))/V;
+ return Math.exp(-aq(m,'soap')/V/.005-oil*20-metals/.001-Math.max(0,aq(m,'Na')/V-.05)/.1);
+}
 function soil(r:RigState,dt:number){
  const m=r.chambers[r.port===2?0:r.port],mass=soilMass(m),water=m.water;
- if(!(mass>EPS)){r.message='Тунгаалт, шүүлт эсвэл үрийн сорилд хөрсний дээж эхлээд нэм.';return;}
+ // Pondweed under the lamp: O₂ bubbles collect in the tube over the funnel (8-24).
+ const o2=photosynthesisRate(m,r.light);
+ if(o2>0){putG(m,'O2',o2*dt);putA(m,'CO3',-Math.min(aq(m,'CO3'),o2*dt));r.data.oxygen=gaseous(m,'O2')*24000;reaction(r,'6CO₂ + 6H₂O → C₆H₁₂O₆ + 6O₂ (гэрэл)',o2*dt);}
+ // Seeds sprout on a wet napkin too; soil is not needed to compare waters (8-27).
+ const seeds=sol(m,'seed')/.2;
+ if(seeds>0&&water>0){
+  const ph=phOf(m)??7;
+  const response=Math.exp(-(((ph-6.5)/2.5)**2))*pollution(m)*r.light*Math.max(0,1-Math.abs(m.temp-24)/30);
+  r.data.height=(r.data.height??0)+dt/86400*.25*response;
+  r.data.germinated=Math.min(Math.floor(seeds),Math.floor(seeds*.9*response*(-Math.expm1(-r.elapsed/86400))));
+ }
+ if(!(mass>EPS)){r.message=o2>0?'Гэрэлд ургамал хүчилтөрөгчийн бөмбөлөг ялгаруулж, хуруу шилэнд хураагдана.':seeds>0?'Үр чийгтэй салфетка дээр соёолж байна; усны чанар ургалтад нөлөөлнө.':'Тунгаалт, шүүлт эсвэл үрийн сорилд хөрсний дээж эхлээд нэм.';return;}
  r.data.soilMass=mass;
  if(r.operation==='filter'){
   const clay=sol(m,'clay')/mass,capacity=mass*(.3+clay*2.4),vol=liquidMl(m);
   const movable=Math.max(0,vol-capacity)*(-Math.expm1(-dt/(8+clay*50)));
   // Transfer only fluids; all soil remains in the fitted filter bed.
   const f=movable/Math.max(EPS,vol),part=emptyMixture(m.temp);part.water=m.water*f;part.ethanol=m.ethanol*f;m.water-=part.water;m.ethanol-=part.ethanol;
-  for(const [id,n] of Object.entries(m.aq) as [AqId,number][]){part.aq[id]=n*f;m.aq[id]=n*(1-f);}
+  // Activated carbon (and to a lesser degree charcoal) adsorbs dissolved soap and dyes from the filtrate.
+  const carbon=sol(m,'activatedCarbon')*12.011+sol(m,'charcoal')*12.011*.3,held=carbon>0?1-Math.exp(-carbon/2):0;
+  for(const [id,n] of Object.entries(m.aq) as [AqId,number][]){const keep=['soap','dyeR','dyeY','dyeG','dyeB'].includes(id)?held:0;part.aq[id]=n*f*(1-keep);m.aq[id]=n-part.aq[id]!;}
   r.chambers[2]=merge(r.chambers[2],part);r.data.filtered=(r.data.filtered??0)+movable;
  }
  const sand=sol(m,'sand')*60.08,clay=sol(m,'clay'),silt=sol(m,'silt');
  [sand,silt,clay].forEach((g,i)=>r.data[`settled${i}`]=g*(-Math.expm1(-r.elapsed/[30,300,1800][i])));
- const seeds=sol(m,'seed')/.2;
- const ph=phOf(m)??7;
- if(seeds>0&&water>0){
-  const response=Math.exp(-(((ph-6.5)/2.5)**2))*r.light*Math.max(0,1-Math.abs(m.temp-24)/30);
-  r.data.height=(r.data.height??0)+dt/86400*.25*response;
-  r.data.germinated=Math.min(Math.floor(seeds),Math.floor(seeds*.9*response*(-Math.expm1(-r.elapsed/86400))));
- }
  r.message='Гурван төрлийн хөрсний бодит нэмсэн хэсгийг хэмжинэ. Туналт ба ургамлын өсөлт нь жишээ кинетик; pH дангаар бохирдолгүйг батлахгүй. Шүүгдэс тусдаа саванд хуримтлагдана.';
 }
 function biology(r:RigState,dt:number){
@@ -193,7 +244,7 @@ function measure(r:RigState){
   if(first){const n=first[1]??0;add('Сонгосон бодисын тоо хэмжээ',n,'моль');if(r.kind==='volumetricStation'&&liquidMl(m)>0)add('Концентрац',n/(liquidMl(m)/1000),'моль/л');else add('Жижиг хэсгийн тоо',n*6.02214076e23,'ширхэг');}
   if(r.experiment==='g10-plastic-audit'){add('Ангилсан нийт масс',r.chambers.reduce((s,m)=>s+solidMassG(m),0),'г');add('Дахин ашиглах үүрийн масс',solidMassG(r.chambers[2]),'г');}break;
  }
- case 'electrolysisCell':add('Гүйдэл',r.current,'A');add('Дамжуулсан цэнэг',r.data.charge??0,'Кл');add('Катодод ялгарсан металл',r.data.deposited??0,'моль');add('Катодын хатуу масс',solidMassG(r.chambers[1]),'г');add('Анодын хатуу масс',solidMassG(r.chambers[2]),'г');add('Анодын O₂',gaseous(r.chambers[2],'O2')*24000,'мл');break;
+ case 'electrolysisCell':add('Гүйдэл',r.current,'A');add('Дамжуулсан цэнэг',r.data.charge??0,'Кл');add('Катодод ялгарсан металл',r.data.deposited??0,'моль');add('Катодын хатуу масс',solidMassG(r.chambers[1]),'г');add('Анодын хатуу масс',solidMassG(r.chambers[2]),'г');add('Анодын O₂',gaseous(r.chambers[2],'O2')*24000,'мл');add('Катодын H₂',gaseous(r.chambers[1],'H2')*24000,'мл');add('Анодын галоген',r.data.halogen??0,'моль');break;
  case 'galvanicCell':add('Нээлттэй хэлхээний хүчдэл',r.data.cellVoltage??0,'В');add('Ачааллын гүйдэл',r.data.cellCurrent??0,'A');break;
  case 'pressureCell':add('Поршений эзлэхүүн',r.volumeMl,'мл');add('Даралт',r.pressure,'бар');for(const [id,n] of Object.entries(m.g??{}))add(GASES[id as GasId].formula,n??0,'моль');break;
  case 'migrationTube':add('Cu²⁺-ийн шилжилтийн индекс',r.data.migration??0,'0–1');add('Хүчдэл',r.voltage,'В');break;

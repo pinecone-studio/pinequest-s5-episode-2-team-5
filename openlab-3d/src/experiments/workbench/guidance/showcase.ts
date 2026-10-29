@@ -18,7 +18,7 @@ import {useLabStore} from '../../../store/useLabStore';
 import {useInventoryStore} from '../../../store/useInventoryStore';
 import {benchView} from '../../nacl/view';
 import {currentSession,itemPosition} from '../session';
-import {CATALOG} from '../../../equipment/equipmentCatalog';
+import {CATALOG,baseKind} from '../../../equipment/equipmentCatalog';
 import {REAGENTS} from '../../../chemistry/reagents';
 import {executeGuideStep,doseUnit,focusGuideStep,guideTargetKind} from './runtime';
 import type {InvestigationDefinition} from '../../../../../src/lib/textbook-investigations';
@@ -45,7 +45,7 @@ export function pauseShowcase(){if(useShowcase.getState().status==='playing'){cl
 export function beginShowcase(def:InvestigationDefinition,step:GuideStep,key:string){
  if(job?.key===key){if(useShowcase.getState().status==='paused'){useShowcase.setState({status:'playing'});setWaitClock(job);}return;}
  cancelShowcase();if(step.type==='move'&&step.all){const source=currentSession()?.objects[step.from];if(source){const m=mixtureOf(source);step={...step,amount:liquidMl(m)||solidMassG(m),all:false};}}
- const kind=guideTargetKind(def,step),id=currentSession()?.objects[kind];
+ const pieceKey=guideTargetKind(def,step),kind=baseKind(pieceKey),id=currentSession()?.objects[pieceKey];
  if(!id){useShowcase.setState({key,status:'failed',message:'Багаж, бодисоо эхлээд бэлтгэ.'});return;}
  const operation=operationFor(kind,step);
  const source=step.type==='dose'?currentSession()?.objects[`reagent-${step.reagent}`]:step.type==='move'?currentSession()?.objects[step.from]:step.type==='flame'?currentSession()?.objects.wireLoop:step.type==='place'?currentSession()?.objects[step.item]:operation==='stir'?currentSession()?.objects.glassRod:undefined;
@@ -53,7 +53,7 @@ export function beginShowcase(def:InvestigationDefinition,step:GuideStep,key:str
  const body=bodies.get(id),rot=body?new Quaternion().copy(body.rotation()):interactables.get(id)?.object.getWorldQuaternion(new Quaternion())??new Quaternion();
  if(operation==='stir')local[1]+=.025;
  if(step.type==='flame'){local[0]=0;local[1]=.17;local[2]=0;}
- if(step.type==='place'){if(step.onto==='table'){const home=useInventoryStore.getState().worldItems.find(w=>w.id===source)?.position;if(home){at.set(...home);local[0]=0;local[1]=0;local[2]=0;}}else{local[0]=0;local[1]=(CATALOG[step.onto].size[1]??.12)-.035;local[2]=0;}}
+ if(step.type==='place'){if(step.onto==='table'){const home=useInventoryStore.getState().worldItems.find(w=>w.id===source)?.position;if(home){at.set(...home);local[0]=0;local[1]=0;local[2]=0;}}else{local[0]=0;local[1]=(CATALOG[baseKind(step.onto)].size[1]??.12)-.035;local[2]=0;}}
  const to=new Vector3(...local).applyQuaternion(rot).add(at).toArray() as Point;
  job={def,step,key,time:0,source,from:[...to],to,rotation:new Quaternion(),restore:()=>{},move:()=>{},delivered:0,applied:false,prepared:!['dose','move','place','flame'].includes(step.type)&&!(operation==='stir'&&source),waiting:0,focused:false};
  setWaitClock(job);
@@ -105,7 +105,7 @@ export function tickShowcase(dt:number){
  }else if(j.step.type==='dose'||j.step.type==='move'){
   const duration=showcaseDuration(j.step),pourSeconds=duration-5,motionTime=j.time<3?j.time:j.time<3+pourSeconds?3+(j.time-3)/pourSeconds*2:5+(j.time-3-pourSeconds);
   const tool=useShowcase.getState().tool,gas=tool==='hose';
-  const measuringTool=tool==='spoon'||tool==='pipette',container=j.step.type==='dose'?REAGENTS[j.step.reagent].container:j.step.from,height=container==='dropperBottle'?.068:container==='reagentJar'?.085:container==='reagentBottle'?.13:CATALOG[container].size[1];
+  const measuringTool=tool==='spoon'||tool==='pipette',container=j.step.type==='dose'?REAGENTS[j.step.reagent].container:baseKind(j.step.from),height=container==='dropperBottle'?.068:container==='reagentJar'?.085:container==='reagentBottle'?.13:CATALOG[container].size[1];
   const toolFrom:Point=[j.from[0]-.07,j.from[1]+height+.05,j.from[2]],motion=showcaseMotion(measuringTool?toolFrom:j.from,j.to,motionTime);
   if(measuringTool&&j.step.type==='dose'&&j.source&&!j.buffer&&j.time>.65){
    const source=mixtureOf(j.source,{reagent:j.step.reagent}),portion=tool==='spoon'?takeSolid(source,j.step.amount):takeLiquid(source,j.step.amount),taken=tool==='spoon'?solidMassG(portion.taken):liquidMl(portion.taken);

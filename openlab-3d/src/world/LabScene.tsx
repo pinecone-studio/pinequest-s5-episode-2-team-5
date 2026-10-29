@@ -12,6 +12,7 @@ import { ReactionEffects } from './ReactionEffects';
 import { Lab } from './Lab';
 import { Lighting } from './Lighting';
 import { Effects } from './Effects';
+import { StarCompanion } from './StarCompanion';
 import { GlassLOD, LiteShading, PerformanceManager, ShadowUpdater, Warmup } from './Performance';
 import { WorkbenchRuntime } from '../experiments/workbench/WorkbenchRuntime';
 import { connectExperimentCatalog } from '../lab/experiments';
@@ -45,6 +46,7 @@ export default function LabScene({ onDpr }: { onDpr: (dpr: number) => void }) {
         <ReactionEffects />
       </Physics>
       <Effects />
+      <StarCompanion />
       <GlassLOD />
       <LiteShading />
       <ShadowUpdater />

@@ -3,11 +3,13 @@ import { useInquiry } from './inquiry-store';
 import { useEffect, useRef } from 'react';
 import { playerApi, useGameStore } from '../../store/useGameStore';
 import { useExperimentCatalog } from '../../lab/experiments';
+import { LOAD_STEPS, useLoadingStore } from '../../store/useLoadingStore';
 import { bench, enterBench } from '../nacl/bench';
 import { selectBenchExperiment } from './session';
 /** A lesson link selects a named public guide; it never accepts code or an arbitrary URL. */
 export function LabLaunch() {
   const mode=useGameStore((s)=>s.mode),experiments=useExperimentCatalog((s)=>s.experiments);
+  const labReady=useLoadingStore((s)=>LOAD_STEPS.every(step=>s.done.includes(step)));
   const launched=useRef(false);
   useEffect(()=>{
     const receive=(event:MessageEvent<unknown>)=>{
@@ -23,18 +25,17 @@ export function LabLaunch() {
   },[experiments]);
   useEffect(()=>{
     const id=new URLSearchParams(window.location.search).get('experiment');
-    if(launched.current||mode!=='walk'||!id||!experiments.some((x)=>x.id===id))return;
-    // The bench engine mounts inside the suspended canvas and can arrive after walk mode on slow devices.
-    const launch=()=>{
-      if(launched.current||!bench.engine||useGameStore.getState().mode!=='walk')return false;
+    if(launched.current||mode!=='walk'||!labReady||!id||!experiments.some((x)=>x.id===id))return;
+    let frame=0,cancelled=false;
+    const launchWhenReady=()=>{
+      if(cancelled||launched.current||useGameStore.getState().mode!=='walk')return;
+      if(!bench.engine){frame=window.requestAnimationFrame(launchWhenReady);return;}
       launched.current=true;
       selectBenchExperiment(id);
       playerApi.teleport(8.25,-13.6,0);enterBench();
-      return true;
     };
-    if(launch())return;
-    const timer=setInterval(()=>{if(launch())clearInterval(timer);},200);
-    return()=>clearInterval(timer);
-  },[mode,experiments]);
+    frame=window.requestAnimationFrame(launchWhenReady);
+    return()=>{cancelled=true;window.cancelAnimationFrame(frame);};
+  },[mode,experiments,labReady]);
   return null;
 }

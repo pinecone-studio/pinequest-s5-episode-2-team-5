@@ -6,13 +6,19 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Scientist } from '@/components/avatar/scientist';
 import { AppText } from '@/components/ui/app-text';
 import { useSession } from '@/context/session';
-import { FRIENDLY_PROBLEMS } from '@/data/friendly-problems';
-import { CLASSES } from '@/data/classes';
 import problemBank from '@/data/versus-problems.json';
 import { lookFor } from '@/lib/avatar-look';
 
 type Rank = keyof typeof problemBank;
-type Problem = { topic: string; prompt: string; options: string[]; answer: number; explanation: string };
+type Problem = {
+  topic: string;
+  prompt: string;
+  options: string[];
+  answer: number;
+  explanation: string;
+  bot_min_sec?: number;
+  bot_max_sec?: number;
+};
 type Side = 'player' | 'bot';
 type Phase = 'fight' | 'attack' | 'result' | 'finished';
 
@@ -25,7 +31,6 @@ const RANK_INFO: Record<Rank, { label: string; speed: string; min: number; max: 
 };
 const MAX_HP = 100;
 const STARTING_XP = 100;
-const ATTACK_DURATION_MS = 820;
 const BOT_SCIENTISTS: Record<Rank, { name: string; title: string }> = {
   beginner: { name: 'Лаборант Бот', title: 'ШИНЭ СУРАГЧ · AI' },
   intermediate: { name: 'Лаборант Эрдэнэ', title: 'ХИМИЙН БАГШ · AI' },
@@ -51,43 +56,50 @@ interface Match {
   botSolveMs: number;
   playerProblem: Problem;
   botProblem: Problem;
+  usedProblemKeys: string[];
   stunnedUntil: number;
   answerFeedback: string;
   result: string;
   winner: Side | null;
   roundWinner: Side | null;
+  gameOver: boolean;
 }
 
-const THEORY_AND_FRIENDLY: Problem[] = [
-  ...CLASSES.flatMap((chemClass) => chemClass.lessons.flatMap((lesson) => lesson.steps
-    .filter((step) => step.type === 'quiz')
-    .map((step) => ({ topic: `Онол · ${lesson.title}`, prompt: step.question, options: step.options, answer: step.answer, explanation: step.explanation })))),
-  ...FRIENDLY_PROBLEMS.map((problem) => ({ topic: `Бодлого · ${problem.category}`, prompt: problem.question, options: problem.choices, answer: problem.answer, explanation: problem.explanation })),
-];
-
-function pickProblem(rank: Rank): Problem {
-  // Each round mixes this rank's Versus questions with theory and practice quizzes.
-  const useStudyQuestion = Math.random() < 0.5;
-  const options = useStudyQuestion ? THEORY_AND_FRIENDLY : problemBank[rank] as Problem[];
-  return options[Math.floor(Math.random() * options.length)];
+function problemKey(problem: Problem): string {
+  return problem.prompt.trim().toLocaleLowerCase();
 }
 
-function botThinkingTime(rank: Rank): number {
-  const { min, max } = RANK_INFO[rank];
+function pickProblem(rank: Rank, usedProblemKeys: string[]): Problem {
+  // Mix rank-specific Versus questions with theory and practice without repeating
+  // a prompt during the same match (including between the player and bot).
+  const pool = problemBank[rank] as Problem[];
+  const unseen = pool.filter((problem) => !usedProblemKeys.includes(problemKey(problem)));
+  if (unseen.length === 0) throw new Error(`No new Versus questions remain for ${rank}.`);
+  const selected = unseen[Math.floor(Math.random() * unseen.length)];
+  usedProblemKeys.push(problemKey(selected));
+  return selected;
+}
+
+function botThinkingTime(problem: Problem, rank: Rank): number {
+  const fallback = RANK_INFO[rank];
+  const min = problem.bot_min_sec ?? fallback.min;
+  const max = problem.bot_max_sec ?? fallback.max;
   return (min + Math.random() * (max - min)) * 1000;
 }
 
-function botThinkingWindow(rank: Rank): number {
-  return RANK_INFO[rank].max * 1000;
-}
-
 function newMatch(playerRank: Rank, botRank: Rank): Match {
+  const usedProblemKeys: string[] = [];
+  const playerProblem = pickProblem(playerRank, usedProblemKeys);
+  // Both sides race on the same prompt. The bank entry controls the bot delay.
+  const botProblem = playerProblem;
+  const botSolveMs = botThinkingTime(botProblem, botRank);
   return {
     phase: 'fight', playerRank, botRank, playerHp: MAX_HP, botHp: MAX_HP,
     playerXp: STARTING_XP, botXp: STARTING_XP, round: 1,
-    botThinkMs: botThinkingWindow(botRank), botSolveMs: botThinkingTime(botRank),
-    playerProblem: pickProblem(playerRank), botProblem: pickProblem(botRank),
+    botThinkMs: botSolveMs, botSolveMs,
+    playerProblem, botProblem, usedProblemKeys,
     stunnedUntil: 0, answerFeedback: '', result: '', winner: null, roundWinner: null,
+    gameOver: false,
   };
 }
 
@@ -238,8 +250,19 @@ export function VersusGame() {
   const [now, setNow] = useState(0);
   const [botClock, setBotClock] = useState({ round: 0, elapsed: 0 });
   const matchRef = useRef<Match | null>(null);
+  const botDeadlineRef = useRef(0);
 
   const commit = useCallback((next: Match) => {
+    const current = matchRef.current;
+    const startsNewRound = next.phase === 'fight' && (current?.phase !== 'fight' || current.round !== next.round);
+    if (next.phase !== 'fight') {
+      botDeadlineRef.current = 0;
+    } else if (startsNewRound) {
+      const startedAt = Date.now();
+      botDeadlineRef.current = startedAt + next.botSolveMs;
+      setBotClock({ round: next.round, elapsed: 0 });
+      setNow(startedAt);
+    }
     matchRef.current = next;
     setMatch(next);
   }, []);
@@ -247,15 +270,12 @@ export function VersusGame() {
   const resolveRound = useCallback((winner: Side) => {
     const current = matchRef.current;
     if (!current || current.phase !== 'attack' || current.roundWinner !== winner) return;
-
     const isPlayer = winner === 'player';
-    const attackRank = isPlayer ? current.playerRank : current.botRank;
-    const damage = RANK_INFO[attackRank].damage;
+    const damage = RANK_INFO[isPlayer ? current.playerRank : current.botRank].damage;
     let playerXp = current.playerXp;
     let botXp = current.botXp;
     let stolen = 0;
     let bonus = 0;
-
     if (isPlayer) {
       const underdog = current.playerRank === 'beginner' && current.botRank === 'advanced';
       stolen = Math.min(underdog ? 50 : 30, botXp);
@@ -270,26 +290,18 @@ export function VersusGame() {
       botXp += stolen;
       playerXp -= stolen;
     }
-
     const playerHp = Math.max(0, current.playerHp - (isPlayer ? 0 : damage));
     const botHp = Math.max(0, current.botHp - (isPlayer ? damage : 0));
-    const winnerName = isPlayer ? 'ЧИ' : 'AI БОТ';
-    const transferLine = isPlayer
-      ? `+${stolen} XP хулгайлав${bonus ? ` · Advanced бонус +${bonus} XP` : ''}`
-      : `−${stolen} XP · Бот чамаас хулгайлав`;
-    const result = `${winnerName} түрүүллээ! ${damage} damage · ${transferLine}`;
+    const result = `${isPlayer ? 'ЧИ' : 'AI БОТ'} түрүүллээ! ${damage} damage · ${isPlayer ? `+${stolen} XP хулгайлав${bonus ? ` · Advanced бонус +${bonus} XP` : ''}` : `−${stolen} XP · Бот чамаас хулгайлав`}`;
     const done = playerHp === 0 || botHp === 0;
     commit({
       ...current,
       phase: done ? 'finished' : 'result',
-      playerHp,
-      botHp,
-      playerXp,
-      botXp,
-      result,
-      winner: done ? (playerHp === 0 ? 'bot' : 'player') : null,
-      answerFeedback: '',
       roundWinner: winner,
+      playerHp, botHp, playerXp, botXp, result,
+      winner: done ? (playerHp === 0 ? 'bot' : 'player') : null,
+      gameOver: done,
+      answerFeedback: '',
     });
   }, [commit]);
 
@@ -305,6 +317,8 @@ export function VersusGame() {
     if (activeRound === null) return;
     const delay = activeBotSolveMs;
     const startedAt = Date.now();
+    const deadline = startedAt + delay;
+    botDeadlineRef.current = deadline;
     const botTimeout = setTimeout(() => triggerAttack('bot'), delay);
     const ticker = setInterval(() => {
       const current = Date.now();
@@ -314,6 +328,7 @@ export function VersusGame() {
     return () => {
       clearTimeout(botTimeout);
       clearInterval(ticker);
+      if (botDeadlineRef.current === deadline) botDeadlineRef.current = 0;
     };
   }, [activeRound, activeBotSolveMs, triggerAttack]);
 
@@ -321,32 +336,52 @@ export function VersusGame() {
   const attackWinner = match?.phase === 'attack' ? match.roundWinner : null;
   useEffect(() => {
     if (attackingRound === null || attackWinner === null) return;
-    const timeout = setTimeout(() => resolveRound(attackWinner), ATTACK_DURATION_MS);
+    const timeout = setTimeout(() => resolveRound(attackWinner), 820);
     return () => clearTimeout(timeout);
   }, [attackingRound, attackWinner, resolveRound]);
 
   const start = () => commit(newMatch(playerRank, botRank));
-  const nextRound = () => {
+
+  const nextRound = useCallback(() => {
     const current = matchRef.current;
     if (!current || current.phase !== 'result') return;
+    const usedProblemKeys = [...current.usedProblemKeys];
+    const playerProblem = pickProblem(current.playerRank, usedProblemKeys);
+    const botSolveMs = botThinkingTime(playerProblem, current.botRank);
     commit({
       ...current,
       phase: 'fight',
       round: current.round + 1,
-      botThinkMs: botThinkingWindow(current.botRank),
-      botSolveMs: botThinkingTime(current.botRank),
-      playerProblem: pickProblem(current.playerRank),
-      botProblem: pickProblem(current.botRank),
+      playerProblem,
+      botProblem: playerProblem,
+      usedProblemKeys,
+      botSolveMs,
+      botThinkMs: botSolveMs,
       stunnedUntil: 0,
       answerFeedback: '',
       result: '',
       roundWinner: null,
+      winner: null,
+      gameOver: false,
     });
-  };
+  }, [commit]);
 
-  const answer = (optionIndex: number) => {
+  // Briefly show the round result, then continue without requiring another tap.
+  useEffect(() => {
+    if (match?.phase !== 'result') return;
+    const timeout = setTimeout(nextRound, 1000);
+    return () => clearTimeout(timeout);
+  }, [match?.phase, match?.round, nextRound]);
+
+  const answer = (optionIndex?: number) => {
     const current = matchRef.current;
-    if (!current || current.phase !== 'fight' || timestampNow() < current.stunnedUntil) return;
+    if (!current || current.gameOver || current.phase !== 'fight') return;
+    // The deadline check makes the winner deterministic even if the UI thread delays the timeout callback.
+    if (botDeadlineRef.current > 0 && timestampNow() >= botDeadlineRef.current) {
+      triggerAttack('bot');
+      return;
+    }
+    if (timestampNow() < current.stunnedUntil) return;
     if (optionIndex === current.playerProblem.answer) {
       triggerAttack('player');
       return;
@@ -354,7 +389,7 @@ export function VersusGame() {
     commit({ ...current, stunnedUntil: timestampNow() + 3000, answerFeedback: 'БУРУУ! 3 СЕКУНД STUN' });
   };
 
-  const stunned = Boolean(match && now < match.stunnedUntil);
+  const stunned = Boolean(match && !match.gameOver && now < match.stunnedUntil);
   const botMsLeft = match?.phase === 'fight' ? Math.max(0, match.botThinkMs - (botClock.round === match.round ? botClock.elapsed : 0)) : 0;
   const botProgress = match && match.phase === 'fight' ? Math.max(0, 1 - botMsLeft / match.botThinkMs) : 0;
   const endTitle = match?.phase === 'finished' ? (match.winner === 'player' ? '\u0422\u0410 \u042f\u041b\u041b\u0410\u0410!' : 'AI \u042f\u041b\u041b\u0410\u0410!') : '';
@@ -423,7 +458,7 @@ export function VersusGame() {
               <>
                 <View style={styles.timerPanel}>
                   <View style={styles.timerLabels}>
-                    <AppText style={styles.smallMono}>AI БОДОЖ БАЙНА</AppText>
+                    <AppText style={[styles.smallMono, { opacity: Math.floor(now / 450) % 2 === 0 ? 1 : 0.3 }]}>AI БОДОЖ БАЙНА...</AppText>
                     <AppText style={styles.smallMono} color="#FFE86B">{(botMsLeft / 1000).toFixed(1)}s</AppText>
                   </View>
                   <View style={styles.timerTrack}><View style={[styles.timerFill, { width: `${botProgress * 100}%`, backgroundColor: RANK_INFO[match.botRank].color }]} /></View>
@@ -439,11 +474,6 @@ export function VersusGame() {
                   ))}
                   {stunned && <AppText style={styles.stunText} color="#FF6E69">ТҮГЖИГДЛЭЭ · {Math.ceil((match.stunnedUntil - now) / 1000)}s</AppText>}
                   {!stunned && match.answerFeedback !== '' && <AppText style={styles.stunText} color="#FF6E69">STUN COMPLETE · TRY AGAIN</AppText>}
-                  <View style={styles.botProblem}>
-                    <AppText style={styles.problemMeta} color="#FF7771">БОТЫН БОДЛОГО · {RANK_INFO[match.botRank].label.toUpperCase()}</AppText>
-                    <AppText style={styles.smallMono}>{match.botProblem.topic}</AppText>
-                    <AppText style={styles.botQuestion}>{match.botProblem.prompt}</AppText>
-                  </View>
                 </View>
               </>
             )}
@@ -459,18 +489,17 @@ export function VersusGame() {
             {match.phase === 'result' && (
               <View style={styles.resultBox}>
                 <AppText style={styles.resultTitle} color="#FFE86B">{match.result}</AppText>
-                {match.roundWinner === 'bot' && (
-                  <AppText style={styles.explanation}>AI answer: {match.botProblem.options[match.botProblem.answer]}</AppText>
-                )}
+                {match.roundWinner === 'bot' && <AppText style={styles.explanation}>Зөв хариулт: {match.botProblem.options[match.botProblem.answer]}</AppText>}
                 <AppText style={styles.explanation}>{(match.roundWinner === 'player' ? match.playerProblem : match.botProblem).explanation}</AppText>
-                <PixelButton title="ДАРААГИЙН БОДЛОГО" onPress={nextRound} />
               </View>
             )}
 
-            {match.phase === 'finished' && (
+            {match.phase === 'finished' && match.gameOver && (
               <View style={styles.resultBox}>
                 <AppText style={styles.endTitle} color={match.winner === 'player' ? '#FFE86B' : '#FF6E69'}>{endTitle}</AppText>
                 <AppText style={styles.resultTitle}>{match.result}</AppText>
+                <AppText style={styles.explanation}>Зөв хариулт: {match.roundWinner === 'bot' ? match.botProblem.options[match.botProblem.answer] : match.playerProblem.options[match.playerProblem.answer]}</AppText>
+                <AppText style={styles.explanation}>{match.roundWinner === 'bot' ? match.botProblem.explanation : match.playerProblem.explanation}</AppText>
                 <AppText style={styles.bodyCopy}>Эцсийн XP  ·  ЧИ {match.playerXp}  —  БОТ {match.botXp}</AppText>
                 <PixelButton title="ДАХИН ТУЛАЛДАХ" onPress={() => setMatch(null)} />
               </View>

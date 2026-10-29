@@ -34,7 +34,6 @@ export function controlRows(touch: boolean, b: Bindings, lookMode: LookMode): [s
     [keyLabel(b.jump[0]), 'Үсрэх'],
     [keyLabel(b.tools[0]), 'Багажны шургуулга'],
     [keyLabel(b.notes[0]), 'Лабын тэмдэглэл'],
-    [keyLabel(b.map[0]), 'Газрын зураг'],
     ['⇕', 'Бюреткийн урсгал (хулганы дугуй)'],
     ['Esc', 'Цэс / түр зогсоох'],
   ];

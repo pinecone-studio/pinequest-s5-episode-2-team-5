@@ -215,7 +215,8 @@ export function ToolTab() {
     const { kind, name, variant } = entry;
     if (benchContext) {
       const supply = entry.supply ?? { key: entry.key, kind, name, use: entry.sub, reagent: variant?.reagent };
-      if (collectSupply(supply, true)) sounds.play('clink', 0.45);
+      // Equipment from the drawer is always another piece (several test tubes side by side).
+      if (collectSupply(supply, true, true)) sounds.play('clink', 0.45);
       return;
     }
     if (!kind) return;

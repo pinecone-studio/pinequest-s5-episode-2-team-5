@@ -3,6 +3,7 @@ import { persist } from 'zustand/middleware';
 import { SPAWN } from '../world/layout';
 import type { EquipmentKind } from '../equipment/equipmentCatalog';
 import { emitLab } from '../lab/events';
+import type { StarMood } from '../lab/starLines';
 
 /**
  * walk        – free first-person movement
@@ -13,7 +14,7 @@ import { emitLab } from '../lab/events';
  */
 export type Mode = 'loading' | 'start' | 'walk' | 'paused' | 'ui' | 'inspect' | 'bench' | 'ended';
 export type Panel = 'none' | 'menu' | 'notes' | 'tools' | 'help' | 'endConfirm';
-export type RobotMood = 'idle' | 'wave' | 'happy' | 'think';
+export type RobotMood = StarMood;
 
 export interface FocusInfo {
   id: string;
@@ -61,7 +62,6 @@ interface GameState {
   dragging: string | null;
   inspectTarget: { kind: EquipmentKind; sourceId: string } | null;
   inspectedKinds: EquipmentKind[];
-  minimapVisible: boolean;
   robot: { text: string; id: number; mood: RobotMood; open: boolean };
   toast: { title: string; subtitle?: string; id: number } | null;
   log: LogEntry[];
@@ -76,7 +76,6 @@ interface GameState {
   setFocus: (focus: FocusInfo | null) => void;
   setDragging: (id: string | null) => void;
   startInspect: (kind: EquipmentKind, sourceId: string) => void;
-  toggleMinimap: () => void;
   say: (text: string, mood?: RobotMood) => void;
   setRobotOpen: (open: boolean) => void;
   showToast: (title: string, subtitle?: string) => void;
@@ -97,7 +96,6 @@ export const useGameStore = create<GameState>()(
       dragging: null,
       inspectTarget: null,
       inspectedKinds: [],
-      minimapVisible: true,
       robot: { text: '', id: 0, mood: 'idle', open: false },
       toast: null,
       log: [],
@@ -125,7 +123,6 @@ export const useGameStore = create<GameState>()(
           inspectedKinds: inspected.includes(kind) ? inspected : [...inspected, kind],
         });
       },
-      toggleMinimap: () => set((s) => ({ minimapVisible: !s.minimapVisible })),
       say: (text, mood = 'wave') => set((s) => ({ robot: { text, id: s.robot.id + 1, mood, open: true } })),
       setRobotOpen: (open) => set((s) => ({ robot: { ...s.robot, open } })),
       showToast: (title, subtitle) => set({ toast: { title, subtitle, id: Date.now() } }),
@@ -148,8 +145,8 @@ export const useGameStore = create<GameState>()(
     {
       name: 'openlab3d-notebook',
       version: 1,
-      // Only the lab notebook text and the minimap preference survive reloads.
-      partialize: (s) => ({ notes: s.notes, minimapVisible: s.minimapVisible }),
+      // Only the lab notebook text survives reloads.
+      partialize: (s) => ({ notes: s.notes }),
     },
   ),
 );

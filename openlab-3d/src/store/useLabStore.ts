@@ -54,14 +54,16 @@ export const useLabStore = create<LabState>()(
     }),
     {
       name: 'openlab3d-experiments',
-      version: 2,
+      version: 3,
       migrate: (persisted) => {
         // Version 1 auto-assigned "safety" and subsequent lessons. Those ids do not
-        // prove a student chose an experiment. Preserve progress, ask for a choice once.
+        // prove a student chose an experiment. Version 2 kept the last choice across reloads,
+        // but the bench preparation is not saved, so a stale choice showed an empty preparation
+        // panel on entry. Preserve progress; the student picks an experiment from the menu.
         const previous = (persisted ?? {}) as Partial<LabState>;
         return { progress: previous.progress ?? {}, active: null };
       },
-      partialize: (s) => ({ progress: s.progress, active: s.active }),
+      partialize: (s) => ({ progress: s.progress }),
     },
   ),
 );

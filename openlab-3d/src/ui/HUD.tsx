@@ -5,9 +5,8 @@ import { ExperimentSuccess } from './ExperimentSuccess';
 import { MoleculeViewerPanel } from './MoleculeViewer';
 /**
  * Heads-up display, laid out like the reference: yellow round menu (top left), notes +
- * End (top right), yellow tools tab (right edge), robot assistant (bottom left),
- * interaction prompt (bottom center) and minimap (bottom right). Everything is hidden
- * while inspecting an object.
+ * End (top right), yellow tools tab (right edge), Star the helper (bottom left),
+ * interaction prompt (bottom center). Everything is hidden while inspecting an object.
  */
 import { useGameStore } from '../store/useGameStore';
 import { useSettingsStore } from '../store/useSettingsStore';
@@ -19,8 +18,7 @@ import { NotesButton } from './NotesButton';
 import { NotesPanel } from './NotesPanel';
 import { EndButton, EndConfirm } from './EndButton';
 import { ToolTab } from './ToolTab';
-import { RobotAssistant } from './RobotAssistant';
-import { Minimap } from './Minimap';
+import { StarAssistant } from './StarAssistant';
 import { ControlsHelp } from './ControlsHelp';
 import { PauseMenu } from './PauseMenu';
 import { SummaryScreen } from './SummaryScreen';
@@ -56,7 +54,6 @@ export function HUD() {
             <NotesButton />
             <EndButton />
           </div>
-          <Minimap />
           <SafetyBadges />
           <ExperimentCard />
         </>
@@ -64,7 +61,7 @@ export function HUD() {
       {(mode === 'walk' || bench) && <NaClHUD />}
       {inGame && <ToolTab />}
       {inGame && <RoomToast />}
-      {inGame && <RobotAssistant hidden={!showChrome} />}
+      {inGame && <StarAssistant hidden={!showChrome} />}
       {showFps && <FpsCounter />}
       <MenuPanel />
       <NotesPanel />

@@ -15,12 +15,7 @@ import { useWorkbench } from '../experiments/workbench/session';
 import { sounds } from '../utils/sounds';
 import { actionsForKey } from './keyMap';
 import { isPointerLocked, lookBy, releaseLock, requestLock } from './usePointerLock';
-
-function isTyping(target: EventTarget | null): boolean {
-  if (!(target instanceof HTMLElement)) return false;
-  const tag = target.tagName;
-  return tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT' || target.isContentEditable;
-}
+import { isTyping } from './typing';
 
 /** Use whatever is in focus (E / Enter / click). */
 export function interactWithFocus(): boolean {
@@ -205,10 +200,6 @@ export function useGameKeys(canvas: HTMLElement | null): void {
           if (actions.includes('cursor')) toggleCursor();
           if (actions.includes('tools')) toggleTools();
           if (actions.includes('notes')) openPanelFromGame('notes');
-          if (actions.includes('map')) {
-            game.toggleMinimap();
-            sounds.play('ui');
-          }
           return;
         }
         case 'ui': {

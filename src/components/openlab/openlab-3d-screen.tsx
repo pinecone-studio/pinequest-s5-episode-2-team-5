@@ -160,11 +160,18 @@ function OpenLabNative() {
       void saveInvestigation(user.id, data.id, data.attempt).catch(() => undefined);
       return;
     }
-    if (data.type === 'openlab:ask-pip' && data.version === 1 && typeof data.id === 'string' && typeof data.question === 'string' && Array.isArray(data.history) && typeof data.context === 'string') {
-      const id = data.id;
-      void supabase.functions.invoke('openlab-tutor', { body: { question: data.question, history: data.history, context: data.context } })
+    // Star's chat questions, and its short comments on lab moments: both answered by openlab-tutor.
+    const askTutor = (id: string, body: Record<string, unknown>) => {
+      void supabase.functions.invoke('openlab-tutor', { body })
         .then(({ data: result, error }) => sendToLab({ type: 'chemquest:pip-answer', version: 1, id, answer: !error && result && typeof result.answer === 'string' ? result.answer : null }))
         .catch(() => sendToLab({ type: 'chemquest:pip-answer', version: 1, id, answer: null }));
+    };
+    if (data.type === 'openlab:ask-pip' && data.version === 1 && typeof data.id === 'string' && typeof data.question === 'string' && Array.isArray(data.history) && typeof data.context === 'string') {
+      askTutor(data.id, { question: data.question, history: data.history, context: data.context });
+      return;
+    }
+    if (data.type === 'openlab:star-comment' && data.version === 1 && typeof data.id === 'string' && typeof data.tone === 'string' && typeof data.event === 'string' && typeof data.context === 'string') {
+      askTutor(data.id, { kind: 'comment', tone: data.tone, event: data.event, context: data.context });
     }
   };
   if (!labUrl) return (

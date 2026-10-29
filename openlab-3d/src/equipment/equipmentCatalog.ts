@@ -34,13 +34,75 @@ export type EquipmentKind = RigKind | 'gasCylinder' | 'paperStrip' |
   | 'evaporatingDish'
   | 'volumetricFlask'
   | 'testTubeHolder'
-  | 'mortar';
+  | 'mortar'
+  | TextbookEquipmentKind;
+
+/** Textbook apparatus that did not previously have its own procedural model. */
+export type TextbookEquipmentKind =
+  | 'stopwatch'
+  | 'gasDeliveryTube'
+  | 'retortStand'
+  | 'crystallizingDish'
+  | 'splint'
+  | 'sandpaper'
+  | 'cottonWool'
+  | 'syringe'
+  | 'matches'
+  | 'handPump'
+  | 'uTube'
+  | 'aluminumCan'
+  | 'plasticCup'
+  | 'knife'
+  | 'magnifyingGlass'
+  | 'disposableDish'
+  | 'plasticBottle'
+  | 'seedPot'
+  | 'tissue'
+  | 'waterFilter'
+  | 'corkStopper'
+  | 'penCap'
+  | 'modellingClay'
+  | 'dripAdjuster'
+  | 'wireGauze'
+  | 'wellPlate'
+  | 'filterPaper'
+  | 'alcoholLamp'
+  | 'electrode'
+  | 'powerSupply'
+  | 'voltmeter'
+  | 'led'
+  | 'deskLamp'
+  | 'barometer'
+  | 'hammer'
+  | 'brush'
+  | 'straw'
+  | 'ruler'
+  | 'pencil'
+  | 'balloon'
+  | 'crucible'
+  | 'trough'
+  | 'magnet'
+  | 'plasticBag'
+  | 'glassTube'
+  | 'rubberBand'
+  | 'wires';
+
+/** Heat sources: a lit one heats the vessel on a tripod above it. */
+export const HEATERS: EquipmentKind[] = ['bunsenBurner', 'alcoholLamp'];
+export const isHeater = (kind: EquipmentKind): boolean => HEATERS.includes(kind);
+/**
+ * Heat a lit heater gives the vessel above it, W (accelerated like the rest of the lab). A spirit
+ * lamp's small flame gives half a Bunsen burner's: it still boils a beaker or a test tube of water,
+ * only about 2.5× more slowly, and evaporates it about 5× more slowly.
+ */
+export const HEATER_WATTS: Partial<Record<EquipmentKind, number>> = { bunsenBurner: 1300, alcoholLamp: 650 };
+export const heaterWatts = (kind: EquipmentKind): number => HEATER_WATTS[kind] ?? 1300;
 
 export type EquipmentCategory = 'Шилэн сав' | 'Урвалжийн сав' | 'Халаах' | 'Хэмжилт' | 'Багаж' | 'Аюулгүй ажиллагаа';
 
 export const EQUIPMENT_CATEGORIES: EquipmentCategory[] = ['Шилэн сав', 'Хэмжилт', 'Халаах', 'Багаж', 'Аюулгүй ажиллагаа', 'Урвалжийн сав'];
 
-type ColliderPart =
+export type ColliderPart =
   | { shape: 'cuboid'; size: [number, number, number]; offset: [number, number, number]; mass: number }
   | { shape: 'cylinder'; radius: number; height: number; offset: [number, number, number]; mass: number };
 
@@ -91,8 +153,89 @@ const TRIPOD_LEGS = [0, 1, 2].map((i) => {
 const GRADE9_CATALOG=Object.fromEntries(Object.entries(RIG_NAMES).map(([kind,name])=>[kind,{
  kind,name,category:'Багаж',description:'Сурах бичгийн туршилтын зориулалтын угсралт. Бодисоо авч цутгана. Сонгоод багажийн удирдлага, хэмжилтийг нээнэ.',safety:'Хамгаалах шил хэрэглэ. Хийн угсралтыг бөглөж даралт бүү үүсгэ.',size:[.22,.28,.16],collider:box(.22,.28,.16),pickable:true,spawnable:true,massKg:.65,capacityMl:500,pourRate:15,heatJK:100,upright:true,
 }])) as Record<RigKind,CatalogEntry>;
+
+const textbookTool = (
+  kind: TextbookEquipmentKind,
+  name: string,
+  size: [number, number, number],
+  collider: ColliderShape,
+  description: string,
+  massKg = 0.08,
+): CatalogEntry => ({
+  kind, name, category: 'Багаж', description,
+  safety: 'Багший зааврын дагуу хэрэглэж, туршилтын дараа цэвэрлэж хураа.',
+  size, collider, pickable: true, spawnable: true, massKg,
+});
+
+/** An open textbook vessel: holds what is poured in, spills when knocked over. */
+const holds = (capacityMl: number, heatJK: number, extra: Partial<CatalogEntry> = {}): Partial<CatalogEntry> => ({ capacityMl, pourRate: 12, heatJK, upright: true, ...extra });
+
+/** Retort-stand ring centre (x, height) over its base plate. */
+export const STAND_RING: [number, number] = [0.03, 0.23];
+/** A funnel's stem below its cone: a ring or a flask mouth holds it by the cone. */
+export const FUNNEL_STEM = 0.06;
+
+const TEXTBOOK_CATALOG: Record<TextbookEquipmentKind, CatalogEntry> = {
+  stopwatch: textbookTool('stopwatch', 'Хугацаа хэмжигч', [0.09, 0.035, 0.11], box(0.09, 0.035, 0.11), 'Туршилтын хугацаа, урвалын хурдыг хэмжинэ.', 0.12),
+  gasDeliveryTube: textbookTool('gasDeliveryTube', 'Хий дамжуулах хоолой', [0.14, 0.12, 0.08], box(0.14, 0.12, 0.08), 'Үүссэн хийг савнаас цуглуулах төхөөрөмж рүү дамжуулна.', 0.03),
+  // A real frame, not a solid block: base plate, rod and a ring that holds a funnel above a flask on the base.
+  retortStand: textbookTool('retortStand', 'Штатив (цагаригтай)', [0.24, 0.28, 0.12], { shape: 'compound', parts: [
+    { shape: 'cuboid', size: [0.2, 0.024, 0.12], offset: [0, 0.012, 0], mass: 0.6 },
+    { shape: 'cylinder', radius: 0.008, height: 0.28, offset: [-0.07, 0.14, 0], mass: 0.15 },
+    ...([[0, 0.024], [0, -0.024], [0.024, 0], [-0.024, 0]] as const).map(([x, z]): ColliderPart => ({ shape: 'cuboid', size: x ? [0.006, 0.006, 0.06] : [0.06, 0.006, 0.006], offset: [STAND_RING[0] + x, STAND_RING[1], z], mass: 0.0125 })),
+  ] }, 'Хавчаар, цагираг тогтоон савыг байрлуулах төмөр суурь. Цагирагт юүлүүр тавиад доор нь колбо, аягаа суурин дээр тавина.', 0.8),
+  crystallizingDish: { ...textbookTool('crystallizingDish', 'Талстжуулагч', [0.15, 0.035, 0.15], cyl(0.075, 0.035), 'Уусмалыг өргөн гадаргуутай саванд ууршуулж талстжуулна.', 0.18), ...holds(350, 150, { glass: true }) },
+  splint: textbookTool('splint', 'Зомгол', [0.012, 0.012, 0.18], box(0.012, 0.012, 0.18), 'Хийг таних болон шаталтыг ажиглахад хэрэглэдэг модон зомгол.', 0.005),
+  sandpaper: textbookTool('sandpaper', 'Зүлгүүр', [0.1, 0.003, 0.14], box(0.1, 0.003, 0.14), 'Металлын гадаргууг цэвэрлэхэд хэрэглэнэ.', 0.01),
+  cottonWool: textbookTool('cottonWool', 'Хөвөн', [0.06, 0.04, 0.06], box(0.06, 0.04, 0.06), 'Шүүлтүүр болон бөглөөний завсарт хэрэглэдэг сул ширхэглэг хөвөн.', 0.002),
+  syringe: textbookTool('syringe', 'Тариур', [0.035, 0.035, 0.19], box(0.035, 0.035, 0.19), 'Шингэнийг хэмжиж соруулан, хяналттай шахна.', 0.025),
+  matches: textbookTool('matches', 'Чүдэнз', [0.045, 0.018, 0.07], box(0.045, 0.018, 0.07), 'Багшийн хяналтад гал асаахад хэрэглэнэ.', 0.01),
+  handPump: textbookTool('handPump', 'Насос', [0.09, 0.2, 0.09], box(0.09, 0.2, 0.09), 'Хийг шахаж, хоолойгоор дамжуулна.', 0.35),
+  uTube: textbookTool('uTube', 'U хэлбэрийн хоолой', [0.12, 0.14, 0.025], box(0.12, 0.14, 0.025), 'Хийг дамжуулах эсвэл шингэний түвшний өөрчлөлт ажиглах шилэн хоолой.', 0.04),
+  // 13 g of aluminium: it conducts, so a can of ice water mists over outside.
+  aluminumCan: { ...textbookTool('aluminumCan', 'Хөнгөнцагаан лааз', [0.067, 0.12, 0.067], cyl(0.034, 0.12), 'Дулаан дамжуулалт, халаалтын туршилтад хэрэглэнэ.', 0.02), ...holds(330, 12) },
+  plasticCup: { ...textbookTool('plasticCup', 'Хуванцар аяга', [0.085, 0.09, 0.085], cyl(0.042, 0.09), 'Шингэн түр хийх, хэмжихэд хэрэглэдэг хөнгөн аяга.', 0.02), ...holds(250, 6) },
+  knife: textbookTool('knife', 'Хутга', [0.025, 0.012, 0.17], box(0.025, 0.012, 0.17), 'Зөөлөн материалыг огтлоход хэрэглэнэ.', 0.06),
+  magnifyingGlass: textbookTool('magnifyingGlass', 'Томруулагч шил', [0.11, 0.012, 0.18], box(0.11, 0.012, 0.18), 'Жижиг биет, талст болон гадаргууг томруулж ажиглана.', 0.04),
+  disposableDish: { ...textbookTool('disposableDish', 'Нэг удаагийн таваг', [0.14, 0.018, 0.14], cyl(0.07, 0.018), 'Дээжийг ширээн дээр тарааж байрлуулах гүехэн хуванцар таваг.', 0.015), ...holds(150, 5) },
+  // Capped: knocking it over does not spill it.
+  plasticBottle: { ...textbookTool('plasticBottle', 'Ундааны сав', [0.07, 0.2, 0.07], cyl(0.035, 0.2), 'Ус болон туршилтын уусмал хадгалах хуванцар сав.', 0.04), ...holds(400, 10, { upright: false }) },
+  seedPot: { ...textbookTool('seedPot', 'Үр суулгах сав', [0.1, 0.08, 0.1], cyl(0.05, 0.08), 'Үр соёолуулах зориулалтын жижиг сав.', 0.03), ...holds(300, 15) },
+  tissue: textbookTool('tissue', 'Салфетка', [0.08, 0.006, 0.08], box(0.08, 0.006, 0.08), 'Шингэн шингээх, гадаргуу арчих цаасан салфетка.', 0.002),
+  waterFilter: textbookTool('waterFilter', 'Шүүлтүүр', [0.07, 0.16, 0.07], cyl(0.035, 0.16), 'Усыг үе давхаргаар нэвтрүүлж механик хольцыг шүүнэ.', 0.1),
+  corkStopper: textbookTool('corkStopper', 'Бөглөө', [0.035, 0.045, 0.035], cyl(0.018, 0.045), 'Савны амсрыг сул бөглөх зориулалтын үйсэн бөглөө.', 0.01),
+  penCap: textbookTool('penCap', 'Балны таг', [0.02, 0.02, 0.055], box(0.02, 0.02, 0.055), 'Хуванцар хоолой эсвэл туршилтын амсрыг хаах жижиг таг.', 0.004),
+  modellingClay: textbookTool('modellingClay', 'Баримлын шавар', [0.06, 0.045, 0.06], box(0.06, 0.045, 0.06), 'Хоолойн амсрыг түр битүүлэхэд хэрэглэнэ.', 0.06),
+  dripAdjuster: textbookTool('dripAdjuster', 'Дуслын системийн тохируулагч', [0.05, 0.07, 0.035], box(0.05, 0.07, 0.035), 'Дуслын системээр гарах шингэний урсгалыг тохируулна.', 0.02),
+  wireGauze: textbookTool('wireGauze', 'Шөрмөсөн чулуун тор', [0.14, 0.008, 0.14], box(0.14, 0.008, 0.14), 'Гурван хөлт тавиур дээр тавьж савны ёроолд дулааныг жигд тараана.', 0.12),
+  wellPlate: textbookTool('wellPlate', 'Хонхортой таваг', [0.14, 0.018, 0.1], box(0.14, 0.018, 0.1), 'Бага хэмжээний урвалыг олон хонхорт тус тусад нь явуулна.', 0.05),
+  filterPaper: textbookTool('filterPaper', 'Шүүлтүүрийн цаас', [0.09, 0.002, 0.09], cyl(0.045, 0.002), 'Тунадасыг юүлүүрээр шүүхэд хэрэглэдэг дугуй цаас.', 0.001),
+  alcoholLamp: { ...textbookTool('alcoholLamp', 'Спиртэн дэн', [0.08, 0.12, 0.08], cyl(0.04, 0.12), 'Спиртийн дөлөөр хуруу шил, аягыг халаана. Гурван хөлт тавиурын доор тавьж асаана.', 0.25), category: 'Халаах', safety: 'Асаалттай дэнг бүү зөө. Малгайгаар нь бүрхэж унтраа.' },
+  electrode: textbookTool('electrode', 'Электрод', [0.012, 0.15, 0.012], cyl(0.006, 0.15), 'Уусмалд дүрж хэлхээнд холбодог металл эсвэл бал чулуун саваа.', 0.02),
+  powerSupply: textbookTool('powerSupply', 'Гүйдэл үүсгэгч', [0.14, 0.08, 0.1], box(0.14, 0.08, 0.1), 'Хэлхээнд тогтмол гүйдэл өгөх тэжээл, холбох утастай.', 0.6),
+  voltmeter: textbookTool('voltmeter', 'Вольтметр', [0.11, 0.09, 0.08], box(0.11, 0.09, 0.08), 'Хоёр электродын хоорондох хүчдэлийг хэмжинэ.', 0.3),
+  led: textbookTool('led', 'Гэрлэн диод', [0.02, 0.05, 0.02], box(0.02, 0.05, 0.02), 'Хэлхээгээр гүйдэл гүйж байгааг гэрэлтэж харуулна.', 0.005),
+  deskLamp: textbookTool('deskLamp', 'Гэрлийн үүсгүүр', [0.14, 0.3, 0.14], box(0.14, 0.3, 0.14), 'Ургамал, дээжийг тогтмол гэрлээр гэрэлтүүлнэ.', 0.8),
+  barometer: textbookTool('barometer', 'Барометр', [0.12, 0.12, 0.04], box(0.12, 0.12, 0.04), 'Агаар, хийн даралтыг хэмжинэ.', 0.4),
+  hammer: textbookTool('hammer', 'Алх', [0.11, 0.03, 0.26], box(0.11, 0.03, 0.26), 'Материалын хатуулаг, хэврэгшлийг сорихдоо цохино.', 0.4),
+  brush: textbookTool('brush', 'Багс', [0.02, 0.02, 0.2], box(0.02, 0.02, 0.2), 'Хамгаалах будаг, тосыг гадаргуу дээр нимгэн түрхэнэ.', 0.01),
+  straw: textbookTool('straw', 'Соруул', [0.008, 0.008, 0.2], cyl(0.004, 0.2), 'Шохойн ус руу амьсгалын хийг үлээж нэвтрүүлнэ.', 0.002),
+  ruler: textbookTool('ruler', 'Шугам', [0.035, 0.003, 0.3], box(0.035, 0.003, 0.3), 'Урт, зай, хроматограммын шилжилтийг хэмжинэ.', 0.02),
+  pencil: textbookTool('pencil', 'Харандаа', [0.008, 0.008, 0.17], cyl(0.004, 0.17), 'Хроматографын цаасан дээр эхлэх шугам татна; бал уусахгүй.', 0.005),
+  balloon: textbookTool('balloon', 'Бөмбөлөг', [0.08, 0.1, 0.08], cyl(0.04, 0.1), 'Үүссэн хийг цуглуулж, эзэлхүүний өөрчлөлтийг харуулна.', 0.003),
+  // Porcelain: takes a Bunsen flame (≈700 °C dry), breaks if dropped.
+  crucible: { ...textbookTool('crucible', 'Тигль', [0.05, 0.045, 0.05], cyl(0.025, 0.045), 'Хатуу бодисыг хүчтэй халаах шаазан сав.', 0.05), ...holds(25, 40, { glass: true }) },
+  trough: { ...textbookTool('trough', 'Том сав (усан онгоц)', [0.3, 0.1, 0.2], box(0.3, 0.1, 0.2), 'Хийг ус түрж хураах, савыг усанд дүрэхэд хэрэглэх өргөн сав.', 0.6), ...holds(5000, 600, { glass: true, pourRate: 25 }) },
+  magnet: textbookTool('magnet', 'Соронз', [0.06, 0.012, 0.03], box(0.06, 0.012, 0.03), 'Төмрийн үртэсийг хольцоос ялгана.', 0.05),
+  plasticBag: textbookTool('plasticBag', 'Гялгар уут', [0.16, 0.01, 0.2], box(0.16, 0.01, 0.2), 'Хий эсвэл дээжийг битүү хадгалж, ажиглана.', 0.005),
+  glassTube: textbookTool('glassTube', 'Шилэн хоолой', [0.014, 0.014, 0.3], cyl(0.007, 0.3), 'Хий, шингэнийг дамжуулах эсвэл диффузийг ажиглах шулуун шилэн хоолой.', 0.03),
+  rubberBand: textbookTool('rubberBand', 'Резин', [0.05, 0.006, 0.05], cyl(0.025, 0.006), 'Уут, савны амсрыг битүү боох резинэн бүч.', 0.002),
+  wires: textbookTool('wires', 'Холбох утас', [0.12, 0.012, 0.08], box(0.12, 0.012, 0.08), 'Хавчаартай улаан, хар утсаар хэлхээний хэсгүүдийг холбоно.', 0.02),
+};
+
 export const CATALOG: Record<EquipmentKind, CatalogEntry> = {
  ...GRADE9_CATALOG,
+ ...TEXTBOOK_CATALOG,
  gasCylinder:{kind:'gasCylinder',name:'Хийн баллон ба хаалт',category:'Урвалжийн сав',description:'Шошготой хий. мл-ээр хэмжиж угсралтад дамжуулна.',safety:'Хийг битүү угсралтад дамжуул. Галын эх үүсвэрээс хол байлга.',size:[.06,.18,.06],collider:cyl(.03,.18),pickable:true,spawnable:false,massKg:1,capacityMl:2000,pourRate:20},
  paperStrip:{kind:'paperStrip',name:'Шүүлтүүрийн цаас / хроматографийн зурвас',category:'Багаж',description:'Шүүлтүүрийн целлюлоз цаас. Хроматографийн камерын цаасны үүрэнд байрлуулна.',safety:'Хуурай цэвэр цаас хэрэглэ.',size:[.03,.001,.2],collider:box(.03,.002,.2),pickable:true,spawnable:false,massKg:.001,capacityMl:1,pourRate:.2},
   beaker: {
@@ -420,7 +563,11 @@ export const CATALOG: Record<EquipmentKind, CatalogEntry> = {
     description: 'Шингэнийг нарийн амсартай саванд асгах, шүүлтүүрийн цаасаар тунадасыг шүүх юүлүүр. Тунадастай сав руу хараад R дарвал шүүнэ.',
     safety: 'Юүлүүрийг колбонд зөөлөн суулга. Нарийн хошуу нь амархан хугардаг.',
     size: [0.077, 0.112, 0.077],
-    collider: cyl(0.032, 0.112),
+    // Narrow stem below a wide cone, so a ring holds it by the cone with the stem through the ring.
+    collider: { shape: 'compound', parts: [
+      { shape: 'cylinder', radius: 0.014, height: 0.06, offset: [0, 0.03, 0], mass: 0.01 },
+      { shape: 'cylinder', radius: 0.035, height: 0.052, offset: [0, 0.086, 0], mass: 0.05 },
+    ] },
     pickable: true,
     spawnable: true,
     massKg: 0.06,
@@ -537,6 +684,11 @@ export const CATALOG: Record<EquipmentKind, CatalogEntry> = {
     heatJK: 400,
   },
 };
+
+/** A piece on the worktop: its kind, or `kind#n` for the 2nd, 3rd … of the same kind (three beakers). */
+export type BenchKey = EquipmentKind | `${EquipmentKind}#${number}`;
+export const baseKind = (key: string): EquipmentKind => key.split('#')[0] as EquipmentKind;
+export const benchKey = (kind: EquipmentKind, n: number): BenchKey => (n <= 1 ? kind : `${kind}#${n}`);
 
 export const isContainer = (kind: EquipmentKind): boolean => CATALOG[kind].capacityMl !== undefined && kind !== 'spatula';
 

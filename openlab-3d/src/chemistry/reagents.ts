@@ -214,7 +214,7 @@ const LIST: Reagent[] = [
  S('s_cuo','CuO','CuO','CuO',{note:'IX ангийн туршилтын зориулалтын бодис.',stripe:'#edf1f3',hazards:[]}),
  S('s_na2co3','Na2CO3','Na2CO3','Na2CO3',{note:'IX ангийн туршилтын зориулалтын бодис.',stripe:'#edf1f3',hazards:[]}),
  S('plastic','Хуванцар бүрхүүл','Бүрхүүл','plastic',{note:'IX ангийн туршилтын зориулалтын бодис.',stripe:'#f1f5f9',hazards:[]}),
- {...L('hot_water','Халуун ус','H₂O · 40°C','other',{},{note:'IX ангийн виртуал лабораторийн дээж. Өрхийн дээжийн найрлагыг хялбаршуулсан.',stripe:'#e65f5f',hazards:[]}),temperature:40},
+ {...L('hot_water','Халуун ус','H₂O · 60°C','other',{},{note:'Цайны данхнаас авсан халуун ус. Түлэгдэхээс болгоомжил — хавчаар, бээлий хэрэглэ.',stripe:'#e65f5f',hazards:['irritant']}),temperature:60},
  {...L('cold_water','Хүйтэн ус','H₂O · 10°C','other',{},{note:'IX ангийн виртуал лабораторийн дээж. Өрхийн дээжийн найрлагыг хялбаршуулсан.',stripe:'#5b9dea',hazards:[]}),temperature:10},
  L('chlorine','Хлорын ус','Cl₂ · 0.02 M','special',{Cl2:.02},{note:'IX ангийн виртуал лабораторийн дээж. Өрхийн дээжийн найрлагыг хялбаршуулсан.',stripe:'#d5e38d',hazards:['toxic','env']}),
  L('bromine','Бромын ус','Br₂ · 0.02 M','special',{Br2:.02},{note:'IX ангийн виртуал лабораторийн дээж. Өрхийн дээжийн найрлагыг хялбаршуулсан.',stripe:'#bb7639',hazards:['toxic','env']}),

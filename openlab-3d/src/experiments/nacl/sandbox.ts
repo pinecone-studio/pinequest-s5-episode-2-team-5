@@ -8,7 +8,7 @@ import { vesselFx } from '../../lab/vesselFx';
 import { spillMixture } from '../../lab/spill';
 import { livePose } from '../../interaction/bodies';
 import { Vector3 } from 'three';
-import { CATALOG, STOCK_KINDS } from '../../equipment/equipmentCatalog';
+import { CATALOG, STOCK_KINDS, isHeater } from '../../equipment/equipmentCatalog';
 import { useInventoryStore } from '../../store/useInventoryStore';
 import { useGameStore } from '../../store/useGameStore';
 import { usePortableStore } from '../../interaction/portable';
@@ -161,7 +161,7 @@ export const labUse = {
     } else if (vessel && drain === 'waste') {
       warn('Сав хоосон байна.');
       action = null;
-    } else if (role === 'lamp' || role === 'bunsenBurner') {
+    } else if (role === 'lamp' || role === 'bunsenBurner' || role === 'alcoholLamp') {
       useSandbox.setState((s) => ({ lit: !s.lit }));
       warn('Дөлийг сольлоо. Халуун савыг болгоомжтой барь; шингэнийг дуустал бүү халаа.');
       action = null;
@@ -322,7 +322,7 @@ export function simulateLab(rawDt: number, distance: (a: string, b: string) => n
       const core = mixtureOf(id);
       const at = labSpace.position(id);
       const overBurner = useInventoryStore.getState().worldItems.some((item) => {
-        if (item.kind !== 'bunsenBurner' || !useExperimentStore.getState().toggles[item.id]) return false;
+        if (!isHeater(item.kind) || !useExperimentStore.getState().toggles[item.id]) return false;
         const b = livePose(item);
         return Math.hypot(b.x - at.x, b.z - at.z) < 0.15 && at.y - b.y > 0 && at.y - b.y < 0.35;
       });
@@ -354,7 +354,7 @@ export function simulateLab(rawDt: number, distance: (a: string, b: string) => n
       rx = 'acid'; reaction = { id, kind: 'acid', rate: mmol / dt, temp: m.temp }; mark('reaction');
       publishReaction(id, carbonateReaction(mmol / dt / 1000, m.temp, false, true));
     }
-    const nearbyBurner = useInventoryStore.getState().worldItems.some((item) => item.kind === 'bunsenBurner' && useExperimentStore.getState().toggles[item.id] && Math.hypot(livePose(item).x - labSpace.position(id).x, livePose(item).z - labSpace.position(id).z) < 0.15 && Math.abs(livePose(item).y - labSpace.position(id).y) < 0.35);
+    const nearbyBurner = useInventoryStore.getState().worldItems.some((item) => isHeater(item.kind) && useExperimentStore.getState().toggles[item.id] && Math.hypot(livePose(item).x - labSpace.position(id).x, livePose(item).z - labSpace.position(id).z) < 0.15 && Math.abs(livePose(item).y - labSpace.position(id).y) < 0.35);
     const onHeat = id === partId('dish') && ((useSandbox.getState().lit && distance(id, partId('lamp')) < 0.22) || nearbyBurner);
     if (onHeat && m.ml > 0) {
       m.temp = Math.min(100, m.temp + dt * 15);
