@@ -9,6 +9,10 @@ import {useLabStore} from '../../store/useLabStore';
 import {useChemStore} from '../../store/useChemStore';
 import {emptyMixture,liquidMl,solidMassG} from '../../chemistry/mixture';
 import {emitLab} from '../../lab/events';
+/** Where the bath "stands": the air pressure there sets the boiling point (7-33). */
+const ALTITUDES:[string,number][]=[['Далайн түвшин',0],['Улаанбаатар',1350],['Уулын бэл',3000],['Эверест',8849]];
+/** Standard-atmosphere pressure at `metres` above sea level, kPa. */
+export const pressureAt=(metres:number)=>101.325*(1-2.25577e-5*metres)**5.25588;
 export function Grade9Controls({id}:{id:string}){
  const item=itemDescription(id),kind=item.kind;
  const rig=useGrade9Apparatus(s=>s.rigs[id]);
@@ -21,7 +25,7 @@ export function Grade9Controls({id}:{id:string}){
  const button='min-h-10 rounded-lg border border-slate-300 bg-white px-2 py-2 text-xs font-semibold';
  return <div className="my-3 space-y-2 border-t border-slate-200 pt-3" aria-label="Судалгааны багажийн удирдлага">
   <b className="block text-xs">{RIG_NAMES[kind]}</b>
-  <p className="text-[11px]">Тасалгаагаа сонго → бодисоо авч өмнөхтэй адил цутга / халбагаар хий.</p>
+  <p className="text-[11px]">{kind==='heatingBath'?'Үүрээ сонгоод халаагуурыг асаа. Зөвхөн сонгосон дээж халаана.':'Тасалгаагаа сонго → бодисоо авч өмнөхтэй адил цутга / халбагаар хий.'}</p>
   <div className="flex flex-wrap gap-1">{rig.chambers.map((m,i)=><button key={i} className={`${button} ${rig.port===i?'border-sky-600 bg-sky-100':''}`} aria-pressed={rig.port===i} onClick={()=>{change({port:i});useChemStore.getState().setMixtures({[id]:m});}}>{kind==='corrosionRack'||kind==='reactionTile'?`Үүр ${i+1}`:names[i]} · {liquidMl(m).toFixed(1)} мл / {solidMassG(m).toFixed(2)} г</button>)}</div>
   <div className="flex flex-wrap gap-1">
    <button className={button} onClick={start}>{kind==='gasTrain'?'② → ① Холих · урвалыг ажиглах':rig.running?'Ажиллаж байна · үргэлжлүүлэх':'Багажийг ажиллуулах'}</button>
@@ -33,6 +37,7 @@ export function Grade9Controls({id}:{id:string}){
    {kind==='corrosionRack'&&<button className={button} aria-pressed={rig.scratched} onClick={()=>change({scratched:!rig.scratched})}>{rig.scratched?'Бүрхүүл сэвтэй':'Бүрхүүл бүтэн'}</button>}
    <button className={button} onClick={()=>{const chambers=rig.chambers.map((m,i)=>i===rig.port?emptyMixture():m);change({chambers,running:false});useChemStore.getState().setMixtures({[id]:emptyMixture()});}}>Сонгосон үүрийг хоослох</button>
   </div>
+  {kind==='heatingBath'&&<div className="flex flex-wrap gap-1" aria-label="Газрын өндөр ба агаарын даралт">{ALTITUDES.map(([place,metres])=>{const kPa=pressureAt(metres),on=Math.abs(rig.pressure*101.325-kPa)<.05;return <button key={place} className={`${button} ${on?'border-sky-600 bg-sky-100':''}`} aria-pressed={on} onClick={()=>change({pressure:kPa/101.325})}>{place} · {metres} м · {kPa.toFixed(1)} кПа</button>;})}</div>}
   <p role="status" className="rounded bg-sky-50 p-2 text-xs text-sky-900">{rig.message}</p>
   <dl className="text-[11px]">{rigReadings(rig).map((r,i)=><div key={i} className="flex justify-between gap-2"><dt>{r.label}</dt><dd className="font-mono">{r.value.toFixed(2)} {r.unit}</dd></div>)}</dl>
   <p className="text-[10px] text-slate-500">Хэмжилтээ Судалгааны дэвтэрт авна. Тээвэрлэлт, зэврэлтийн хурд нь сургалтын ойролцоо загвар; бодисын хэмжээ ба урвалын харьцаа үр дүнд нөлөөлнө.</p>

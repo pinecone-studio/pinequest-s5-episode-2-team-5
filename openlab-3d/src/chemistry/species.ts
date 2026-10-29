@@ -9,7 +9,7 @@ import { EXTRA_AQ, EXTRA_SOLIDS, type ExtraAqId, type ExtraSolidId } from '../ex
  * mixture's color follows Beer–Lambert: T = color^(c / cRef), multiplied over species.
  */
 
-export type Cation = 'Ni' | 'Cr3' | 'FeSCN' | 'Al' | 'Co' | 'Na' | 'K' | 'Li' | 'Ca' | 'Ba' | 'Mg' | 'Zn' | 'Cu' | 'Fe2' | 'Fe3' | 'Ag' | 'Pb' | 'Mn';
+export type Cation = 'Ni' | 'Cr3' | 'FeSCN' | 'Al' | 'Co' | 'Rb' | 'Sr' | 'Cd' | 'Na' | 'K' | 'Li' | 'Ca' | 'Ba' | 'Mg' | 'Zn' | 'Cu' | 'Fe2' | 'Fe3' | 'Ag' | 'Pb' | 'Mn';
 export type Anion = 'CrO4' | 'S2O3' | 'AlOH4' | 'Br' | 'Cr2O7' | 'Cl' | 'I' | 'NO3' | 'SO4' | 'SCN' | 'MnO4';
 export type WeakId = 'Cit' | 'Ac' | 'NH3' | 'CO3';
 export type MoleculeId = 'Cl2' | 'Br2' | 'H2O2' | 'I2' | 'starch' | 'sucrose' | 'soap' | 'phph' | 'btb' | 'mo' | 'ui' | 'dyeR' | 'dyeY' | 'dyeG' | 'dyeB';
@@ -69,7 +69,7 @@ export interface AqDef {
   boiling?: number;
 }
 
-export const CATIONS: Cation[] = ['Ni','Cr3','FeSCN','Al','Co','Na', 'K', 'Li', 'Ca', 'Ba', 'Mg', 'Zn', 'Cu', 'Fe2', 'Fe3', 'Ag', 'Pb', 'Mn'];
+export const CATIONS: Cation[] = ['Ni','Cr3','FeSCN','Al','Co','Rb','Sr','Cd','Na', 'K', 'Li', 'Ca', 'Ba', 'Mg', 'Zn', 'Cu', 'Fe2', 'Fe3', 'Ag', 'Pb', 'Mn'];
 export const ANIONS: Anion[] = ['CrO4','S2O3','AlOH4','Br','Cr2O7','Cl', 'I', 'NO3', 'SO4', 'SCN', 'MnO4'];
 
 export const AQ: Record<AqId, AqDef> = {
@@ -128,9 +128,10 @@ export interface SolidDef {
   /**
    * Soluble solids dissolve over time (stirring, heat and grinding speed it up).
    * `solubility` is in mol/L of the solid; `dH` is the enthalpy of solution in kJ/mol
-   * (negative warms the water). `water` is crystal water released per mole.
+   * (negative warms the water). `water` is crystal water released per mole. With `doubling`, the
+   * solubility (given at 20 °C) doubles every that many °C, so a hot solution crystallises on cooling.
    */
-  dissolve?: { products: Partial<Record<AqId, number>>; solubility: number; dH: number; water?: number };
+  dissolve?: { products: Partial<Record<AqId, number>>; solubility: number; dH: number; water?: number; doubling?: number };
 }
 
 export const SOLIDS: Record<SolidId, SolidDef> = {
@@ -196,6 +197,11 @@ export const SOLIDS: Record<SolidId, SolidDef> = {
   salt: { name: 'Давсны үлдэгдэл', formula: 'Давс', color: '#f1f1ec', molarMass: 60 },
 };
 
+/** mol/L of a soluble solid at `temp` °C. */
+export function solubilityAt(d: NonNullable<SolidDef['dissolve']>, temp: number): number {
+  return d.doubling ? d.solubility * 2 ** ((temp - 20) / d.doubling) : d.solubility;
+}
+
 /** Metal hydroxides that precipitate from basic solution (Ksp, OH⁻ per metal ion). */
 export const HYDROXIDES: { ion: Cation; solid: SolidId; n: number; ksp: number }[] = [
   { ion: 'Al', solid: 'AlOH3', n: 3, ksp: 1e-33 },
@@ -215,6 +221,7 @@ export const HYDROXIDES: { ion: Cation; solid: SolidId; n: number; ksp: number }
 export const SALTS: { cation: Cation; a: number; anion: Anion | 'CO3'; b: number; solid: SolidId; ksp: number }[] = [
   { cation: 'Ag', a: 1, anion: 'I', b: 1, solid: 'AgI', ksp: 8.5e-17 },
   { cation: 'Ag', a: 1, anion: 'Cl', b: 1, solid: 'AgCl', ksp: 1.8e-10 },
+  { cation: 'Ag', a: 2, anion: 'CrO4', b: 1, solid: 'Ag2CrO4', ksp: 1.1e-12 },
   { cation: 'Ba', a: 1, anion: 'SO4', b: 1, solid: 'BaSO4', ksp: 1.1e-10 },
   { cation: 'Pb', a: 1, anion: 'I', b: 2, solid: 'PbI2', ksp: 9.8e-9 },
   { cation: 'Pb', a: 1, anion: 'SO4', b: 1, solid: 'PbSO4', ksp: 2.5e-8 },
@@ -224,15 +231,22 @@ export const SALTS: { cation: Cation; a: number; anion: Anion | 'CO3'; b: number
   { cation: 'Ba', a: 1, anion: 'CO3', b: 1, solid: 'BaCO3', ksp: 2.6e-9 },
 ];
 
-/** Activity series (most reactive first); a metal displaces the ions of any metal after it. */
-export const ACTIVITY: { solid: SolidId; ion: Cation; charge: number; acidRate: number; dH: number }[] = [
+/**
+ * Activity series (most reactive first); a metal displaces the ions of any metal after it.
+ * `dH` is the ion's enthalpy of formation, kJ/mol (M + 2H⁺ → M²⁺ + H₂), so displacements release
+ * the difference. `waterRate`: also reacts with water itself, from `waterFrom` °C (Ca in cold
+ * water; Mg only once the water is hot, and fast in steam).
+ */
+export const ACTIVITY: { solid: SolidId; ion: Cation; charge: number; acidRate: number; dH: number; waterRate?: number; waterFrom?: number }[] = [
+  { solid: 'Ca', ion: 'Ca', charge: 2, acidRate: 2.2, dH: -543, waterRate: 0.4 },
   {solid:'Al',ion:'Al',charge:3,acidRate:.03,dH:-531},
-  { solid: 'Mg', ion: 'Mg', charge: 2, acidRate: 1.4, dH: -467 },
+  { solid: 'Mg', ion: 'Mg', charge: 2, acidRate: 1.4, dH: -467, waterRate: 0.002, waterFrom: 50 },
   { solid: 'Zn', ion: 'Zn', charge: 2, acidRate: 0.14, dH: -153 },
   { solid: 'Fe', ion: 'Fe2', charge: 2, acidRate: 0.035, dH: -87 },
   { solid: 'Ni', ion: 'Ni', charge: 2, acidRate: .02, dH: -50 },
-  { solid: 'Cu', ion: 'Cu', charge: 2, acidRate: 0, dH: 0 },
-  { solid: 'Ag', ion: 'Ag', charge: 1, acidRate: 0, dH: 0 },
+  { solid: 'Pb', ion: 'Pb', charge: 2, acidRate: .004, dH: -1 },
+  { solid: 'Cu', ion: 'Cu', charge: 2, acidRate: 0, dH: 64.8 },
+  { solid: 'Ag', ion: 'Ag', charge: 1, acidRate: 0, dH: 105.6 },
 ];
 
 /** Flame-test colors of cations (Bunsen burner + nichrome loop). */
@@ -243,6 +257,8 @@ export const FLAME_COLORS: Partial<Record<Cation, { color: string; name: string 
   Ca: { color: '#ff6a24', name: 'тоосгон улаан' },
   Cu: { color: '#21e6b0', name: 'ногоовтор цэнхэр' },
   Ba: { color: '#b6f062', name: 'цайвар ногоон' },
+  Rb: { color: '#d23b8a', name: 'улаан ягаан' },
+  Sr: { color: '#ff2340', name: 'час улаан' },
 };
 
 export function aqName(id: AqId): string {

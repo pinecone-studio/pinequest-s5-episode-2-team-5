@@ -101,7 +101,7 @@ import { join } from 'node:path';
 import { pathToFileURL } from 'node:url';
 const storeTmp=await mkdtemp(join(tmpdir(),'openlab-preparation-test-'));
 test.after(()=>rm(storeTmp,{recursive:true,force:true}));
-await build({stdin:{contents:`export * from './src/equipment/liquid-plane.ts';export {PROFILES} from './src/equipment/profiles.ts';export * from './src/experiments/workbench/guidance/pour-physics.ts';export * from './src/experiments/workbench/guidance/operation.ts';export * from './src/chemistry/appearance.ts';export * from './src/experiments/grade9/chamber-view.ts';export * from './src/experiments/workbench/guidance/conditions.ts';export * from './src/experiments/workbench/guidance/endpoint.ts';export * from './src/experiments/workbench/guidance/results.ts';export * from './src/experiments/workbench/guidance/clock.ts';export * from './src/chemistry/advance.ts';export {DEFAULT_ENV} from './src/chemistry/kinetics.ts';export {CATALOG} from './src/equipment/equipmentCatalog.ts';export {emptyMixture} from './src/chemistry/mixture.ts';export * from './src/experiments/workbench/guidance/definitions.ts'; export * from './src/experiments/workbench/guidance/prepare.ts'; export * from './src/experiments/workbench/guidance/showcase.ts'; export * from './src/experiments/workbench/guidance/plans.ts'; export * from './src/experiments/workbench/guidance/runtime.ts'; export * from './src/experiments/grade9/process.ts'; export {useGrade9Apparatus} from './src/experiments/grade9/store.ts'; export * from '../src/lib/textbook-investigations.ts'; export {INVESTIGATIONS as inquiryDefinitions} from '../src/lib/textbook-investigations.ts'; export {TEXTBOOK_EXPERIMENTS} from './src/experiments/workbench/textbook.ts'; export {getExperiments,applyRemoteExperiments} from './src/lab/experiments.ts'; export {useInquiry,clearInquiry} from './src/experiments/workbench/inquiry-store.ts'; export * from './src/lab/quantity-guidance.ts'; export * from './src/lab/measurements.ts'; export {transfer,heldHeat} from './src/interaction/actions.ts'; export {vesselObservation} from './src/lab/container-observation.ts'; export {snapToSupport} from './src/interaction/supportPlacement.ts'; export {supportSpots} from './src/interaction/bodies.ts'; export {benchUseTarget} from './src/interaction/benchUseTarget.ts'; export {tablePointer} from './src/interaction/heldApi.ts'; export {useBenchView} from './src/experiments/nacl/view.ts'; export {useSandbox,labUse,labSpace,simulateLab} from './src/experiments/nacl/sandbox.ts'; export {usePortableStore} from './src/interaction/portable.ts'; export {interactItem} from './src/interaction/interactItem.ts'; export {interactables} from './src/interaction/registry.ts'; export { useLabStore } from './src/store/useLabStore.ts'; export * from './src/experiments/workbench/session.ts'; export {useInventoryStore,storedIn} from './src/store/useInventoryStore.ts'; export {useChemStore} from './src/store/useChemStore.ts'; export {useGameStore} from './src/store/useGameStore.ts'; export * from './src/lab/reaction-view.ts'; export {registerHolder,seedHolder} from './src/interaction/holders.ts';`,resolveDir:process.cwd()},bundle:true,outfile:join(storeTmp,'stores.mjs'),format:'esm',platform:'node'});
+await build({stdin:{contents:`export * from './src/equipment/liquid-plane.ts';export {PROFILES} from './src/equipment/profiles.ts';export * from './src/experiments/workbench/guidance/pour-physics.ts';export * from './src/experiments/workbench/guidance/operation.ts';export * from './src/chemistry/appearance.ts';export * from './src/experiments/grade9/chamber-view.ts';export * from './src/experiments/workbench/guidance/conditions.ts';export * from './src/experiments/workbench/guidance/endpoint.ts';export * from './src/experiments/workbench/guidance/results.ts';export * from './src/experiments/workbench/guidance/clock.ts';export * from './src/chemistry/advance.ts';export {DEFAULT_ENV} from './src/chemistry/kinetics.ts';export {CATALOG} from './src/equipment/equipmentCatalog.ts';export {emptyMixture} from './src/chemistry/mixture.ts';export * from './src/experiments/workbench/guidance/definitions.ts';export * from './src/experiments/workbench/guidance/overlays.ts'; export * from './src/experiments/workbench/guidance/prepare.ts'; export * from './src/experiments/workbench/guidance/showcase.ts'; export * from './src/experiments/workbench/guidance/plans.ts'; export * from './src/experiments/workbench/guidance/runtime.ts'; export * from './src/experiments/grade9/process.ts'; export {useGrade9Apparatus} from './src/experiments/grade9/store.ts'; export * from '../src/lib/textbook-investigations.ts'; export {INVESTIGATIONS as inquiryDefinitions} from '../src/lib/textbook-investigations.ts'; export {TEXTBOOK_EXPERIMENTS} from './src/experiments/workbench/textbook.ts'; export {getExperiments,applyRemoteExperiments} from './src/lab/experiments.ts'; export {useInquiry,clearInquiry} from './src/experiments/workbench/inquiry-store.ts'; export * from './src/lab/quantity-guidance.ts'; export * from './src/lab/measurements.ts'; export {transfer,heldHeat,resolveTarget,underFunnel} from './src/interaction/actions.ts'; export {vesselObservation} from './src/lab/container-observation.ts'; export {snapToSupport} from './src/interaction/supportPlacement.ts'; export {supportSpots,supportHeightAt} from './src/interaction/bodies.ts'; export {benchUseTarget} from './src/interaction/benchUseTarget.ts'; export {tablePointer} from './src/interaction/heldApi.ts'; export {useBenchView} from './src/experiments/nacl/view.ts'; export {useSandbox,labUse,labSpace,simulateLab} from './src/experiments/nacl/sandbox.ts'; export {usePortableStore} from './src/interaction/portable.ts'; export {interactItem} from './src/interaction/interactItem.ts'; export {interactables} from './src/interaction/registry.ts'; export { useLabStore } from './src/store/useLabStore.ts'; export * from './src/experiments/workbench/session.ts'; export {useInventoryStore,storedIn} from './src/store/useInventoryStore.ts'; export {useChemStore} from './src/store/useChemStore.ts'; export {useGameStore} from './src/store/useGameStore.ts'; export * from './src/lab/reaction-view.ts'; export {registerHolder,seedHolder} from './src/interaction/holders.ts';`,resolveDir:process.cwd()},bundle:true,outfile:join(storeTmp,'stores.mjs'),format:'esm',platform:'node'});
 globalThis.localStorage={getItem:()=>null,setItem:()=>{},removeItem:()=>{}};
 const stores=await import(pathToFileURL(join(storeTmp,'stores.mjs')).href);
 test('guide starts after preparation; earlier real observations are still recorded',()=>{
@@ -511,9 +511,12 @@ test('all textbook practical summaries have valid executable lab mappings and re
   assert.equal(new Set(catalog.map(x=>x.id)).size,catalog.length);
   for(const d of stores.inquiryDefinitions){
     const supplies=stores.suppliesFor(d.id);
-    assert.equal(supplies.length,d.supplies.length);
+    const overlay=stores.GUIDED_OVERLAYS[d.id];
+    // A test tube always comes with a rack to stand it in.
+    const listed=overlay?.supplies??d.supplies,rack=listed.includes('testTube')&&!listed.includes('testTubeRack')?1:0;
+    assert.equal(supplies.length,listed.length+rack);if(rack)assert.ok(supplies.some(s=>s.kind==='testTubeRack'));
     assert.ok(supplies.every(s=>s.kind&&s.name));
-    if(d.mode==='model')assert.equal(supplies.length,0);
+    if(d.mode==='model'&&!overlay)assert.equal(supplies.length,0);
   }
 });
 test('all model controls produce finite results within their domain and preserve provenance',()=>{
@@ -710,7 +713,8 @@ test('all Grade 10 guides prepare valid scoped supplies and keep model evidence 
   stores.selectBenchExperiment(d.id,true);stores.demonstratePreparation();
   const session=stores.useWorkbench.getState().sessions[d.id];
   assert.ok(session?.ready,d.id);
-  assert.equal(stores.suppliesFor(d.id).length,d.supplies.length);
+  const listed=stores.GUIDED_OVERLAYS[d.id]?.supplies??d.supplies,rack=listed.includes('testTube')&&!listed.includes('testTubeRack')?1:0;
+  assert.equal(stores.suppliesFor(d.id).length,listed.length+rack,d.id);
   for(const supply of stores.suppliesFor(d.id))assert.ok(supply.kind&&supply.name,d.id);
   if(d.mode==='model')assert.equal(d.supplies.length,0);
  }
@@ -731,7 +735,8 @@ test('all Grade 7 guides prepare valid supplies and preserve Grade 8–10 fallba
   stores.useInventoryStore.getState().reset();stores.useChemStore.getState().reset();stores.resetWorkbench();
   stores.selectBenchExperiment(d.id,true);stores.demonstratePreparation();
   assert.ok(stores.useWorkbench.getState().sessions[d.id]?.ready,d.id);
-  assert.equal(stores.suppliesFor(d.id).length,d.supplies.length);
+  const listed=stores.GUIDED_OVERLAYS[d.id]?.supplies??d.supplies,rack=listed.includes('testTube')&&!listed.includes('testTubeRack')?1:0;
+  assert.equal(stores.suppliesFor(d.id).length,listed.length+rack,d.id);
   for(const supply of stores.suppliesFor(d.id))assert.ok(supply.kind&&supply.name,d.id);
   if(d.mode==='model')assert.equal(d.supplies.length,0);
  }
@@ -886,7 +891,7 @@ test('physical showcase cancellation returns a moving container and cannot deliv
 test('full physical showcase includes reaction observation and collection rather than stopping after setup',()=>{
  const nylon=stores.physicalShowcasePlan('g10-nylon');assert.ok(nylon.some(s=>s.type==='observe'&&(s.until?.timeout??stores.showcaseDuration(s))>=20));assert.ok(nylon.some(s=>s.type==='configure'&&s.change.operation==='draw'));assert.equal(nylon.at(-1).type,'finish');
  const combustion=stores.physicalShowcasePlan('g10-combustion');assert.ok(combustion.some(s=>s.type==='configure'&&s.change.operation==='ignite'));
- for(const def of stores.inquiryDefinitions.filter(d=>[7,10].includes(d.grade)&&d.labRig))for(const step of stores.physicalShowcasePlan(def.id)){if(step.type==='dose')assert.ok(def.supplies.includes(`reagent:${step.reagent}`),def.id);assert.ok(stores.showcaseDuration(step)>0);}
+ for(const def of stores.inquiryDefinitions.filter(d=>[7,10].includes(d.grade)&&d.labRig))for(const step of stores.physicalShowcasePlan(def.id)){if(step.type==='dose')assert.ok((stores.GUIDED_OVERLAYS[def.id]?.supplies??def.supplies).includes(`reagent:${step.reagent}`),def.id);assert.ok(stores.showcaseDuration(step)>0);}
 });
 
 
@@ -911,8 +916,9 @@ function advanceProtocolWorld(dt,speed=1){
  const session=stores.currentSession();const entries=Object.entries(session.objects).filter(([key,id])=>!key.startsWith('reagent-')&&!id.startsWith('nacl-'));
  stores.setProtocolClock(entries.map(([,id])=>id),speed);
  for(const [kind,id] of entries){const rig=stores.useGrade9Apparatus.getState().rigs[id];if(rig){stores.useGrade9Apparatus.getState().tick(id,dt);continue;}
-  if(!stores.CATALOG[kind]?.capacityMl)continue;const m=stores.useChemStore.getState().mixtures[id];if(!m)continue;
-  const env={...stores.DEFAULT_ENV,glassJK:stores.CATALOG[kind].heatJK??100,lossWK:1.2+5*((stores.CATALOG[kind].capacityMl??50)/250)**(2/3),heatW:stores.heldHeat?.id===id?1300:0,stir:1};
+  const base=stores.CATALOG[kind.split('#')[0]];// beaker#2 is a beaker
+  if(!base?.capacityMl)continue;const m=stores.useChemStore.getState().mixtures[id];if(!m)continue;
+  const env={...stores.DEFAULT_ENV,glassJK:base.heatJK??100,lossWK:1.2+5*((base.capacityMl??50)/250)**(2/3),heatW:stores.heldHeat?.id===id?1300:0,stir:1};
   stores.useChemStore.getState().setMixtures({[id]:stores.advanceChemistry(m,dt,env,speed).m});
  }
  stores.clearProtocolClock();
@@ -1022,4 +1028,85 @@ test('measured tools reserve actual stock and cancellation returns only the unus
 });
 test('device actions distinguish leads, gas hoses, nylon winding and gentle mixing',()=>{
  const start={type:'start',label:'start'};assert.equal(stores.operationFor('galvanicCell',start),'connect-electric');assert.equal(stores.operationFor('gasTrain',start),'connect-gas');assert.equal(stores.operationFor('interfacialBath',start),'measure');assert.equal(stores.operationFor('beaker',start),'stir');assert.equal(stores.operationFor('interfacialBath',{type:'configure',label:'draw',change:{operation:'draw'}}),'wind');
+});
+
+test('liquid poured into a loose test tube first stands it in the nearest rack, so it cannot spill',()=>{
+ stores.resetWorkbench();stores.useInventoryStore.getState().reset();stores.useChemStore.getState().reset();
+ const inv=stores.useInventoryStore.getState();
+ const tube=inv.spawn('testTube',[8,.915,-14.5]),rack=stores.useInventoryStore.getState().spawn('testTubeRack',[8.6,.915,-14.5]),bottle=stores.useInventoryStore.getState().spawn('reagentBottle',[9.2,.915,-14.5],0,{reagent:'hcl'});
+ const {moved}=stores.transfer({id:bottle,kind:'reagentBottle',variant:{reagent:'hcl'}},{id:tube,kind:'testTube'},5);
+ const s=stores.useInventoryStore.getState();
+ assert.equal(moved,5);assert.ok(!s.worldItems.some(w=>w.id===tube));assert.ok(stores.storedIn(s.storage,rack).some(it=>it.id===tube));
+ assert.ok(Math.abs(chem.liquidMl(stores.useChemStore.getState().mixtures[tube])-5)<1e-9);
+ stores.useInventoryStore.getState().reset();stores.useChemStore.getState().reset();
+});
+
+test('a tilted vessel keeps only what lies below its lower lip; knocked over it empties',()=>{
+ const p=stores.PROFILES.beaker,full=stores.volumeBelow(p,[0,1,0],stores.rimHeight?.(p)??.092);
+ assert.equal(stores.heldAtTilt(p,1),Infinity);assert.equal(stores.heldAtTilt(p,-.2),0);
+ const at30=stores.heldAtTilt(p,Math.cos(Math.PI/6)),at60=stores.heldAtTilt(p,Math.cos(Math.PI/3));
+ assert.ok(at30<full&&at60<at30&&at60>0,`${full} ${at30} ${at60}`);
+ // Half full: a 20° nudge spills nothing.
+ assert.ok(stores.heldAtTilt(p,Math.cos(20*Math.PI/180))>full/2);
+});
+
+test('the tools drawer at the worktop gives another test tube instead of pointing at the one already there',()=>{
+ stores.resetWorkbench();stores.useInventoryStore.getState().reset();stores.useChemStore.getState().reset();
+ const tube={key:'testTube',kind:'testTube',name:'tube',use:''};
+ const count=()=>stores.useInventoryStore.getState().worldItems.filter(w=>w.kind==='testTube'&&w.id.startsWith('spawn-')).length;
+ assert.ok(stores.collectSupply(tube));const one=count();
+ assert.ok(stores.collectSupply(tube));assert.equal(count(),one,'preparation reuses the bench item');
+ assert.ok(stores.collectSupply(tube,false,true));assert.ok(stores.collectSupply(tube,false,true));assert.equal(count(),one+2,'the drawer adds new ones');
+ stores.resetWorkbench();stores.useInventoryStore.getState().reset();
+});
+
+test('clearing an experiment removes the tubes standing in its rack, so nothing keeps reacting unseen',()=>{
+ stores.resetWorkbench();stores.useInventoryStore.getState().reset();stores.useChemStore.getState().reset();
+ stores.selectBenchExperiment('g9-zinc-hcl',true);stores.demonstratePreparation();
+ const session=stores.currentSession(),rack=session.objects.testTubeRack,tube=session.objects.testTube,acid=session.objects['reagent-hcl'],zinc=session.objects['reagent-s_zn'];
+ assert.ok(rack&&tube&&acid&&zinc);
+ stores.transfer({id:acid,kind:'reagentBottle',variant:{reagent:'hcl'}},{id:tube,kind:'testTube'},5);
+ stores.transfer({id:zinc,kind:'reagentJar',variant:{reagent:'s_zn'}},{id:tube,kind:'testTube'},.1);
+ assert.ok(stores.storedIn(stores.useInventoryStore.getState().storage,rack).some(it=>it.id===tube));
+ stores.clearExperimentSession('g9-zinc-hcl');
+ assert.equal(stores.useChemStore.getState().mixtures[tube],undefined);
+ assert.ok(!stores.useInventoryStore.getState().storage[rack]);
+ stores.resetWorkbench();stores.useInventoryStore.getState().reset();stores.useChemStore.getState().reset();
+});
+
+test('gas from a cylinder fills only the space above the contents; the rest escapes without a puddle',()=>{
+ stores.resetWorkbench();stores.useInventoryStore.getState().reset();stores.useChemStore.getState().reset();
+ const inv=stores.useInventoryStore.getState();
+ const beaker=inv.spawn('beaker',[8,.915,-14.5]),cylinder=stores.useInventoryStore.getState().spawn('gasCylinder',[8.6,.915,-14.5],0,{reagent:'gas_co2'});
+ stores.useChemStore.getState().setMixtures({[beaker]:chem.reagentMixture('limewater',200)});
+ const puddles=stores.useChemStore.getState().puddles.length;
+ const {moved,overflow}=stores.transfer({id:cylinder,kind:'gasCylinder',variant:{reagent:'gas_co2'}},{id:beaker,kind:'beaker'},500);
+ assert.ok(Math.abs(moved-50)<1e-6,`${moved}`);assert.equal(overflow,false);assert.equal(stores.useChemStore.getState().puddles.length,puddles);
+ assert.ok(Math.abs(chem.gasMl(stores.useChemStore.getState().mixtures[beaker])-50)<1e-6);
+ stores.useInventoryStore.getState().reset();stores.useChemStore.getState().reset();
+});
+
+test('a filter stand: the funnel sits in the retort-stand ring, a beaker stands on the base under it, and pouring filters into the beaker',()=>{
+ stores.resetWorkbench();stores.useInventoryStore.getState().reset();stores.useChemStore.getState().reset();
+ const inv=()=>stores.useInventoryStore.getState(),Y=.915,X=8,Z=-14.5,RING=[.03,.23];
+ const stand=inv().spawn('retortStand',[X,Y,Z]);
+ // Holding a funnel offers the ring; holding a beaker offers the base under the ring (not the solid block it used to be).
+ const ring=stores.supportSpots(inv().worldItems,'funnel').find(s=>s.id===`support-${stand}`),base=stores.supportSpots(inv().worldItems,'beaker').find(s=>s.id.startsWith(`support-${stand}`));
+ assert.ok(ring&&base,'stand spots');assert.ok(Math.abs(ring.point.y-(Y+RING[1]-.06))<1e-9);assert.ok(Math.abs(base.point.y-(Y+.024))<1e-9);
+ assert.ok(Math.abs(stores.supportHeightAt(X+RING[0],Z,inv().worldItems,'beaker')-(Y+.024))<1e-9,'a beaker is not lifted onto the ring');
+ const beaker=inv().spawn('beaker',[X+RING[0],base.point.y,Z]),funnel=inv().spawn('funnel',[X+RING[0],ring.point.y,Z]);
+ const w=(id)=>inv().worldItems.find(x=>x.id===id);
+ assert.ok(stores.underFunnel(w(beaker),w(funnel)),'beaker catches the funnel');
+ const target=stores.resolveTarget({type:'item',id:funnel,kind:'funnel'});assert.equal(target.id,beaker);assert.equal(target.via,funnel);
+ // Muddy salt water through the paper: clear filtrate below, sand on the paper.
+ const mud=inv().spawn('beaker',[X+.3,Y,Z]);stores.useChemStore.getState().setMixtures({[mud]:{...chem.reagentMixture('nacl',20),s:{sand:.05}}});
+ stores.transfer({id:mud,kind:'beaker'},{id:beaker,kind:'beaker'},20,funnel);
+ const below=stores.useChemStore.getState().mixtures[beaker],paper=stores.useChemStore.getState().mixtures[funnel];
+ assert.ok(Math.abs(chem.liquidMl(below)-20)<1e-6&&!(below.s.sand>0),'clear filtrate');assert.ok(paper.s.sand>0,'sand stays on the paper');
+ // A funnel can also be set straight on a flask's mouth.
+ const flask=inv().spawn('erlenmeyer',[X+.6,Y,Z]);
+ const mouth=stores.supportSpots(inv().worldItems,'funnel').find(s=>s.id===`support-${flask}`);
+ assert.ok(mouth&&Math.abs(mouth.point.y-(Y+.14))<1e-9,'flask mouth');
+ const f2=inv().spawn('funnel',[X+.6,mouth.point.y,Z]);assert.ok(stores.underFunnel(w(flask),w(f2)));
+ stores.useInventoryStore.getState().reset();stores.useChemStore.getState().reset();
 });

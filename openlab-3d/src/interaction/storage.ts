@@ -5,7 +5,8 @@ import { useGameStore } from '../store/useGameStore';
 import { storedIn, useInventoryStore } from '../store/useInventoryStore';
 import { emitLab } from '../lab/events';
 import { sounds } from '../utils/sounds';
-import { STORAGE_INFO, holderCategory, holderType } from './holders';
+import { HOLDER_CAPACITY, STORAGE_INFO, holderCategory, holderType } from './holders';
+import { livePose } from './bodies';
 import type { ItemVariant } from '../world/itemsLayout';
 
 export const HOT_C = 55;
@@ -61,4 +62,36 @@ export function storeInto(holderId: string): void {
   } else if (result === 'wrong') {
     game.showToast('Энд багтахгүй', holderType(holderId) === 'rack' ? 'Тавиурт зөвхөн хуруу шил хийнэ' : `${CATALOG[held.kind].name} энд багтахгүй`);
   }
+}
+
+/**
+ * A loose test tube lies on its side and cannot hold liquid. Stands it in a free slot of the
+ * nearest test-tube rack within `reach` (m, about one bench), as you would before filling it. False when none.
+ */
+export function standTube(id: string, reach = 2.6): boolean {
+  const inv = useInventoryStore.getState();
+  const tube = inv.worldItems.find((w) => w.id === id && w.kind === 'testTube');
+  if (!tube) return false;
+  const at = livePose(tube);
+  let rack: string | null = null;
+  let best = reach;
+  for (const w of inv.worldItems) {
+    if (w.kind !== 'testTubeRack' || storedIn(inv.storage, w.id).length >= HOLDER_CAPACITY.rack) continue;
+    const p = livePose(w);
+    const d = Math.hypot(p.x - at.x, p.z - at.z);
+    if (d < best) { best = d; rack = w.id; }
+  }
+  if (!rack) return false;
+  const holder = rack;
+  useInventoryStore.setState((s) => ({
+    worldItems: s.worldItems.filter((w) => w.id !== id),
+    storage: { ...s.storage, [holder]: [...storedIn(s.storage, holder), { id, kind: 'testTube', variant: tube.variant }] },
+  }));
+  sounds.play('clink', 0.6);
+  return true;
+}
+
+/** A test tube lying loose in the room (not in a rack, not in the hand). */
+export function isLooseTube(id: string): boolean {
+  return useInventoryStore.getState().worldItems.some((w) => w.id === id && w.kind === 'testTube');
 }

@@ -1,14 +1,13 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
 
-import type { RegionSelection } from '@/components/ranking/region-picker';
 import { AppText } from '@/components/ui/app-text';
 import { SelectField, type SelectOption } from '@/components/ui/select-field';
 import { Colors } from '@/constants/theme';
 import { CITY_REGIONS, PROVINCE_REGIONS } from '@/data/regions';
 import { districtOf, schoolNumbers } from '@/lib/school-district';
 import { supabase } from '@/lib/supabase';
-import type { RegionType } from '@/types';
+import type { RegionSelection, RegionType } from '@/types';
 
 interface School {
   id: string;

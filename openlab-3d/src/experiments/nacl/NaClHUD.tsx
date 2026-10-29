@@ -1,40 +1,31 @@
 import {guidedPlan} from '../workbench/guidance/plans';
-import {useGuideCue} from '../workbench/guidance/runtime';
-import {gasMl,liquidMl,solidMassG} from '../../chemistry/mixture';
-import {Grade9Controls} from '../grade9/Controls';
 import { KI_DOSE_ML } from '../../lab/quantity-guidance';
 import { MeasurementGuide } from '../workbench/MeasurementGuide';
-import { MoleculeViewerButton } from '../../ui/MoleculeViewer';
 /** One room, one set of equipment. Guidance never locks an object or a step. */
 import { useEffect, useRef } from 'react';
 import { bench, enterBench, exitBench } from './bench';
 import { drawScopeImage } from './engine';
-import { NAMES, USES, LABEL_KEYS } from './data';
-import { contentsLabel, crystalMass, describe, labSpace, labUse, mixture, partId, partKey, useSandbox } from './sandbox';
+import { NAMES, LABEL_KEYS } from './data';
+import { contentsLabel, describe, labSpace, mixture, partId, useSandbox } from './sandbox';
 import { useGameStore } from '../../store/useGameStore';
 import { usePortableStore } from '../../interaction/portable';
 import { useInventoryStore } from '../../store/useInventoryStore';
-import { requestLock } from '../../controls/usePointerLock';
 import { benchUseTarget } from '../../interaction/benchUseTarget';
 import { interactItem } from '../../interaction/interactItem';
-import { interactables } from '../../interaction/registry';
-import { tablePointer } from '../../interaction/heldApi';
-import { beginHeldUse, endHeldUse } from '../../interaction/useHeld';
-import { transfer } from '../../interaction/actions';
-import { CATALOG, type EquipmentKind } from '../../equipment/equipmentCatalog';
-import { dropHeld } from '../../controls/useGameKeys';
 import { benchView, useBenchView } from './view';
 import { experimentGuide } from './guidance';
 import { promptKey } from '../../controls/keyMap';
 import { useSettingsStore } from '../../store/useSettingsStore';
 import { useLabStore } from '../../store/useLabStore';
 import { useExperimentCatalog } from '../../lab/experiments';
-import { composition } from '../../chemistry/describe';
-import { useChemStore,mixtureOf } from '../../store/useChemStore';
 import { currentSession, jumpToStep, useWorkbench } from '../workbench/session';
 import { isTouchDevice } from '../../utils/device';
 import { PreparationChecklist } from '../workbench/PreparationHints';
 import { mobileizeControlHint } from '../../controls/mobileInteraction';
+import { ProcedureList } from '../../menu/ProcedureBlock';
+import { TextbookPreparation } from '../../menu/TextbookPreparation';
+import { SHOW_LAB_STEPS_IN_CARD, benchGroups, benchTitle, useLaunchedProcedure } from '../../menu/launchedProcedure';
+import { procedureGroupsForLab } from '../../menu/labProcedureData';
 
 function readItem(id: string) {
   mixture(id);
@@ -71,71 +62,6 @@ function WorldLabels() {
       className="pointer-events-auto absolute left-0 top-0 max-w-[180px] rounded-md bg-white/90 px-2 py-1 text-[10px] text-lab-ink shadow"
       onClick={() => { if (usePortableStore.getState().held || useInventoryStore.getState().held) { useSandbox.setState({ inspected: partId(key), hovered: partId(key) }); useBenchView.setState({ selected: partId(key) }); } else { readItem(partId(key)); if (useGameStore.getState().mode === 'bench') interactItem(partId(key)); } }} />)}
   </div>;
-}
-
-function SubstanceCard() {
-  const id = useSandbox((s) => s.inspected);
-  const demoPlaying=useGuideCue(s=>!!s.target);
-  useChemStore((s) => id ? s.mixtures[id] : undefined);
-  const portable = usePortableStore((s) => s.held);
-  const normal = useInventoryStore((s) => s.held);
-  const mode = useGameStore((s) => s.mode);
-  const inspecting = useBenchView((s) => s.inspecting);
-  if (!id||demoPlaying) return null;
-  const heldId = portable?.id ?? normal?.id;
-  const item = describe(id); const m = mixture(id); const key = partKey(id);
-  const close = () => {
-    if (inspecting) { benchView.back(); return; }
-    useSandbox.setState({ inspected: null }); useBenchView.setState({ selected: null });
-    if (mode === 'walk') requestLock();
-  };
-  const tool = heldId ? describe(heldId) : null;
-  const heldContents=heldId?mixtureOf(heldId,normal?.variant):undefined;
-  const doseGas=!!heldContents&&gasMl(heldContents)>0&&liquidMl(heldContents)<.005;
-  const doseUnit=doseGas?'мл хий':heldContents&&liquidMl(heldContents)<=.005&&solidMassG(heldContents)>0?'г':'см³';
-  const fittingPaper = !!tool && ['paper', 'stack'].includes(tool.role) && key === 'funnel';
-  const canPour = !!tool && !['paper', 'stack'].includes(tool.role) && tool.capacity > 0 && item.capacity > 0 && heldId !== id;
-  const action = () => { if (heldId !== id) beginHeldUse(id); };
-  const dose = (ml: number) => {
-    if (key || portable) { labUse.dose(id, ml); return; }
-    const to = interactables.get(id)?.useTarget;
-    if (normal && to?.type === 'item') transfer(normal, to, ml);
-  };
-  const core = useChemStore.getState().mixtures[id];
-  const liveContents = core ? composition(core) : null;
-  const purpose = key ? USES[key] : (CATALOG[item.role as EquipmentKind]?.description ?? '');
-  return <section className="fixed inset-x-4 bottom-28 z-40 max-h-[24vh] overflow-auto rounded-2xl bg-white/95 p-3 text-sm text-lab-ink shadow-hud sm:inset-x-auto sm:right-4 sm:top-32 sm:bottom-auto sm:max-h-[53vh] sm:w-[270px] sm:p-4" aria-label="Багаж ба хэмжилт">
-    {(canPour || fittingPaper) && <div className="mb-2 rounded-lg border border-sky-300 bg-sky-50 px-3 py-2 text-sky-900" role="status">
-      <b className="block text-xs">{fittingPaper ? 'Шүүлтүүрийн цаас суулгах' : '↓ Цутгах сав сонгогдлоо'}</b>
-      <p className="mt-1 hidden text-[11px] sm:block">{tool?.label} → {item.label}</p>
-      <p className="mt-1 hidden text-[11px] sm:block">{fittingPaper ? 'Юүлүүр рүү чиглүүлээд Q эсвэл R дарж цаасыг суулгана.' : 'R дарж барьж цутгана · Дарж сонгоход савыг тавихгүй.'}</p>
-    </div>}
-    <div className="flex justify-between gap-2"><h2 className="font-bold">{item.label}</h2><button aria-label="Хэмжилтийг хаах" onClick={close}>✕</button></div>
-    {heldId && heldId !== id && <div className="mt-3 border-t border-slate-200 pt-3">
-      <p className="mb-2 text-[11px] text-slate-600">{tool?.label} → {item.label}</p>
-      <button className="touch-none rounded-lg bg-slate-200 px-3 py-2 text-xs font-bold" onPointerDown={(e) => { e.currentTarget.setPointerCapture(e.pointerId); action(); }} onPointerUp={endHeldUse} onPointerCancel={endHeldUse} onBlur={endHeldUse}
-        onKeyDown={(e) => { if ((e.key === ' ' || e.key === 'Enter') && !e.repeat) { e.preventDefault(); action(); } }} onKeyUp={endHeldUse}>Дарж барьж {fittingPaper ? 'цаасыг суулгах' : canPour ? 'цутгах' : 'ашиглах'}</button>
-      {canPour && <div className="mt-2 flex flex-wrap gap-2"><button className="rounded-lg bg-sky-100 px-3 py-2 text-xs font-bold" onClick={() => dose(.1)}>0.1 {doseUnit} {doseGas?'дамжуулах':doseUnit==='г'?'хийх':'цутгах'}</button><button className="rounded-lg bg-sky-100 px-3 py-2 text-xs font-bold" onClick={() => dose(1)}>1 {doseUnit} {doseGas?'дамжуулах':doseUnit==='г'?'хийх':'цутгах'}</button><button className="rounded-lg bg-sky-100 px-3 py-2 text-xs font-bold" onClick={() => dose(5)}>5 {doseUnit} {doseGas?'дамжуулах':doseUnit==='г'?'хийх':'цутгах'}</button></div>}
-    </div>}
-    <div className="mt-3 flex flex-wrap gap-2">
-      {((interactables.get(id)?.onGrab && interactables.get(id)?.onGrab !== interactables.get(id)?.onInteract) || key === 'lamp' || key === 'scope') && <button className="rounded-lg bg-slate-100 px-3 py-2 text-xs font-bold" onClick={() => { const entry = interactables.get(id); if (key) labUse.start(id); else entry?.onInteract?.(); }}>Ашиглах</button>}
-      <button className="rounded-lg bg-sky-100 px-3 py-2 text-xs font-semibold text-sky-900" onClick={() => mode === 'walk' ? readItem(id) : inspecting ? benchView.back() : benchView.inspect(id)}>{inspecting ? 'Esc · Ширээнд буцах' : 'F · Барьж шинжлэх'}</button>
-      {!heldId && !inspecting && <button className="rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs" onClick={() => { interactItem(id, true); }}>Авах / зөөх</button>}
-      {heldId === id && <button className="rounded-lg bg-emerald-100 px-3 py-2 text-xs font-semibold" onClick={() => { tablePointer.angle += Math.PI / 4; }}>Эргүүлэх 45°</button>}
-    </div>
-    <Grade9Controls id={id}/>
-    {item.capacity > 0 && <div className="my-2 rounded-xl bg-sky-50 px-3 py-2"><span className="block text-[10px] font-bold uppercase tracking-wide text-slate-500">Одоогийн эзэлхүүн</span><output className="font-mono text-2xl font-bold tabular-nums sm:text-3xl text-sky-900" aria-label="Одоогийн эзэлхүүн">{m.ml.toFixed(1)} <small className="text-sm">см³</small></output>{key === 'cyl' && <div className="text-xs text-sky-800">Зорилго: 50.0 см³ · 1 см³ хуваарь<br />Менискийн доод ирмэгийг урдаас унш.</div>}</div>}
-    {inspecting && <p className="mb-1 text-[11px] text-slate-500">Чирж эргүүл · Дугуй / хоёр хуруугаар ойртуул</p>}
-    <p className="text-xs font-semibold text-teal-700">{contentsLabel(m)} · {m.temp.toFixed(0)} °C</p>
-    {liveContents && !key && <p className="mt-1 text-[11px] text-slate-600">{[...liveContents.dissolved, ...liveContents.solids].map((s) => `${s.name} (${s.formula}) ${s.value}`).join(" · ")}</p>}
-    {item.capacity > 0 && <MoleculeViewerButton id={id}/>}
-    {inspecting && <p className="mt-2 text-xs text-slate-600">{purpose}</p>}
-    <details className="mt-3 text-xs"><summary className="cursor-pointer font-semibold text-slate-600">Бодис, зориулалт, аюул</summary>
-      {purpose && <p className="mt-2">{purpose}</p>}
-      {key && <p className="mt-2">HCl {m.acid.toFixed(2)} ммоль · Na₂CO₃ {m.carbonate.toFixed(2)} г · NaCl {m.salt.toFixed(3)} г · Талст {crystalMass(m).toFixed(3)} г</p>}
-      <p className="mt-2 text-amber-900">{m.acid > 0 ? 'Хүчил: нүд, арьс цочрооно. ' : ''}{m.temp > 50 ? 'Халуун: түлэгдэх аюултай. ' : ''}{m.other ? 'Энэ хольцын урвалыг загварчлаагүй. ' : ''}Зааврыг дага; бодисыг амсахгүй.</p>
-    </details>
-  </section>;
 }
 
 function Microscope() {
@@ -187,6 +113,13 @@ export function NaClHUD() {
   const cohesiveGuide=!!active&&!!guidedPlan(active);
   const lesson = catalog.find((x) => x.id === active);
   const preparing = !!lesson && !session?.ready;
+  // Ширээнд суухад ExperimentCard нуугддаг тул цэснээс сонгосон туршилтын нэр, "Хэрхэн хийх" алхмыг энд харуулна
+  const launched = useLaunchedProcedure();
+  const topic = benchTitle(active, launched, lesson?.title);
+  const groups = benchGroups(active, launched, active ? procedureGroupsForLab(active) : []);
+  const clean = !SHOW_LAB_STEPS_IN_CARD && groups.length > 0;
+  // Лаб ширээн дээрх хэрэгслийг хянадаггүй (эсвэл лабын заавартай холбоогүй) туршилт: сурах бичгийн бодис, хэрэгслийн жагсаалтаар бэлтгэнэ
+  const textbookPrep = !!launched.prep && launched.labId === active;
   const done = active ? progress[active] ?? [] : [];
   const nextStep = lesson?.steps.findIndex((s) => !done.includes(s.id)) ?? 0;
   const autoStep = nextStep < 0 ? lesson?.steps.length ?? 0 : nextStep;
@@ -207,23 +140,25 @@ export function NaClHUD() {
       <button className="rounded-full bg-white/95 px-3 py-2 shadow" onClick={exitBench}>Ширээнээс гарах</button>
       {isTouchDevice() && view.inspecting && <button className="rounded-full bg-white/95 px-3 py-2 shadow" onClick={benchView.back}>Esc · Ширээнд буцах</button>}
     </div>}
-    {closeup && !workbench.drawer && <aside className="fixed left-3 right-12 top-14 z-30 max-h-[43vh] overflow-auto overscroll-contain rounded-xl bg-white/95 p-3 text-lab-ink shadow-hud sm:right-auto sm:max-h-[75vh] sm:w-[340px] sm:max-w-lg" aria-label="Туршилтын заавар">
-      <div className="truncate text-xs font-bold">{lesson?.title ?? 'Туршилт сонгоогүй байна'}{preparing ? ' · Бэлтгэл' : ''}</div>
+    {closeup && !workbench.drawer && cohesiveGuide && active && (preparing
+      ? <PreparationChecklist floating/>
+      : <MeasurementGuide experiment={active} target={receiver??view.selected} step={lesson?.steps[selectedStep]?.id}/>)}
+    {closeup && !workbench.drawer && !cohesiveGuide && <aside className="fixed left-3 right-12 top-14 z-30 max-h-[43vh] overflow-auto overscroll-contain rounded-xl bg-white/95 p-3 text-lab-ink shadow-hud sm:right-auto sm:max-h-[75vh] sm:w-[340px] sm:max-w-lg" aria-label="Туршилтын заавар">
+      <div className="text-xs font-bold leading-snug">{topic ?? lesson?.title ?? 'Туршилт сонгоогүй байна'}{preparing || textbookPrep ? ' · Бэлтгэл' : ''}</div>
       {session?.teacher && !cohesiveGuide && <span className="mt-1 inline-block rounded-full bg-indigo-50 px-2 py-1 text-[11px] font-bold text-indigo-700">👩‍🏫 Багшийн горим</span>}
-      {cohesiveGuide&&active&&<MeasurementGuide experiment={active} target={receiver??view.selected} step={lesson?.steps[selectedStep]?.id}/>}
-      {preparing ? <PreparationChecklist /> : lesson && <>
-        {!cohesiveGuide&&<p className="mt-1 text-xs font-semibold">{active === 'nacl' ? (isTouchDevice() ? mobileizeControlHint(guide.current.hint) : guide.current.hint) : lesson.steps[selectedStep]?.text ?? 'Туршилт дууслаа.'}</p>}
-        {!cohesiveGuide && active === 'elephant' && selectedStep < lesson.steps.length && <p className="mt-1 rounded bg-sky-50 p-2 text-sm font-bold text-sky-950">{selectedStep === 0 ? 'H₂O₂: 20–30 мл → цилиндр' : selectedStep === 1 ? 'Саван: бага хэмжээ · нэмсэн мл-ээ тэмдэглэ' : `KI (0.5 М): ≈${KI_DOSE_ML?.toFixed(1) ?? '—'} мл → цилиндр`}</p>}
-        {!cohesiveGuide && active !== 'nacl' && lesson.steps[selectedStep] && <details key={lesson.steps[selectedStep].id} className="mt-1 text-[11px]"><summary className="cursor-pointer text-sky-800">Тусламж хэрэгтэй юу?</summary><p className="mt-1">{lesson.steps[selectedStep].hint}</p></details>}
+      {preparing ? <PreparationChecklist /> : textbookPrep ? <TextbookPreparation /> : <>
+        {clean && <ProcedureList groups={groups} />}
+        {lesson && <>
+        {!cohesiveGuide&&!clean&&<p className="mt-1 text-xs font-semibold">{active === 'nacl' ? (isTouchDevice() ? mobileizeControlHint(guide.current.hint) : guide.current.hint) : lesson.steps[selectedStep]?.text ?? 'Туршилт дууслаа.'}</p>}
+        {!cohesiveGuide && !clean && active === 'elephant' && selectedStep < lesson.steps.length && <p className="mt-1 rounded bg-sky-50 p-2 text-sm font-bold text-sky-950">{selectedStep === 0 ? 'H₂O₂: 20–30 мл → цилиндр' : selectedStep === 1 ? 'Саван: бага хэмжээ · нэмсэн мл-ээ тэмдэглэ' : `KI (0.5 М): ≈${KI_DOSE_ML?.toFixed(1) ?? '—'} мл → цилиндр`}</p>}
+        {!cohesiveGuide && !clean && active !== 'nacl' && lesson.steps[selectedStep] && <details key={lesson.steps[selectedStep].id} className="mt-1 text-[11px]"><summary className="cursor-pointer text-sky-800">Тусламж хэрэгтэй юу?</summary><p className="mt-1">{lesson.steps[selectedStep].hint}</p></details>}
         {!cohesiveGuide && active && <MeasurementGuide experiment={active} target={receiver ?? view.selected} step={lesson.steps[selectedStep]?.id}/>}
+        </>}
       </>}
-      {!cohesiveGuide && lesson && <details className="mt-1 text-[11px]"><summary className="cursor-pointer text-slate-500">Алхмууд</summary><div className="mt-1 flex flex-wrap gap-1">{lesson.steps.map((step, i) => <button key={step.id} className="rounded bg-slate-100 px-2 py-1" onClick={() => jumpToStep(i)}>{(active === 'nacl' && guide.steps[i]?.done) || done.includes(step.id) ? '✓ ' : ''}{i + 1}. {step.text}</button>)}</div></details>}
+      {!cohesiveGuide && !clean && lesson && <details className="mt-1 text-[11px]"><summary className="cursor-pointer text-slate-500">Алхмууд</summary><div className="mt-1 flex flex-wrap gap-1">{lesson.steps.map((step, i) => <button key={step.id} className="rounded bg-slate-100 px-2 py-1" onClick={() => jumpToStep(i)}>{(active === 'nacl' && guide.steps[i]?.done) || done.includes(step.id) ? '✓ ' : ''}{i + 1}. {step.text}</button>)}</div></details>}
       {!cohesiveGuide && lesson && <p className="mt-1 text-[11px] text-slate-600" role="status">{active === 'nacl' && !preparing ? guide.warning : state.warning}</p>}
     </aside>}
     {closeup && !workbench.drawer && isTouchDevice() && <CameraControls />}
-    {closeup && !workbench.drawer && <div className="pointer-events-none fixed inset-x-4 bottom-4 z-20 hidden rounded-xl sm:block bg-white/95 px-3 py-2 text-center text-[11px] text-lab-ink shadow sm:inset-x-auto sm:left-1/2 sm:max-w-xl sm:-translate-x-1/2">
-      {view.inspecting ? 'Чирж эргүүлэх · Дугуй / хоёр хуруу: ойр, хол · Esc: ширээнд буцах' : held ? <><b>{held}</b> · Хулганаа ширээний хоосон хэсэг рүү зөө. Ногоон дүрс: тавих ({q}) · Цэнхэр сав: R дарж цутгах.{isTouchDevice() && <><button className="pointer-events-auto ml-2 rounded bg-slate-100 px-2 py-1" onClick={() => { tablePointer.angle += Math.PI / 4; }}>Эргүүлэх 45°</button><button className="pointer-events-auto ml-1 rounded bg-slate-100 px-2 py-1" onClick={dropHeld}>Тавих</button></>}</> : <>{promptKey('interact', settings.bindings, settings.lookMode)}: авах · {promptKey('inspect', settings.bindings, settings.lookMode)}: шинжлэх · Дарах: авах / бай сонгох · R дарж барих: ашиглах · Чирэх: харах өнцөг · Баруун чирэх: ширээгээр шилжих · Дугуй / хоёр хуруу: ойр, хол</>}
-    </div>}
-    {(closeup || !!portable) && !workbench.drawer && <SubstanceCard />}{active === 'nacl' && <Microscope />}
+    {active === 'nacl' && <Microscope />}
   </>;
 }

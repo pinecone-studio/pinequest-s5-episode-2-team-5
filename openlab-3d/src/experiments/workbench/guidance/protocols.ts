@@ -1,15 +1,15 @@
 import type {GuideStep} from './plans';
 import type {Check,Endpoint} from './conditions';
-import {CATALOG,type EquipmentKind} from '../../../equipment/equipmentCatalog';
+import {CATALOG,type BenchKey,type EquipmentKind} from '../../../equipment/equipmentCatalog';
 import type {ReagentId} from '../../../chemistry/reagents';
 const check=(metric:Check['metric'],min?:number,max?:number,other:Partial<Check>={}):Check=>({metric,...(min===undefined?{}:{min}),...(max===undefined?{}:{max}),...other});
-const s=(species:string,min=1e-6,port?:number,target?:EquipmentKind)=>check('solid',min,undefined,{species,port,target});
-const a=(species:string,min=1e-6,port?:number,target?:EquipmentKind)=>check('aqueous',min,undefined,{species,port,target});
+const s=(species:string,min=1e-6,port?:number,target?:BenchKey)=>check('solid',min,undefined,{species,port,target});
+const a=(species:string,min=1e-6,port?:number,target?:BenchKey)=>check('aqueous',min,undefined,{species,port,target});
 const data=(key:string,min:number)=>check('data',min,undefined,{key});
 const wait=(label:string,checks:Check[],other:Partial<Endpoint>={}):GuideStep=>({type:'observe',label,target:checks.find(c=>c.target)?.target,duration:2,until:{label,checks,minimum:2,timeout:90,speed:8,...other}});
-const record=(label:string,target?:EquipmentKind,port?:number):GuideStep=>({type:'record',label,target,port});
-const config=(label:string,change:Extract<GuideStep,{type:'configure'}>['change'],target?:EquipmentKind):GuideStep=>({type:'configure',label,change,target});
-const dose=(reagent:ReagentId,amount:number,port=0,target?:EquipmentKind,filter?:EquipmentKind):Extract<GuideStep,{type:'dose'}>=>({type:'dose',reagent,amount,port,target,filter});
+const record=(label:string,target?:BenchKey,port?:number):GuideStep=>({type:'record',label,target,port});
+const config=(label:string,change:Extract<GuideStep,{type:'configure'}>['change'],target?:BenchKey):GuideStep=>({type:'configure',label,change,target});
+const dose=(reagent:ReagentId,amount:number,port=0,target?:BenchKey,filter?:EquipmentKind):Extract<GuideStep,{type:'dose'}>=>({type:'dose',reagent,amount,port,target,filter});
 const move=(from:EquipmentKind,to:EquipmentKind,amount:number,filter?:EquipmentKind):Extract<GuideStep,{type:'move'}>=>({type:'move',from,to,amount,filter,label:`${CATALOG[from].name} → ${CATALOG[to].name}: ${amount} мл${filter?' · шүүх':''}`});
 /** Every supported demo has a measured primary endpoint, not a generic end-of-timer success. */
 function primary(id:string):Check[]{
@@ -58,7 +58,7 @@ function primary(id:string):Check[]{
   'g9-litmus':[check('ph',undefined,3,{port:0}),check('ph',11,undefined,{port:1})],'g9-ph-ranking':[check('ph',0,7)],'g9-zinc-hcl':[check('solid',undefined,1e-7,{species:'Zn'})],
   'g9-carbonate-co2':[check('solid',undefined,1e-7,{species:'CaCO3'}),s('CaCO3',1e-5,2)],'g9-antacid':[check('acid',undefined,1e-6)],'g9-air-oxygen':[s('CuO',.0015)],
   'g9-corrosion':[s('FeOH3',1e-5)],'g9-ammonia-preparation':[check('volume',20)],'g9-water-tests':[a('Cu',1e-6)],'g9-air-distillation':[check('volume',99)],
-  'reaction-timing':[check('solid',undefined,1e-7,{species:'CaCO3'})],'melting-point':[check('solid',undefined,1e-7,{species:'ice'})],'group2-water':[s('Mg',.004),check('volume',undefined,.1)],'group2-acid':[check('volume',55)],
+  'reaction-timing':[check('solid',undefined,1e-7,{species:'CaCO3'})],'melting-point':[check('solid',undefined,1e-7,{species:'ice',port:0}),check('solid',undefined,1e-7,{species:'ice',port:1})],'group2-water':[s('Mg',.004),check('volume',undefined,.1)],'group2-acid':[check('volume',55)],
   'halogens':[a('Br2',1e-6),a('I2',1e-6,1)],'physical-change':[check('solid',undefined,1e-7,{species:'ice'})],
   'rate-concentration':[check('solid',undefined,1e-7,{species:'CaCO3'})],'rate-temperature':[check('solid',undefined,1e-7,{species:'CaCO3'})],'rate-surface':[check('solid',undefined,1e-7,{species:'CaCO3'})],
   'candle-products':[check('gas',1e-6,undefined,{species:'CO2'})],'fuel-energy':[check('temperature',30)],
@@ -85,6 +85,75 @@ function saltWorkup(id:string):GuideStep[]{
 }
 export function completeProtocol(id:string,starter:GuideStep[]):GuideStep[]{
  let setup:GuideStep[]=starter.filter(s=>s.type!=='observe'||id==='g9-air-distillation'||id==='g9-crystallisation').map(s=>s.type==='observe'?{...s,until:{label:s.label,checks:id==='g9-air-distillation'?[check('temperature',undefined,-199)]:[s2('NaCl','evaporatingDish')],speed:8,timeout:90}}:s);
+ // 7-01: three beakers side by side — room, ice-cooled and hot water — and a sugar lump in each.
+ if(id==='g7-sugar-motion'){
+  const gone=(t:BenchKey)=>check('solid',undefined,1e-7,{species:'sucrose',target:t});
+  return [
+   dose('water',50,0,'beaker'),dose('cold_water',50,0,'beaker#2'),dose('hot_water',50,0,'beaker#3'),
+   // Enough ice that some is still floating while the sugar dissolves, so the water stays near 0 °C.
+   dose('s_ice',25,0,'beaker#2'),
+   wait('Хүйтэн усыг мөсөөр хөргөж байна.',[check('temperature',undefined,5,{target:'beaker#2'}),check('solid',.001,undefined,{species:'ice',target:'beaker#2'})],{speed:1,timeout:60,minimum:0}),
+   dose('s_sugar',1,0,'beaker#2'),dose('s_sugar',1,0,'beaker'),dose('s_sugar',1,0,'beaker#3'),
+   wait('Халуун усанд ёотон уусч алга болохыг ажигла.',[gone('beaker#3')],{speed:2,timeout:300,minimum:0}),record('Халуун ус: ёотон хамгийн түрүүнд уусав.','beaker#3'),
+   wait('Тасалгааны температуртай усанд уусахыг ажигла.',[gone('beaker')],{speed:2,timeout:300,minimum:0}),record('Тасалгааны ус: ёотон уусав.','beaker'),
+   wait('Мөстэй хүйтэн усанд уусахыг ажигла.',[gone('beaker#2')],{speed:4,timeout:600,minimum:0}),record('Хүйтэн ус: ёотон хамгийн сүүлд уусав.','beaker#2'),
+   {type:'finish',label:'Ус халуун байх тусам ёотон хурдан уусна: хэсгүүд хурдан хөдөлдөг.',target:'beaker',until:{label:'Гурван аяганд ёотон уусав.',checks:[gone('beaker'),gone('beaker#2'),gone('beaker#3')]}},
+  ];
+ }
+ // 9-15: four mixtures in four beakers, each filtered: sand and tomato pulp stay on the paper, salt and alcohol pass.
+ if(id==='g9-filtration'){
+  const mixtures:[BenchKey,ReagentId,number,string,Check[]][]=[
+   ['beaker','s_sand',1,'Элстэй ус: элс шүүлтүүр дээр үлдэнэ (гетероген).',[check('solidMass',.9,undefined,{target:'funnel'}),check('solidMass',undefined,1e-6,{target:'erlenmeyer'}),check('water',19,undefined,{target:'erlenmeyer'})]],
+   ['beaker#2','tomato',5,'Улаан лоолийн жүүс: шир цаасан дээр, улаан шүүгдэс доош (гетероген).',[s('paper',1e-6,undefined,'funnel'),a('dyeR',1e-8,undefined,'erlenmeyer')]],
+   ['beaker#3','s_nacl',1,'Давсны уусмал: цаасан дээр юу ч үлдэхгүй (гомоген).',[a('Na',.015,undefined,'erlenmeyer'),check('solidMass',undefined,1e-6,{target:'funnel'})]],
+   ['beaker#4','ethanol',5,'Спиртийн уусмал: бүгд шүүгдэнэ (гомоген).',[check('ethanol',4,undefined,{target:'erlenmeyer'}),check('solidMass',undefined,1e-6,{target:'funnel'})]],
+  ];
+  const p:GuideStep[]=mixtures.flatMap(([cup,reagent,amount]):GuideStep[]=>[dose('water',20,0,cup),dose(reagent,amount,0,cup)]);
+  p.push(wait('Давс бүрэн уусахыг хүлээ.',[check('solid',undefined,1e-7,{species:'NaCl',target:'beaker#3'})],{speed:4,timeout:120,minimum:0}));
+  p.push({type:'place',item:'funnel',onto:'erlenmeyer',label:'Шүүлтүүр цаастай юүлүүрийг колбонд суулга.'});
+  mixtures.forEach(([cup,,,label,checks],i)=>{
+   p.push({type:'move',from:cup,to:'erlenmeyer',amount:1,all:true,filter:'funnel',label:`${i+1}-р холимгийг юүлүүрээр шү.`},wait(label,checks,{speed:4,timeout:60,minimum:0}),record(label,'erlenmeyer'));
+   if(i<mixtures.length-1)p.push({type:'reset',label:'Шүүгдсийг асгаж колбыг угаана.',target:'erlenmeyer'},{type:'reset',label:'Шүүлтүүрийн цаасыг солино.',target:'funnel'});
+  });
+  p.push({type:'finish',label:'Гетероген холимгийг шүүж салгаж болно; гомоген холимог шүүлтүүрээр салахгүй.',target:'erlenmeyer',until:{label:'Дөрвөн холимгийг шүүв.',checks:mixtures[3][4]}});
+  return p;
+ }
+ // 9-06: copper sulfate under room-temperature, cold and heated water in three beakers.
+ if(id==='g9-diffusion-temperature'){
+  const gone=(t:BenchKey)=>check('solid',undefined,1e-7,{species:'CuSO4_5',target:t});
+  return [
+   dose('s_cuso4',5,0,'beaker'),dose('s_cuso4',5,0,'beaker#2'),dose('s_cuso4',5,0,'beaker#3'),
+   dose('water',100,0,'beaker'),{type:'place',item:'watchGlass',onto:'beaker',label:'Эхний аягыг цагийн шилээр тагла.'},
+   dose('cold_water',100,0,'beaker#2'),
+   dose('water',100,0,'beaker#3'),config('Гурав дахь аягыг халаагуур дээр халаа.',{heating:true},'beaker#3'),
+   wait('Гурав дахь аяганы ус халж байна.',[check('temperature',60,undefined,{target:'beaker#3'})],{speed:4,timeout:180,minimum:0,stopHeat:true}),
+   wait('Халуун усанд зэсийн сульфат түрүүлж уусна.',[gone('beaker#3')],{speed:2,timeout:300,minimum:0}),record('Халаасан ус: хамгийн түрүүнд уусав.','beaker#3'),
+   wait('Тасалгааны усанд уусахыг ажигла.',[gone('beaker')],{speed:2,timeout:300,minimum:0}),record('Тасалгааны ус: уусав.','beaker'),
+   wait('Хүйтэн усанд уусахыг ажигла.',[gone('beaker#2')],{speed:4,timeout:600,minimum:0}),record('Хүйтэн ус: хамгийн сүүлд уусав.','beaker#2'),
+   {type:'finish',label:'Температур өндөр байх тусам диффуз ба уусалт хурдан.',target:'beaker',until:{label:'Гурван аяганд зэсийн сульфат уусав.',checks:[gone('beaker'),gone('beaker#2'),gone('beaker#3')]}},
+  ];
+ }
+ if(id==='melting-point'){
+  const purePlateau=[check('solid',.001,undefined,{species:'ice',port:0}),check('temperature',-.05,.05,{port:0})];
+  const saltedPlateau=[check('solid',.001,undefined,{species:'ice',port:1}),check('temperature',-21.1,-.1,{port:1})];
+  const pureMelted=[check('solid',undefined,1e-7,{species:'ice',port:0})];
+  const saltedMelted=[check('solid',undefined,1e-7,{species:'ice',port:1})];
+  const melted=[...pureMelted,...saltedMelted];
+  return [
+   ...setup,
+   wait('Цэвэр мөс хайлах үеийн температурыг тогтооно.',purePlateau,{speed:4,timeout:90,minimum:0}),
+   record('Цэвэр мөсний хайлах үеийн хэмжилт.','heatingBath',0),
+   {type:'configure',label:'Харьцуулах үүрийг сонгож халаана.',target:'heatingBath',change:{port:1}},
+   wait('Давстай мөсний хайлах үеийн температурыг тогтооно.',saltedPlateau,{speed:4,timeout:90,minimum:0}),
+   record('Давстай мөсний хайлах үеийн хэмжилт.','heatingBath',1),
+   wait('Давстай дээжийн мөс бүрэн хайлахыг хүлээнэ.',saltedMelted,{speed:8,timeout:90,minimum:0}),
+   record('Давстай дээжийн эцсийн төлөв ба температурыг тэмдэглэ.','heatingBath',1),
+   {type:'configure',label:'Цэвэр мөсний үүрийг сонгож халаана.',target:'heatingBath',change:{port:0}},
+   wait('Цэвэр дээжийн мөс бүрэн хайлахыг хүлээнэ.',pureMelted,{speed:8,timeout:90,minimum:0,stopHeat:true}),
+   record('Цэвэр дээжийн эцсийн төлөв ба температурыг тэмдэглэ.','heatingBath',0),
+   {type:'finish',label:'Цэвэр ба давстай мөсний хайлах хэмжилтийг харьцуулж дуусгалаа.',target:'heatingBath',until:{label:'Хоёр дээжийн мөс хайлсан.',checks:melted}},
+  ];
+ }
  if(id==='g9-filtration'){const at=setup.findIndex(s=>s.type==='move'&&s.filter==='funnel');if(at>=0)setup.splice(at,0,{type:'place',item:'funnel',onto:'erlenmeyer',label:'Цаастай юүлүүрийг шүүгдэс хүлээн авах колбонд суулга.'});}
  if(id==='g10-galvanic')setup=[...setup.map(s=>s.type==='configure'&&s.change.connected?{...s,change:{...s.change,connected:false}}:s),wait('Нээлттэй хэлхээний хүчдэлийг унш.',[data('cellVoltage',1)]),record('Ачаалал залгахаас өмнөх хүчдэл.'),config('Ачааллыг холбо.',{connected:true})];
  const initial=primary(id),label='Урвал / хэмжилтийн бодит эцсийн төлөвийг хүлээ.';
@@ -94,7 +163,6 @@ export function completeProtocol(id:string,starter:GuideStep[]):GuideStep[]{
   p.push({type:'reset',label:`Шинэ дээж: ${label}`},...steps,wait(label,checks,options),record(label));lastChecks=checks;
  };
  const variant=(f:(s:GuideStep)=>GuideStep)=>starter.map(f);
- if(id==='g7-sugar-motion')for(const water of ['cold_water','hot_water'] as const)again(water==='cold_water'?'Хүйтэн усан дахь уусалт':'Халуун усан дахь уусалт',variant(s=>s.type==='dose'&&s.reagent==='water'?{...s,reagent:water}:s),initial);
  if(id==='g7-liquid-layers')again('Нэмэх дарааллыг өөрчилсөн хяналт',[dose('corn_syrup',5),dose('water',10),dose('oil',5),{type:'start',label:'Давхаргыг ажигла.'}],initial);
  if(['g7-gas-motion','g7-diffusion-comparison'].includes(id))again('Сэнсний урсгалтай нөхцөл',variant(s=>s.type==='configure'&&s.change.light===0?{...s,change:{...s.change,light:1}}:s),initial);
  if(id==='g7-material-properties')for(const reagent of ['s_s','s_al','s_zn','s_p','s_graphite'] as const)again(`${reagent}: дамжуулах ба соронзын сорил`,[dose(reagent,1),{type:'start',label:'Материалыг шалга.'},config('Соронзын сорил.',{operation:'magnet'})],[check('solidMass',.99)]);
@@ -107,7 +175,6 @@ export function completeProtocol(id:string,starter:GuideStep[]):GuideStep[]{
  if(id==='g7-hydroxides'){p.push(dose('naoh',10,0),wait('Илүүдэл сууринд Al(OH)₃ дахин уусав.',[check('solid',undefined,1e-7,{species:'AlOH3'}),a('AlOH4',1e-4),s('CuOH2',1e-5,1)]));lastChecks=[a('AlOH4',1e-4),s('CuOH2',1e-5,1)];}
  if(id==='g7-indicators')p.push(dose('hcl',5,2),dose('naoh',5,3),dose('mo',.1,2),dose('mo',.1,3),dose('s_litmus_blue',.01,0),dose('s_litmus_red',.01,1),wait('Гурван индикаторын хүчил/суурийн сорил.',[check('ph',undefined,3,{port:2}),check('ph',11,undefined,{port:3})]),record('Индикатор бүрийн өнгө ба pH.'));
  if(id==='g7-rust-protection')p.push(config('Бүрхүүлд сэв гарга.',{scratched:true}),wait('Сэвтэй хамгаалалтын өөрчлөлтийг харьцуул.',[s('FeOH3',1e-4,1),s('FeOH3',1e-4,2)]),record('Бүтэн ба сэвтэй бүрхүүлийн харьцуулалт.'));
- if(['g9-diffusion-temperature'].includes(id))again('Ижил дээж, хүйтэн ус',variant(s=>s.type==='dose'&&s.reagent==='hot_water'?{...s,reagent:'cold_water'}:s),initial);
  if(['g9-diffusion-surface','rate-surface','g10-rate-surface'].includes(id))again('Нунтагласан дээжийн хяналт',[...starter.filter(s=>s.type!=='start'),config('Дээжийг нунтагла.',{port:id==='g9-diffusion-surface'?1:0,data:{grind:1}}),{type:'start',label:'Нунтагласан дээжийн хугацааг хэмж.'}],initial);
  if(id==='g9-diffusion-media')for(const medium of ['water','s_paper'] as const)again(`${medium}: тархалтын орчин`,[dose('water',20),...(medium==='s_paper'?[dose('s_paper',.1,2)]:[]),dose('kmno4',.1,1),{type:'start',label:'Тархалтыг хэмж.'}],[check('extent',.8)]);
  if(id==='g9-liquid-motion')again('Халуун ус дээр байрласан нөхцөл',[...starter.filter(s=>s.type!=='start'),config('Халуун савыг дээр байрлуул.',{hotAbove:true}),{type:'start',label:'Тогтвортой давхаргын холилдолтыг хэмж.'}],[check('extent',.5)],{timeout:180});
@@ -121,6 +188,9 @@ export function completeProtocol(id:string,starter:GuideStep[]):GuideStep[]{
   lastChecks=id==='g9-gas-expansion'?[check('volume',9.5,10.5)]:[check('volume',75,86),s('CuO',.0015)];
  }
  if(['rate-concentration','g10-rate-concentration','g10-rate-zinc','g9-zinc-hcl'].includes(id))again('Хүчлийн хэмжээ бага нөхцөл',variant(s=>s.type==='dose'&&s.reagent==='hcl'?{...s,amount:1}:s),['g9-zinc-hcl'].includes(id)?[check('acid',undefined,1e-5)]:[check('volume',11)]);
+ // 8-07/8-08: the same mass of calcium, which is more reactive than magnesium.
+ if(id==='group2-water')again('Кальци хүйтэн устай хүчтэй урвалд орно',[dose('s_ca',.1),dose('water',10,1),{type:'start',label:'Кальцийг устай холь.'}],[check('volume',40)]);
+ if(id==='group2-acid')again('Кальци давсны хүчилтэй',[dose('s_ca',.1),dose('hcl',5,1),{type:'start',label:'Кальцийг хүчилтэй холь.'}],[check('volume',40)]);
  if(id==='rate-temperature')again('Халаалтгүй температурын хяналт',variant(s=>s.type==='configure'&&s.change.heating?{...s,change:{heating:false}}:s),initial);
  if(id==='g10-electrolysis')again('Инерт анодтой электролиз',variant(s=>s.type==='dose'&&s.port===2&&s.reagent==='s_cu'?{...s,reagent:'s_graphite'}:s),[data('deposited',.0001),check('gas',1e-6,undefined,{species:'O2',port:2})]);
  if(id==='g10-combustion')again('Хүчилтөрөгч дутсан шаталт',variant(s=>s.type==='dose'&&s.reagent==='gas_o2'?{...s,amount:75}:s),[check('gas',.0018,undefined,{species:'CO'}),check('gas',undefined,1e-6,{species:'CH4'})]);

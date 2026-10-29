@@ -49,3 +49,6 @@ example
 
 # Private textbook sources.
 /docs/hub-g8/source/
+
+# markdown notes (already-tracked .md files stay tracked)
+*.md

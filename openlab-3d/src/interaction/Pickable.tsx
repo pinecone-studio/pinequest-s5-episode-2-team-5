@@ -9,7 +9,7 @@ import { memo, useEffect, useLayoutEffect, useRef, useState } from 'react';
 import type { Group } from 'three';
 import { useFrame } from '@react-three/fiber';
 import { CuboidCollider, CylinderCollider, RigidBody, type CollisionEnterPayload, type RapierRigidBody } from '@react-three/rapier';
-import { CATALOG, isContainer, type ColliderShape } from '../equipment/equipmentCatalog';
+import { CATALOG, isContainer, isHeater, type ColliderShape } from '../equipment/equipmentCatalog';
 import { EquipmentModel } from '../equipment/registry';
 import { REAGENTS } from '../chemistry/reagents';
 import { fmtMl, summarize } from '../chemistry/describe';
@@ -30,6 +30,8 @@ import { HolderContents } from './StoredItems';
 import { storeInto, mayTake } from './storage';
 import { isInactiveBenchObject, isWorkbenchObject, useWorkbench } from '../experiments/workbench/session';
 import { useLabStore } from '../store/useLabStore';
+import { useSandbox } from '../experiments/nacl/sandbox';
+import { useBenchView } from '../experiments/nacl/view';
 
 const FLOW_WORDS = ['хаалттай', 'дуслаар', 'удаан урсгал', 'хурдан урсгал'];
 
@@ -49,7 +51,9 @@ function itemTitle(item: WorldItem, tool?: ToolState): { name: string; detail?: 
   if (!isContainer(item.kind)) return { name: def.name };
   const summary = summarize(m);
   const hot = m.temp > 35 ? ` · ${Math.round(m.temp)} °C` : m.temp < 15 ? ` · ${Math.round(m.temp)} °C` : '';
-  return { name: def.name, detail: summary ? summary + hot : hot.replace(' · ', '') || undefined };
+  // Room moisture condensed on the cold outside (not leaking from inside).
+  const dew = (m.dew ?? 0) > 0.01 ? ' · гадна талд усан дусал' : '';
+  return { name: def.name, detail: summary ? summary + hot + dew : (hot + dew).replace(/^ · /, '') || undefined };
 }
 
 function ItemColliders({ shape, mass }: { shape: ColliderShape; mass: number }) {
@@ -105,7 +109,7 @@ export const Pickable = memo(function Pickable({ item }: { item: WorldItem }) {
   const def = CATALOG[item.kind];
   const body = useRef<RapierRigidBody>(null);
   const focused = useGameStore((s) => s.focus?.id === item.id);
-  const lit = useExperimentStore((s) => item.kind === 'bunsenBurner' && !!s.toggles[item.id]);
+  const lit = useExperimentStore((s) => isHeater(item.kind) && !!s.toggles[item.id]);
   const tare = useExperimentStore((s) => s.values[`tare-${item.id}`] ?? 0);
   const mixture = useChemStore((s) => s.mixtures[item.id]);
   const tool = useChemStore((s) => s.tools[item.id]);
@@ -129,15 +133,21 @@ export const Pickable = memo(function Pickable({ item }: { item: WorldItem }) {
   const grab = () => {
     if (!mayTake(item.id, item.variant)) return;
     const exp = useExperimentStore.getState();
-    if (item.kind === 'bunsenBurner' && exp.toggles[item.id]) exp.toggle(item.id);
-    if (useInventoryStore.getState().pickUp(item.id)) sounds.play('pickup');
+    if (isHeater(item.kind) && exp.toggles[item.id]) exp.toggle(item.id);
+    if (useInventoryStore.getState().pickUp(item.id)) {
+      // Picking up the selected item ends its detail view so the item panel cannot
+      // remain over the bench after the object has left the work surface.
+      if (useSandbox.getState().inspected === item.id) useSandbox.setState({ inspected: null });
+      if (useBenchView.getState().selected === item.id) useBenchView.setState({ selected: null });
+      sounds.play('pickup');
+    }
   };
 
   let onInteract = grab;
   let verb = heldGrip ? 'хавчиж авах' : 'авах';
   let label = detail ? `${name} · ${detail}` : name;
   let onWheel: ((d: number) => void) | undefined;
-  if (item.kind === 'bunsenBurner') {
+  if (isHeater(item.kind)) {
     verb = lit ? 'унтраах' : 'асаах';
     onInteract = () => {
       const exp = useExperimentStore.getState();
@@ -146,7 +156,7 @@ export const Pickable = memo(function Pickable({ item }: { item: WorldItem }) {
         exp.markSkill('burner');
         emitLab({ key: 'burner:on', quiet: true, itemId: item.id });
       }
-      useGameStore.getState().logEvent(on ? 'Бунзены горелк асаалаа.' : 'Бунзены горелк унтраалаа.');
+      useGameStore.getState().logEvent(`${CATALOG[item.kind].name} ${on ? 'асаалаа' : 'унтраалаа'}.`);
       sounds.play('puff', 0.7);
     };
   } else if (item.kind === 'scale') {
