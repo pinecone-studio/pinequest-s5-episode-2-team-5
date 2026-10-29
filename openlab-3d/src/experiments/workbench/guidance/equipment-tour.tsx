@@ -1,4 +1,6 @@
+import {useRef} from 'react';
 import {create} from 'zustand';
+import {useReserveTop} from './hud-space';
 import {CATALOG} from '../../../equipment/equipmentCatalog';
 import {benchView} from '../../nacl/view';
 import {gasLayout} from '../../grade9/gas-layouts';
@@ -64,11 +66,15 @@ export function cancelEquipmentTour(){
 
 export function EquipmentTourCaption(){
  const {stops,index}=useEquipmentTour(),stop=stops[index];
- if(!stop)return null;
+ return stop?<Caption stop={stop} index={index} count={stops.length}/>:null;
+}
+function Caption({stop,index,count}:{stop:TourStop;index:number;count:number}){
+ const card=useRef<HTMLDivElement>(null);
+ useReserveTop('equipment-tour',card);
  return <div className="pointer-events-none fixed inset-x-0 top-16 z-[55] flex justify-center px-3" aria-live="polite">
-  <div className="pointer-events-auto flex max-w-md items-start gap-3 rounded-xl bg-white/95 px-4 py-2 text-lab-ink shadow-hud" role="status" aria-label="Туршилтын багаж">
+  <div ref={card} className="pointer-events-auto flex max-w-md items-start gap-3 rounded-xl bg-white/95 px-4 py-2 text-lab-ink shadow-hud" role="status" aria-label="Туршилтын багаж">
    <div className="min-w-0">
-    <p className="text-[10px] font-bold uppercase text-slate-500">Багаж {index+1} / {stops.length}</p>
+    <p className="text-[10px] font-bold uppercase text-slate-500">Багаж {index+1} / {count}</p>
     <p className="text-sm font-bold">{stop.name}</p>
     <p className="text-xs leading-snug text-slate-600">{stop.use}</p>
    </div>

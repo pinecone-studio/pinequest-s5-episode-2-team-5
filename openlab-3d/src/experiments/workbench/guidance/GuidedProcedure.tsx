@@ -1,5 +1,6 @@
 import {ObservationReadout} from './ObservationReadout';
 import {ApparatusKey} from './ApparatusKey';
+import {DemoProgress,type DemoState} from './DemoProgress';
 import {useProtocolResults,beginProtocolResults} from './results';
 import {ShowcaseLauncher} from './ShowcaseLauncher';
 import {prepareShowcaseEquipment} from './prepare';
@@ -57,6 +58,15 @@ export function GuidedProcedure({definition:def}:{definition:InvestigationDefini
  };
  useEffect(()=>{if(launchRequest.id===def.id){useShowcaseLaunch.setState({id:null});begin();}},[launchRequest.id,launchRequest.sequence,def.id]);
  const pause=()=>{pauseShowcase();setAutomatic(false);useGuideCue.setState({playing:false});};
+ const stop=()=>{pause();cancelShowcase();setDemonstrating(false);clearGuideCue();};
+ const finished=completed.includes(plan.length-1),failed=showcase.key===animationKey&&showcase.status==='failed';
+ const demoState:DemoState=finished?'done':failed?'failed':automatic||animating?'playing':'paused';
+ const lastRecord=protocol.experiment===def.id?protocol.records[protocol.records.length-1]:undefined;
+ const progress=demonstrating&&mode==='bench'&&<DemoProgress state={demoState} index={index} total={plan.length} label={stepLabel(step,def.labRig!,def.id)}
+  detail={finished&&protocol.experiment===def.id&&protocol.complete?'Эцсийн төлөвийг бодит хэмжилтээр шалгалаа.':finished||failed?message:`${showcase.phase}${step.type==='dose'&&showcase.key===animationKey?` · ${showcase.delivered.toFixed(1)} / ${step.amount} ${doseUnit(step.reagent)}`:''}`}
+  readings={lastRecord?.readings.filter(r=>r.label!=='Хугацаа').slice(0,6)} onPause={pause} onResume={()=>setAutomatic(true)} onReplay={begin} onClose={stop}/>;
+ return <>{panel()}{progress}</>;
+ function panel(){
  if(!session?.ready&&!automatic&&!animating)return <ShowcaseLauncher definition={def}/>;
  if(automatic||animating)return <section ref={card} className="mt-2 space-y-2 text-xs" aria-label="Тодорхой тунтай алхамчилсан заавар">
   <div className="flex items-center justify-between"><b>▶ Бүтэн 3D үзүүлбэр</b><span>{index+1} / {plan.length}</span></div>
@@ -92,4 +102,5 @@ export function GuidedProcedure({definition:def}:{definition:InvestigationDefini
   </>}
   <details><summary className="min-h-10 cursor-pointer py-2 text-slate-600">Бүтэн төлөвлөгөө ба харьцуулах арга</summary><p className="mb-2">Энэ нь аппын эхний жишээ туршилтын тун. Номын тогтмол тун гэж үзэхгүй; дараа нь нэг нөхцөл өөрчилж харьцуул.</p><ol className="list-decimal space-y-2 pl-5">{plan.map((s,i)=><li key={i}><button className="text-left" disabled={automatic} onClick={()=>{setIndex(i);setMessage('');}}>{stepLabel(s,def.labRig!,def.id)}</button></li>)}</ol><div className="mt-3 border-t pt-2">{def.method?.map((text,i)=><p key={i} className="mt-2">{text}</p>)}</div></details>
  </section>;
+ }
 }
