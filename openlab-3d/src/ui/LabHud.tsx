@@ -79,18 +79,26 @@ export function SafetyBadges() {
         />
       )}
       <div className="pointer-events-auto fixed right-4 top-[68px] z-30 flex flex-col items-end gap-1.5">
-        {(['goggles', 'gloves'] as const).map((what) => (
-          <button
-            key={what}
-            type="button"
-            onClick={() => worn[what] && take(what)}
-            title={worn[what] ? 'Дарж тайлах' : isTouchDevice() ? 'Ширээн дээрх эсвэл «Хамгаалалт» шургуулганаас аваад товшиж зүү' : 'Ширээн дээрх эсвэл «Хамгаалалт» шургуулганаас аваад E дарж зүү'}
-            className={`focus-ring flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-semibold shadow-hud backdrop-blur ${worn[what] ? 'bg-emerald-500/90 text-white' : 'bg-black/45 text-white/80'}`}
-          >
-            <span>{what === 'goggles' ? '🥽' : '🧤'}</span>
-            {what === 'goggles' ? (worn.goggles ? 'Нүдний шил зүүсэн' : 'Нүдний шилгүй') : worn.gloves ? 'Бээлий өмссөн' : 'Бээлийгүй'}
-          </button>
-        ))}
+        {(['goggles', 'gloves'] as const).map((what) => {
+          const label = what === 'goggles' ? (worn.goggles ? 'Нүдний шил зүүсэн' : 'Нүдний шилгүй') : worn.gloves ? 'Бээлий өмссөн' : 'Бээлийгүй';
+          const hint = worn[what] ? 'Дарж тайлах' : isTouchDevice() ? 'Ширээн дээрх эсвэл «Хамгаалалт» шургуулганаас аваад товшиж зүү' : 'Ширээн дээрх эсвэл «Хамгаалалт» шургуулганаас аваад E дарж зүү';
+          // Бичиггүй дүрс: зүүсэн бол ногоон дугуй + ✓, зүүгээгүй бол бүдэг дүрс + улаан !. Нэр нь aria-label, title-д үлдэнэ.
+          return (
+            <button
+              key={what}
+              type="button"
+              onClick={() => worn[what] && take(what)}
+              aria-label={label}
+              title={`${label}. ${hint}`}
+              className={`focus-ring relative flex h-10 w-10 items-center justify-center rounded-full text-xl shadow-hud backdrop-blur ${worn[what] ? 'bg-emerald-500/90' : 'bg-black/45'}`}
+            >
+              <span aria-hidden className={worn[what] ? '' : 'opacity-60 grayscale'}>{what === 'goggles' ? '🥽' : '🧤'}</span>
+              <span aria-hidden className={`absolute -right-0.5 -top-0.5 flex h-4 w-4 items-center justify-center rounded-full text-[10px] font-bold leading-none text-white ring-2 ring-white/80 ${worn[what] ? 'bg-emerald-600' : 'bg-red-500'}`}>
+                {worn[what] ? '✓' : '!'}
+              </span>
+            </button>
+          );
+        })}
       </div>
     </>
   );

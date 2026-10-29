@@ -221,7 +221,11 @@ export function WelcomeCard({ onEnter, progress, label, complete }: WelcomeCardP
     onEnter();
     if (gradeOpen && experiment) {
       // Лабын хүнд кодыг (багаж, ширээ) нээлтийн дэлгэцийн үндсэн багцад оруулахгүйн тулд дарсан үед л ачаална
-      void import('../menu/startExperiment').then((m) => m.startTextbookExperiment(experiment));
+      void Promise.all([import('../menu/startExperiment'), import('../experiments/nacl/bench')]).then(([start, bench]) => {
+        start.startTextbookExperiment(experiment);
+        // Хичээлийн туршилт: тоглогч ажлын ширээний өмнө гарч ирнэ. Чөлөөт туршилтад ердийн байрлалдаа үлдэнэ.
+        bench.openNaClExperiment();
+      });
     }
   };
 
