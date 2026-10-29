@@ -35,7 +35,7 @@ try{
   assert.equal(await evaluate(`!!document.querySelector('[aria-label="Энэ туршилтын 3D үзүүлбэр"]')`),false,'No demo option before entering an experiment');
   await evaluate("Array.from(document.querySelectorAll('button')).find(b=>b.textContent==='Лабораторид орох').click()");
   await waitFor("document.querySelector('canvas') && Array.from(document.querySelectorAll('button')).some(b=>b.textContent==='Ширээнээс гарах')",'3D bench');
-  const skippedPreparation=await evaluate("(()=>{const b=Array.from(document.querySelectorAll('button')).find(b=>b.textContent.includes('Багш: бэлтгэл алгасах'));if(b)b.click();return Boolean(b);})()");if(verbose)console.log(`Preparation skip available: ${skippedPreparation}`);
+  const skippedPreparation=await evaluate("(()=>{const b=Array.from(document.querySelectorAll('button')).find(b=>b.textContent.includes('Багш: багаж хэрэгслээ бэлдүүлэх'));if(b)b.click();return Boolean(b);})()");if(verbose)console.log(`Preparation skip available: ${skippedPreparation}`);
   await waitFor("document.querySelector('[aria-label=\"Энэ туршилтын 3D үзүүлбэр\"]')",'showcase launch button');
   const button=await evaluate("(()=>{const b=document.querySelector('[aria-label=\"Энэ туршилтын 3D үзүүлбэр\"]'),r=b.getBoundingClientRect();return {color:getComputedStyle(b).backgroundColor,top:r.top,bottom:r.bottom,height:r.height};})()");
   assert.equal(await evaluate(`!!document.querySelector('[aria-labelledby="showcase-chooser-title"]')`),false,'No cross-experiment chooser');

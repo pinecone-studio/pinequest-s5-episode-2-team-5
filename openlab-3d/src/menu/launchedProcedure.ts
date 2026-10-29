@@ -37,6 +37,10 @@ interface LaunchedProcedureState {
   prep: TextbookPrep | null;
   /** Бэлтгэлийн жагсаалтад сурагчийн тэмдэглэсэн зүйлс */
   checked: string[];
+  /** «Туршилтын заавар» карт: аль картынх (StepGuide-ийн key), хэдэн алхмыг «Хийсэн» гэж тэмдэглэсэн */
+  stepsKey: string;
+  stepsDone: number;
+  setStepsDone: (key: string, done: number) => void;
   /** Лабын заавартай холбоотой туршилт эхлүүлэхэд */
   show: (labId: string, steps: string[], title?: string, prep?: TextbookPrep | null) => void;
   /** Лабын заавартай холбоогүй туршилт эхлүүлэхэд (labId байхгүй, карт нэр + алхмаараа гарна) */
@@ -53,11 +57,14 @@ export const useLaunchedProcedure = create<LaunchedProcedureState>()((set) => ({
   steps: [],
   prep: null,
   checked: [],
-  show: (labId, steps, title = '', prep = null) => set({ labId, steps, title, prep, checked: [] }),
-  showUnlinked: (title, steps, prep = null) => set({ labId: null, steps, title, prep, checked: [] }),
+  stepsKey: '',
+  stepsDone: 0,
+  show: (labId, steps, title = '', prep = null) => set({ labId, steps, title, prep, checked: [], stepsDone: 0 }),
+  showUnlinked: (title, steps, prep = null) => set({ labId: null, steps, title, prep, checked: [], stepsDone: 0 }),
   toggleChecked: (item) => set((s) => ({ checked: s.checked.includes(item) ? s.checked.filter((c) => c !== item) : [...s.checked, item] })),
   finishPrep: () => set({ prep: null, checked: [] }),
-  clear: () => set({ labId: null, steps: [], title: '', prep: null, checked: [] }),
+  setStepsDone: (stepsKey, stepsDone) => set({ stepsKey, stepsDone }),
+  clear: () => set({ labId: null, steps: [], title: '', prep: null, checked: [], stepsDone: 0 }),
 }));
 
 /** Тухайн лабын туршилтад харуулах алхмууд. Өөр туршилтынх эсвэл флаг унтраалттай бол хоосон */

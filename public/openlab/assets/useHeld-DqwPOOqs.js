@@ -1,4 +1,4 @@
-import{c as Rn,M as tg,w as rs,u as It,N as o_,h as kt,e as An,y as ng,d as l_,f as c_,p as u_}from"./index-b5zPYsNV.js";const ig=Rn()(()=>({modal:null,reaction:null,experiment:null,celebrated:[]}));function MT(){ig.setState({modal:null})}function sg(i){ig.setState(e=>({modal:null,reaction:null,experiment:null,celebrated:i?e.celebrated.filter(t=>t!==i):[]}))}/**
+import{c as Rn,M as tg,w as rs,u as It,N as o_,h as kt,e as An,y as ng,d as l_,f as c_,p as u_}from"./index-yV1VCFUl.js";const ig=Rn()(()=>({modal:null,reaction:null,experiment:null,celebrated:[]}));function MT(){ig.setState({modal:null})}function sg(i){ig.setState(e=>({modal:null,reaction:null,experiment:null,celebrated:i?e.celebrated.filter(t=>t!==i):[]}))}/**
  * @license
  * Copyright 2010-2024 Three.js Authors
  * SPDX-License-Identifier: MIT
