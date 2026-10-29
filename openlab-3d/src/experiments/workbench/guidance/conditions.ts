@@ -1,10 +1,10 @@
-import type {EquipmentKind} from '../../../equipment/equipmentCatalog';
+import type {BenchKey} from '../../../equipment/equipmentCatalog';
 import type {Mixture} from '../../../chemistry/mixture';
 import {liquidMl,solidMassG,contentMassG} from '../../../chemistry/mixture';
 import {phOf,acidityToNeutral} from '../../../chemistry/equilibrium';
 import type {RigState} from '../../grade9/process';
 export type Measure='solid'|'aqueous'|'gas'|'water'|'liquid'|'mass'|'solidMass'|'temperature'|'ph'|'acid'|'ethanol'|'foam'|'burning'|'sample'|'elapsed'|'volume'|'extent'|'data';
-export interface Check {metric:Measure;species?:string;key?:string;port?:number;target?:EquipmentKind;min?:number;max?:number;}
+export interface Check {metric:Measure;species?:string;key?:string;port?:number;target?:BenchKey;min?:number;max?:number;}
 export interface Endpoint {checks:Check[];label:string;timeout?:number;speed?:number;minimum?:number;stopHeat?:boolean;}
 export interface Sample {mixture:Mixture;rig?:RigState;sample?:Record<string,number|undefined>;}
 export function measure({mixture:m,rig:r,sample}:Sample,c:Check):number{

@@ -10,7 +10,8 @@
     "typecheck": "tsc -b --noEmit",
     "preview": "vite preview",
     "test:workbench": "node --experimental-strip-types --test tests/molecules.test.mjs tests/mobile-interaction.test.mjs tests/quality-governor.test.mjs tests/still-batch.test.mjs tests/book-supplies.test.mjs tests/textbook-chemistry.test.mjs tests/textbook-makeable.test.mjs",
-    "test:production": "node scripts/production-smoke.mjs"
+    "test:production": "node scripts/production-smoke.mjs",
+    "test:playthrough": "node scripts/playthrough.mjs"
   },
   "dependencies": {
     "@fontsource/inter": "5.2.8",

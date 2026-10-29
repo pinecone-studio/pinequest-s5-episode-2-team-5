@@ -15,3 +15,4 @@ dist/
 *.log
 .env
 .env.local
+playthrough-results.jsonl
