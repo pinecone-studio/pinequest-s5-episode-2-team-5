@@ -19,19 +19,44 @@ export function turnedFootprint(w: number, d: number, yaw: number): { w: number;
 }
 
 /**
- * First free spot for a w × d footprint: `prefer` if it is free, else back row first, left to
- * right, keeping a small gap to everything already on the bench. Null when the bench is full.
+ * Middle of what the seated (V) bench camera frames. It sees only about ±0.7 m of the 2.4 m
+ * worktop, so new items gather here — straight in front of the student — not at the far ends.
+ * Tall items (bottles) line up behind, short ones (beakers, thermometers) in front, so the
+ * camera sees every piece instead of a heap.
  */
-export function freeBenchSpot(w: number, d: number, occupied: BenchRect[], prefer?: [number, number]): [number, number] | null {
-  const fits = (x: number, z: number) => x - w / 2 >= AREA.x0 && x + w / 2 <= AREA.x1 && z - d / 2 >= AREA.z0 && z + d / 2 <= AREA.z1
-    && occupied.every((o) => Math.abs(o.x - x) >= (o.w + w) / 2 + GAP || Math.abs(o.z - z) >= (o.d + d) / 2 + GAP);
+const FOCUS = { x: 8.27, backZ: -14.7, frontZ: -14.42 };
+const TALL = 0.12;
+/** How strongly an item keeps to its row: a row spreads about ±0.5 m sideways before the next one starts. */
+const ROW_WEIGHT = 4;
+/** Wider gap for new items, so neighbours stay readable from the seated view. */
+const SPAWN_GAP = 0.04;
+
+/**
+ * First free spot for a w × d footprint (`h` tall): `prefer` if it is free, else the free spot
+ * nearest the middle of its row (back for tall items, front for short), filling a row sideways
+ * before starting another. Null when the bench is full.
+ */
+export function freeBenchSpot(w: number, d: number, occupied: BenchRect[], prefer?: [number, number], h = 0): [number, number] | null {
+  const fits = (x: number, z: number, gap = GAP) => x - w / 2 >= AREA.x0 && x + w / 2 <= AREA.x1 && z - d / 2 >= AREA.z0 && z + d / 2 <= AREA.z1
+    && occupied.every((o) => Math.abs(o.x - x) >= (o.w + w) / 2 + gap || Math.abs(o.z - z) >= (o.d + d) / 2 + gap);
   if (prefer && fits(prefer[0], prefer[1])) return prefer;
-  for (let z = AREA.z0 + d / 2; z <= AREA.z1 - d / 2 + 1e-9; z += STEP) {
-    for (let x = AREA.x0 + w / 2; x <= AREA.x1 - w / 2 + 1e-9; x += STEP) {
-      if (fits(x, z)) return [+x.toFixed(3), +z.toFixed(3)];
+  const rowZ = h > TALL ? FOCUS.backZ : FOCUS.frontZ;
+  const nearest = (gap: number): [number, number] | null => {
+    let best: [number, number] | null = null;
+    let bestCost = Infinity;
+    for (let z = AREA.z0 + d / 2; z <= AREA.z1 - d / 2 + 1e-9; z += STEP) {
+      for (let x = AREA.x0 + w / 2; x <= AREA.x1 - w / 2 + 1e-9; x += STEP) {
+        const cost = Math.abs(x - FOCUS.x) + ROW_WEIGHT * Math.abs(z - rowZ);
+        if (cost < bestCost - 1e-9 && fits(x, z, gap)) {
+          bestCost = cost;
+          best = [+x.toFixed(3), +z.toFixed(3)];
+        }
+      }
     }
-  }
-  return null;
+    return best;
+  };
+  // A crowded bench settles for the usual small gap.
+  return nearest(SPAWN_GAP) ?? nearest(GAP);
 }
 
 /** Put the primary Grade 9 instrument in the visible centre, with stock behind it.
