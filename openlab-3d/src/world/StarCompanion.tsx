@@ -98,7 +98,8 @@ function Companion({ calm }: { calm: boolean }) {
         .addScaledVector(right, side * (atBench ? halfW * BENCH_SIDE : Math.min(0.42, halfW * 0.55)) + Math.sin(t * 0.5) * 0.03 * drift)
         .addScaledVector(up, (atBench ? halfH * 0.3 : Math.min(0.1, halfH * 0.18)) + Math.sin(t * 1.3) * 0.015 * drift);
     }
-    const preferred = starSpeech.position ?? useSettingsStore.getState().starPosition;
+    // A dragged spot holds only while seated at the worktop; walking, Star always follows (and guides).
+    const preferred = mode === 'bench' ? starSpeech.position ?? useSettingsStore.getState().starPosition : null;
     if (preferred) {
       const at = clampStarPosition(preferred.x, preferred.y, size.width, size.height);
       const halfH = NEAR * Math.tan(MathUtils.degToRad(camera.fov / 2));

@@ -16,6 +16,10 @@ import { useLabStore } from '../store/useLabStore';
 import { experimentById, getExperiments, getTextbookLessons } from '../lab/experiments';
 import { askHost } from '../lab/starBridge';
 import { benchReadings, textbookLesson } from '../lab/starContext';
+import { starSay } from '../lab/starCoach';
+import { starCompass } from '../lab/starGuide';
+import { benchTipLine } from '../lab/starLines';
+import { StarFace } from './StarFace';
 import { StarInstructionHost } from './StarGuidance';
 import { releaseLock } from '../controls/pointerLock';
 import { sounds } from '../utils/sounds';
@@ -73,6 +77,38 @@ function useStarDirector(): void {
       }
     });
   }, []);
+  // Sitting down at the worktop: a tip for the next step, worded by the AI when its budget allows.
+  useEffect(() => useGameStore.subscribe((s, prev) => {
+    if (s.mode === 'bench' && prev.mode !== 'bench') starSay(benchTipLine(contextualHint(), benchAbout()));
+  }), []);
+}
+
+/** What the AI is told when the student sits down at the worktop. */
+function benchAbout(): string {
+  const lab = useLabStore.getState();
+  const x = lab.active ? experimentById(lab.active) : undefined;
+  if (!x) return 'Хүүхэд ажлын ширээнд суулаа. Туршилт сонгоогүй, чөлөөт лаборатори.';
+  const step = x.steps.find((s) => !(lab.progress[x.id] ?? []).includes(s.id));
+  return step
+    ? `Хүүхэд «${x.title}» туршилтын ажлын ширээнд суулаа. Дараагийн алхам: ${step.text}. ${step.hint}`
+    : `Хүүхэд «${x.title}» туршилтын ажлын ширээнд суулаа. Бүх алхмаа хийсэн.`;
+}
+
+/**
+ * Points to Star when it has flown out of view to show something (goggles, tongs, a spill);
+ * StarCompanion moves it. Fixed to the screen, so it lives outside Star's world-anchored bubble.
+ */
+export function StarCompass() {
+  return (
+    <div ref={(el) => { starCompass.el = el; }} aria-hidden="true" className="pointer-events-none fixed left-0 top-0 z-40 opacity-0 transition-opacity duration-300">
+      <div className="relative flex h-12 w-12 items-center justify-center rounded-full bg-amber-100/90 shadow-hud ring-2 ring-amber-400">
+        <StarFace size={34} />
+        <div ref={(el) => { starCompass.arrow = el; }} className="absolute inset-0">
+          <span className="absolute -right-3 top-1/2 -translate-y-1/2 border-y-[9px] border-l-[13px] border-y-transparent border-l-amber-500" />
+        </div>
+      </div>
+    </div>
+  );
 }
 
 /** The bubble's look for each kind of moment. */
@@ -86,6 +122,8 @@ export function StarAssistant({ hidden }: { hidden: boolean }) {
   const host = useStarSpeech((s) => s.host);
   useEffect(() => () => { starSpeech.interacting = false; starSpeech.dragging = false; starSpeech.position = null; }, []);
   const savedPosition = useSettingsStore((s) => s.starPosition);
+  // Star can be dragged into place only at the worktop; walking, it follows the player.
+  const seated = useGameStore((s) => s.mode === 'bench');
   const [dragging, setDragging] = useState(false);
   const drag = useRef<{ pointer: number; x: number; y: number; offsetX: number; offsetY: number; moved: boolean } | null>(null);
   const suppressClick = useRef(false);
@@ -167,7 +205,7 @@ export function StarAssistant({ hidden }: { hidden: boolean }) {
   };
 
   const grabStar = (event: PointerEvent<HTMLButtonElement>) => {
-    if (event.button !== 0 || !event.isPrimary) return;
+    if (!seated || event.button !== 0 || !event.isPrimary) return;
     event.preventDefault();
     event.stopPropagation();
     releaseLock();
@@ -235,7 +273,7 @@ export function StarAssistant({ hidden }: { hidden: boolean }) {
         onLostPointerCapture={(event) => dropStar(event, true)}
         onClick={(event) => { if (suppressClick.current) event.preventDefault(); else toggleGuide(); }}
         className="star-world-hit focus-ring pointer-events-auto"
-        title="Star · Чирж байрлуулна, дарж зааврыг нээнэ"
+        title={seated ? 'Star · Чирж байрлуулна, дарж зааврыг нээнэ' : 'Star · Дарж зааврыг нээнэ'}
       />
       <div
         ref={(element) => { starSpeech.panel = element; }}
@@ -251,12 +289,13 @@ export function StarAssistant({ hidden }: { hidden: boolean }) {
         className="star-speech-card overflow-hidden rounded-3xl border border-emerald-100 text-lab-ink"
       >
         <header className="flex items-center gap-2 border-b border-emerald-100 bg-emerald-50 px-3 py-2">
-          <span className="flex-1 text-xs font-extrabold text-emerald-900">⭐ Star · Хамтдаа хийе<span className="block text-[10px] font-medium text-emerald-700">Star-ийг чирж байрлуулж болно</span></span>
-          {savedPosition && <button type="button" aria-label="Star-ийг дагуулж нисгэх" title="Star-ийн байрлалыг анхны болгох" onClick={followAgain} className="focus-ring min-h-9 min-w-9 rounded-lg text-emerald-800">↺</button>}
+          <span className="flex-1 text-xs font-extrabold text-emerald-900">⭐ Star · Хамтдаа хийе<span className="block text-[10px] font-medium text-emerald-700">{seated ? 'Ширээнд Star-ийг чирж байрлуулж болно' : 'Star чамайг дагаж нисэнэ'}</span></span>
+          {seated && savedPosition && <button type="button" aria-label="Star-ийг дагуулж нисгэх" title="Star-ийн байрлалыг анхны болгох" onClick={followAgain} className="focus-ring min-h-9 min-w-9 rounded-lg text-emerald-800">↺</button>}
           <button type="button" aria-label="Star-ийн яриаг хураах" onClick={() => { starSpeech.interacting = false; setCollapsed(true); if (urgent) setOpen(false); }} className="focus-ring min-h-9 min-w-9 rounded-lg text-emerald-800">−</button>
         </header>
         <div className="space-y-3 overflow-y-auto overscroll-contain p-3" style={{ maxHeight: touch ? 'max(80px, calc(100dvh - 235px))' : 'min(42dvh, 350px)' }}>
-          <StarInstructionHost urgent={danger || robot.mood === 'oops'} notice={speaking && <div role={danger ? 'alert' : 'status'} aria-live={danger ? 'assertive' : 'polite'} className={`relative rounded-xl p-3 pr-7 text-sm leading-relaxed ${look.box}`}>
+          {/* Shown over the desk instructions: warnings, comfort, and the tip given on sitting down. */}
+          <StarInstructionHost urgent={danger || robot.mood === 'oops' || robot.mood === 'tip'} notice={speaking && <div role={danger ? 'alert' : 'status'} aria-live={danger ? 'assertive' : 'polite'} className={`relative rounded-xl p-3 pr-7 text-sm leading-relaxed ${look.box}`}>
             <div className={`mb-1 text-[11px] font-bold ${look.label}`}>{look.title}</div>
             {touch ? mobileizeControlHint(robot.text) : robot.text}
             <button type="button" aria-label="Зөвлөгөөг хаах" onClick={() => setOpen(false)} className="focus-ring absolute right-1 top-1 min-h-7 min-w-7 rounded">✕</button>

@@ -84,7 +84,7 @@ export function StarModel({ calm = false, sparkleSize = 2.6 }: { calm?: boolean;
   useEffect(() => {
     if (robot.id === 0) return;
     const now = performance.now() / 1000;
-    if (robot.mood === 'wave') anim.current.waveUntil = now + 1.8;
+    if (robot.mood === 'wave' || robot.mood === 'tip') anim.current.waveUntil = now + 1.8;
     if (robot.mood === 'happy') anim.current.hopUntil = now + 1;
     if (robot.mood === 'danger') anim.current.shakeUntil = now + 0.9;
   }, [robot.id, robot.mood]);

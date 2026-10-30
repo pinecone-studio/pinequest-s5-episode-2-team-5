@@ -36,7 +36,7 @@ export function starSay(line: StarLine): void {
   const game = useGameStore.getState();
   if (!canAskAi(line, budget, now)) {
     // After a mistake, Star shows where the fix is (goggles, tongs, the spill, the waste bin).
-    const guided = line.tone !== 'good' && startGuide(line.key);
+    const guided = (line.tone === 'danger' || line.tone === 'oops') && startGuide(line.key);
     game.say(guided ? `${line.text} ${GUIDE_HINT}` : line.text, line.mood);
     return;
   }
