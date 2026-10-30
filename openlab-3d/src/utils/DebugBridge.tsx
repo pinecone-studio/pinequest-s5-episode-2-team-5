@@ -34,8 +34,6 @@ import { emptyMixture, reagentMixture, liquidMl, contentMassG } from '../chemist
 import { updateBenchMixture } from '../experiments/nacl/chemistry';
 import { step as chemistryStep, DEFAULT_ENV } from '../chemistry/kinetics';
 import { mixtureLook } from '../chemistry/color';
-import { useShowcase } from '../experiments/workbench/guidance/showcase';
-import { useGuideCue } from '../experiments/workbench/guidance/runtime';
 
 declare global {
   interface Window {
@@ -49,8 +47,6 @@ export function DebugBridge() {
     let t = 0;
     window.__lab = {
       grade9:useGrade9Apparatus,
-      showcase: useShowcase,
-      guideCue: useGuideCue,
       game: useGameStore,
       experiment: useExperimentStore,
       inventory: useInventoryStore,
@@ -74,7 +70,6 @@ export function DebugBridge() {
       sandbox: { useSandbox, labUse, mixture, simulateLab, resetSandbox },
       restartSession, worktop: benchView, worktopView: useBenchView, placement: heldApi, tablePointer, guide: experimentGuide,
       camera: () => get().camera,
-      scene: () => get().scene,
       beginHeldUse, endHeldUse,
       teleport: (x: number, z: number, yaw = 0) => playerApi.teleport(x, z, yaw),
       look: (yaw: number, pitch = 0) => {

@@ -22,8 +22,6 @@ export const PROFILES = {
   beaker: { key: 'beaker', wall: [[0.0305, 0.002], [0.0326, 0.006], [0.0326, 0.092]] },
   erlenmeyer: { key: 'erlenmeyer', wall: [[0.0394, 0.004], [0.0354, 0.03], [0.0194, 0.085], [0.0124, 0.105], [0.0124, 0.136]] },
   graduatedCylinder: { key: 'graduatedCylinder', wall: [[0.0118, 0.0135], [0.0118, 0.245]] },
-  /** 100 mL round-bottom flask: Ø 58 mm bulb, 22 mm neck (origin at the bottom of the bulb). */
-  roundBottomFlask: { key: 'roundBottomFlask', wall: [...sphereWall(0.029, 0.0015, 0.0558, 1, 14), [0.011, 0.06], [0.011, 0.105]] },
   volumetricFlask: { key: 'volumetricFlask', wall: [...sphereWall(0.042, 0.003, 0.09, 0.955, 12), [0.0105, 0.11], [0.0084, 0.12], [0.0084, 0.17]] },
   testTube: { key: 'testTube', wall: [[0.0025, 0.0016], [0.0055, 0.0035], [0.0067, 0.007], [0.0068, 0.148]] },
   petriDish: { key: 'petriDish', wall: [[0.0432, 0.0025], [0.0432, 0.0135]] },

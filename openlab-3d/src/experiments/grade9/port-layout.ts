@@ -1,11 +1,10 @@
 import {PROFILES,rimHeight} from '../../equipment/profiles';
 import {CURRICULUM_RIGS,isCurriculumRig} from '../curriculum/kinds';
 import {isGrade9Rig} from './kinds';
-import {gasLayout} from './gas-layouts';
 import {CATALOG,type EquipmentKind} from '../../equipment/equipmentCatalog';
 export type PortPoint=[number,number,number];
 /** Shared by the vessel model, labels and pouring animation. Dimensions are in metres. */
-export function portLayout(kind:string,i:number,experiment?:string){
+export function portLayout(kind:string,i:number){
  const shape=isCurriculumRig(kind)?CURRICULUM_RIGS[kind].shape:'';
  let x=0,z=0,bottom=.014,height=.1,radius=.025;
  if(['rack','enzyme','exposure','magnet'].includes(shape)){x=(i%3-1)*.06;z=(Math.floor(i/3)-1)*.052;height=.09;radius=.018;}
@@ -22,10 +21,6 @@ export function portLayout(kind:string,i:number,experiment?:string){
  else if(['electrolysis','galvanic','migration'].includes(shape)){x=i===0?-.06:i===1?.06:shape==='galvanic'?0:.08;z=i===2?.045:0;height=i===2?.06:.1;radius=i===2?.013:.025;}
  else if(shape==='diffusion'){x=i===0?0:i===1?.08:-.08;z=i===0?0:.045;height=i===0?.17:.08;radius=.02;}
  else if(shape==='molecule'){x=i===0?-.06:i===1?.06:0;height=i===2?.2:.08;}
- // The book's setup (gas-layouts.ts): clamped test tube, zinc dish in front, soap trough on the right.
- // Round-bottom flask clamped at the neck, acid beaker in front, limewater cylinder on the right.
- else if(kind==='gasTrain'&&gasLayout(experiment)?.layout==='flask'){x=i===0?-.05:i===1?.01:.075;z=i===0?-.015:i===1?.065:.01;bottom=i===0?.05:i===1?.014:.0135;height=i===0?.105:i===1?.05:.2315;radius=i===0?.029:i===1?.02:.0118;}
- else if(kind==='gasTrain'&&gasLayout(experiment)?.layout==='tube'){x=i===0?-.055:i===1?0:.06;z=i===0?-.02:i===1?.055:.02;bottom=i===0?.07:.014;height=i===0?.148:i===1?.012:.055;radius=i===0?.0075:i===1?.016:.045;}
  else if(kind==='gasTrain'){x=i===0?-.065:i===1?.065:0;z=i===2?.055:0;bottom=i===0?.094:.014;}
  else if(kind==='reactionTile'){x=(i%3-1)*.065;z=i<3?-.035:.035;}
  else if(kind==='corrosionRack'){x=(i%4-1.5)*.05;z=i<4?-.04:.035;}
@@ -36,38 +31,14 @@ export function portLayout(kind:string,i:number,experiment?:string){
  const mouth:PortPoint=shape==='polymer'&&i===1?[-.025,.134,0]:shape==='polymer'&&i===2?[-.045,.075,0]:shape==='polymer'&&i===3?[.07,.04,.05]:isGrade9Rig(kind)?[x,bottom+height,z]:[0,kind in PROFILES?rimHeight(PROFILES[kind as keyof typeof PROFILES]):CATALOG[kind as EquipmentKind]?.size[1]??.1,0];
  return {x,z,bottom,height,radius,mouth};
 }
-export function portLabel(kind:string,i:number,experiment?:string){
- const book=kind==='gasTrain'?gasLayout(experiment)?.ports[i]:undefined;if(book)return book;
+export function portLabel(kind:string,i:number){
  if(isCurriculumRig(kind))return CURRICULUM_RIGS[kind].ports[i]??`Дээж ${i+1}`;
- const parts:Record<string,string[]>={
-  gasSyringe:['Хийн дээжийн оролт','Нэмэх дээж','Хяналтын дээж'],
-  diffusionTube:['Зүүн үзүүрийн хөвөн','Баруун үзүүрийн хөвөн','Хяналтын дээж'],
-  calorimeter:['Калориметрийн ус','Спиртэн дэнгийн түлш','Хяналтын дээж'],
-  conductivityTester:['Электродтой сорилын сав','Харьцуулах уусмал','Нөөц дээж'],
-  convectionCell:['Эхний сав','Хоёр дахь сав','Нөөц дээж'],
-  diffusionCell:['Үндсэн уусмал','Тархах бодис','Хяналтын орчин'],
- };
- if(parts[kind]?.[i])return parts[kind][i];
- if(kind==='corrosionRack')return `Зэврэлтийн сорил ${i+1}`;
  const labels:Record<string,string[]>={gasTrain:['Урвалын сав','Нэмэх урвалж','Хий хүлээн авагч'],reactionTile:['Сорил A','Сорил B','Сорил C','Сорил D','Сорил E','Сорил F'],chromatographyTank:['Уусгагч','Будаг','Шүүлтүүрийн цаас'],gasSyringe:['Хийн дээж'],diffusionTube:['Аммиак','Давсны хүчил'],calorimeter:['Халах ус','Түлш'],conductivityTester:['Шалгах уусмал','Харьцуулах уусмал'],heatingBath:['Халаах дээж','Харьцуулах дээж'],convectionCell:['Халуун хэсэг','Хүйтэн хэсэг']};
  return labels[kind]?.[i]??`Харьцуулах дээж ${i+1}`;
 }
 
 export function apparatusPurpose(kind:string){
  const shape=isCurriculumRig(kind)?CURRICULUM_RIGS[kind].shape:'';
- const specific:Record<string,string>={
-  gasSyringe:'Хий орж ирэхэд поршен гадагш шилжинэ. Резинэн жийргийн ирмэгээр эзлэхүүнийг уншина; халаахад хий тэлж, хөргөхөд агшина.',
-  chromatographyTank:'Бэхний гарааны шугам уусгагчийн түвшнээс дээш байна. Уусгагч цаасаар дээшилж, бүрэлдэхүүнүүд өөр өөр зайд шилжинэ.',
-  heatingBath:'Үүрээ сонгоод халаагуурыг асаа. Зөвхөн сонгосон дээж халаана.',
-  gasTrain:'Урвалын саванд үүссэн хий холбох хоолойгоор хүлээн авагчид очно. Хөөсийг шингэн дотор, хуримтлагдсан хийг хүлээн авагчид ажигла.',
-  diffusionTube:'Хоёр үзүүрээс NH₃ ба HCl тархана. NH₃ хурдан тархах тул цагаан NH₄Cl цагираг HCl-ийн үзүүрт ойр үүснэ.',
-  calorimeter:'Дэнгийн дөл усны савыг доороос халаана. Усны температурын өсөлтийг зарцуулсан түлшний масстай харьцуулна.',
-  conductivityTester:'Хоёр электрод нэг уусмалд дүрэгдэнэ. Дамжуулалттай уусмалд хэлхээний чийдэн асна. Хий үүсэх нь тусдаа химийн урвалаас хамаарна.',
-  corrosionRack:'Тусдаа сорил бүрийн ус, агаар, металл ба бүрхүүлийг харьцуулна. Бор зэв тухайн дээжид үүссэн хэмжээгээр харагдана.',
-  diffusionCell:'Өнгөт бодис шингэн дотор тархана. Энэ нь бодисын шилжилт; шинэ бодис үүсэх урвал биш.',
-  convectionCell:'Халуун шингэн доор байвал дээшилж, хүйтэн шингэн доошилно. Халуун үе дээр байвал холилдолт удааширна.',
- };
- if(specific[kind])return specific[kind];
  const descriptions:Record<string,string>={
   balance:'Дээжийг жингийн тавцанд хийж массыг уншина. Харьцуулах болон ялгасан дээж тусдаа хэсэгт байна.',
   materials:'Дээжийн соронзон чанар, дамжуулалт, массыг тус тус шалгана. Туршилтын үр дүнг заалттай харьцуул.',
@@ -88,21 +59,4 @@ export function apparatusPurpose(kind:string){
   viscometer:'Шингэнд шилэн бөмбөлөг унагаж туулсан зай ба хугацааг харьцуулна.',
  };
  return descriptions[shape]??'Дугаартай хэсэгт заасан дээжийг хийж, удирдлагыг ажиллуулаад бодит хэмжилт ба бүтээгдэхүүнийг ажигла.';
-}
-
-/** Functional parts are distinct from the numbered material input locations. */
-export function apparatusParts(kind:string):readonly (readonly [string,string])[]{
- const shape=isCurriculumRig(kind)?CURRICULUM_RIGS[kind].shape:kind;
- const parts:Record<string,[string,string][]>={
-  gasSyringe:[['Шилэн цилиндр','Хийг битүү хадгална; хуваарь нь мл.'],['Поршен ба резинэн жийрэг','Хийн эзлэхүүнтэй хамт шилжинэ.'],['Шток ба бариул','Поршентой нэг бүхэл болж хөдөлнө.']],
-  pressure:[['Битүү цилиндр','Урвалын хийнүүд байрлана.'],['Поршен','Эзлэхүүнийг багасгахад даралт өснө.'],['Манометр','Даралтыг bar нэгжээр заана.']],
-  galvanic:[['Zn электрод · анод (−)','Цайр уусч, электрон гадаад хэлхээнд гарна.'],['Cu электрод · катод (+)','Cu²⁺ ангижирч зэс ялгарна.'],['Давсан гүүр','Ионууд шилжиж цэнэгийн тэнцвэрийг хадгална.'],['Вольтметр','Хоёр электродын хүчдэлийн ялгааг хэмжинэ.']],
-  electrolysis:[['Катод (−)','Металлын ион электрон авч металл болно.'],['Анод (+)','Материалаас хамаарч уусна эсвэл хий ялгаруулна.'],['DC үүсгэгч','Хэлхээнд гүйдэл өгнө.']],
-  reflux:[['Урвалын сав','Холимгийг доороос халаана.'],['Буцах хөргөгч','Уур хөрч шингэн болон сав руу буцна.'],['Холбох хоолой','Хий / бүтээгдэхүүний шилжих зам.']],
-  chromatographyTank:[['Цаас','Бэхний бүрэлдэхүүнүүдийн хөдөлгөөнгүй фаз.'],['Гарааны шугам','Уусгагчийн гадаргуугаас дээш байрлана.'],['Уусгагчийн фронт','Шингэн хүрсэн хамгийн дээд хил.']],
-  gasTrain:[['Урвалын сав','Хий үүсэх холимог.'],['Бөглөө ба дамжуулах хоолой','Үүссэн хийг гадагш дамжуулна.'],['Хийн хүлээн авагч','Шилжсэн хийг тусад нь хуримтлуулна.']],
-  viscometer:[['Шилэн бөмбөлөг','Хүндийн хүчээр шингэн дотор унана.'],['Хэмжих багана','Туулсан зайг харьцуулна.'],['Секундомер','Уналтын хугацааг хэмжинэ.']],
-  polymer:[['Хоёр шингэн үе','Усан ба органик тэжээл нэг аяганд давхарлана.'],['Үеийн зааг','Найлонт хальс үүсэх хэсэг.'],['Ороогч','Үүссэн хальсыг утас болгон татна.']],
- };
- return parts[shape]??[];
 }

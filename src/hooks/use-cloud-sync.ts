@@ -1,5 +1,4 @@
 import { useEffect, useEffectEvent, useRef, useState } from 'react';
-import { AppState } from 'react-native';
 
 /** Quick taps and typing reach Supabase as one sync. */
 const SYNC_DELAY_MS = 1500;
@@ -8,8 +7,8 @@ export type CloudStatus = 'local' | 'syncing' | 'synced';
 /**
  * Debounced Supabase sync for progress kept on the device. `send` uploads the latest local copy
  * and applies the server's merge. Runs never overlap: a change made during one is sent right after,
- * and a change still waiting when the screen closes or the app goes to the background is sent
- * anyway. 'local' means not synced yet or offline; the device copy is always kept.
+ * and a change still waiting when the screen closes is sent anyway. 'local' means not synced
+ * yet or offline; the device copy is always kept.
  */
 export function useCloudSync(send: () => Promise<void>) {
   const [cloud, setCloud] = useState<CloudStatus>('local');
@@ -33,10 +32,6 @@ export function useCloudSync(send: () => Promise<void>) {
     timer.current = setTimeout(() => void sync(), SYNC_DELAY_MS);
   };
   const flushOnLeave = useEffectEvent(() => { if (timer.current !== undefined) void sync(); });
-  useEffect(() => {
-    // Phones may stop a backgrounded app without unmounting it.
-    const subscription = AppState.addEventListener('change', (state) => { if (state === 'background') flushOnLeave(); });
-    return () => { subscription.remove(); flushOnLeave(); };
-  }, []);
+  useEffect(() => () => flushOnLeave(), []);
   return { cloud, sync, schedule };
 }

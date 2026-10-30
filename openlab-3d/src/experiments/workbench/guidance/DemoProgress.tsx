@@ -1,15 +1,14 @@
-import {useEffect,useRef} from 'react';
-import {createPortal} from 'react-dom';
-import {create} from 'zustand';
+import {useEffect} from 'react';
+import {StarInstructions} from '../../../ui/StarGuidance';
+import {ObservationReadout} from './ObservationReadout';
 import {useEquipmentTour} from './equipment-tour';
-import {useReserveTop} from './hud-space';
+import {useDemoDone,useDemoShown} from './hud-space';
 import type {Reading} from './results';
 
-/** Short, readable numbers: 60 ml, 26.9 °C, pH 5.83 (and 0 rather than 2.6e-10). */
-const reading=(v:number)=>Number(v.toFixed(Math.abs(v)>=100?0:Math.abs(v)>=10?1:2));
+export {useDemoShown};
 
-/** True while the strip is on screen; 3D callouts then leave the apparatus uncovered. */
-export const useDemoShown=create(()=>false);
+/** Short, readable numbers: 60 ml, 26.9 °C, pH 5.83, 0.005 mol (and 0 rather than 2.6e-10). */
+const reading=(v:number)=>Math.abs(v)<1e-3?0:Math.abs(v)<.1?Number(v.toPrecision(2)):Number(v.toFixed(Math.abs(v)>=100?0:Math.abs(v)>=10?1:2));
 
 export type DemoState='playing'|'paused'|'done'|'failed';
 interface Props {state:DemoState;index:number;total:number;label:string;detail?:string;live?:string;readings?:Reading[];onPause:()=>void;onResume:()=>void;onReplay:()=>void;onClose:()=>void}
@@ -21,17 +20,16 @@ interface Props {state:DemoState;index:number;total:number;label:string;detail?:
 export function DemoProgress(props:Props){
  const touring=useEquipmentTour(s=>s.index>=0);
  if(touring)return null;
- return createPortal(<Strip {...props}/>,document.body);
+ return <StarInstructions priority="demo"><Strip {...props}/></StarInstructions>;
 }
 
 function Strip({state,index,total,label,detail,live,readings,onPause,onResume,onReplay,onClose}:Props){
- const card=useRef<HTMLDivElement>(null);
- useReserveTop('demo-progress',card);
- useEffect(()=>{useDemoShown.setState(true,true);return ()=>useDemoShown.setState(false,true);},[]);
+ useEffect(()=>{useDemoShown.setState(true,true);return ()=>{useDemoShown.setState(false,true);useDemoDone.setState(false,true);};},[]);
  const button='min-h-9 shrink-0 rounded-lg border px-3 text-xs font-semibold';
  const done=state==='done',step=done?total:index+1;
- return <div className="pointer-events-none fixed inset-x-3 top-16 z-[54] flex justify-center sm:inset-x-0 sm:top-3">
-  <div ref={card} className={`pointer-events-auto w-full max-w-md rounded-xl px-4 py-2 text-lab-ink shadow-hud sm:w-[min(28rem,calc(100vw-22rem))] ${done?'border-2 border-emerald-400 bg-emerald-50/95':'bg-white/95'}`} role="status" aria-live="polite" aria-label="3D үзүүлбэрийн явц">
+ useEffect(()=>{useDemoDone.setState(done,true);},[done]);
+ return <div>
+  <div className={`w-full rounded-xl p-2 text-lab-ink ${done?'border-2 border-emerald-400 bg-emerald-50/95':'bg-amber-50/70'}`} role="status" aria-live="polite" aria-label="3D үзүүлбэрийн явц">
    <div className="flex items-center justify-between gap-2 text-[11px] font-bold">
     <span className={done?'text-emerald-800':state==='failed'?'text-amber-700':'text-sky-800'}>{done?'✓ Үзүүлбэр дууслаа':state==='failed'?'! Үзүүлбэр зогслоо':state==='paused'?'⏸ Түр зогссон':'▶ 3D үзүүлбэр'}</span>
     <span className="tabular-nums text-slate-500">Алхам {step} / {total}</span>
@@ -44,11 +42,13 @@ function Strip({state,index,total,label,detail,live,readings,onPause,onResume,on
    </>:<div className="mt-1.5 flex items-start gap-3">
     <div className="min-w-0 flex-1">
      <p className="text-sm font-semibold leading-snug">{label}</p>
-     {detail&&<p className="truncate text-[11px] text-slate-600">{detail}</p>}
-     {live&&<p className="truncate font-mono text-[11px] tabular-nums text-sky-900">{live}</p>}
+     {detail&&<p className="text-xs leading-relaxed text-slate-600">{detail}</p>}
+     {live&&<p className="font-mono text-[11px] tabular-nums text-sky-900">{live}</p>}
     </div>
     {state==='playing'?<button type="button" className={button} onClick={onPause}>Түр зогсоох</button>:<button type="button" className={`${button} border-sky-300 text-sky-800`} onClick={onResume}>▶ Үргэлжлүүлэх</button>}
    </div>}
+   <ObservationReadout/>
+   {!done&&<button type="button" className={`${button} mt-2 w-full border-amber-200 bg-white`} onClick={onClose}>Өөрөө хийх</button>}
   </div>
  </div>;
 }

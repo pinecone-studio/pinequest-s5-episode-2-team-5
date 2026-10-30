@@ -101,7 +101,7 @@ import { join } from 'node:path';
 import { pathToFileURL } from 'node:url';
 const storeTmp=await mkdtemp(join(tmpdir(),'openlab-preparation-test-'));
 test.after(()=>rm(storeTmp,{recursive:true,force:true}));
-await build({stdin:{contents:`export * from './src/equipment/liquid-plane.ts';export {PROFILES} from './src/equipment/profiles.ts';export * from './src/experiments/workbench/guidance/pour-physics.ts';export * from './src/experiments/workbench/guidance/operation.ts';export * from './src/chemistry/appearance.ts';export * from './src/experiments/grade9/chamber-view.ts';export * from './src/experiments/workbench/guidance/conditions.ts';export * from './src/experiments/workbench/guidance/endpoint.ts';export * from './src/experiments/workbench/guidance/results.ts';export * from './src/experiments/workbench/guidance/clock.ts';export * from './src/chemistry/advance.ts';export {DEFAULT_ENV} from './src/chemistry/kinetics.ts';export {CATALOG} from './src/equipment/equipmentCatalog.ts';export {emptyMixture} from './src/chemistry/mixture.ts';export * from './src/experiments/workbench/guidance/definitions.ts';export * from './src/experiments/workbench/guidance/overlays.ts'; export * from './src/experiments/workbench/guidance/prepare.ts'; export * from './src/experiments/workbench/guidance/showcase.ts'; export * from './src/experiments/workbench/guidance/plans.ts'; export * from './src/experiments/workbench/guidance/runtime.ts'; export * from './src/experiments/grade9/process.ts'; export {useGrade9Apparatus} from './src/experiments/grade9/store.ts'; export * from '../src/lib/textbook-investigations.ts'; export {INVESTIGATIONS as inquiryDefinitions} from '../src/lib/textbook-investigations.ts'; export {TEXTBOOK_EXPERIMENTS} from './src/experiments/workbench/textbook.ts'; export {getExperiments,applyRemoteExperiments} from './src/lab/experiments.ts'; export {useInquiry,clearInquiry} from './src/experiments/workbench/inquiry-store.ts'; export * from './src/lab/quantity-guidance.ts'; export * from './src/lab/measurements.ts'; export {transfer,heldHeat,resolveTarget,underFunnel} from './src/interaction/actions.ts'; export {vesselObservation} from './src/lab/container-observation.ts'; export {snapToSupport} from './src/interaction/supportPlacement.ts'; export {supportSpots,supportHeightAt} from './src/interaction/bodies.ts'; export {benchUseTarget} from './src/interaction/benchUseTarget.ts'; export {tablePointer} from './src/interaction/heldApi.ts'; export {useBenchView} from './src/experiments/nacl/view.ts'; export {useSandbox,labUse,labSpace,simulateLab} from './src/experiments/nacl/sandbox.ts'; export {usePortableStore} from './src/interaction/portable.ts'; export {interactItem} from './src/interaction/interactItem.ts'; export {interactables} from './src/interaction/registry.ts'; export { useLabStore } from './src/store/useLabStore.ts'; export * from './src/experiments/workbench/session.ts'; export {useInventoryStore,storedIn} from './src/store/useInventoryStore.ts'; export {useChemStore} from './src/store/useChemStore.ts'; export {useGameStore} from './src/store/useGameStore.ts'; export * from './src/lab/reaction-view.ts'; export {registerHolder,seedHolder} from './src/interaction/holders.ts';`,resolveDir:process.cwd()},bundle:true,outfile:join(storeTmp,'stores.mjs'),format:'esm',platform:'node'});
+await build({stdin:{contents:`export * from './src/equipment/liquid-plane.ts';export {PROFILES} from './src/equipment/profiles.ts';export * from './src/experiments/workbench/guidance/pour-physics.ts';export * from './src/experiments/workbench/guidance/operation.ts';export * from './src/chemistry/appearance.ts';export * from './src/experiments/grade9/chamber-view.ts';export * from './src/experiments/workbench/guidance/conditions.ts';export * from './src/experiments/workbench/guidance/endpoint.ts';export * from './src/experiments/workbench/guidance/results.ts';export * from './src/experiments/workbench/guidance/clock.ts';export * from './src/chemistry/advance.ts';export {DEFAULT_ENV} from './src/chemistry/kinetics.ts';export {CATALOG} from './src/equipment/equipmentCatalog.ts';export {emptyMixture} from './src/chemistry/mixture.ts';export * from './src/experiments/workbench/guidance/definitions.ts';export * from './src/experiments/workbench/guidance/overlays.ts'; export * from './src/experiments/workbench/guidance/prepare.ts'; export * from './src/experiments/workbench/guidance/showcase.ts'; export * from './src/experiments/workbench/guidance/plans.ts'; export * from './src/experiments/workbench/guidance/runtime.ts'; export * from './src/experiments/grade9/process.ts'; export {useGrade9Apparatus} from './src/experiments/grade9/store.ts'; export * from '../src/lib/textbook-investigations.ts'; export {INVESTIGATIONS as inquiryDefinitions} from '../src/lib/textbook-investigations.ts'; export {TEXTBOOK_EXPERIMENTS} from './src/experiments/workbench/textbook.ts'; export {getExperiments,applyRemoteExperiments} from './src/lab/experiments.ts'; export {useInquiry,clearInquiry} from './src/experiments/workbench/inquiry-store.ts'; export * from './src/lab/quantity-guidance.ts'; export * from './src/lab/measurements.ts'; export {transfer,heldHeat,resolveTarget,underFunnel} from './src/interaction/actions.ts'; export {vesselObservation} from './src/lab/container-observation.ts'; export {snapToSupport} from './src/interaction/supportPlacement.ts'; export {supportSpots,supportHeightAt} from './src/interaction/bodies.ts'; export {benchUseTarget} from './src/interaction/benchUseTarget.ts'; export {tablePointer} from './src/interaction/heldApi.ts'; export {useBenchView} from './src/experiments/nacl/view.ts'; export {useSandbox,labUse,labSpace,simulateLab} from './src/experiments/nacl/sandbox.ts'; export {usePortableStore} from './src/interaction/portable.ts'; export {interactItem} from './src/interaction/interactItem.ts'; export {interactables} from './src/interaction/registry.ts'; export { useLabStore } from './src/store/useLabStore.ts'; export * from './src/experiments/workbench/session.ts'; export {useInventoryStore,storedIn} from './src/store/useInventoryStore.ts'; export {useChemStore} from './src/store/useChemStore.ts'; export {useGameStore} from './src/store/useGameStore.ts'; export * from './src/lab/reaction-view.ts'; export {registerHolder,seedHolder} from './src/interaction/holders.ts'; export {GRADE8_LABS,isGrade8Lab} from './src/experiments/workbench/guidance/grade8.ts'; export {grade8Chemistry} from './src/chemistry/grade8.ts'; export {mixtureLook} from './src/chemistry/color.ts'; export {reagentMixture as freshReagent,merge as mergeMixtures} from './src/chemistry/mixture.ts';`,resolveDir:process.cwd()},bundle:true,outfile:join(storeTmp,'stores.mjs'),format:'esm',platform:'node'});
 globalThis.localStorage={getItem:()=>null,setItem:()=>{},removeItem:()=>{}};
 const stores=await import(pathToFileURL(join(storeTmp,'stores.mjs')).href);
 test('guide starts after preparation; earlier real observations are still recorded',()=>{
@@ -923,6 +923,59 @@ function advanceProtocolWorld(dt,speed=1){
  }
  stores.clearProtocolClock();
 }
+test('grade 8 carbonate salt demo cools its wet crystals before filtering and drying',()=>{
+ stores.cancelShowcase();stores.resetWorkbench();stores.useInventoryStore.getState().reset();stores.useChemStore.getState().reset();stores.clearProtocolClock();stores.beginProtocolResults('nacl');
+ const def=stores.guideDefinition('nacl');stores.selectBenchExperiment('nacl',true);stores.demonstratePreparation();stores.prepareShowcaseEquipment(def);stores.useGameStore.setState({mode:'bench'});
+ const session=stores.currentSession(),ids=Object.values(session.objects);
+ for(const id of ids){const object=new Object3D();object.position.set(8,.915,-14.5);stores.interactables.set(id,{id,object,enabled:true});}
+ let wetCrystals=false,cooled=false,stoppedHeating=false;
+ try{
+  for(const [index,stage] of stores.physicalShowcasePlan('nacl').entries()){
+   stores.focusGuideStep(def,stage);stores.beginShowcase(def,stage,`nacl-regression-${index}`);
+   let elapsed=0;
+   while(elapsed<(stage.until?.timeout??120)+10&&stores.useShowcase.getState().status==='playing'){
+    stores.tickShowcase(.1);advanceProtocolWorld(.1,stage.type==='observe'?(stage.until?.speed??1):1);elapsed+=.1;
+   }
+   assert.equal(stores.useShowcase.getState().status,'done',`${index}: ${stores.useShowcase.getState().message}`);
+   const dish=stores.useChemStore.getState().mixtures[session.objects.evaporatingDish];
+   if(stage.type==='observe'&&stage.until?.stopHeat){
+    assert.ok(dish.water>.01,'stop evaporation while the crystals still have mother liquor');
+    assert.ok(dish.s.NaCl>=.008-1e-8,'real NaCl crystals are present');
+    assert.notEqual(stores.heldHeat?.id,session.objects.evaporatingDish,'the heater switches off at the endpoint');wetCrystals=true;
+   }
+   if(stage.type==='configure'&&stage.change.heating===false){assert.ok(elapsed<=3.2,'the heater-off animation does not add the old six-second wait');stoppedHeating=true;}
+   if(stage.type==='observe'&&stage.until?.checks.some(c=>c.metric==='temperature'&&c.max===35)){
+    assert.ok(wetCrystals&&stoppedHeating);assert.ok(dish.temp<=35);assert.ok(elapsed<=60,'cooling fits within the retained wait limit');cooled=true;
+   }
+   if(stage.type==='move'&&stage.from==='evaporatingDish'&&stage.filter==='funnel')assert.ok(cooled,'cool the crystals before filtration');
+  }
+  const sample=stores.useChemStore.getState().mixtures[session.objects.watchGlass];
+  assert.ok(wetCrystals&&cooled&&stoppedHeating);assert.ok(sample.s.NaCl>1e-6);assert.ok(sample.water<=.001);
+  assert.equal(stores.useProtocolResults.getState().complete,true);
+ }finally{for(const id of ids)stores.interactables.delete(id);stores.cancelShowcase();stores.resetWorkbench();stores.clearProtocolClock();}
+});
+
+test('only grade 8 labs keep the earlier 3D demo, marble chips and mixture colours',()=>{
+ for(const id of ['nacl','nacl-solution','reaction-timing','rate-surface','water-quality','water-treatment','wastewater'])assert.ok(stores.isGrade8Lab(id),id);
+ for(const id of ['g7-sugar-motion','g9-carbonate-co2','g9-zinc-hcl','g10-rate-surface','g10-flame',null])assert.equal(stores.isGrade8Lab(id),false,String(id));
+ for(const id of ['water-quality','water-treatment'])assert.equal(stores.physicalShowcasePlan(id)?.at(-1)?.type,'finish',id);
+ const heaterOff={type:'configure',label:'off',change:{heating:false}};
+ assert.equal(stores.showcaseDuration(heaterOff,'rate-temperature'),3);
+ assert.equal(stores.showcaseDuration(heaterOff,'g9-crystallisation'),6);
+ const before=stores.useLabStore.getState().active;
+ try{
+  stores.useLabStore.getState().setActive('rate-surface');
+  assert.equal(stores.grade8Chemistry.active,true);
+  assert.ok(stores.freshReagent('s_caco3',1).s.marble>0,'grade 8 marble is chips');
+  const deep=stores.mixtureLook(stores.mergeMixtures(stores.freshReagent('naoh',10),stores.freshReagent('phph',1))).liquid;
+  stores.useLabStore.getState().setActive('g9-carbonate-co2');
+  assert.equal(stores.grade8Chemistry.active,false);
+  const powder=stores.freshReagent('s_caco3',1);
+  assert.ok(powder.s.CaCO3>0&&!powder.s.marble,'other grades keep main\'s CaCO₃');
+  assert.notEqual(stores.mixtureLook(stores.mergeMixtures(stores.freshReagent('naoh',10),stores.freshReagent('phph',1))).liquid,deep,'grade 8 keeps its own phenolphthalein hue');
+ }finally{stores.useLabStore.getState().setActive(before);}
+});
+
 test('every complete demonstration reaches its measured final result without skipped stages',()=>{
  const failures=[];
  for(const id of Object.keys(stores.GUIDED_PLANS)){
@@ -1030,20 +1083,6 @@ test('device actions distinguish leads, gas hoses, nylon winding and gentle mixi
  const start={type:'start',label:'start'};assert.equal(stores.operationFor('galvanicCell',start),'connect-electric');assert.equal(stores.operationFor('gasTrain',start),'connect-gas');assert.equal(stores.operationFor('interfacialBath',start),'measure');assert.equal(stores.operationFor('beaker',start),'stir');assert.equal(stores.operationFor('interfacialBath',{type:'configure',label:'draw',change:{operation:'draw'}}),'wind');
 });
 
-test('a drop of base into acid with phenolphthalein flashes pink where it lands while the bulk stays colourless',async()=>{
- const out=await build({stdin:{contents:`export * from './src/visuals/drop-flash.ts'; export * from './src/chemistry/mixture.ts'; export {mixtureLook} from './src/chemistry/color.ts';`,resolveDir:process.cwd()},bundle:true,write:false,format:'esm',platform:'node'});
- const fx=await import(`data:text/javascript;base64,${Buffer.from(out.outputFiles[0].text).toString('base64')}`);
- const acid=fx.merge(fx.reagentMixture('hcl',20),fx.reagentMixture('phph',.1));
- const dropped=fx.merge(acid,fx.reagentMixture('naoh',.05));
- const hex=fx.dropFlash(acid,dropped);
- assert.ok(hex,'the drop has a visible local colour');
- const [r,g,b]=[1,3,5].map(i=>parseInt(hex.slice(i,i+2),16));
- assert.ok(r>g+40&&b>g+20,`local pocket is magenta, got ${hex}`);
- const bulk=fx.mixtureLook(dropped).liquid,[br,bg]=[1,3].map(i=>parseInt(bulk.slice(i,i+2),16));
- assert.ok(Math.abs(br-bg)<30,`bulk stays nearly colourless, got ${bulk}`);
- assert.equal(fx.dropFlash(fx.reagentMixture('water',20),fx.merge(fx.reagentMixture('water',20),fx.reagentMixture('water',.05))),null,'plain water shows no flash');
-});
-
 test('liquid poured into a loose test tube first stands it in the nearest rack, so it cannot spill',()=>{
  stores.resetWorkbench();stores.useInventoryStore.getState().reset();stores.useChemStore.getState().reset();
  const inv=stores.useInventoryStore.getState();
@@ -1077,11 +1116,7 @@ test('the tools drawer at the worktop gives another test tube instead of pointin
 test('clearing an experiment removes the tubes standing in its rack, so nothing keeps reacting unseen',()=>{
  stores.resetWorkbench();stores.useInventoryStore.getState().reset();stores.useChemStore.getState().reset();
  stores.selectBenchExperiment('g9-zinc-hcl',true);stores.demonstratePreparation();
- // A rack and tube set out for this experiment (its guide now uses the book's clamped tube instead).
- const id='g9-zinc-hcl',rack=stores.useInventoryStore.getState().spawn('testTubeRack',[8.6,.915,-14.5]),tube=stores.useInventoryStore.getState().spawn('testTube',[8,.915,-14.5]);
- const prepared=stores.useWorkbench.getState().sessions[id];
- stores.useWorkbench.setState(s=>({sessions:{...s.sessions,[id]:{...prepared,owned:[...prepared.owned,rack,tube],objects:{...prepared.objects,testTubeRack:rack,testTube:tube}}}}));
- const session=stores.currentSession(),acid=session.objects['reagent-hcl'],zinc=session.objects['reagent-s_zn'];
+ const session=stores.currentSession(),rack=session.objects.testTubeRack,tube=session.objects.testTube,acid=session.objects['reagent-hcl'],zinc=session.objects['reagent-s_zn'];
  assert.ok(rack&&tube&&acid&&zinc);
  stores.transfer({id:acid,kind:'reagentBottle',variant:{reagent:'hcl'}},{id:tube,kind:'testTube'},5);
  stores.transfer({id:zinc,kind:'reagentJar',variant:{reagent:'s_zn'}},{id:tube,kind:'testTube'},.1);

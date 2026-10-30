@@ -1,6 +1,7 @@
 import {guidedPlan} from '../workbench/guidance/plans';
 import { KI_DOSE_ML } from '../../lab/quantity-guidance';
 import { MeasurementGuide } from '../workbench/MeasurementGuide';
+import { StarInstructions } from '../../ui/StarGuidance';
 /** One room, one set of equipment. Guidance never locks an object or a step. */
 import { useEffect, useRef } from 'react';
 import { bench, enterBench, exitBench } from './bench';
@@ -22,7 +23,6 @@ import { currentSession, jumpToStep, useWorkbench } from '../workbench/session';
 import { isTouchDevice } from '../../utils/device';
 import { PreparationChecklist } from '../workbench/PreparationHints';
 import { EquipmentTourCaption } from '../workbench/guidance/equipment-tour';
-import { RealTimeNote } from '../workbench/guidance/RealTimeNote';
 import { mobileizeControlHint } from '../../controls/mobileInteraction';
 import { TextbookPreparation } from '../../menu/TextbookPreparation';
 import { SHOW_LAB_STEPS_IN_CARD, benchGroups, benchTitle, useLaunchedProcedure } from '../../menu/launchedProcedure';
@@ -132,21 +132,20 @@ export function NaClHUD() {
   const r = promptKey('pour', settings.bindings, settings.lookMode);
   return <>
     {closeup && !workbench.drawer && <EquipmentTourCaption />}
-    {closeup && !workbench.drawer && <RealTimeNote />}
-    {closeup && held && !view.inspecting && !workbench.drawer && <div className={`pointer-events-none fixed inset-x-4 top-[34vh] z-30 rounded-xl border-2 px-3 py-2 text-xs shadow-hud sm:inset-x-auto sm:top-auto sm:bottom-20 sm:left-1/2 sm:max-w-lg sm:-translate-x-1/2 ${receiver ? 'border-sky-400 bg-sky-50 text-sky-950' : 'border-emerald-400 bg-emerald-50 text-emerald-950'}`} role="status" aria-label="Барьж буй багажийн үйлдэл">
+    {closeup && held && !view.inspecting && !workbench.drawer && <StarInstructions priority="action"><div className={`rounded-xl border-2 px-3 py-2 text-xs ${receiver ? 'border-sky-400 bg-sky-50 text-sky-950' : 'border-emerald-400 bg-emerald-50 text-emerald-950'}`} role="status" aria-label="Барьж буй багажийн үйлдэл">
       <b className="block">{receiver ? `↓ Цутгах / ашиглах сав: ${receiverLabel}` : '▣ Тавих: хоосон гадаргуу руу чиглүүл'}</b>
       <p className="mt-1">{receiver ? `${held} → ${receiverLabel} · ${r} дарж барьж ашиглана. Дарах нь зөвхөн савыг сонгоно.` : `Барьж буй: ${held} · Ногоон дүрс дээр дарж эсвэл ${q} дарж тавина.`}</p>
       {!receiver && <p className="mt-1">Цутгахдаа өөр сав руу чиглүүл. Цэнхэр тэмдэг гармагц {r} дарж барь.</p>}
-    </div>}
+    </div></StarInstructions>}
     {active === 'nacl' && (state.near || closeup) && !workbench.drawer && <WorldLabels />}
     {closeup && !workbench.drawer && <div className="fixed left-3 top-3 z-30 flex max-w-[calc(100vw-3rem)] flex-wrap gap-2 text-xs text-lab-ink">
       <button className="rounded-full bg-white/95 px-3 py-2 shadow" onClick={exitBench}>Ширээнээс гарах</button>
       {isTouchDevice() && view.inspecting && <button className="rounded-full bg-white/95 px-3 py-2 shadow" onClick={benchView.back}>Esc · Ширээнд буцах</button>}
     </div>}
-    {closeup && !workbench.drawer && cohesiveGuide && active && (preparing
+    {closeup && !workbench.drawer && cohesiveGuide && active && <StarInstructions><div hidden={clean && !preparing}>{(preparing
       ? <PreparationChecklist />
-      : <MeasurementGuide experiment={active} target={receiver??view.selected} step={lesson?.steps[selectedStep]?.id}/>)}
-    {closeup && !workbench.drawer && !cohesiveGuide && <aside className="fixed left-3 right-12 top-14 z-30 max-h-[43vh] overflow-auto overscroll-contain rounded-xl bg-white/95 p-3 text-lab-ink shadow-hud sm:right-auto sm:max-h-[75vh] sm:w-[340px] sm:max-w-lg" aria-label="Туршилтын заавар">
+      : <MeasurementGuide experiment={active} target={receiver??view.selected} step={lesson?.steps[selectedStep]?.id}/>)}</div></StarInstructions>}
+    {closeup && !workbench.drawer && !cohesiveGuide && (!clean || preparing || textbookPrep) && <StarInstructions><aside className="space-y-2 text-lab-ink" aria-label="Туршилтын заавар">
       <div className="text-xs font-bold leading-snug">{topic ?? lesson?.title ?? 'Туршилт сонгоогүй байна'}{preparing || textbookPrep ? ' · Бэлтгэл' : ''}</div>
       {session?.teacher && !cohesiveGuide && <span className="mt-1 inline-block rounded-full bg-indigo-50 px-2 py-1 text-[11px] font-bold text-indigo-700">👩‍🏫 Багшийн горим</span>}
       {preparing ? <PreparationChecklist /> : textbookPrep ? <TextbookPreparation /> : <>
@@ -160,7 +159,7 @@ export function NaClHUD() {
       </>}
       {!cohesiveGuide && !clean && lesson && <details className="mt-1 text-[11px]"><summary className="cursor-pointer text-slate-500">Алхмууд</summary><div className="mt-1 flex flex-wrap gap-1">{lesson.steps.map((step, i) => <button key={step.id} className="rounded bg-slate-100 px-2 py-1" onClick={() => jumpToStep(i)}>{(active === 'nacl' && guide.steps[i]?.done) || done.includes(step.id) ? '✓ ' : ''}{i + 1}. {step.text}</button>)}</div></details>}
       {!cohesiveGuide && lesson && <p className="mt-1 text-[11px] text-slate-600" role="status">{active === 'nacl' && !preparing ? guide.warning : state.warning}</p>}
-    </aside>}
+    </aside></StarInstructions>}
     {closeup && !workbench.drawer && isTouchDevice() && <CameraControls />}
     {active === 'nacl' && <Microscope />}
   </>;

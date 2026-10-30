@@ -231,3 +231,66 @@ input {
 }
 .success-confetti { animation: success-confetti-fall 2.8s ease-in forwards; }
 @media (prefers-reduced-motion: reduce) { .success-confetti { display: none; } }
+
+/* Star speaks one instruction at a time; hiding a lesson must not stop its demo engine. */
+.star-guidance:has(> [data-star-instruction]) > [data-star-fallback],
+.star-guidance:has(> [data-star-notice]) > [data-star-fallback],
+.star-guidance:has(> [data-star-instruction]) > [data-star-notice]:not([data-star-urgent]),
+.star-guidance:has(> [data-star-instruction="demo"], > [data-star-instruction="tour"]) > [data-star-instruction="lesson"],
+.star-guidance:has(> [data-star-instruction="demo"], > [data-star-instruction="tour"]) > [data-star-instruction="action"],
+.star-guidance:has(> [data-star-instruction="tour"]) > [data-star-instruction="demo"] {
+  display: none;
+}
+
+/* A speech plane attached to the 3D character, with a small raised edge and a tail. */
+.star-world-assistant { width: 0; height: 0; }
+.star-world-hit {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 84px;
+  height: 84px;
+  transform: translate(-50%, -50%);
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  cursor: grab;
+  touch-action: none;
+  user-select: none;
+}
+.star-world-assistant[data-dragging] .star-world-hit { cursor: grabbing; }
+.star-world-speech {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: min(310px, calc(100vw - 110px));
+  transform-style: preserve-3d;
+}
+.star-speech-card {
+  background: rgba(255, 253, 247, 0.97);
+  box-shadow: 3px 5px 0 #d5b47f, 0 18px 40px rgba(51, 32, 74, 0.22);
+  backface-visibility: hidden;
+}
+.star-world-speech::before {
+  content: '';
+  position: absolute;
+  left: -9px;
+  top: calc(var(--star-tail-y, 40px) - 9px);
+  width: 20px;
+  height: 20px;
+  background: #fffdf7;
+  border-left: 1px solid #fef3c7;
+  border-bottom: 1px solid #fef3c7;
+  transform: rotate(45deg);
+  box-shadow: -2px 3px 0 #d5b47f;
+  pointer-events: none;
+}
+.star-world-speech[data-side="left"]::before {
+  left: auto;
+  right: -9px;
+  transform: rotate(225deg);
+}
+@media (pointer: coarse) {
+  .star-world-hit { width: 56px; height: 56px; }
+  .star-world-speech { width: min(270px, calc(100vw - 100px)); }
+}

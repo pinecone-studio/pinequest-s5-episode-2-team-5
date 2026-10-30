@@ -15,9 +15,6 @@ export const GUIDED_OVERLAYS: Record<string, { labRig: EquipmentKind; supplies: 
   'candle-products': { labRig: 'combustionFurnace', supplies: ['combustionFurnace', 'reagent:s_wax', 'reagent:gas_o2'] },
   'fuel-energy': { labRig: 'calorimeter', supplies: ['calorimeter', 'reagent:water', 'reagent:ethanol'] },
   nacl: { labRig: 'beaker', supplies: ['beaker', 'reagent:hcl', 'reagent:s_na2co3'] },
-  // 9-27: the book's clamped, stoppered test tube with a delivery tube into soap solution (gas-layouts.ts).
-  'g9-carbonate-co2': { labRig: 'gasTrain', supplies: ['gasTrain', 'spatula', 'reagent:s_caco3', 'reagent:hcl', 'reagent:limewater'] },
-  'g9-zinc-hcl': { labRig: 'gasTrain', supplies: ['gasTrain', 'reagent:hcl', 'reagent:s_zn', 'reagent:water', 'reagent:soap'] },
   'water-quality': { labRig: 'soilBench', supplies: ['soilBench', 'reagent:water', 'reagent:ui', 'reagent:soil_clay', 'reagent:nacl', 'reagent:naoh'] },
   'water-treatment': { labRig: 'soilBench', supplies: ['soilBench', 'reagent:soil_clay', 'reagent:nacl'] },
   'g9-filtration': { labRig: 'beaker', supplies: ['beaker', 'beaker#2', 'beaker#3', 'beaker#4', 'erlenmeyer', 'funnel', 'retortStand', 'glassRod', 'reagent:water', 'reagent:s_sand', 'reagent:tomato', 'reagent:s_nacl', 'reagent:ethanol'] },

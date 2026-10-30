@@ -12,9 +12,10 @@ import { useRapier } from '@react-three/rapier';
 import { Color, Mesh, MeshBasicMaterial, MeshPhysicalMaterial, Quaternion, Raycaster, Vector2, Vector3, type Group } from 'three';
 import { EquipmentModel } from '../equipment/registry';
 import { CATALOG } from '../equipment/equipmentCatalog';
+import { liquidMl } from '../chemistry/mixture';
 import { playerState, useGameStore } from '../store/useGameStore';
 import { useInventoryStore } from '../store/useInventoryStore';
-import { useChemStore } from '../store/useChemStore';
+import { mixtureOf, useChemStore } from '../store/useChemStore';
 import { useSettingsStore } from '../store/useSettingsStore';
 import { sounds } from '../utils/sounds';
 import { bench as stationBench } from '../experiments/nacl/bench';
@@ -129,6 +130,10 @@ export function HeldItem() {
       const h = useInventoryStore.getState().held;
       if (!target || !h) return false;
       const inv = useInventoryStore.getState();
+      if (h.kind === 'testTube' && liquidMl(mixtureOf(h.id, h.variant)) > 0.3) {
+        useGameStore.getState().showToast('Шингэнтэй хуруу шилийг хэвтүүлж болохгүй', 'Хуруу шилний тавиур руу хараад Q дар — асгарна');
+        return true;
+      }
       const raised = supportHeightAt(target.point.x, target.point.z, inv.worldItems, h.kind);
       const y = Math.max(raised ?? -1, target.point.y);
       endHeldUse();
@@ -229,7 +234,7 @@ export function HeldItem() {
         entry.object.getWorldPosition(end);
         const targetKind = useInventoryStore.getState().worldItems.find((w) => w.id === actionVisual.targetId)?.kind;
         const rig=actionVisual.targetId?useGrade9Apparatus.getState().rigs[actionVisual.targetId]:undefined;
-        if(rig)entry.object.localToWorld(end.set(...portLayout(rig.kind,rig.port,rig.experiment).mouth));
+        if(rig)entry.object.localToWorld(end.set(...portLayout(rig.kind,rig.port).mouth));
         else end.y += targetKind ? Math.min(0.08, CATALOG[targetKind].size[1] * 0.6) : 0.05;
         mid.copy(end).sub(spout);
         const len = mid.length();

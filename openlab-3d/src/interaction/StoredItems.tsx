@@ -39,7 +39,6 @@ interface Pose {
 /** Footprint along x of an item in its stored pose. */
 function footX(kind: EquipmentKind): number {
   const s = CATALOG[kind].size;
-  if (kind === 'testTube') return 0.15;
   if (LYING.includes(kind)) return s[2];
   if (kind === 'graduatedCylinder') return s[1];
   return s[0];
@@ -136,7 +135,7 @@ const StoredItemView = memo(function StoredItemView({ item, holderId, pose, inte
   useWakeHolder();
   const model = (
     <>
-      <EquipmentModel kind={item.kind} variant={item.variant} mixture={mixture} itemId={item.id} tool={tool} upright={item.kind === 'testTube' && holderType(holderId) === 'rack'} lying={item.kind === 'testTube' && holderType(holderId) !== 'rack'} />
+      <EquipmentModel kind={item.kind} variant={item.variant} mixture={mixture} itemId={item.id} tool={tool} upright={item.kind === 'testTube' && holderType(holderId) === 'rack'} />
       {item.kind === 'testTubeRack' && <HolderContents holderId={item.id} layout={RACK_LAYOUT} interactive={false} />}
     </>
   );

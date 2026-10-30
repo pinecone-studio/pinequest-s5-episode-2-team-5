@@ -9,6 +9,9 @@ import { QUALITY_PRESETS, useSettingsStore } from '../store/useSettingsStore';
  */
 const cache = new Map<string, Material>();
 
+/** Grade 8 apparatus tint (experiments/workbench/guidance/grade8.ts); other glass keeps its own tint. */
+export const LAB_GLASS = '#eef8fb';
+
 /** Transmissive material → its cheap alpha-blended twin (used for distance LOD). */
 export const transmissionTwins = new Map<Material, Material>();
 /** Reverse lookup: cheap twin → transmissive original. */

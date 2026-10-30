@@ -19,6 +19,7 @@ import { NotesPanel } from './NotesPanel';
 import { EndButton, EndConfirm } from './EndButton';
 import { ToolTab } from './ToolTab';
 import { StarAssistant } from './StarAssistant';
+import { StarGuidanceProvider } from './StarGuidance';
 import { ControlsHelp } from './ControlsHelp';
 import { PauseMenu } from './PauseMenu';
 import { SummaryScreen } from './SummaryScreen';
@@ -39,7 +40,7 @@ export function HUD() {
   const showChrome = inGame && mode !== 'inspect' && !bench;
   const touch = isTouchDevice();
   return (
-    <>
+    <StarGuidanceProvider>
       {showChrome && mode === 'walk' && <Crosshair />}
       {showChrome && mode === 'walk' && <InteractionPrompt />}
       {showChrome && mode === 'walk' && <ActionGauge />}
@@ -62,7 +63,7 @@ export function HUD() {
       {bench && <ExperimentCard guideOnly />}
       {inGame && <ToolTab />}
       {inGame && <RoomToast />}
-      {inGame && <StarAssistant hidden={!showChrome} />}
+      {inGame && <StarAssistant hidden={mode === 'inspect' || mode === 'paused'} />}
       {showFps && <FpsCounter />}
       <MenuPanel />
       <NotesPanel />
@@ -77,6 +78,6 @@ export function HUD() {
       <InquiryPanel />
       <ExperimentSuccess />
       <SummaryScreen />
-    </>
+    </StarGuidanceProvider>
   );
 }

@@ -58,7 +58,7 @@ export interface BubbleSpritesProps {
   max?: number;
 }
 
-export function BubbleSprites({ intensity, radiusAt, bottom, top, fromSolid = false, max = 72 }: BubbleSpritesProps) {
+export function BubbleSprites({ intensity, radiusAt, bottom, top, fromSolid = false, max = 120 }: BubbleSpritesProps) {
   const ref = useRef<InstancedMesh>(null);
   const dummy = useMemo(() => new Object3D(), []);
   const clock = useRef(0);
@@ -99,7 +99,8 @@ export function BubbleSprites({ intensity, radiusAt, bottom, top, fromSolid = fa
       dummy.position.set(x0 * inset, y, z0 * inset);
       // Grow while rising (less pressure); swell just before bursting at the surface.
       const burst = phase > 0.93 ? 1 + (phase - 0.93) * 6 : 1;
-      const size = Math.min(body * 0.32, depth * 0.3, (0.0012 + v * 0.002) * (0.75 + level * 0.6) * (0.6 + phase * 0.55) * burst);
+      // A shallow film still shows its bubbles (they break the surface): at least 1.4 mm.
+      const size = Math.min(body * 0.32, Math.max(depth * 0.3, 0.0014), (0.0017 + v * 0.0028) * (0.75 + level * 0.6) * (0.6 + phase * 0.55) * burst);
       dummy.scale.setScalar(phase > 0.985 ? 0.00001 : size);
       dummy.updateMatrix();
       mesh.setMatrixAt(i, dummy.matrix);

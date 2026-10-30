@@ -57,7 +57,8 @@ export default function App() {
       {loadCanvas && <Suspense fallback={null}>
         <CanvasRuntime map={map} dpr={dpr} onDpr={onDpr} onReady={() => setCanvasReady(true)} preset={preset} />
       </Suspense>}
-      {mode !== 'loading' && mode !== 'start' && mode !== 'ended' && <Suspense fallback={null}><GameHUD /></Suspense>}
+      {/* Kept mounted when the session ends: the HUD holds the end-of-session report. */}
+      {mode !== 'loading' && mode !== 'start' && <Suspense fallback={null}><GameHUD /></Suspense>}
       <LoadingScreen />
       {mode === 'walk' && !canvasReady && <div className="pointer-events-none fixed inset-x-0 bottom-8 z-20 text-center text-sm font-semibold text-slate-600" role="status">3D лабораторийг нээж байна…</div>}
     </>

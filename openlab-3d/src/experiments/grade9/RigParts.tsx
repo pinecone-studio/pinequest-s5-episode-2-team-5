@@ -1,7 +1,7 @@
 import {useEffect,useMemo,useRef} from 'react';
 import {useFrame} from '@react-three/fiber';
 import {AdditiveBlending,CanvasTexture,CatmullRomCurve3,Color,LatheGeometry,MeshBasicMaterial,MeshStandardMaterial,SRGBColorSpace,TubeGeometry,Vector2,Vector3,type Group} from 'three';
-import {useGlass} from '../../materials/glass';
+import {LAB_GLASS,useGlass} from '../../materials/glass';
 import {metalBrushed,metalChrome,metalDark} from '../../materials/metal';
 import {plastic} from '../../materials/plastic';
 import {lazy} from '../../utils/lazy';
@@ -38,7 +38,7 @@ const outerFlame=lazy(()=>new MeshBasicMaterial({color:'#ffb347',transparent:tru
 const innerFlame=lazy(()=>new MeshBasicMaterial({color:'#4f8dff',transparent:true,opacity:.75,blending:AdditiveBlending,depthWrite:false,toneMapped:false}));
 /** Spirit (alcohol) lamp: glass reservoir with fuel, brass collar, cotton wick and a soft yellow flame. */
 export function SpiritLamp({at,lit=false,fuel=.6}:{at:P;lit?:boolean;fuel?:number}){
- const glass=useGlass('#eaf6f8'),flame=useRef<Group>(null);
+ const glass=useGlass(LAB_GLASS),flame=useRef<Group>(null);
  useFrame(({clock})=>{if(!flame.current)return;const t=clock.elapsedTime;flame.current.scale.set(1+Math.sin(t*19)*.06,1+Math.sin(t*13)*.1+Math.sin(t*41)*.04,1+Math.cos(t*17)*.06);flame.current.rotation.z=Math.sin(t*3.1)*.05;});
  const f=Math.max(.05,Math.min(1,fuel));
  return <group position={at}>
@@ -142,7 +142,7 @@ export function WaterBath({at,size=[.18,.055,.12],cooling=false,heating=false}:{
 }
 /** A vertical glass thermometer with a red spirit column, reading `temp` (−10…110 °C). */
 export function StandThermometer({at,length=.12,temp=22}:{at:P;length?:number;temp?:number}){
- const glass=useGlass('#f3f9fb');
+ const glass=useGlass(LAB_GLASS);
  const f=Math.max(0,Math.min(1,(temp+10)/120)),col=(length-.012)*f;
  return <group position={at}>
   <mesh material={glass} renderOrder={1}><cylinderGeometry args={[.0028,.0028,length,12]}/></mesh>
@@ -152,7 +152,7 @@ export function StandThermometer({at,length=.12,temp=22}:{at:P;length?:number;te
 }
 /** Glass column plate: a perforated sieve disc fused across the column. */
 export function ColumnPlate({at,radius}:{at:P;radius:number}){
- const glass=useGlass('#dcebf2');
+ const glass=useGlass(LAB_GLASS);
  return <group position={at}>
   <mesh material={glass} rotation={[Math.PI/2,0,0]} renderOrder={1}><torusGeometry args={[radius*.97,.0016,8,28]}/></mesh>
   <mesh rotation={[-Math.PI/2,0,0]}><ringGeometry args={[radius*.18,radius*.96,28]}/><meshPhysicalMaterial color="#cfe3ea" roughness={.2} transparent opacity={.35} depthWrite={false} side={2}/></mesh>

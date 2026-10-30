@@ -323,19 +323,20 @@ export function useLiquidFx(material: LiquidMaterial, input: LiquidFxInput) {
 /** Opaque on purpose: three.js glass only refracts opaque objects behind it, so a transmissive
  * liquid would vanish behind the vessel wall. The glass does the refraction. */
 export function newLiquidMaterial(transmission: boolean): MeshPhysicalMaterial {
+  // The glossy wet finish the lab was designed with: a full, smooth clearcoat.
   return transmission
-    ? new MeshPhysicalMaterial({ roughness: 0.06, metalness: 0, clearcoat: 0.5, clearcoatRoughness: 0.05, specularIntensity: 0.6 })
-    : new MeshPhysicalMaterial({ roughness: 0.12, transparent: true, opacity: 0.86, clearcoat: 0.3 });
+    ? new MeshPhysicalMaterial({ roughness: 0.08, metalness: 0, clearcoat: 1, clearcoatRoughness: 0.04 })
+    : new MeshPhysicalMaterial({ roughness: 0.15, transparent: true, opacity: 0.86 });
 }
 
 /** Cloudiness and opacity; Low quality drops the clearcoat layer, which is costly on phone GPUs. */
 export function shadeLiquid(material: MeshPhysicalMaterial, color: string, turbidity: number, transmission: boolean, lite: boolean): void {
   const c = new Color(color);
-  material.roughness = 0.06 + turbidity * 0.3;
-  material.clearcoat = lite ? 0 : transmission ? 0.5 : 0.3;
+  material.roughness = 0.08 + turbidity * 0.6;
+  material.clearcoat = lite ? 0 : 1 - turbidity * 0.8;
   if (!transmission) {
     const dark = 1 - (c.r + c.g + c.b) / 3;
-    material.opacity = Math.min(0.97, 0.62 + Math.max(turbidity, dark) * 0.38);
+    material.opacity = Math.min(0.97, 0.55 + Math.max(turbidity, dark) * 0.45);
   }
 }
 

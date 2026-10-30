@@ -1,11 +1,12 @@
 /**
- * Floor: vinyl tiles (0.6 m, #d9dcdf) over the lab footprint, grass outside, and
+ * Floor: vinyl tiles (0.6 m, #d9dcdf tinted by LAB.floorTint) over the lab footprint, grass outside, and
  * one large static collider slab (top at y = 0).
  */
 import { useMemo } from 'react';
 import { CuboidCollider } from '@react-three/rapier';
 import { MeshStandardMaterial, RepeatWrapping } from 'three';
 import { floorTexture, groundTexture } from '../../utils/textures';
+import { LAB } from '../../materials/labPalette';
 import { LAB_BOUNDS } from '../layout';
 
 const TILE_REPEAT = 1.2;
@@ -17,7 +18,7 @@ function TiledFloor({ x0, x1, z0, z1 }: { x0: number; x1: number; z0: number; z1
     map.wrapT = RepeatWrapping;
     map.repeat.set((x1 - x0) / TILE_REPEAT, (z1 - z0) / TILE_REPEAT);
     map.needsUpdate = true;
-    return new MeshStandardMaterial({ map, color: '#ffffff', roughness: 0.62, metalness: 0 });
+    return new MeshStandardMaterial({ map, color: LAB.floorTint, roughness: 0.62, metalness: 0 });
   }, [x0, x1, z0, z1]);
   return (
     <mesh rotation={[-Math.PI / 2, 0, 0]} position={[(x0 + x1) / 2, 0, (z0 + z1) / 2]} material={material} receiveShadow>

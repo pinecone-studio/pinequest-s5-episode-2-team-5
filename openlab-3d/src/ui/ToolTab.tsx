@@ -9,7 +9,7 @@ import { Fragment, createRef, useEffect, useMemo, useRef, useState, type Mutable
 import { Canvas, useFrame, useThree } from '@react-three/fiber';
 import { PerspectiveCamera, View } from '@react-three/drei';
 import { motion } from 'framer-motion';
-import { NeutralToneMapping, PMREMGenerator, SRGBColorSpace, type Group, type Texture } from 'three';
+import { ACESFilmicToneMapping, PMREMGenerator, SRGBColorSpace, type Group, type Texture } from 'three';
 import { RoomEnvironment } from 'three/examples/jsm/environments/RoomEnvironment.js';
 import { CATALOG, EQUIPMENT_CATEGORIES, SPAWNABLE_KINDS, type EquipmentKind } from '../equipment/equipmentCatalog';
 import { CATEGORY_LABELS, HAZARD_LABELS, REAGENTS, REAGENT_LIST, type ReagentCategory } from '../chemistry/reagents';
@@ -374,7 +374,7 @@ export function ToolTab() {
           style={{ position: 'fixed', inset: 0, pointerEvents: 'none', zIndex: 46, opacity: ready && open ? 1 : 0, transition: 'opacity 0.2s' }}
           frameloop={open ? 'always' : 'never'}
           dpr={[1, 1.5]}
-          gl={{ alpha: true, antialias: true, toneMapping: NeutralToneMapping, outputColorSpace: SRGBColorSpace }}
+          gl={{ alpha: true, antialias: true, toneMapping: ACESFilmicToneMapping, outputColorSpace: SRGBColorSpace }}
         >
           {entries.map((entry, i) => (
             <Thumbnail key={entry.key} entry={entry} track={refFor(entry.key)} index={i} visible={open && ready && !!shown[entry.key]} />

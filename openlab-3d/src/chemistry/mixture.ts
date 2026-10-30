@@ -6,6 +6,7 @@ import { GASES, type GasId } from '../experiments/curriculum/materials';
  */
 import { AQ, SOLIDS, type AqId, type SolidId } from './species';
 import { REAGENTS, type ReagentId } from './reagents';
+import { grade8Chemistry } from './grade8';
 
 export interface Mixture {
   /** Gases in mol; transferred through cylinders and apparatus ports. */
@@ -91,7 +92,9 @@ export function reagentMixture(id: ReagentId, amount: number): Mixture {
   if(r.blend&&r.container==='reagentJar'){for(const [id,f] of Object.entries(r.blend))m.s[id as SolidId]=amount*(f??0)/SOLIDS[id as SolidId].molarMass;return m;}
   if(r.liquid||r.liquidBlend){for(const [id,f] of Object.entries(r.liquid?{[r.liquid]:1}:r.liquidBlend??{})){const d=AQ[id as AqId];m.aq[id as AqId]=amount*(f??0)*(d.density??1)/d.molarMass;}return m;}
   if (r.solid) {
-    m.s[r.solid] = amount / SOLIDS[r.solid].molarMass;
+    // Grade 8 marble is chips that acid attacks at the surface (kinetics.ts), not instant powder.
+    const solid = id === 's_caco3' && grade8Chemistry.active ? 'marble' : r.solid;
+    m.s[solid] = amount / SOLIDS[solid].molarMass;
     return m;
   }
   const sol = r.solution ?? { solutes: {} };

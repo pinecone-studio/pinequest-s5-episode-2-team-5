@@ -23,10 +23,11 @@ import {REAGENTS} from '../../../chemistry/reagents';
 import {executeGuideStep,doseUnit,focusGuideStep,guideTargetKind} from './runtime';
 import type {InvestigationDefinition} from '../../../../../src/lib/textbook-investigations';
 import type {GuideStep} from './plans';
+import {isGrade8Lab} from './grade8';
 export type Point=[number,number,number];
 export const useShowcase=create<{operationValue:number;carried:number;targetId:string|null;operation:Operation;progress:number;viscosity:number;materialPhase:string;key:string;status:'idle'|'playing'|'paused'|'done'|'failed';phase:string;delivered:number;amount:number;source:string|null;cap:Point|null;toolAnchor:Point|null;tip:Point|null;mouth:Point|null;flow:boolean;tool:'pour'|'spoon'|'pipette'|'hose'|'dial'|'magnet';color:string;message:string}>(()=>({operationValue:1,carried:0,targetId:null,operation:'none',progress:0,viscosity:1,materialPhase:'liquid',key:'',status:'idle',phase:'',delivered:0,amount:0,source:null,cap:null,toolAnchor:null,tip:null,mouth:null,flow:false,tool:'pour',color:'#87c8eb',message:''}));
-export const showcasePort=(kind:string,i:number,experiment?:string):Point=>portLayout(kind,i,experiment).mouth;
-export const showcaseDuration=(step:GuideStep)=>step.type==='dose'&&step.stopWhen?105:step.type==='dose'?5+Math.max(2,transferAppearance(reagentMixture(step.reagent,1)).viscosity>1?Math.min(8,step.amount/2):Math.min(5,step.amount/12.5)):step.type==='move'?7:step.type==='observe'?(step.duration??24):step.type==='record'?.4:['start','configure','portion'].includes(step.type)?6:3;
+export const showcasePort=(kind:string,i:number):Point=>portLayout(kind,i).mouth;
+export const showcaseDuration=(step:GuideStep,experiment?:string)=>step.type==='dose'&&step.stopWhen?105:step.type==='dose'?5+Math.max(2,transferAppearance(reagentMixture(step.reagent,1)).viscosity>1?Math.min(8,step.amount/2):Math.min(5,step.amount/12.5)):step.type==='move'?7:step.type==='observe'?(step.duration??24):step.type==='record'?.4:isGrade8Lab(experiment)&&step.type==='configure'&&step.change.heating===false?3:['start','configure','portion'].includes(step.type)?6:3;
 export function showcaseMotion(from:Point,to:Point,t:number):{position:Point;tilt:number;fraction:number;phase:string}{
  const smooth=(x:number)=>{x=Math.max(0,Math.min(1,x));return x*x*(3-2*x);};
  const lifted:Point=[from[0],Math.max(from[1]+.20,to[1]+.12),from[2]],over:Point=[to[0]-.07,to[1]+.10,to[2]];
@@ -49,7 +50,7 @@ export function beginShowcase(def:InvestigationDefinition,step:GuideStep,key:str
  if(!id){useShowcase.setState({key,status:'failed',message:'Багаж, бодисоо эхлээд бэлтгэ.'});return;}
  const operation=operationFor(kind,step);
  const source=step.type==='dose'?currentSession()?.objects[`reagent-${step.reagent}`]:step.type==='move'?currentSession()?.objects[step.from]:step.type==='flame'?currentSession()?.objects.wireLoop:step.type==='place'?currentSession()?.objects[step.item]:operation==='stir'?currentSession()?.objects.glassRod:undefined;
- const at=itemPosition(id),local:Point=step.type==='dose'||step.type==='move'||operation==='stir'?showcasePort(kind,step.type==='dose'?step.port:0,def.id):step.type==='configure'&&step.change.operation==='draw'?[.04,.19,.03]:step.type==='configure'&&step.change.operation==='magnet'?[-.06,.15,0]:['electrolysisCell','galvanicCell','migrationTube'].includes(def.labRig!)?[0,.21,.03]:[0,.04,.08];
+ const at=itemPosition(id),local:Point=step.type==='dose'||step.type==='move'||operation==='stir'?showcasePort(kind,step.type==='dose'?step.port:0):step.type==='configure'&&step.change.operation==='draw'?[.04,.19,.03]:step.type==='configure'&&step.change.operation==='magnet'?[-.06,.15,0]:['electrolysisCell','galvanicCell','migrationTube'].includes(def.labRig!)?[0,.21,.03]:[0,.04,.08];
  const body=bodies.get(id),rot=body?new Quaternion().copy(body.rotation()):interactables.get(id)?.object.getWorldQuaternion(new Quaternion())??new Quaternion();
  if(operation==='stir')local[1]+=.025;
  if(step.type==='flame'){local[0]=0;local[1]=.17;local[2]=0;}
@@ -62,7 +63,7 @@ export function beginShowcase(def:InvestigationDefinition,step:GuideStep,key:str
  let center:Point=gas?[(at.x+stockAt.x)/2,at.y+.16,(at.z+stockAt.z)/2]:[at.x-.025,at.y+.15,at.z];
  let frameWidth=gas?Math.max(.46,Math.abs(stockAt.x-at.x)+.20):.34,frameHeight=.34;
  if(step.type==='observe'){
-  const rig=useGrade9Apparatus.getState().rigs[id],port=rig?.port??0,location=portLayout(kind,port,rig?.experiment),electrical=['galvanicCell','electrolysisCell','migrationTube'].includes(kind);
+  const rig=useGrade9Apparatus.getState().rigs[id],port=rig?.port??0,location=portLayout(kind,port),electrical=['galvanicCell','electrolysisCell','migrationTube'].includes(kind);
   const point=rig?new Vector3(location.x,location.bottom+location.height*.45,location.z).applyQuaternion(rot).add(at):new Vector3(at.x,at.y+.045,at.z);
   center=point.toArray() as Point;frameWidth=electrical?.28:rig?.24:.19;frameHeight=electrical?.30:rig?.24:.20;if(electrical)center[1]=at.y+.13;
  }
@@ -78,10 +79,11 @@ function prepare(j:Job){
  if(body){
   const p=body.translation(),q=body.rotation(),type=body.bodyType(),groups=Array.from({length:body.numColliders()},(_,i)=>body.collider(i).collisionGroups());
   j.from=[p.x,p.y,p.z];j.rotation.copy(q);body.setBodyType(2,true);groups.forEach((_,i)=>body.collider(i).setCollisionGroups(0));
-  // A resting bottle's body may be asleep, and the renderer skips sleeping bodies: wake it on
+  // Grade 8: a resting bottle's body may be asleep, and the renderer skips sleeping bodies: wake it on
   // every move or the bottle stays drawn at home while the pour happens at the vessel.
-  j.move=(point,rotation)=>{body.setTranslation({x:point[0],y:point[1],z:point[2]},true);body.setNextKinematicTranslation({x:point[0],y:point[1],z:point[2]});body.setRotation(rotation,true);body.setNextKinematicRotation(rotation);body.wakeUp();};
-  j.restore=()=>{if(!bodies.has(j.source!))return;body.setTranslation(p,true);body.setRotation(q,true);body.setBodyType(type,true);groups.forEach((group,i)=>body.collider(i).setCollisionGroups(group));body.setLinvel({x:0,y:0,z:0},true);body.setAngvel({x:0,y:0,z:0},true);body.wakeUp();};
+  const wake=isGrade8Lab(j.def.id);
+  j.move=(point,rotation)=>{body.setTranslation({x:point[0],y:point[1],z:point[2]},true);body.setNextKinematicTranslation({x:point[0],y:point[1],z:point[2]});body.setRotation(rotation,true);body.setNextKinematicRotation(rotation);if(wake)body.wakeUp();};
+  j.restore=()=>{if(!bodies.has(j.source!))return;body.setTranslation(p,true);body.setRotation(q,true);body.setBodyType(type,true);groups.forEach((group,i)=>body.collider(i).setCollisionGroups(group));body.setLinvel({x:0,y:0,z:0},true);body.setAngvel({x:0,y:0,z:0},true);if(wake)body.wakeUp();};
  }else{
   const p=object.position.clone(),q=object.quaternion.clone();j.from=object.getWorldPosition(new Vector3()).toArray() as Point;j.rotation.copy(object.getWorldQuaternion(new Quaternion()));
   j.move=(point,rotation)=>{const world=new Vector3(...point);object.position.copy(object.parent?object.parent.worldToLocal(world):world);const local=rotation.clone();if(object.parent)local.premultiply(object.parent.getWorldQuaternion(new Quaternion()).invert());object.quaternion.copy(local);object.updateWorldMatrix(true,true);};
@@ -96,7 +98,7 @@ export function tickShowcase(dt:number){
  if(!j.prepared){if(!prepare(j)){j.waiting+=Math.min(dt,.1);if(j.waiting>5){j.restore();useShowcase.setState({status:'failed',message:'Бодисын сав хараахан бэлэн биш эсвэл гартаа барьж байна. Саваа тавиад дахин оролд.'});}return;}}
  j.time+=Math.min(dt,.1);
  if(useShowcase.getState().operation==='stir'&&j.source){
-  const f=Math.min(1,j.time/showcaseDuration(j.step)),enter=Math.min(1,f/.2),exit=Math.max(0,(f-.8)/.2),blend=enter*(1-exit),p=j.from.map((v,i)=>v+(j.to[i]-v)*blend) as Point;
+  const f=Math.min(1,j.time/showcaseDuration(j.step,j.def.id)),enter=Math.min(1,f/.2),exit=Math.max(0,(f-.8)/.2),blend=enter*(1-exit),p=j.from.map((v,i)=>v+(j.to[i]-v)*blend) as Point;
   if(f>.2&&f<.8){p[0]+=Math.cos((f-.2)*Math.PI*12)*.008;p[2]+=Math.sin((f-.2)*Math.PI*12)*.008;}
   j.move(p,j.rotation.clone().slerp(new Quaternion().setFromAxisAngle(new Vector3(1,0,0),-Math.PI/2),blend));
   if(f>.65&&!j.applied){const result=executeGuideStep(j.def,j.step);j.applied=true;if(!result.ok){j.restore();useShowcase.setState({status:'failed',message:result.message});return;}}
@@ -105,7 +107,7 @@ export function tickShowcase(dt:number){
   const f=Math.min(1,j.time/3),e=f*f*(3-2*f),p=j.from.map((x,i)=>x+(j.to[i]-x)*e) as Point;p[1]+=.1*Math.sin(f*Math.PI);j.move(p,j.rotation);
   useShowcase.setState({phase:j.step.label,toolAnchor:null,flow:false});if(j.step.type==='flame'&&j.time>1.5&&!j.applied){const result=executeGuideStep(j.def,j.step);j.applied=true;if(!result.ok){useShowcase.setState({status:'failed',message:result.message});return;}}
  }else if(j.step.type==='dose'||j.step.type==='move'){
-  const duration=showcaseDuration(j.step),pourSeconds=duration-5,motionTime=j.time<3?j.time:j.time<3+pourSeconds?3+(j.time-3)/pourSeconds*2:5+(j.time-3-pourSeconds);
+  const duration=showcaseDuration(j.step,j.def.id),pourSeconds=duration-5,motionTime=j.time<3?j.time:j.time<3+pourSeconds?3+(j.time-3)/pourSeconds*2:5+(j.time-3-pourSeconds);
   const tool=useShowcase.getState().tool,gas=tool==='hose';
   const measuringTool=tool==='spoon'||tool==='pipette',container=j.step.type==='dose'?REAGENTS[j.step.reagent].container:baseKind(j.step.from),height=container==='dropperBottle'?.068:container==='reagentJar'?.085:container==='reagentBottle'?.13:CATALOG[container].size[1];
   const toolFrom:Point=[j.from[0]-.07,j.from[1]+height+.05,j.from[2]],motion=showcaseMotion(measuringTool?toolFrom:j.from,j.to,motionTime);
@@ -129,16 +131,16 @@ export function tickShowcase(dt:number){
   if(gas){tip[0]=j.from[0]+.024;tip[1]=j.from[1]+.169;tip[2]=j.from[2];}
   const toolAnchor:Point=gas?[j.from[0]+.024,j.from[1]+.169,j.from[2]]:measuringTool?[tip[0]-.04,tip[1]+.035,tip[2]]:[p[0]-.025,p[1]+.06,p[2]];
   const cap:Point|null=gas||j.step.type==='move'?null:[j.from[0]+.06,j.from[1]+.01,j.from[2]+.025];
-  // Once liquid flows, push in on the receiving vessel so the mixing fills the view.
-  if(!gas&&!j.focused&&motionTime>=3.2){j.focused=true;benchView.frame([j.to[0],j.to[1]+.01,j.to[2]],.28,.28);}
+  // Grade 8: once liquid flows, push in on the receiving vessel so the mixing fills the view.
+  if(!gas&&!j.focused&&motionTime>=3.2&&isGrade8Lab(j.def.id)){j.focused=true;benchView.frame([j.to[0],j.to[1]+.01,j.to[2]],.28,.28);}
   useShowcase.setState({cap,toolAnchor,tip,mouth:j.to,flow:motionTime>=3&&motionTime<5&&!(j.step.type==='dose'&&j.step.stopWhen&&endpointResult(j.def,j.step,j.step.stopWhen).ok),carried:j.buffer?Math.max(0,j.step.amount-j.delivered):0,delivered:j.delivered,phase:gas?'Хийн хаалтыг нээж хоолойгоор дамжуулж байна':motion.phase});
 
  }else{
   const toolAnchor:Point|null=j.step.type==='observe'?null:[j.to[0]+.012*Math.sin(j.time*3),j.to[1]+.02,j.to[2]+.02];
   useShowcase.setState({toolAnchor,tip:null,flow:false,phase:j.step.type==='observe'?'Урвал ба хэмжилтийг ойроос ажиглаж байна':operationLabel[useShowcase.getState().operation]||'Багажийн удирдлагыг ажиллуулж байна'});
-  if(j.time>(j.step.type==='record'?.01:showcaseDuration(j.step)*(useShowcase.getState().operation==='magnet'?.83:.65))&&!j.applied&&j.step.type!=='observe'){const result=executeGuideStep(j.def,j.step);j.applied=true;if(!result.ok){clearProtocolClock();useShowcase.setState({status:'failed',message:result.message});return;}}
+  if(j.time>(j.step.type==='record'?.01:showcaseDuration(j.step,j.def.id)*(useShowcase.getState().operation==='magnet'?.83:.65))&&!j.applied&&j.step.type!=='observe'){const result=executeGuideStep(j.def,j.step);j.applied=true;if(!result.ok){clearProtocolClock();useShowcase.setState({status:'failed',message:result.message});return;}}
  }
- const duration=showcaseDuration(j.step);
+ const duration=showcaseDuration(j.step,j.def.id);
  useShowcase.setState({progress:Math.min(1,j.time/duration)});
  let done=j.time>=duration;
  if(j.step.type==='observe'&&j.step.until){

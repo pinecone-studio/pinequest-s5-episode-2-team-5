@@ -2,7 +2,7 @@ import { formatMeasurement } from '@/lib/measurement-format';
 import { InvestigationDiagram } from './investigation-diagram';
 import { useCallback, useState } from 'react';
 import { router, useFocusEffect } from 'expo-router';
-import { Pressable, StyleSheet, TextInput, View } from 'react-native';
+import { Platform, Pressable, StyleSheet, TextInput, View } from 'react-native';
 import Svg, { Line, Rect, Text as SvgText } from 'react-native-svg';
 import { AppText } from '@/components/ui/app-text';
 import { GameButton } from '@/components/ui/game-button';
@@ -46,7 +46,7 @@ export function PracticalInvestigation({ id, practicalId, expected, onReviewed, 
       <GameButton title="Загварыг ажиллуулж хэмжих" size="md" onPress={()=>{commit({...attempt,trials:[...attempt.trials,runModel(definition,parameters)].slice(-30)});setFeedback('Хэмжилт нэмэгдлээ. Доорх хүснэгт, графикт үр дүнг харна уу.');}}/>
       <AppText variant="caption" accessibilityLiveRegion="polite">Бүртгэсэн хэмжилт: {attempt.trials.length}{attempt.trials.length?' · Үр дүн доорх хүснэгтэд байна.':''}</AppText>
     </View>}
-    {labId?<><GameButton title="OpenLab-д энэ туршилтыг нээх" size="md" variant="secondary" onPress={()=>router.push({pathname:'/openlab',params:{experiment:labId}})}/><AppText variant="caption">OpenLab-ийн дэвтэрт авсан хэмжилт буцаж ирэхэд энд харагдана. Орон нутгийн төхөөрөмжид хадгална.</AppText></>:<GameButton title="Үелэх хүснэгтээр судлах" size="md" variant="secondary" onPress={()=>router.push('/periodic')}/>}
+    {labId?<><GameButton title={Platform.OS==='web'?'OpenLab-д энэ туршилтыг нээх':'OpenLab · веб хувилбарт нээх'} size="md" variant="secondary" onPress={()=>router.push({pathname:'/openlab',params:{experiment:labId}})}/><AppText variant="caption">OpenLab-ийн дэвтэрт авсан хэмжилт буцаж ирэхэд энд харагдана. Орон нутгийн төхөөрөмжид хадгална.</AppText></>:<GameButton title="Үелэх хүснэгтээр судлах" size="md" variant="secondary" onPress={()=>router.push('/periodic')}/>}
     <AppText variant="bodyStrong">2. Хэмжилт ба нотолгоо</AppText>
     {attempt.trials.map((t,i)=><View key={i} style={styles.result}><AppText variant="caption">{i+1}. {t.source==='model'?'Загвар':t.source==='manual'?'Өөрөө оруулсан':'OpenLab сав'} · {definition?definition.controls.map((c)=>`${c.label}: ${c.options?.find((o)=>o.value===t.parameters[c.id])?.label??t.parameters[c.id]}`).join(' · '):''}</AppText>{t.readings.map((r)=><AppText key={r.label}>{r.label}: {formatMeasurement(r.value)} {r.unit}</AppText>)}</View>)}
     {values.length>0&&<><View style={styles.row}>{series.options.map(([key,r])=><GameButton key={key} title={`${r.label} (${r.unit})`} size="sm" variant={key===series.selected?'primary':'secondary'} onPress={()=>setMetric(key)}/>)}</View><Svg width="100%" height={145} viewBox="0 0 440 145" accessibilityLabel="Хэмжилтүүдийн харьцуулалт"><Line x1={15} y1={y(0)} x2={430} y2={y(0)} stroke={Colors.textDim}/>{values.map((v,i)=><Rect key={i} x={20+i*400/values.length} y={Math.min(y(v),y(0))} width={Math.max(2,340/values.length)} height={Math.max(1,Math.abs(y(v)-y(0)))} fill={Colors.cyan}/>)}<SvgText x={15} y={140} fill={Colors.textMuted} fontSize={10}>X: хэмжилтийн дугаар · Y: {series.selected}</SvgText></Svg><AppText variant="caption">{series.options.find(([key])=>key===series.selected)?.[1].unit} · min {formatMeasurement(low)} / max {formatMeasurement(high)}</AppText></>}

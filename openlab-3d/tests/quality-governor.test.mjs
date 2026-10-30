@@ -13,7 +13,7 @@ const feed = (g, fps, n) => {
 
 test('ladder has no duplicate levels on a 1x screen and keeps all on a 2x screen', () => {
   const oneX = ladderFor(AUTO_LADDER, 1);
-  assert.deepEqual(oneX.map((l) => `${l.quality}@${l.dpr}`), ['high@1', 'medium@1', 'low@1']);
+  assert.deepEqual(oneX.map((l) => `${l.quality}@${l.dpr}`), ['medium@1', 'low@1', 'low@0.75', 'low@0.6', 'low@0.5']);
   assert.equal(ladderFor(AUTO_LADDER, 2).length, AUTO_LADDER.length);
 });
 
@@ -50,7 +50,7 @@ test('five fast windows try one level up; a slow window right after reverts at o
 });
 
 test('a failed tier change is never retried; a failed resolution step is retried once', () => {
-  // Level 2 (medium@1.5) → level 1 (high@1.5) changes the tier.
+  // Level 2 (low@1) → level 1 (medium@1) changes the tier.
   const g = new FrameGovernor(ladderFor(AUTO_LADDER, 2), 2);
   feed(g, FAST, 5);
   assert.equal(g.level, 1);
@@ -58,7 +58,7 @@ test('a failed tier change is never retried; a failed resolution step is retried
   assert.equal(g.level, 2);
   assert.equal(feed(g, FAST, 30), null);
   assert.equal(g.level, 2);
-  // Level 4 (low@1.25) → level 3 (low@1.5) only changes resolution.
+  // Level 4 (low@0.6) → level 3 (low@0.75) only changes resolution.
   const r = new FrameGovernor(ladderFor(AUTO_LADDER, 2), 4);
   feed(r, FAST, 5);
   r.onWindow(SLOW);

@@ -152,7 +152,7 @@ function simulate(dt: number): void {
     if (isBenchPaused(w.id) || useShowcase.getState().source === w.id) continue;
     const def = CATALOG[w.kind];
     if(isGrade9Rig(w.kind))continue; // Sealed compartments are managed by the apparatus engine.
-    if (!def.upright) continue;
+    if (!def.upright && w.kind !== 'testTube') continue;
     const m = useChemStore.getState().mixtures[w.id] ?? seedMixture(w.variant);
     if (liquidMl(m) < 0.3) continue;
     const p = livePose(w);

@@ -7,7 +7,7 @@ import { useLayoutEffect, useRef } from 'react';
 import { CylinderCollider } from '@react-three/rapier';
 import { BoxGeometry, CylinderGeometry, InstancedMesh, Object3D, TorusGeometry, type BufferGeometry, type Material } from 'three';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
-import { metalChrome, metalDark } from '../../materials/metal';
+import { metalBrushed, metalChrome } from '../../materials/metal';
 import { plastic } from '../../materials/plastic';
 import { lazy } from '../../utils/lazy';
 
@@ -68,7 +68,7 @@ export function Stools({ positions, color = '#2b3036' }: { positions: [number, n
     <group>
       <Part geometry={seatGeo()} material={plastic(color, 0.5)} positions={positions} />
       <Part geometry={chromeGeo()} material={metalChrome} positions={positions} />
-      <Part geometry={baseGeo()} material={metalDark} positions={positions} />
+      <Part geometry={baseGeo()} material={metalBrushed} positions={positions} />
       {positions.map(([x, z], i) => (
         <CylinderCollider key={i} args={[0.33, 0.2]} position={[x, 0.33, z]} />
       ))}

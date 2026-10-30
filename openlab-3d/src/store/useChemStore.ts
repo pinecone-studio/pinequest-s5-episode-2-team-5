@@ -8,6 +8,7 @@ import type { Cation } from '../chemistry/species';
 import { emptyMixture, merge, reagentMixture, type Mixture } from '../chemistry/mixture';
 import { REAGENTS } from '../chemistry/reagents';
 import type { ItemVariant } from '../world/itemsLayout';
+import { grade8Chemistry } from '../chemistry/grade8';
 
 export interface ToolState {
   /** Thermometer: last reading, °C. */
@@ -48,12 +49,15 @@ export interface Burst {
 }
 
 const seedCache = new WeakMap<ItemVariant, Mixture>();
+/** Grade 8 seeds marble as chips (chemistry/mixture.ts), so it keeps its own copies. */
+const grade8SeedCache = new WeakMap<ItemVariant, Mixture>();
 const EMPTY = emptyMixture();
 
 /** What an item holds before anyone touched it: its reagent stock or its seed fill. */
 export function seedMixture(variant: ItemVariant | undefined): Mixture {
   if (!variant) return EMPTY;
-  let m = seedCache.get(variant);
+  const cache = grade8Chemistry.active ? grade8SeedCache : seedCache;
+  let m = cache.get(variant);
   if (!m) {
     if (variant.reagent) {
       m = reagentMixture(variant.reagent, variant.amount ?? REAGENTS[variant.reagent].stock);
@@ -62,7 +66,7 @@ export function seedMixture(variant: ItemVariant | undefined): Mixture {
     } else {
       m = EMPTY;
     }
-    seedCache.set(variant, m);
+    cache.set(variant, m);
   }
   return m;
 }

@@ -6,10 +6,13 @@ import { usePerfStore } from '../store/usePerfStore';
 import { keyLabel } from '../controls/keyMap';
 import { isTouchDevice } from '../utils/device';
 import { mobileizeControlHint } from '../controls/mobileInteraction';
+import { hudTop, useDemoShown } from '../experiments/workbench/guidance/hud-space';
 
 /** Short banner at the top center for quick notices. */
 export function RoomToast() {
   const toast = useGameStore((s) => s.toast);
+  // During a grade 8 demo the progress strip holds the top centre: show the notice just below it.
+  const demo = useDemoShown();
   const [visible, setVisible] = useState(false);
   useEffect(() => {
     if (!toast) return;
@@ -18,7 +21,7 @@ export function RoomToast() {
     return () => window.clearTimeout(id);
   }, [toast]);
   return (
-    <div className="pointer-events-none fixed inset-x-0 top-20 z-[55] flex justify-center px-3 sm:px-20" aria-live="polite">
+    <div className="pointer-events-none fixed inset-x-0 top-20 z-[55] flex justify-center px-3 sm:px-20" style={demo ? { top: hudTop() + 8 } : undefined} aria-live="polite">
       <AnimatePresence>
         {visible && toast && (
           <motion.div key={toast.id} className="max-w-lg rounded-2xl bg-white/95 px-4 py-2.5 text-center text-lab-ink shadow-hud backdrop-blur" initial={{ opacity: 0, y: -12 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }}>

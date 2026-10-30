@@ -1,15 +1,17 @@
 /**
- * Lab bench: 0.9 m tall with a 40 mm dark-gray (#3a3d42) worktop, a recessed 0.1 m
+ * Lab bench: 0.9 m tall with a 40 mm deep-indigo (LAB.benchTop) worktop, a recessed 0.1 m
  * plinth, and 0.6 m front modules that alternate between drawer stacks (3 drawers that
  * slide 0.35 m out of a hollow stack) and cabinets (doors swing 90° outward onto an
  * LED-lit, shelved compartment). Fronts are overlay panels with a raised center and a
- * metal card holder; every drawer and cabinet is a labelled storage holder whose items
- * appear when it is opened. Islands have fronts on both sides. Must be used inside <BenchParts>.
+ * metal card holder, painted per module in the pastel LAB.fronts; every drawer and cabinet
+ * is a labelled storage holder whose items appear when it is opened. Islands have fronts
+ * on both sides. Must be used inside <BenchParts>.
  */
-import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
+import { createContext, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { CuboidCollider } from '@react-three/rapier';
-import { MeshStandardMaterial, type Group, type Material } from 'three';
+import { Color, MeshStandardMaterial, type Group, type Material } from 'three';
 import { BENCH_HEIGHT } from '../../utils/constants';
+import { LAB } from '../../materials/labPalette';
 import { benchBody, benchTop, plasticBlack } from '../../materials/plastic';
 import { metalBrushed } from '../../materials/metal';
 import { useGameStore } from '../../store/useGameStore';
@@ -55,8 +57,8 @@ const INSET = 0.026;
 const REVEAL = FRONT_T + 0.001;
 
 /** Cabinet compartment: light melamine, a darker back for depth, an LED strip under the top. */
-const interior = new MeshStandardMaterial({ color: '#d9dde2', roughness: 0.7 });
-const interiorBack = new MeshStandardMaterial({ color: '#b3b9c1', roughness: 0.75 });
+const interior = new MeshStandardMaterial({ color: LAB.cabinetShelf, roughness: 0.7 });
+const interiorBack = new MeshStandardMaterial({ color: LAB.cabinetBack, roughness: 0.75 });
 const ledStrip = new MeshStandardMaterial({ color: '#ffffff', emissive: '#fff3d6', emissiveIntensity: 1.6, roughness: 0.5 });
 /** Inside of a drawer stack, seen when a drawer is pulled out. */
 const cavity = new MeshStandardMaterial({ color: '#2a2d32', roughness: 0.9 });
@@ -76,9 +78,23 @@ function useHolderInteraction(id: string, open: boolean, base: string, category:
   };
 }
 
+/**
+ * Upright fronts catch less ceiling light than the worktop and ACES tone mapping mutes pastels,
+ * so their paint is lifted a little to read as the bright pastel of the design.
+ */
+const FRONT_LIFT = 1.6;
+/** Pastel paint of each front module (left to right, cycling LAB.fronts); its focused look is a touch brighter. */
+const FRONT_COLORS = LAB.fronts.map((c) => {
+  const base = new Color(c).multiplyScalar(FRONT_LIFT);
+  return { base, focused: base.clone().multiply(HIGHLIGHT) };
+});
+/** Paint of the module being drawn; Fronts provides it so drawers and doors need no extra prop. */
+const FrontPaint = createContext<{ base: Color; focused: Color }>({ base: WHITE, focused: HIGHLIGHT });
+
 /** Overlay front: an 18 mm slab with a raised center panel. Outer face at z = 0. */
 function FrontSlab({ width, height, focused = false }: { width: number; height: number; focused?: boolean }) {
-  const tint = focused ? HIGHLIGHT : WHITE;
+  const paint = useContext(FrontPaint);
+  const tint = focused ? paint.focused : paint.base;
   useEffect(() => syncBenchParts(), [focused]);
   return (
     <>
@@ -229,18 +245,21 @@ function Fronts({
       {modules.map((m, i) => {
         const x = -width / 2 + moduleW * (i + 0.5);
         const key = `${id}-${i}`;
+        const paint = FRONT_COLORS[i % FRONT_COLORS.length];
         if (m === 'drawers') {
           const n = 3;
           const h = frontHeight / n;
           const s = stack++;
           return (
-            <group key={key} position={[x, 0, 0]}>
-              {Array.from({ length: n }, (_, j) => (
-                <group key={j} position={[0, PLINTH + h * (n - j - 0.5), 0]}>
-                  <Drawer id={`${key}-d${j}`} width={moduleW} height={h} depth={compartmentDepth} category={plan.drawer(s, j)} />
-                </group>
-              ))}
-            </group>
+            <FrontPaint.Provider key={key} value={paint}>
+              <group position={[x, 0, 0]}>
+                {Array.from({ length: n }, (_, j) => (
+                  <group key={j} position={[0, PLINTH + h * (n - j - 0.5), 0]}>
+                    <Drawer id={`${key}-d${j}`} width={moduleW} height={h} depth={compartmentDepth} category={plan.drawer(s, j)} />
+                  </group>
+                ))}
+              </group>
+            </FrontPaint.Provider>
           );
         }
         if (m === 'door') {
@@ -248,16 +267,20 @@ function Fronts({
           // Hinge away from a neighbouring door, so two open doors never swing into each other.
           const hinge = i === modules.length - 1 || modules[i + 1] !== 'door' ? 1 : -1;
           return (
-            <group key={key} position={[x, doorY, 0]}>
-              <CabinetDoor id={`${key}-door`} width={moduleW} height={frontHeight} depth={compartmentDepth} hinge={hinge} shelfTop={shelfY + SHELF_T / 2 - doorY} category={plan.door(d)} />
-            </group>
+            <FrontPaint.Provider key={key} value={paint}>
+              <group position={[x, doorY, 0]}>
+                <CabinetDoor id={`${key}-door`} width={moduleW} height={frontHeight} depth={compartmentDepth} hinge={hinge} shelfTop={shelfY + SHELF_T / 2 - doorY} category={plan.door(d)} />
+              </group>
+            </FrontPaint.Provider>
           );
         }
         if (m === 'sink') {
           return (
-            <group key={key} position={[x, doorY, 0]}>
-              <FrontSlab width={moduleW - GAP * 2} height={frontHeight - GAP * 2} />
-            </group>
+            <FrontPaint.Provider key={key} value={paint}>
+              <group position={[x, doorY, 0]}>
+                <FrontSlab width={moduleW - GAP * 2} height={frontHeight - GAP * 2} />
+              </group>
+            </FrontPaint.Provider>
           );
         }
         return null;

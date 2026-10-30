@@ -1,5 +1,4 @@
-import {PistonChamber} from '../grade9/PistonChamber';
-import {HotPlate,PowerSupply,Electrode,Furnace,WaterBath,StandThermometer,ColumnPlate,PortTag} from '../grade9/RigParts';
+import {ActuatedBlock} from '../grade9/ActuatedBlock';
 import {useFrame} from '@react-three/fiber';
 import {useRef} from 'react';
 import type {Mesh} from 'three';
@@ -15,6 +14,8 @@ import {useGlass} from '../../materials/glass';
 import {liquidMl,gasMl,solidMassG} from '../../chemistry/mixture';
 import {CURRICULUM_RIGS,type CurriculumKind} from './kinds';
 import type {RigState} from '../grade9/process';
+import {CurriculumApparatusGrade8} from './Apparatus.grade8';
+import {useGrade8Lab} from '../workbench/guidance/grade8';
 function Block({at,size,color}:{at:[number,number,number];size:[number,number,number];color:string}){return <mesh position={at} castShadow><boxGeometry args={size}/><meshStandardMaterial color={color} roughness={.55}/></mesh>;}
 function Label({text,at,size=[.08,.024]}:{text:string;at:[number,number,number];size?:[number,number]}){
  const texture=useMemo(()=>{const c=document.createElement('canvas');c.width=512;c.height=128;const x=c.getContext('2d');if(x){x.fillStyle='#102f47';x.fillRect(0,0,512,128);x.fillStyle='#e6f8ff';x.textAlign='center';x.font='bold 42px sans-serif';x.fillText(text,256,80,500);}return new CanvasTexture(c);},[text]);
@@ -25,7 +26,7 @@ function Pipe({points,color='#8ab1c5',motion}:{points:[number,number,number][];c
  const mesh=useRef<Mesh>(null);useFrame(()=>{if(!mesh.current||!motion)return;const state=useShowcase.getState(),active=state.targetId===motion.id&&state.operation===motion.operation&&['playing','paused'].includes(state.status);const f=active?Math.min(1,state.progress/.65):motion.connected?1:0;if(motion.operation==='assemble'){const grow=active?Math.max(0,Math.min(1,(state.progress-.65)/.35)):1;g.setDrawRange(0,Math.floor((g.index?.count??0)*grow/6)*6);}else mesh.current.position.y=.075*(1-f);});
  useEffect(()=>()=>g.dispose(),[g]);return <mesh ref={mesh} geometry={g}><meshStandardMaterial color={color} transparent opacity={.75}/></mesh>;
 }
-export function CurriculumApparatus({kind,rig,onSelect,itemId}:{kind:CurriculumKind;rig?:RigState;itemId?:string;onSelect:(port:number)=>void}){
+function CurriculumApparatusMain({kind,rig,onSelect,itemId}:{kind:CurriculumKind;rig?:RigState;itemId?:string;onSelect:(port:number)=>void}){
  const flow=useShowcase(s=>s.flow),stirring=useShowcase(s=>s.targetId===itemId&&s.operation==='stir'&&s.status==='playing'),cue=useGuideCue();
  const glass=useGlass('#e2eff5'),d=CURRICULUM_RIGS[kind],shape=d.shape;
  const well=(i:number,x:number,z=0,y=.014,radius=.025,height=.1)=>{
@@ -35,10 +36,10 @@ export function CurriculumApparatus({kind,rig,onSelect,itemId}:{kind:CurriculumK
    <mesh material={glass} position={[0,height/2,0]}><cylinderGeometry args={[radius,radius*.94,height,24,1,true]}/></mesh>
    <ChamberContents producedGasMl={kind==='fermenter'&&i===0?rig?.gas:rig?.data[`hydrogen${i}`]} diffusion={kind==='diffusionChamber'&&i===1?rig?.extent:undefined} mixture={m} capacityMl={shape==='polymer'?25:100} radius={radius} height={height} incoming={rig?.port===i&&(cue.target===itemId&&flow||actionVisual.targetId===itemId&&actionVisual.strength>0)} running={rig?.running} mixing={rig?.port===i&&(stirring||actionVisual.kind==='stir'&&actionVisual.targetId===itemId)}/>
    <mesh position={[0,.001,0]}><cylinderGeometry args={[radius*1.1,radius*1.1,.003,18]}/><meshStandardMaterial color={rig?.port===i?'#28b7d6':'#718596'}/></mesh>
-   <PortTag text={String(i+1)} at={[0,height*.65,radius+.0012]} active={rig?.port===i}/>
+   <Label text={String(i+1)} at={[0,height*.65,radius+.001]} size={[.016,.016]}/>
   </group>;
  };
- const heater=<HotPlate at={[0,.023,0]} heating={!!rig?.heating} cooling={!!rig?.cooling}/>;
+ const heater=<Block at={[0,.023,0]} size={[.10,.035,.09]} color={rig?.heating?'#d27a35':rig?.cooling?'#58aacf':'#566879'}/>;
  const gauge=<Label text={`${(rig?.temperature??22).toFixed(1)}°C`} at={[0,.035,.077]}/>;
  const hasFeed=rig?.chambers.some(m=>solidMassG(m)>0||liquidMl(m)>0||gasMl(m)>0);
  return <group>
@@ -50,15 +51,16 @@ export function CurriculumApparatus({kind,rig,onSelect,itemId}:{kind:CurriculumK
   </>:shape==='electrolysis'||shape==='galvanic'||shape==='migration'?<>
    {well(0,-.06)}{well(1,.06)}
    {shape==='galvanic'&&well(2,0,.045,.014,.018,.06)}
-   {(shape==='galvanic'?[-.06,.06]:[-.07,-.05,.05,.07]).map((x,i)=><Electrode key={i} at={[x,.1,0]} height={.1} color={i%2?'#b97545':'#8d989f'} clip={null}/>)}
+   {(shape==='galvanic'?[-.06,.06]:[-.07,-.05,.05,.07]).map((x,i)=><Block key={i} at={[x,.1,0]} size={[.004,.10,.012]} color={i%2?'#b97545':'#75838c'}/>)}
    <Pipe points={[[-.06,.15,0],[-.06,.22,0],[.06,.22,0],[.06,.15,0]]} color="#b6453d" motion={{id:itemId,operation:'connect-electric',connected:!!rig?.running}}/>
    {shape==='galvanic'&&<>
     <Pipe points={[[-.06,.075,0],[-.06,.165,0],[-.035,.18,0],[.035,.18,0],[.06,.165,0],[.06,.075,0]]} color={(rig?.chambers[2]&&liquidMl(rig.chambers[2])>0)?'#e3edf2':'#819aaa'} motion={{id:itemId,operation:'connect-electric',connected:!!rig?.running}}/>
     <Pipe points={[[0,.074,.045],[0,.16,.045],[0,.18,0]]} color="#bfd5df"/>
     <Label text="Zn −" at={[-.06,.155,.012]} size={[.03,.014]}/><Label text="Cu +" at={[.06,.155,.012]} size={[.03,.014]}/>
    </>}
-   <PowerSupply at={[0,.21,0]} on={!!rig?.running} text={shape==='galvanic'?`${(rig?.data.cellVoltage??0).toFixed(2)} V`:`${rig?.voltage??3} V`}/>
-   {shape==='electrolysis'&&<>{(rig?.data.deposited??0)>1e-10&&<Block at={[-.07,.082,.008]} size={[.004+Math.min(.008,(rig?.data.deposited??0)*20),.04,.012]} color={(rig?.chambers[1].s.Ni??0)>0?'#a8b4ac':'#c8874d'}/>}{well(2,.08,.045,.014,.013,.06)}</>}
+   <Block at={[0,.21,0]} size={[.055,.035,.035]} color="#263c4d"/>
+   <Label text={shape==='galvanic'?`${(rig?.data.cellVoltage??0).toFixed(2)} V`:`${rig?.voltage??3} V`} at={[0,.21,.019]} size={[.05,.02]}/>
+   {shape==='electrolysis'&&<><Block at={[-.07,.082,.008]} size={[.004+Math.min(.008,(rig?.data.deposited??0)*20),.04,.012]} color="#c8874d"/>{well(2,.08,.045,.014,.013,.06)}</>}
    {shape==='migration'&&<Pipe points={[[-.06,.10,0],[-.06,.04,0],[.06,.04,0],[.06,.10,0]]} color={(rig?.data.migration??0)>.1?'#d8bb47':'#9cc6d5'}/>}
   </>:shape==='reflux'||shape==='fermenter'||shape==='cracking'||shape==='gaswash'?<>
    {heater}{well(0,-.045,0,.042,.03,.10)}{well(1,.07,.018,.014,.023,.09)}{well(2,.055,-.05,.014,.02,.08)}
@@ -68,21 +70,25 @@ export function CurriculumApparatus({kind,rig,onSelect,itemId}:{kind:CurriculumK
    {gauge}
    {shape==='fermenter'&&<Pipe points={[[.055,.1,-.05],[.055,.17,-.05],[.09,.17,-.05],[.09,.08,-.05]]}/>}
   </>:shape==='furnace'||shape==='oven'?<>
-   <Furnace at={[0,.09,-.015]} heating={!!rig?.heating}/>
+   <Block at={[0,.09,-.015]} size={[.17,.16,.11]} color={rig?.heating?'#865044':'#647382'}/>
+   <Block at={[0,.105,.043]} size={[.12,.09,.003]} color={rig?.heating?'#c1783b':'#26343a'}/>
    {well(0,0,.05,.052,.025,.07)}{well(1,-.085,.025,.014,.015,.06)}{well(2,.085,.025,.014,.015,.06)}
    {gauge}
+   {rig?.heating&&hasFeed&&<mesh position={[0,.065,.065]}><coneGeometry args={[.009,.035,12]}/><meshStandardMaterial color="#ffbe5b" emissive="#e27638" transparent opacity={.65}/></mesh>}
   </>:shape==='bath'||shape==='optical'||shape==='equilibrium'?<>
-   <WaterBath at={[0,.035,0]} cooling={!!rig?.cooling} heating={!!rig?.heating}/>
+   <Block at={[0,.035,0]} size={[.18,.055,.12]} color={rig?.cooling?'#77bad5':'#859eb2'}/>
    {well(0,-.05,0,.05,.022,.13)}{well(1,.05,0,.05,.022,.13)}{well(2,.075,-.045,.02,.013,.08)}
-   <StandThermometer at={[-.075,.11,.03]} length={.14} temp={rig?.temperature??22}/>{gauge}
+   <Block at={[-.055,.21,0]} size={[.004,.12,.004]} color="#e5e7eb"/>{gauge}
    {shape==='optical'&&<><Block at={[-.05,.048,0]} size={[.035,.002,.003]} color="#111827"/><Block at={[-.05,.048,0]} size={[.003,.002,.035]} color="#111827"/></>}
   </>:shape==='column'||shape==='distillation'||shape==='viscometer'?<>
    {well(0,-.025,0,.014,.026,.23)}
-   {shape==='distillation'?<>{[1,2,3,4].map((i)=>well(i,.065,(i-2.5)*.04,.014,.014,.06))}{[0,1,2,3,4].map(i=><ColumnPlate key={i} at={[-.025,.05+i*.04,0]} radius={.025}/>)}<Pipe points={[[-.025,.24,0],[.065,.24,0],[.065,.075,0]]}/></>:shape==='viscometer'?<>{hasFeed&&(rig?.chambers[0].s.glassBead??0)>0&&<mesh position={[-.025,.22-Math.min(.1,rig?.data.distance??0)*1.7,0]}><sphereGeometry args={[.005,12,10]}/><meshStandardMaterial color="#a7c0c8" metalness={.5}/></mesh>}<Label text={`${(rig?.data.fallTime??0).toFixed(1)} s`} at={[.067,.08,.032]} size={[.05,.025]}/></>:<>
+   {shape==='distillation'?<>{[1,2,3,4].map((i)=>well(i,.065,(i-2.5)*.04,.014,.014,.06))}{[0,1,2,3,4].map(i=><Block key={i} at={[-.025,.05+i*.04,0]} size={[.045,.002,.045]} color="#a4b9c4"/>)}<Pipe points={[[-.025,.24,0],[.065,.24,0],[.065,.075,0]]}/></>:shape==='viscometer'?<>{hasFeed&&(rig?.chambers[0].s.glassBead??0)>0&&<mesh position={[-.025,.22-Math.min(.1,rig?.data.distance??0)*1.7,0]}><sphereGeometry args={[.005,12,10]}/><meshStandardMaterial color="#a7c0c8" metalness={.5}/></mesh>}<Label text={`${(rig?.data.fallTime??0).toFixed(1)} s`} at={[.067,.08,.032]} size={[.05,.025]}/></>:<>
     {(rig?.data.oil??0)>0&&<mesh position={[-.025,.10+Math.min(.06,(rig?.data.oil??0)/100),0]}><cylinderGeometry args={[.022,.022,Math.min(.08,(rig?.data.oil??0)/200),20]}/><meshStandardMaterial color="#e3c44d" transparent opacity={.75}/></mesh>}
    </>}
   </>:shape==='pressure'?<>
-   <group position={[0,.12,0]}><PistonChamber volumeMl={rig?.volumeMl??250} capacityMl={500} length={.16} radius={.033} brownGas={(rig?.chambers[0].g?.NO2??0)>0}/></group>
+   <mesh material={glass} position={[0,.12,0]} rotation={[0,0,Math.PI/2]}><cylinderGeometry args={[.033,.033,.19,24,1,true]}/></mesh>
+   <ActuatedBlock at={[Math.max(-.08,Math.min(.08,((rig?.volumeMl??250)/500)*.16-.08)),.12,0]} size={[.006,.06,.06]} color="#596e7d"/>
+   <Block at={[.10,.12,0]} size={[.07,.008,.008]} color="#afbcc6"/>
    <Label text={`${(rig?.pressure??1).toFixed(2)} bar`} at={[0,.05,.06]}/>
    {well(0,-.07,.04,.014,.015,.06)}{well(1,.07,.04,.014,.015,.06)}
   </>:shape==='molecule'?<>
@@ -115,4 +121,8 @@ export function CurriculumApparatus({kind,rig,onSelect,itemId}:{kind:CurriculumK
   {shape==='diffusion'&&well(2,0)}
 
  </group>;
+}
+/** Grade 8 keeps its earlier 3D demo look (Apparatus.grade8.tsx); every other grade uses main's. */
+export function CurriculumApparatus(props:Parameters<typeof CurriculumApparatusMain>[0]){
+ return useGrade8Lab()?<CurriculumApparatusGrade8 {...props}/>:<CurriculumApparatusMain {...props}/>;
 }

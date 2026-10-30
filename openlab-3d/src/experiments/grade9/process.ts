@@ -9,11 +9,10 @@ import { acidState, acidityToNeutral, equilibrate, phOf } from '../../chemistry/
 import { step, DEFAULT_ENV } from '../../chemistry/kinetics';
 import { AQ, type AqId, type SolidId } from '../../chemistry/species';
 import type { RigKind } from './kinds';
-import { gasLayout } from './gas-layouts';
 export interface RigState {
  pressure:number;targetTemperature:number;voltage:number;current:number;resistance:number;volumeMl:number;light:number;timeScale:number;
  covers:boolean[];targets:number[];inactive:boolean[];data:Record<string,number>;results:{label:string;value:number;unit:string}[];equation:string;bonds:[number,number][];
- operation:'observe'|'magnet'|'ignite'|'release'|'filter'|'draw'|'ph'|'splint';
+ operation:'observe'|'magnet'|'ignite'|'release'|'filter'|'draw';
  experiment:string;kind:RigKind;port:number;chambers:Mixture[];running:boolean;connected:boolean;elapsed:number;heating:boolean;cooling:boolean;
  temperature:number;initialAir:number;closed:boolean;scratched:boolean;hotAbove:boolean;
  gas:number;escaped:number;initialMass:number;extent:number;bands:number[];rust:number[];color:string;message:string;
@@ -101,31 +100,8 @@ export function tickRig(r:RigState,dt:number):RigState {
   // each bubble, plain water only a little, and never past saturation under 1 atm of CO₂ (0.033 M).
   // So limewater turns milky first and only clears again after long bubbling (Ca(HCO₃)₂).
   if(res.gas.CO2>0&&n.chambers[2].water>0){const w=n.chambers[2],V=liquidMl(w)/1000,base=Math.max(0,-acidityToNeutral(w)),room=base+Math.max(0,.033*V-(w.aq.CO3??0)*acidState(w).co2Fraction),bubbled=res.gas.CO2*dt,taken=Math.min(room,bubbled*(base>1e-9?.5:.1));w.aq.CO3=(w.aq.CO3??0)+taken;n.chambers[2]=equilibrate(w).m;}
-  // Hydrogen led into soap solution blows bubbles that float off; a few dozen ml are on show at once.
-  if(res.gas.H2>0&&(n.chambers[2].aq.soap??0)>0)n.data.soapH2=Math.min(40,(n.data.soapH2??0)+res.gas.H2*dt*24000);
   n.temperature=res.m.temp;n.color=(n.chambers[2].s.CaCO3??0)>0?'#e5edf0':'#c5eaff';n.message=n.gas>0?'Хий хоолойгоор цугларч байна. Хий, тунадас, температур ба масс өөрчлөлтийг харьцуул.':'Эх бодис ба халаалтын нөхцөлөө шалга. Бодис нэмээгүй бол хий зохиомлоор үүсэхгүй.';break;
  }
- }
- return n;
-}
-/**
- * A setting applied by the learner or the demo. Two are momentary actions rather than settings:
- * `ph` dips indicator paper in the reaction vessel (the first reading is kept as "before"), and
- * `splint` brings a burning splint to the soap bubbles, which pop if they hold hydrogen.
- */
-export function changeRig(r:RigState,change:Partial<RigState>):RigState {
- const n={...r,...change};
- if(n.operation==='ph'){
-  // Before the start the acid may still wait in the beaker (chamber 1) beside dry marble.
-  const ph=phOf(n.chambers[0])??phOf(n.chambers[1]);n.data={...n.data};
-  if(ph!==null){if(n.data.phBefore===undefined)n.data.phBefore=ph;else n.data.phAfter=ph;}
-  n.operation='observe';
- }
- if(n.operation==='splint'){
-  n.data={...n.data};
-  if((n.data.soapH2??0)>=1){n.data.pops=(n.data.pops??0)+1;n.data.soapH2=0;n.equation='2H₂ + O₂ → 2H₂O';n.message='Пөк! Бөмбөлөг дэх устөрөгч агаартай холилдон шатлаа.';}
-  else n.message='Бөмбөлөгт устөрөгч алга: зомгол дээр юу ч болсонгүй.';
-  n.operation='observe';
  }
  return n;
 }
@@ -136,12 +112,6 @@ export function rigReadings(r:RigState){
  if(['gasTrain','gasSyringe','fractionatingColumn'].includes(r.kind))add('Хийн эзлэхүүн',r.gas,'мл');
  if(r.kind==='gasTrain'&&r.experiment==='g9-mass-conservation')add('Системийн масс өөрчлөлт',r.closed?0:-r.escaped,'г');
  if(['heatingBath','gasSyringe','calorimeter','fractionatingColumn','gasTrain'].includes(r.kind))add('Температур',r.temperature,'°C');
- if(gasLayout(r.experiment)){
-  if(r.data.phBefore!==undefined)add('pH эхэнд',r.data.phBefore,'');
-  if(r.data.phAfter!==undefined)add('pH төгсгөлд',r.data.phAfter,'');
-  if(r.chambers[2].aq.soap)add('Савангийн бөмбөлөг дэх H₂',r.data.soapH2??0,'мл');
-  if(r.data.pops)add('Зомголын пөк',r.data.pops,'удаа');
- }
  if(r.kind==='heatingBath')add('Агаарын даралт',r.pressure*101.325,'кПа');
  if(r.kind==='chromatographyTank'){add('Уусгагчийн фронт',r.extent,'см');r.bands.forEach((v,i)=>add(`Толбо ${i+1}`,v,'см'));}
  if(r.kind==='diffusionTube')add('Цагираг HCl талаас',30/(1+Math.sqrt(36.46/17.03)),'см');

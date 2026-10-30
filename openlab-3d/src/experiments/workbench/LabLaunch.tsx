@@ -7,9 +7,8 @@ import { LOAD_STEPS, useLoadingStore } from '../../store/useLoadingStore';
 import { bench, enterBench } from '../nacl/bench';
 import { demonstratePreparation, selectBenchExperiment } from './session';
 import { requestShowcase } from './guidance/launch-store';
-import { bookSupplies, setLaunchedBook } from './bookSupplies';
-import { textbookForLab } from '../../menu/labProcedureData';
-/** A lesson link selects a named public guide (and, with demo=1, plays its 3D demo); it never accepts code or an arbitrary URL. */
+import { isGrade8Lab } from './guidance/grade8';
+/** A lesson link selects a named public guide (and, with demo=1 for a grade 8 lab, plays its 3D demo); it never accepts code or an arbitrary URL. */
 export function LabLaunch() {
   const mode=useGameStore((s)=>s.mode),experiments=useExperimentCatalog((s)=>s.experiments);
   const labReady=useLoadingStore((s)=>LOAD_STEPS.every(step=>s.done.includes(step)));
@@ -21,8 +20,7 @@ export function LabLaunch() {
       if(!data||typeof data!=='object'||!('type' in data)||data.type!=='chemquest:investigation-load'||!('version' in data)||data.version!==1||!('id' in data)||typeof data.id!=='string'||!('attempt' in data))return;
       if(data.id!==new URLSearchParams(window.location.search).get('experiment')||!experiments.some((x)=>x.id===data.id))return;
       const incoming=restoreAttempt(data.attempt),prior=useInquiry.getState().attempts[data.id];
-      // Text written in the hub must survive an empty field in the lab's own copy.
-      useInquiry.getState().put(data.id,prior?{...incoming,...prior,prediction:prior.prediction||incoming.prediction,observation:prior.observation||incoming.observation,conclusion:prior.conclusion||incoming.conclusion,revealed:prior.revealed||incoming.revealed,trials:prior.trials.length>=incoming.trials.length?prior.trials:incoming.trials}:incoming);
+      useInquiry.getState().put(data.id,prior?{...incoming,...prior,prediction:prior.prediction||incoming.prediction,trials:prior.trials.length>=incoming.trials.length?prior.trials:incoming.trials}:incoming);
     };
     window.addEventListener('message',receive);return()=>window.removeEventListener('message',receive);
   },[experiments]);
@@ -34,11 +32,8 @@ export function LabLaunch() {
       if(cancelled||launched.current||useGameStore.getState().mode!=='walk')return;
       if(!bench.engine){frame=window.requestAnimationFrame(launchWhenReady);return;}
       launched.current=true;
-      // Opened from a lesson link, not the menu: the bench still holds what the book lists.
-      const book=textbookForLab(id);
-      if(book)setLaunchedBook(id,bookSupplies(book).supplies);
       selectBenchExperiment(id);
-      const demo=new URLSearchParams(window.location.search).get('demo')==='1';
+      const demo=isGrade8Lab(id)&&new URLSearchParams(window.location.search).get('demo')==='1';
       if(demo)requestShowcase(id);
       playerApi.teleport(8.25,-13.6,0);enterBench();
       // The guide that plays the demo only shows once preparation is done, as a teacher's setup would.

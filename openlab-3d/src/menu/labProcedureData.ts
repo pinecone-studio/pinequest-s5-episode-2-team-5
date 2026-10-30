@@ -30,8 +30,3 @@ export function procedureGroupsForLab(labId: string): ProcedureGroup[] {
   }
   return groups;
 }
-
-/** Энэ лабтай холбогдсон эхний сурах бичгийн туршилт (апп-аас шууд нээхэд номын хэрэгслийг ширээнд гаргахад) */
-export function textbookForLab(labId: string): TextbookExperiment | null {
-  return allExperiments().find((e) => labIdFor(e.id) === labId) ?? null;
-}

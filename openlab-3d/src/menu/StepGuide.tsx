@@ -5,7 +5,7 @@
  */
 import { useEffect, useRef, useState } from 'react';
 import { motion, useReducedMotion } from 'framer-motion';
-import { useGameStore } from '../store/useGameStore';
+import { StarInstructions } from '../ui/StarGuidance';
 import { isTouchDevice } from '../utils/device';
 import { sounds } from '../utils/sounds';
 import { useLaunchedProcedure } from './launchedProcedure';
@@ -19,7 +19,6 @@ export function StepGuide({ id, title, groups }: { id: string; title: string; gr
   const stored = useLaunchedProcedure((s) => (s.stepsKey === key ? s.stepsDone : 0));
   const setStepsDone = useLaunchedProcedure((s) => s.setStepsDone);
   const touch = isTouchDevice();
-  const bench = useGameStore((s) => s.mode === 'bench');
   const [collapsed, setCollapsed] = useState(false);
   // 3D үзүүлбэр явж байх үед өөрийн алхмын мөртэй тул энэ карт хураагдаж, багажийг халхлахгүй (дарж нээж болно)
   const demo = useDemoShown();
@@ -38,13 +37,9 @@ export function StepGuide({ id, title, groups }: { id: string; title: string; gr
     setStepsDone(key, next);
     sounds.play(next === steps.length ? 'success' : 'ui', 0.5);
   };
-  // Утас: бэлтгэлийн карттай ижил доод эгнээ (зүүн талын Star, чатнаас зай авна), баруун талын үйлдлийн товчнуудаас доогуур багтахаар авсаархан.
-  // Ширээнд суусан үед Star нуугдана; ширээний камерын товчнууд нарийн дэлгэцэд доод эгнээг, өргөнд баруун доод буланг эзэлдэг тул тэднээс зайлсхийнэ.
-  const box = touch
-    ? `pointer-events-auto fixed z-30 rounded-xl bg-white/95 p-2 text-lab-ink shadow-hud ${bench ? 'bottom-[112px] left-2 right-2 sm:bottom-2 sm:right-[290px]' : 'bottom-2 left-[192px] right-2'}`
-    : 'pointer-events-auto fixed bottom-4 right-4 z-30 w-[min(340px,calc(100vw-32px))] rounded-xl bg-white/95 p-3 text-lab-ink shadow-hud';
   return (
-    <section className={box} aria-label="Туршилтын заавар">
+    <StarInstructions priority="checklist">
+    <section className="rounded-xl bg-white/95 p-2 text-lab-ink sm:p-3" aria-label="Туршилтын заавар">
       <button type="button" className="focus-ring flex w-full items-center justify-between gap-2 text-left" onClick={() => setCollapsed((c) => !c)} aria-expanded={!collapsed}>
         <span className="min-w-0">
           <span className="block text-[10px] font-bold uppercase tracking-wider text-emerald-700">Туршилтын заавар · {done}/{steps.length}</span>
@@ -108,5 +103,6 @@ export function StepGuide({ id, title, groups }: { id: string; title: string; gr
         </>
       )}
     </section>
+    </StarInstructions>
   );
 }

@@ -11,7 +11,7 @@ import { LabBackground } from '@/components/ui/lab-background';
 import { ScreenHeader } from '@/components/ui/screen-header';
 import { Colors, Fonts, Radius } from '@/constants/theme';
 import { useSession } from '@/context/session';
-import { loadInvestigation, saveInvestigation, validInvestigationId } from '@/lib/investigation-storage';
+import { saveInvestigation, validInvestigationId } from '@/lib/investigation-storage';
 import { useOpenLabCatalog } from '@/hooks/use-openlab-catalog';
 import { fetchPublishedExperiments } from '@/services/experiments';
 import { supabase } from '@/lib/supabase';
@@ -130,14 +130,12 @@ function NotBuilt() {
 function OpenLabNative() {
   const insets = useSafeAreaInsets();
   const { user } = useSession();
-  const { experiment } = useLocalSearchParams<{experiment?:string}>();
-  const requested = typeof experiment === 'string' && validInvestigationId(experiment) ? experiment : null;
   const webView = useRef<WebView<object> | null>(null);
   const [failed, setFailed] = useState(false);
   const hostUri = Constants.expoConfig?.hostUri?.split('/')[0];
   const configuredUrl = process.env.EXPO_PUBLIC_OPENLAB_URL?.replace(/\/$/, '');
   const baseUrl = configuredUrl || (__DEV__ && hostUri ? `http://${hostUri}` : null);
-  const labUrl = baseUrl ? `${baseUrl}/openlab/index.html?v=touch-fix-1${requested ? `&experiment=${encodeURIComponent(requested)}` : ''}` : null;
+  const labUrl = baseUrl ? `${baseUrl}/openlab/index.html?v=touch-fix-1` : null;
   const sendToLab = (message: Record<string, unknown>) => {
     const event = JSON.stringify(message);
     webView.current?.injectJavaScript(`window.dispatchEvent(new MessageEvent('message',{data:${event},origin:window.location.origin,source:window}));true;`);
@@ -152,8 +150,6 @@ function OpenLabNative() {
     if (data.type === 'openlab:exit') { goBack(); return; }
     if (data.type === 'openlab:catalog-ready' && data.version === 1) {
       void fetchPublishedExperiments(new AbortController().signal).then((rows) => sendToLab({ type: 'chemquest:experiment-catalog', version: 1, rows, lessons: CLASSES })).catch(() => sendToLab({ type: 'chemquest:experiment-catalog', version: 1, rows: [], lessons: CLASSES }));
-      // Same as web: the lab resumes the hub notebook's prediction and earlier measurements.
-      if (requested && user) void loadInvestigation(user.id, requested).then((attempt) => sendToLab({ type: 'chemquest:investigation-load', version: 1, id: requested, attempt })).catch(() => undefined);
       return;
     }
     if (data.type === 'openlab:investigation-result' && user && typeof data.id === 'string' && validInvestigationId(data.id)) {

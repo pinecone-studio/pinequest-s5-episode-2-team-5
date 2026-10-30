@@ -1,10 +1,7 @@
-import {useRef} from 'react';
+import {StarInstructions} from '../../../ui/StarGuidance';
 import {create} from 'zustand';
-import {useReserveTop} from './hud-space';
 import {CATALOG} from '../../../equipment/equipmentCatalog';
 import {benchView} from '../../nacl/view';
-import {gasLayout} from '../../grade9/gas-layouts';
-import {useLabStore} from '../../../store/useLabStore';
 import {currentSession,itemDescription,itemPosition} from '../session';
 
 /** Seconds the camera rests on each piece. */
@@ -24,9 +21,7 @@ function stopsFor():TourStop[]{
   const kind=itemDescription(id).kind,entry=kind?CATALOG[kind]:undefined;
   if(!entry||itemPosition(id).x>=900)continue;
   seen.add(id);
-  // An apparatus drawn as the book's setup names the book's pieces it is made of.
-  const parts=kind==='gasTrain'?gasLayout(useLabStore.getState().active??undefined)?.includes:undefined;
-  stops.push({id,name:entry.name,use:parts?`Бүрэлдэхүүн: ${parts.map(k=>CATALOG[k].name).join(', ')}.`:entry.description.split(/(?<=\.)\s/)[0]});
+  stops.push({id,name:entry.name,use:entry.description.split(/(?<=\.)\s/)[0]});
  }
  return stops.slice(0,MAX_STOPS);
 }
@@ -42,8 +37,8 @@ function show(index:number){
 }
 
 /**
- * Before the auto demonstration, the camera stops at each piece the book lists so none of it goes
- * unseen; `done` runs when the tour ends or is skipped.
+ * Before a grade 8 auto demonstration, the camera stops at each piece the book lists so none of it
+ * goes unseen; `done` runs when the tour ends or is skipped.
  */
 export function startEquipmentTour(done:()=>void){
  cancelEquipmentTour();
@@ -69,10 +64,8 @@ export function EquipmentTourCaption(){
  return stop?<Caption stop={stop} index={index} count={stops.length}/>:null;
 }
 function Caption({stop,index,count}:{stop:TourStop;index:number;count:number}){
- const card=useRef<HTMLDivElement>(null);
- useReserveTop('equipment-tour',card);
- return <div className="pointer-events-none fixed inset-x-0 top-16 z-[55] flex justify-center px-3" aria-live="polite">
-  <div ref={card} className="pointer-events-auto flex max-w-md items-start gap-3 rounded-xl bg-white/95 px-4 py-2 text-lab-ink shadow-hud" role="status" aria-label="Туршилтын багаж">
+ return <StarInstructions priority="tour"><div aria-live="polite">
+  <div className="flex items-start gap-3 rounded-xl bg-amber-50 p-3 text-lab-ink" role="status" aria-label="Туршилтын багаж">
    <div className="min-w-0">
     <p className="text-[10px] font-bold uppercase text-slate-500">Багаж {index+1} / {count}</p>
     <p className="text-sm font-bold">{stop.name}</p>
@@ -80,5 +73,5 @@ function Caption({stop,index,count}:{stop:TourStop;index:number;count:number}){
    </div>
    <button type="button" className="min-h-9 shrink-0 rounded-lg border border-slate-300 px-3 text-xs font-semibold" onClick={endEquipmentTour}>Алгасах</button>
   </div>
- </div>;
+ </div></StarInstructions>;
 }

@@ -17,6 +17,7 @@ import { bookSupplies, setLaunchedBook } from '../experiments/workbench/bookSupp
 import { bench, enterBench } from '../experiments/nacl/bench';
 import { requestShowcase } from '../experiments/workbench/guidance/launch-store';
 import { physicalShowcasePlan } from '../experiments/workbench/guidance/plans';
+import { isGrade8Lab } from '../experiments/workbench/guidance/grade8';
 
 /** Энэ туршилтын 3D лабын алхамчилсан заавар. Холбоогүй эсвэл лабын жагсаалтад байхгүй бол undefined */
 export function guideFor(experiment: TextbookExperiment): Experiment | undefined {
@@ -62,10 +63,10 @@ export function startTextbookExperiment(experiment: TextbookExperiment): void {
   if (lab.steps.some((step) => !done.includes(step.id))) useGameStore.getState().say(guidedMessage(lab.title), 'wave');
 }
 
-/** Энэ туршилтад бүтэн 3D үзүүлбэр (алхам бүрийг өөрөө хийж үзүүлэх) байгаа эсэх */
+/** 8-р ангийн туршилтад бүтэн 3D үзүүлбэр (алхам бүрийг өөрөө хийж үзүүлэх) байгаа эсэх */
 export function hasDemo(experiment: TextbookExperiment): boolean {
   const lab = guideFor(experiment);
-  return !!lab && !!physicalShowcasePlan(lab.id);
+  return experiment.grade === 8 && !!lab && isGrade8Lab(lab.id) && !!physicalShowcasePlan(lab.id);
 }
 
 /**
@@ -74,7 +75,7 @@ export function hasDemo(experiment: TextbookExperiment): boolean {
  */
 export function watchTextbookDemo(experiment: TextbookExperiment): void {
   const lab = guideFor(experiment);
-  if (!lab) return;
+  if (!lab || !hasDemo(experiment)) return;
   startTextbookExperiment(experiment);
   requestShowcase(lab.id);
   let frames = 0;

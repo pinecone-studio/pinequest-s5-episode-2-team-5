@@ -203,7 +203,7 @@ export function WelcomeCard({ onEnter, progress, label, complete }: WelcomeCardP
   const gradeOpen = mode === 'grade';
   // Хичээлийн туршилтыг эхлүүлэхэд 3D лаборатори бүрэн ачаалагдсан (багажийн хөдөлгүүр бэлэн) байх ёстой
   const canEnter = freeOn || (gradeOpen && experiment !== null && complete);
-  // Бүтэн 3D үзүүлбэртэй туршилтад "3D үзүүлбэр үзэх" товч гарна (лабын кодыг сонгосон үед л ачаална)
+  // 8-р ангийн бүтэн 3D үзүүлбэртэй туршилтад "3D үзүүлбэр үзэх" товч гарна (лабын кодыг сонгосон үед л ачаална)
   const [demo, setDemo] = useState(false);
   useEffect(() => {
     setDemo(false);

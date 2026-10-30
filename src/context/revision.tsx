@@ -1,6 +1,6 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { createContext, use, useEffect, useEffectEvent, useRef, useState, type ReactNode } from 'react';
-import { ActivityIndicator, AppState, View } from 'react-native';
+import { ActivityIndicator, View } from 'react-native';
 import { AppText } from '@/components/ui/app-text';
 import { GameButton } from '@/components/ui/game-button';
 import { Colors } from '@/constants/theme';
@@ -106,7 +106,7 @@ export function RevisionProvider({ userId, children, packId = 'g8-chem' }: { use
   };
   const retry = () => { persist(current.current); scheduleSync(); };
   const syncOnLoad = useEffectEvent(() => { void sync(); });
-  // Changes made just before leaving the hub or backgrounding the app are still sent.
+  // Changes made just before leaving the hub are still sent.
   const flushOnLeave = useEffectEvent(() => { if (syncTimer.current !== undefined) void sync(); });
   useEffect(() => {
     mounted.current = true;
@@ -121,10 +121,7 @@ export function RevisionProvider({ userId, children, packId = 'g8-chem' }: { use
     })();
     return () => { active = false; mounted.current = false; };
   }, [key, clockKey, attempt]);
-  useEffect(() => {
-    const subscription = AppState.addEventListener('change', (state) => { if (state === 'background') flushOnLeave(); });
-    return () => { subscription.remove(); flushOnLeave(); };
-  }, []);
+  useEffect(() => () => flushOnLeave(), []);
   if (!ready) return <View style={{ padding: 24, gap: 16 }}>{loadError ? <><AppText>Явцыг ачаалж чадсангүй.</AppText><GameButton title="Дахин оролдох" onPress={() => setAttempt(attempt + 1)}/></> : <ActivityIndicator color={Colors.lime}/>}</View>;
   return <Context value={{ packId, progress, update, saved, error, contentSource, cloud, retry }}>{children}</Context>;
 }

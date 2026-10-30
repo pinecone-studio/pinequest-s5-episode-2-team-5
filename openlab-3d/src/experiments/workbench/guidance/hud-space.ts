@@ -1,4 +1,10 @@
 import {useLayoutEffect,type RefObject} from 'react';
+import {create} from 'zustand';
+
+/** True while the demo strip is on screen; 3D callouts, toasts and Star then leave the apparatus uncovered. */
+export const useDemoShown=create(()=>false);
+/** True once the shown demo has played its last step: the result celebration may open then. */
+export const useDemoDone=create(()=>false);
 
 /** Bottom edge (px) of every overlay pinned to the top of the bench view, by owner. */
 const tops=new Map<string,number>();

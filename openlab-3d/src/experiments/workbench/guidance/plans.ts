@@ -77,7 +77,7 @@ export const GUIDED_PLANS:Record<string,GuideStep[]>={
  'kcl-dissolution':run([['water',10],['s_kcl',1]]),
  'wastewater':run([['naoh',5],['ui',.1],['hcl',5]]),
  'catalyst-reuse':run([['h2o2',10],['s_mno2',.1]]),
- 'nacl':run([['hcl',2],['s_na2co3',.12]]),
+ 'nacl':run([['hcl',20],['s_na2co3',1.2]]),
  'elephant':run([['h2o2',25],['soap',1],['ki',3]]),
  'metals':run([['cuso4',5],['s_fe',.1]]),
  'indicators':run([['hcl',5],['ui',.1]]),
@@ -90,7 +90,6 @@ export const GUIDED_PLANS:Record<string,GuideStep[]>={
  'boil':run([['water',10]],set('Халаагуурыг асаа.',{heating:true})),
  'crystals':run([['nacl',5]],set('Ууршуулах халаалтыг асаа.',{heating:true})),
  'fire':run([['ethanol',1]],set('Дээжийг асаа.',{operation:'ignite'})),
- 'flame':[{type:'flame',reagent:'nacl',amount:.1,label:'Цэвэр нихром утсанд NaCl дээж авч дөлөнд шар өнгийг ажигла.'}],
 
  'g7-sugar-motion':dose(['water',50,0,'beaker'],['cold_water',50,0,'beaker#2'],['hot_water',50,0,'beaker#3'],['s_ice',25,0,'beaker#2'],['s_sugar',1,0,'beaker#2'],['s_sugar',1,0,'beaker'],['s_sugar',1,0,'beaker#3']),
  'g7-liquid-layers':run([['water',10],['oil',5],['corn_syrup',5]]),

@@ -1,5 +1,4 @@
 import {takeLiquid,takeSolid,merge} from '../../../chemistry/mixture';
-import {gasLayout} from '../../grade9/gas-layouts';
 import {CATIONS,FLAME_COLORS,type Cation} from '../../../chemistry/species';
 import {endpointResult,protocolReadings} from './endpoint';
 import {useProtocolResults} from './results';
@@ -26,9 +25,9 @@ export const useGuideCue=create<{experiment:string|null;target:string|null;sourc
 export function clearGuideCue(){useGuideCue.setState({experiment:null,target:null,source:null,label:'',playing:false});}
 /** The worktop piece a step acts on (its BenchKey: `beaker`, or `beaker#2` for a second beaker). */
 export function guideTargetKind(def:InvestigationDefinition,step:GuideStep):BenchKey{return (step.type==='place'?step.onto==='table'?step.item:step.onto:step.type==='move'?step.to:'target' in step&&step.target?step.target:def.labRig) as BenchKey;}
-export function portName(kind:string,port:number,experiment?:string){const book=kind==='gasTrain'?gasLayout(experiment)?.ports[port]:undefined;if(book)return `${port+1}. ${book}`;return isCurriculumRig(kind)?`${port+1}. ${CURRICULUM_RIGS[kind].ports[port]}`:kind==='gasTrain'?['1. Урвалын сав','2. Нэмэх сав','3. Хий хүлээн авагч'][port]:isGrade9Rig(kind)?`${port+1}-р үүр`:CATALOG[kind as EquipmentKind]?.name??kind;}
+export function portName(kind:string,port:number){return isCurriculumRig(kind)?`${port+1}. ${CURRICULUM_RIGS[kind].ports[port]}`:kind==='gasTrain'?['1. Урвалын сав','2. Нэмэх сав','3. Хий хүлээн авагч'][port]:isGrade9Rig(kind)?`${port+1}-р үүр`:CATALOG[kind as EquipmentKind]?.name??kind;}
 export function doseUnit(id:ReagentId){const m=reagentMixture(id,1);return gasMl(m)>0&&liquidMl(m)<.005?'мл хий':liquidMl(m)<.005?'г':'мл';}
-export function stepLabel(step:GuideStep,kind:string,experiment?:string){if(step.type!=='dose')return step.label;const r=REAGENTS[step.reagent];return `${r.name} · ${step.amount} ${doseUnit(step.reagent)} → ${portName(step.target??kind,step.port,experiment)}`;}
+export function stepLabel(step:GuideStep,kind:string){if(step.type!=='dose')return step.label;const r=REAGENTS[step.reagent];return `${r.name} · ${step.amount} ${doseUnit(step.reagent)} → ${portName(step.target??kind,step.port)}`;}
 export function focusGuideStep(def:InvestigationDefinition,step:GuideStep,playing=false,frameCamera=true){
  const key=guideTargetKind(def,step),kind=baseKind(key),id=currentSession()?.objects[key];if(!id||!CATALOG[kind])return false;
  const store=useGrade9Apparatus.getState();let port=0;

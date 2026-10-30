@@ -59,10 +59,8 @@ export interface EquipmentModelProps extends GroupProps {
   flameColor?: string;
   /** Balance display. */
   reading?: string;
-  /** Test tube held by a rack or a hand (no stand of its own). */
+  /** Test tube standing (rack / hand) instead of lying. */
   upright?: boolean;
-  /** Test tube stored flat in a drawer. */
-  lying?: boolean;
   tool?: ToolState;
   /** Thumbnail mode: racks show tubes, bottles use the cheap alpha glass. */
   decorative?: boolean;
@@ -82,7 +80,7 @@ function sampleColor(tool?: ToolState): string | undefined {
   return best;
 }
 
-export function EquipmentModel({ kind, variant, mixture, itemId, lit, flameColor, reading, upright, lying, tool, decorative, ...props }: EquipmentModelProps) {
+export function EquipmentModel({ kind, variant, mixture, itemId, lit, flameColor, reading, upright, tool, decorative, ...props }: EquipmentModelProps) {
   const open=useShowcase(s=>!!itemId&&s.source===itemId&&s.cap!==null);
   useWakeHolder();
   const contents = mixture ?? seedMixture(variant);
@@ -111,7 +109,7 @@ export function EquipmentModel({ kind, variant, mixture, itemId, lit, flameColor
     case 'erlenmeyer':
       return <ErlenmeyerFlask {...fx} {...props} />;
     case 'testTube':
-      return <TestTube {...fx} upright={upright} lying={lying} {...props} />;
+      return <TestTube {...fx} upright={upright} {...props} />;
     case 'testTubeRack':
       return <TestTubeRack decorative={decorative} {...props} />;
     case 'graduatedCylinder':

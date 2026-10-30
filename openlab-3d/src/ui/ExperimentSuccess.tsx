@@ -13,8 +13,11 @@ import { releaseLock } from '../controls/usePointerLock';
 import { exitBench } from '../experiments/nacl/bench';
 import { MoleculeStage } from './MoleculeViewer';
 import { sounds } from '../utils/sounds';
+import { useShowcase } from '../experiments/workbench/guidance/showcase';
+import { useProtocolResults } from '../experiments/workbench/guidance/results';
+import { useDemoDone, useDemoShown } from '../experiments/workbench/guidance/hud-space';
+import { isGrade8Lab } from '../experiments/workbench/guidance/grade8';
 import { vesselFx } from '../lab/vesselFx';
-import { phOf } from '../chemistry/equilibrium';
 function resultFor(id: string): ReactionObservation | null {
     const vessels = useReactionView.getState().vessels, mixtures = useChemStore.getState().mixtures;
     const candidates = Object.values(vessels).filter((r) => isWorkbenchObject(r.vesselId));
@@ -29,8 +32,7 @@ function resultFor(id: string): ReactionObservation | null {
         if (id === 'gases')
             return ['acid', 'metal'].includes(r.preset) && r.rate > 1e-7;
         if (id === 'titration')
-            // The endpoint, not the first drop: with phenolphthalein the pink must have stayed.
-            return r.preset === 'neutral' && ((m.aq.phph ?? 0) > 0 ? (phOf(m) ?? 7) >= 8.2 : r.until > performance.now());
+            return r.preset === 'neutral' && r.until > performance.now();
         if (id === 'color-tests' || id === 'indicators')
             return r.effect === 'color' && r.until > performance.now();
         if (id === 'crystals' || id === 'cuso4')
@@ -75,11 +77,24 @@ export function ExperimentSuccess() {
     useEffect(() => {
         const timer = window.setInterval(() => {
             const active = useLabStore.getState().active, presentation = usePresentation.getState();
+            // This salt workup still has cooling, filtration and drying after its first crystals.
+            const protocol = useProtocolResults.getState();
+            if (active === 'nacl' && protocol.experiment === active && !protocol.complete && useShowcase.getState().status !== 'idle') {
+                pending.current = null;
+                return;
+            }
+            // A grade 8 demo's result is celebrated once its last step has played, never halfway through.
+            // Starting the experiment again (resetPresentation) lets the student's own result be celebrated too.
+            if (useDemoShown.getState() && !useDemoDone.getState()) {
+                pending.current = null;
+                return;
+            }
             if (!active || presentation.modal || presentation.celebrated.includes(active) || !currentSession()?.ready) {
                 pending.current = null;
                 return;
             }
-            const expected = resultFor(active), done = !currentSession()?.previouslyComplete && experimentDone(useLabStore.getState().progress, active);
+            // A finished grade 8 demo always ends on the celebration, whether or not its lab tracks steps.
+            const expected = resultFor(active), done = (useDemoShown.getState() && useDemoDone.getState()) || (!currentSession()?.previouslyComplete && experimentDone(useLabStore.getState().progress, active));
             if (!expected && !done) {
                 pending.current = null;
                 return;
@@ -99,8 +114,8 @@ export function ExperimentSuccess() {
             const waited = performance.now() - pending.current.at;
             if (waited < 1500)
                 return;
-            // Let the visible reaction (eruption, fizzing, boiling) play out before celebrating.
-            if (!useSettingsStore.getState().reducedMotion && waited < 9000 && reactionStillVisible())
+            // Grade 8: let the visible reaction (eruption, fizzing, boiling) play out before celebrating.
+            if (isGrade8Lab(active) && !useSettingsStore.getState().reducedMotion && waited < 9000 && reactionStillVisible())
                 return;
             endHeldUse();
             releaseLock();

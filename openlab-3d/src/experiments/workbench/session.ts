@@ -17,7 +17,6 @@ import { REAGENTS, REAGENT_LIST, type ReagentId } from '../../chemistry/reagents
 import { reagentColor } from '../../chemistry/real-color';
 import { experimentDone, useLabStore } from '../../store/useLabStore';
 import { storedIn, useInventoryStore } from '../../store/useInventoryStore';
-import { GAS_LAYOUTS } from '../grade9/gas-layouts';
 import { useChemStore } from '../../store/useChemStore';
 import { useGameStore } from '../../store/useGameStore';
 import { solidMassG } from '../../chemistry/mixture';
@@ -72,9 +71,7 @@ const merged = new Map<string, { base: BenchSupply[]; book: BenchSupply[]; list:
  */
 export const suppliesFor = (id: string | null): BenchSupply[] => {
   if (!id) return [];
-  // Pieces the guide's apparatus already draws (gas-layouts.ts) are not set out again as loose copies.
-  const drawn = new Set<string>(GAS_LAYOUTS[id]?.includes ?? []);
-  const base = RECIPES[id] ?? [], book = launchedBookSupplies(id).filter((s) => !s.kind || !drawn.has(s.kind));
+  const base = RECIPES[id] ?? [], book = launchedBookSupplies(id);
   if (!book.length) return base;
   const cached = merged.get(id);
   if (cached && cached.base === base && cached.book === book) return cached.list;
@@ -142,11 +139,7 @@ export function itemPosition(id: string): Vector3 {
   const w = inv.worldItems.find((w) => w.id === id);
   if (w) { const p = livePose(w); return new Vector3(p.x, p.y, p.z); }
   const object = interactables.get(id)?.object;
-  if (!object) {
-    // A tube standing in a rack is stored, not a world item: it sits where its holder is.
-    const holder = Object.keys(inv.storage).find((h) => inv.storage[h].some((it) => it.id === id));
-    return holder && holder !== id ? itemPosition(holder) : new Vector3(999, 999, 999);
-  }
+  if (!object) return new Vector3(999, 999, 999);
   // Shelf meshes carry their offset inside an unpositioned Interactable group.
   // Its origin is therefore not the glassware's actual bottom, even after carrying.
   const box = new Box3().setFromObject(object);
@@ -202,8 +195,8 @@ function benchSpot(kind: EquipmentKind, primary: boolean): [number, number, numb
     if (box.isEmpty() || !onWorkbench(box.getCenter(new Vector3()).setY(box.min.y))) continue;
     occupied.push({ x: (box.min.x + box.max.x) / 2, z: (box.min.z + box.max.z) / 2, w: box.max.x - box.min.x, d: box.max.z - box.min.z });
   }
-  const [w, , d] = CATALOG[kind].size;
-  const spot = freeBenchSpot(w, d, occupied, primary ? [8.25, -14.36] : undefined);
+  const [w, h, d] = CATALOG[kind].size;
+  const spot = freeBenchSpot(w, d, occupied, primary ? [8.25, -14.36] : undefined, h);
   return spot ? [spot[0], BENCH_HEIGHT + .015, spot[1]] : null;
 }
 let anotherCount = 0;
@@ -323,7 +316,9 @@ function prepareSupplies(teacher: boolean) {
   const held=heldObjectId();
   if(held) {
     const slot=Math.max(0,suppliesFor(active).findIndex((s)=>matchesSupply(s,itemDescription(held))));
-    const at=(INVESTIGATIONS.find(x=>x.id===active)?.grade??8)!==8?new Vector3(...grade9SupplyPosition(slot)):new Vector3(7.55+slot%8*.2,BENCH_HEIGHT+.015,-14.78+Math.floor(slot/8)*.22);
+    // In the middle of the worktop like the rest of the stock; the old corner slots only when it is full.
+    const kind=itemDescription(held).kind, spot=kind?benchSpot(kind,false):null;
+    const at=(INVESTIGATIONS.find(x=>x.id===active)?.grade??8)!==8?new Vector3(...grade9SupplyPosition(slot)):spot?new Vector3(...spot):new Vector3(7.55+slot%8*.2,BENCH_HEIGHT+.015,-14.78+Math.floor(slot/8)*.22);
     if(useInventoryStore.getState().held)useInventoryStore.getState().place([at.x,at.y,at.z],0);
     else {usePortableStore.getState().held?.move(at,0,0);usePortableStore.setState({held:null});useSandbox.setState({heldId:null});}
   }

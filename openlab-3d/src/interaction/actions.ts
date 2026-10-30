@@ -19,7 +19,8 @@ import { emptyMixture, heatCapacity, isEmptyMixture, gasMl, liquidMl, merge, rea
 import { mixObservations, physicalMixing } from '../chemistry/reaction-view';
 import { publishReaction } from '../lab/reaction-view';
 import { equilibrateHeat } from '../chemistry/mix';
-import { phOf } from '../chemistry/equilibrium';
+import { acidityToNeutral, phOf } from '../chemistry/equilibrium';
+import { grade8Chemistry } from '../chemistry/grade8';
 import { mixtureLook, universalColor } from '../chemistry/color';
 import { PH_WORDS, fmtG, fmtMl, phBand } from '../chemistry/describe';
 import { mixtureOf, useChemStore } from '../store/useChemStore';
@@ -292,7 +293,9 @@ export function transfer(src: Vessel, dst: Vessel, amount: number, viaFunnel?: s
   const observations = mixObservations(dm, into, mixed.m, mixed.neutralized, mixed.formed);
   for (const reaction of observations) publishReaction(dst.id, reaction, 5000);
   if (take > 0 && !observations.some((r) => !r.info)) publishReaction(dst.id, physicalMixing(mixed.m), 5000);
-  if (mixed.neutralized > 2e-5) note(dst.id, 'neutralization', 5000);
+  // Grade 8: acid on a carbonate is the CO₂ fizz (its own event), not H⁺ + OH⁻.
+  const base = acidityToNeutral(dm) < 0 ? dm : into;
+  if (mixed.neutralized > 2e-5 && !(grade8Chemistry.active && (base.aq.CO3 ?? 0) > 1e-9)) note(dst.id, 'neutralization', 5000);
   observe(dst.id, mixed.m);
   useEvents(src);
   return { moved: take, overflow };

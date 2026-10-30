@@ -26,7 +26,7 @@ export function MaterialFlow(){
   landing.set(...s.mouth);
   const id=useGuideCue.getState().target,entry=id?interactables.get(id):undefined,rig=id?useGrade9Apparatus.getState().rigs[id]:undefined;
   if(entry&&id&&s.tool!=='hose'){
-   if(rig){const l=portLayout(rig.kind,rig.port,rig.experiment),view=chamberView(rig,rig.port),volume=liquidMl(view.mixture);landing.set(l.x,l.bottom+.003+(volume>0?Math.min(l.height*.84,Math.max(.0025,volume/view.capacityMl*l.height*.84)):0),l.z);entry.object.localToWorld(landing);}
+   if(rig){const l=portLayout(rig.kind,rig.port),view=chamberView(rig,rig.port),volume=liquidMl(view.mixture);landing.set(l.x,l.bottom+.003+(volume>0?Math.min(l.height*.84,Math.max(.0025,volume/view.capacityMl*l.height*.84)):0),l.z);entry.object.localToWorld(landing);}
    else{const kind=useInventoryStore.getState().worldItems.find(w=>w.id===id)?.kind;if(kind&&kind in PROFILES){landing.set(0,heightForVolume(PROFILES[kind as keyof typeof PROFILES],liquidMl(mixtureOf(id)))+.002,0);entry.object.localToWorld(landing);}}
   }
   const origin=s.tip,opening=s.mouth,end: [number,number,number]=[landing.x,Math.min(landing.y,opening[1]-.001),landing.z];

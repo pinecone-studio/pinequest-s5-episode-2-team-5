@@ -2,11 +2,11 @@ import {pistonPosition} from './contents-geometry';
 import {useRef} from 'react';
 import {useFrame} from '@react-three/fiber';
 import {MathUtils,type Group} from 'three';
-import {useGlass} from '../../materials/glass';
+import {LAB_GLASS,useGlass} from '../../materials/glass';
 
 /** A sealed barrel: gas, seal, rod and thumb rest share one measured displacement. */
 export function PistonChamber({volumeMl,capacityMl,length=.16,radius=.02,brownGas=false}:{volumeMl:number;capacityMl:number;length?:number;radius?:number;brownGas?:boolean}){
- const glass=useGlass('#e2eff5'),piston=useRef<Group>(null),gas=useRef<Group>(null);
+ const glass=useGlass(LAB_GLASS),piston=useRef<Group>(null),gas=useRef<Group>(null);
  const left=-length/2,at=pistonPosition(volumeMl,capacityMl,length);
  useFrame((_,dt)=>{
   if(!piston.current||!gas.current)return;
