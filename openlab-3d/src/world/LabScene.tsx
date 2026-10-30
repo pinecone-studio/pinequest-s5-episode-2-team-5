@@ -1,3 +1,4 @@
+import { ReactionCamera } from '../experiments/workbench/guidance/ReactionCamera';
 import { PhysicalShowcase } from '../experiments/workbench/guidance/PhysicalShowcase';
 import { useEffect } from 'react';
 import { Physics } from '@react-three/rapier';
@@ -40,6 +41,7 @@ export default function LabScene({ onDpr }: { onDpr: (dpr: number) => void }) {
         <ChemSim />
         <WorkbenchRuntime />
         <PhysicalShowcase />
+        <ReactionCamera />
         <LabFx />
         <ReactionEffects />
       </Physics>

@@ -19,6 +19,8 @@ const labIds = new Set(read(new URL('experiments.json', DATA)).map((e) => e.id))
 for (const name of readdirSync(EXPO_DATA).filter((n) => /investigations.*\.json$/.test(n))) {
   for (const row of read(new URL(name, EXPO_DATA))) labIds.add(row.id);
 }
+// 8-03 opens the built-in NaCl lesson (experiments/nacl/lesson.ts), which is not a JSON row.
+labIds.add('nacl');
 
 test('холбоос бүр лабт байгаа туршилтыг заана', () => {
   const missing = Object.entries(links).filter(([, labId]) => !labIds.has(labId));

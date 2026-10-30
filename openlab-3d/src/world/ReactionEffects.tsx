@@ -17,6 +17,8 @@ import { PROFILES, heightForVolume, radiusAt } from '../equipment/profiles';
 import { surfaceYAt } from '../interaction/surfaces';
 import { vesselFx } from '../lab/vesselFx';
 import { sounds } from '../utils/sounds';
+import {ReactionEffectsGrade8} from './ReactionEffects.grade8';
+import {useGrade8Lab} from '../experiments/workbench/guidance/grade8';
 const residueUntil = new Map<string, number>();
 
 function VesselEffect({ id }: {
@@ -186,7 +188,7 @@ function VesselEffect({ id }: {
     {productGas && !reaction?.info && <Html position={[0, (itemDescription(id).kind ? CATALOG[itemDescription(id).kind!].size[1] : .15) + .04, 0]} center style={{ pointerEvents: 'none' }}><span data-gas={productGas.id} className="whitespace-nowrap rounded-full bg-white/95 px-2 py-1 text-sm font-bold text-sky-900 shadow">{productGas.formula.replace(/↑$/, '')}↑</span></Html>}
   </group></>;
 }
-export function ReactionEffects() {
+function ReactionEffectsMain() {
     const [ids, setIds] = useState<string[]>([]);
     useEffect(() => {
         const timer = window.setInterval(() => {
@@ -198,4 +200,8 @@ export function ReactionEffects() {
         return () => clearInterval(timer);
     }, []);
     return <>{ids.map((id) => <VesselEffect key={id} id={id}/>)}</>;
+}
+/** Grade 8 keeps its earlier 3D demo look (ReactionEffects.grade8.tsx); every other grade uses main's. */
+export function ReactionEffects(){
+ return useGrade8Lab()?<ReactionEffectsGrade8/>:<ReactionEffectsMain/>;
 }

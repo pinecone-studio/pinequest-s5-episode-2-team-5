@@ -6,6 +6,9 @@ import {isGrade9Rig} from '../../grade9/kinds';
 import {bodies} from '../../../interaction/bodies';
 import {Quaternion} from 'three';
 import {MaterialFlow} from './MaterialFlow';
+import {Spatula} from '../../../equipment/Spatula';
+import {Pipette} from '../../../equipment/Pipette';
+import {useGrade8Lab} from './grade8';
 import {useEffect,useMemo,useRef} from 'react';
 import {useFrame} from '@react-three/fiber';
 import {CatmullRomCurve3,TubeGeometry,Vector3,type Mesh} from 'three';
@@ -18,6 +21,8 @@ function Hose({a,b}:{a:Point;b:Point}){
 /** Animated equipment and actual stock-body motion. Material changes use the normal engine. */
 export function PhysicalShowcase(){
  const s=useShowcase();
+ // Grade 8 demos carry the real spatula and pipette models.
+ const grade8=useGrade8Lab();
  useFrame((_,dt)=>tickShowcase(dt));
  useEffect(()=>()=>cancelShowcase(),[]);
  if(!['playing','paused'].includes(s.status))return null;
@@ -29,7 +34,7 @@ export function PhysicalShowcase(){
   {target&&!isGrade9Rig(target.kind)&&<group position={position} quaternion={rotation}><OperationVisual id={target.id} kind={target.kind}/></group>}
   {s.cap&&<mesh position={s.cap}><cylinderGeometry args={[.016,.016,.015,16]}/><meshStandardMaterial color="#252b32"/></mesh>}
   {a&&b&&<>
-   {s.tool==='hose'?<Hose a={s.toolAnchor??a} b={b}/>:s.tool==='spoon'?<group position={a} rotation={[0,0,.4]}><mesh position={[-.025,.015,0]} rotation={[0,0,Math.PI/2]}><cylinderGeometry args={[.002,.002,.06,8]}/><meshStandardMaterial color="#b7c4cc" metalness={.8} roughness={.25}/></mesh><mesh scale={[1.5,.4,1]}><sphereGeometry args={[.009,12,8]}/><meshStandardMaterial color="#aabec7" metalness={.7}/></mesh>{s.carried>0&&<mesh position={[0,.003,0]} scale={[1.3,.65,1]}><sphereGeometry args={[.005*Math.cbrt(Math.max(.01,s.carried/s.amount)),10,7]}/><meshStandardMaterial color={s.color} roughness={.85}/></mesh>}</group>:s.tool==='pipette'?<group position={a}><mesh position={[0,.045,0]}><cylinderGeometry args={[.004,.001,.09,12]}/><meshStandardMaterial color="#d2e9ed" transparent opacity={.35}/></mesh>{s.carried>0&&<mesh position={[0,.004+.035*Math.min(1,s.carried/s.amount),0]}><cylinderGeometry args={[.0025,.001,.07*Math.min(1,s.carried/s.amount),12]}/><meshStandardMaterial color={s.color} transparent opacity={.75}/></mesh>}<mesh position={[0,.098,0]}><sphereGeometry args={[.007,12,8]}/><meshStandardMaterial color="#485e70"/></mesh></group>:null}
+   {s.tool==='hose'?<Hose a={s.toolAnchor??a} b={b}/>:grade8&&s.tool==='spoon'?<group position={a} rotation={[0,0,.4]}><group rotation={[0,Math.PI/2,0]} position={[-.075,-.006,0]}><Spatula load={s.carried>0?s.color:undefined}/></group></group>:grade8&&s.tool==='pipette'?<group position={a}><group rotation={[-Math.PI/2,0,0]} position={[0,.1,.0085]}><Pipette liquid={s.carried>0?s.color:undefined}/></group></group>:s.tool==='spoon'?<group position={a} rotation={[0,0,.4]}><mesh position={[-.025,.015,0]} rotation={[0,0,Math.PI/2]}><cylinderGeometry args={[.002,.002,.06,8]}/><meshStandardMaterial color="#b7c4cc" metalness={.8} roughness={.25}/></mesh><mesh scale={[1.5,.4,1]}><sphereGeometry args={[.009,12,8]}/><meshStandardMaterial color="#aabec7" metalness={.7}/></mesh>{s.carried>0&&<mesh position={[0,.003,0]} scale={[1.3,.65,1]}><sphereGeometry args={[.005*Math.cbrt(Math.max(.01,s.carried/s.amount)),10,7]}/><meshStandardMaterial color={s.color} roughness={.85}/></mesh>}</group>:s.tool==='pipette'?<group position={a}><mesh position={[0,.045,0]}><cylinderGeometry args={[.004,.001,.09,12]}/><meshStandardMaterial color="#d2e9ed" transparent opacity={.35}/></mesh>{s.carried>0&&<mesh position={[0,.004+.035*Math.min(1,s.carried/s.amount),0]}><cylinderGeometry args={[.0025,.001,.07*Math.min(1,s.carried/s.amount),12]}/><meshStandardMaterial color={s.color} transparent opacity={.75}/></mesh>}<mesh position={[0,.098,0]}><sphereGeometry args={[.007,12,8]}/><meshStandardMaterial color="#485e70"/></mesh></group>:null}
    <MaterialFlow/>
   </>}
  </group>;

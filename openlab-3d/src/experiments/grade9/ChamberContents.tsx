@@ -5,8 +5,10 @@ import {useFrame} from '@react-three/fiber';
 import {Color,MathUtils,type Mesh,type MeshStandardMaterial,type Group} from 'three';
 import {mixtureLook} from '../../chemistry/color';
 import {liquidMl,gasMl,type Mixture} from '../../chemistry/mixture';
+import {ChamberContentsGrade8} from './ChamberContents.grade8';
+import {useGrade8Lab} from '../workbench/guidance/grade8';
 /** Contents follow the measured mixture; agitation never invents gas or a precipitate. */
-export function ChamberContents({mixture,radius,height,incoming=false,mixing=false,running=false,showSolid=true,liquidColor,diffusion,capacityMl=100,producedGasMl=0}:{mixture?:Mixture;radius:number;height:number;incoming?:boolean;mixing?:boolean;running?:boolean;showSolid?:boolean;liquidColor?:string;diffusion?:number;capacityMl?:number;producedGasMl?:number}){
+function ChamberContentsMain({mixture,radius,height,incoming=false,mixing=false,running=false,showSolid=true,liquidColor,diffusion,capacityMl=100,producedGasMl=0}:{mixture?:Mixture;radius:number;height:number;incoming?:boolean;mixing?:boolean;running?:boolean;showSolid?:boolean;liquidColor?:string;diffusion?:number;capacityMl?:number;producedGasMl?:number}){
  const previousGas=useRef(0),bubbleLife=useRef(0);
  const liquid=useRef<Mesh>(null),material=useRef<MeshStandardMaterial>(null),surface=useRef<Mesh>(null),particles=useRef<Group>(null);
  const look=useMemo(()=>mixture?mixtureLook(mixture):null,[mixture]);
@@ -41,4 +43,8 @@ export function ChamberContents({mixture,radius,height,incoming=false,mixing=fal
   <group ref={particles}>{(gas>0||producedGasMl>0||boiling)&&Array.from({length:16},(_,i)=><mesh key={i}><sphereGeometry args={[.0015+(i%4)*.00045,7,5]}/><meshStandardMaterial color="#e8f8ff" transparent opacity={.55} depthWrite={false}/></mesh>)}</group>
   {gas>0&&volume<.01&&<mesh position={[0,height*.45,0]}><cylinderGeometry args={[radius*.86,radius*.86,height*.75,18]}/><meshStandardMaterial color={(mixture.g?.NO2??0)>0?'#a56532':'#c9e7ed'} transparent opacity={(mixture.g?.NO2??0)>0?Math.min(.7,.08+(mixture.g?.NO2??0)*200):.035} depthWrite={false}/></mesh>}
  </group>;
+}
+/** Grade 8 keeps its earlier 3D demo look (ChamberContents.grade8.tsx); every other grade uses main's. */
+export function ChamberContents(props:Parameters<typeof ChamberContentsMain>[0]){
+ return useGrade8Lab()?<ChamberContentsGrade8 {...props}/>:<ChamberContentsMain {...props}/>;
 }

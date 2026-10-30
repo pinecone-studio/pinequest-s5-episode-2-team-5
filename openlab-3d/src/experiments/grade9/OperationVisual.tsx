@@ -4,12 +4,15 @@ import {Html} from '@react-three/drei';
 import {CatmullRomCurve3,Vector3,type Group,type Mesh} from 'three';
 import {useShowcase} from '../workbench/guidance/showcase';
 import {portLayout} from './port-layout';
+import {useGrade8Lab} from '../workbench/guidance/grade8';
 import type {RigState} from './process';
 import type {Operation} from '../workbench/guidance/operation';
 const smooth=(n:number)=>{const x=Math.max(0,Math.min(1,n));return x*x*(3-2*x);};
 /** The operation cue moves parts on the real apparatus, not a screen-space hand. */
 export function OperationVisual({id,kind,rig}:{id?:string;kind:string;rig?:RigState}){
  const operation=useShowcase(s=>s.targetId===id?s.operation:'none'),active=useShowcase(s=>s.targetId===id&&['playing','paused'].includes(s.status));
+ // Grade 8 demos raise the badge clear of the taller callouts.
+ const badgeY=useGrade8Lab()?.38:.29;
  const grains=useRef<Group>(null);
  const rod=useRef<Group>(null),magnet=useRef<Group>(null),reel=useRef<Group>(null),dial=useRef<Group>(null),clamps=useRef<Group>(null),gas=useRef<Group>(null),arrow=useRef<Mesh>(null);
  const port=portLayout(kind,0),target=port.mouth;
@@ -42,6 +45,6 @@ export function OperationVisual({id,kind,rig}:{id?:string;kind:string;rig?:RigSt
 
   <group ref={gas} visible={false}>{[0,1].map((i)=><group key={i}><mesh position={i===0?[target[0],target[1],target[2]]:[.055,.115,.02]}><cylinderGeometry args={[.007,.007,.013,12]}/><meshStandardMaterial color="#424f59"/></mesh></group>)}</group>
   <mesh ref={arrow} visible={false} renderOrder={4}><coneGeometry args={[.004,.012,10]}/><meshBasicMaterial color="#f6d56f"/></mesh>
-  {active&&badge[operation]&&<Html position={[0,.29,.035]} center zIndexRange={[18,12]} style={{pointerEvents:'none'}}><div className="whitespace-nowrap rounded-full border border-amber-200 bg-amber-50/95 px-3 py-1 text-[10px] font-semibold text-amber-950 shadow" aria-label="Хөдөлж буй багажийн үйлдэл">{badge[operation]}</div></Html>}
+  {active&&badge[operation]&&<Html position={[0,badgeY,.035]} center zIndexRange={[18,12]} style={{pointerEvents:'none'}}><div className="whitespace-nowrap rounded-full border border-amber-200 bg-amber-50/95 px-3 py-1 text-[10px] font-semibold text-amber-950 shadow" aria-label="Хөдөлж буй багажийн үйлдэл">{badge[operation]}</div></Html>}
  </group>;
 }

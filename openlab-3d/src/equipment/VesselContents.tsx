@@ -21,6 +21,8 @@ import { bandGeometry, heightForVolume, radiusAt, rimHeight, type VesselProfile 
 import { bubblePose } from '../lab/reaction-animation';
 import { useSettingsStore } from '../store/useSettingsStore';
 import { vesselFx } from '../lab/vesselFx';
+import {VesselContentsGrade8} from './VesselContents.grade8';
+import {useGrade8Lab} from '../experiments/workbench/guidance/grade8';
 
 const bubbleGeometry = lazy(() => new SphereGeometry(1, 6, 4));
 const bubbleMaterial = lazy(() => new MeshPhysicalMaterial({ color: '#ffffff', transparent: true, opacity: 0.55, roughness: 0.05, depthWrite: false }));
@@ -192,7 +194,7 @@ export interface VesselContentsProps {
 }
 
 /** Live contents on the bench and in hand; still ones in a drawer or cabinet (see interaction/still.ts). */
-export function VesselContents(props: VesselContentsProps) {
+function VesselContentsMain(props: VesselContentsProps) {
   return useStill() ? <StillContents {...props} /> : <LiveContents {...props} />;
 }
 
@@ -292,4 +294,8 @@ function LiveContents({ profile, look, itemId }: VesselContentsProps) {
       {look.burning && <Flame y={Math.max(liquidTop, bottom)} radius={radiusAt(profile, liquidTop) * 0.9} />}
     </group>
   );
+}
+/** Grade 8 keeps its earlier 3D demo look (VesselContents.grade8.tsx); every other grade uses main's. */
+export function VesselContents(props:VesselContentsProps){
+ return useGrade8Lab()?<VesselContentsGrade8 {...props}/>:<VesselContentsMain {...props}/>;
 }

@@ -9,20 +9,25 @@
  */
 import { useRef } from 'react';
 import { useFrame, useThree } from '@react-three/fiber';
-import { Hud } from '@react-three/drei';
+import { Html, Hud } from '@react-three/drei';
 import { useReducedMotion } from 'framer-motion';
 import { MathUtils, Quaternion, Vector3, type Group, type Mesh, type PerspectiveCamera } from 'three';
 import { useGameStore } from '../store/useGameStore';
 import { QUALITY_PRESETS, useSettingsStore } from '../store/useSettingsStore';
 import { guideFinished, guidePosition, starCompass, stopGuide, useStarGuide } from '../lab/starGuide';
+import { useDemoShown } from '../experiments/workbench/guidance/hud-space';
 import { StarModel } from '../ui/StarModel';
 import { isTouchDevice } from '../utils/device';
+import { clampStarPosition, setStarSpeechHost, starSpeech } from '../lab/starSpeech';
 
 /** Distance in front of the eyes while following, and Star's size there (metres). */
 const NEAR = 0.95;
 const SCALE = 0.13;
 /** Largest size when far away, so Star stays easy to spot across the room. */
 const FAR_SCALE = 0.5;
+/** At the bench Star waits small at the screen edge, clear of the glassware in the middle. */
+const BENCH_SCALE = 0.08;
+const BENCH_SIDE = 0.82;
 /** Height above the thing Star points at. */
 const HOVER = 0.42;
 
@@ -38,17 +43,23 @@ const before = new Vector3();
 const view = new Vector3();
 const swing = new Quaternion();
 const step = new Quaternion();
+const speechTilt = new Quaternion();
+const speechAxis = new Vector3(0, 1, 0);
+const projected = new Vector3();
 
 function Companion({ calm }: { calm: boolean }) {
   const camera = useThree((s) => s.camera) as PerspectiveCamera;
   const size = useThree((s) => s.size);
   const star = useRef<Group>(null);
   const bank = useRef<Group>(null);
+  const speech = useRef<Group>(null);
+  const speechPortal = useRef(document.body);
   const arrow = useRef<Group>(null);
   const ring = useRef<Mesh>(null);
   const fly = useRef({ ready: false, anchor: new Vector3(), pos: new Vector3(), dir: new Vector3(0, 0, -1), scale: SCALE, lean: 0 });
   const mode = useGameStore((s) => s.mode);
-  const side = isTouchDevice() ? 1 : -1;
+  // Leave the phone's camera controls on the right clear while working at the bench.
+  const side = isTouchDevice() && mode !== 'bench' ? 1 : -1;
   const shown = mode !== 'loading' && mode !== 'start' && mode !== 'ended' && mode !== 'inspect';
 
   useFrame((state, rawDt) => {
@@ -62,8 +73,9 @@ function Companion({ calm }: { calm: boolean }) {
     up.crossVectors(right, forward).normalize();
 
     // Guiding: hover above the target until it is fixed, picked up, reached or wiped.
+    // Not during a demo: its arrow and ring are sized for the room and would cover the apparatus.
     let guiding = false;
-    const guide = useStarGuide.getState().guide;
+    const guide = useDemoShown.getState() ? null : useStarGuide.getState().guide;
     if (guide) {
       const found = guidePosition(guide.target, target);
       if (guideFinished(guide, target, found)) stopGuide();
@@ -75,20 +87,34 @@ function Companion({ calm }: { calm: boolean }) {
     }
     if (!guiding) {
       // Beside the view, a little above the work area and inside narrow screens: left of centre,
-      // or right on phones, where the speech bubble covers the top left.
+      // or right on phones, where the speech bubble covers the top left. At the bench the
+      // apparatus fills the middle, so Star moves out to the edge.
       const halfH = NEAR * Math.tan(MathUtils.degToRad(camera.fov / 2));
       const halfW = halfH * (size.width / Math.max(1, size.height));
       const drift = calm ? 0 : 1;
+      const atBench = mode === 'bench';
       goal.copy(eye)
         .addScaledVector(forward, NEAR)
-        .addScaledVector(right, side * Math.min(0.42, halfW * 0.55) + Math.sin(t * 0.5) * 0.03 * drift)
-        .addScaledVector(up, Math.min(0.1, halfH * 0.18) + Math.sin(t * 1.3) * 0.015 * drift);
+        .addScaledVector(right, side * (atBench ? halfW * BENCH_SIDE : Math.min(0.42, halfW * 0.55)) + Math.sin(t * 0.5) * 0.03 * drift)
+        .addScaledVector(up, (atBench ? halfH * 0.3 : Math.min(0.1, halfH * 0.18)) + Math.sin(t * 1.3) * 0.015 * drift);
+    }
+    const preferred = starSpeech.position ?? useSettingsStore.getState().starPosition;
+    if (preferred) {
+      const at = clampStarPosition(preferred.x, preferred.y, size.width, size.height);
+      const halfH = NEAR * Math.tan(MathUtils.degToRad(camera.fov / 2));
+      const halfW = halfH * size.width / Math.max(1, size.height);
+      const bob = calm || starSpeech.dragging || starSpeech.interacting ? 0 : Math.sin(t * 1.3) * 0.004;
+      goal.copy(eye).addScaledVector(forward, NEAR)
+        .addScaledVector(right, (at.x * 2 - 1) * halfW)
+        .addScaledVector(up, (1 - at.y * 2) * halfH + bob);
     }
     if (!f.ready) {
       f.anchor.copy(eye);
       f.pos.copy(goal);
       f.ready = true;
     }
+    // Let the learner press a small control without the character drifting away beneath it.
+    if (starSpeech.interacting && !guiding && !preferred) goal.copy(f.pos);
     before.copy(f.pos);
     // The point Star circles: the player's eyes, trailing a little behind when they walk.
     f.anchor.lerp(eye, calm ? 1 : ease(7));
@@ -105,19 +131,59 @@ function Companion({ calm }: { calm: boolean }) {
     f.dir.applyQuaternion(step).normalize();
     const nextDist = MathUtils.lerp(dist, wantDist, calm ? 1 : ease(guiding ? 2.5 : 8));
     f.pos.copy(f.anchor).addScaledVector(f.dir, nextDist);
+    // A grabbed or parked Star follows the chosen screen location directly, even as the camera moves.
+    if (preferred) {
+      f.anchor.copy(eye);
+      f.pos.copy(goal);
+      f.dir.copy(goal).sub(eye).normalize();
+    }
 
     if (star.current) {
+      // Keep Star floating beside the player while its instruction box stays readable.
       star.current.visible = shown;
       star.current.position.copy(f.pos);
       star.current.lookAt(eye);
       const far = MathUtils.clamp(SCALE * Math.pow(nextDist / NEAR, 0.7), SCALE, FAR_SCALE);
-      f.scale = MathUtils.lerp(f.scale, guiding ? far : SCALE, ease(4));
+      f.scale = MathUtils.lerp(f.scale, guiding && !preferred ? far : mode === 'bench' ? BENCH_SCALE : SCALE, ease(4));
       star.current.scale.setScalar(f.scale);
     }
     // Bank into sideways flight, like a little plane.
     const sideways = dt > 0 ? before.sub(f.pos).dot(right) / dt : 0;
     f.lean = MathUtils.lerp(f.lean, calm ? 0 : MathUtils.clamp(sideways * 0.5, -0.6, 0.6), ease(6));
     if (bank.current) bank.current.rotation.z = f.lean;
+
+    // A readable plane in the same 3D space as Star, gently tilted toward the player.
+    // Keep its pixel size useful even when Star flies across the room to point at an item.
+    if (speech.current) {
+      speech.current.position.copy(f.pos);
+      speech.current.quaternion.copy(camera.quaternion).multiply(speechTilt.setFromAxisAngle(speechAxis, side * 0.07));
+      const depth = Math.max(0.35, -view.copy(f.pos).applyMatrix4(camera.matrixWorldInverse).z);
+      const focal = camera.projectionMatrix.elements[5] * size.height / 2;
+      speech.current.scale.setScalar(400 * depth / focal);
+      const panel = starSpeech.panel;
+      if (panel && panel.offsetWidth > 0 && panel.offsetHeight > 0) {
+        projected.copy(f.pos).project(camera);
+        const x = (projected.x + 1) * size.width / 2;
+        const y = (1 - projected.y) * size.height / 2;
+        const radius = f.scale * focal / depth * 0.58;
+        const width = panel.offsetWidth, height = panel.offsetHeight;
+        const toRight = x + radius + 22 + width < size.width - 12;
+        const left = MathUtils.clamp(toRight ? x + radius + 22 : x - radius - 22 - width, 12, Math.max(12, size.width - width - 12));
+        const top = MathUtils.clamp(y - height * 0.45, 72, Math.max(72, size.height - height - 28));
+        let offsetX = left - x, offsetY = top - y;
+        panel.style.transform = `translate3d(${offsetX}px,${offsetY}px,0)`;
+        // Perspective and a moving demo camera can enlarge the plane beyond its CSS box.
+        // Constrain the projected bounds too, so the footer stays reachable on short screens.
+        const bounds = panel.getBoundingClientRect();
+        const dx = Math.max(12 - bounds.left, Math.min(0, size.width - 12 - bounds.right));
+        const dy = Math.max(60 - bounds.top, Math.min(0, size.height - 16 - bounds.bottom));
+        offsetX += dx / Math.max(0.5, bounds.width / Math.max(1, width));
+        offsetY += dy / Math.max(0.5, bounds.height / Math.max(1, height));
+        panel.style.transform = `translate3d(${offsetX}px,${offsetY}px,0)`;
+        panel.style.setProperty('--star-tail-y', `${MathUtils.clamp(-offsetY, 24, Math.max(24, height - 24))}px`);
+        panel.dataset.side = toRight ? 'right' : 'left';
+      }
+    }
 
     // The arrow and ring on what to pick up or clean, grown with distance so they read from afar.
     const pointing = shown && guiding;
@@ -161,6 +227,11 @@ function Companion({ calm }: { calm: boolean }) {
         <group ref={bank}>
           <StarModel calm={calm} sparkleSize={0.8} />
         </group>
+      </group>
+      <group ref={speech}>
+        <Html transform portal={speechPortal} distanceFactor={1} zIndexRange={[30, 25]} wrapperClass="star-world-anchor" style={{ width: 0, height: 0 }}>
+          <div ref={setStarSpeechHost} data-star-world-host />
+        </Html>
       </group>
       <group ref={arrow} visible={false}>
         <mesh rotation={[Math.PI, 0, 0]}>

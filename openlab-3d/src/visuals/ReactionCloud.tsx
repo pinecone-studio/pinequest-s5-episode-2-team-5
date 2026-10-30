@@ -1,8 +1,10 @@
 import {useMemo,useRef} from 'react';
 import {useFrame} from '@react-three/fiber';
 import {Object3D,type InstancedMesh,type MeshStandardMaterial} from 'three';
+import {ReactionCloudGrade8} from './ReactionCloud.grade8';
+import {useGrade8Lab} from '../experiments/workbench/guidance/grade8';
 /** Macroscopic cloudy wisps/flocs, not molecules. Confined to the measured liquid. */
-export function ReactionCloud({radius,bottom,top,color,strength,spread=1,agitated=false,fromTop=false}:{radius:number;bottom:number;top:number;color:string;strength:number;spread?:number;agitated?:boolean;fromTop?:boolean}){
+function ReactionCloudMain({radius,bottom,top,color,strength,spread=1,agitated=false,fromTop=false}:{radius:number;bottom:number;top:number;color:string;strength:number;spread?:number;agitated?:boolean;fromTop?:boolean}){
  const mesh=useRef<InstancedMesh>(null),mat=useRef<MeshStandardMaterial>(null),clock=useRef(0);
  const dummy=useMemo(()=>new Object3D(),[]);
  useFrame((_,dt)=>{
@@ -17,4 +19,8 @@ export function ReactionCloud({radius,bottom,top,color,strength,spread=1,agitate
   }mesh.current.instanceMatrix.needsUpdate=true;
  });
  return <instancedMesh ref={mesh} args={[undefined,undefined,24]} frustumCulled={false} renderOrder={2}><sphereGeometry args={[1,9,6]}/><meshStandardMaterial ref={mat} color={color} transparent opacity={0} roughness={.95} depthWrite={false}/></instancedMesh>;
+}
+/** Grade 8 keeps its earlier 3D demo look (ReactionCloud.grade8.tsx); every other grade uses main's. */
+export function ReactionCloud(props:Parameters<typeof ReactionCloudMain>[0]){
+ return useGrade8Lab()?<ReactionCloudGrade8 {...props}/>:<ReactionCloudMain {...props}/>;
 }

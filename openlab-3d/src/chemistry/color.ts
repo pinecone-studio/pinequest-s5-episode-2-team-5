@@ -7,6 +7,7 @@ import { Color } from 'three';
 import { AQ, SOLIDS, type AqId, type SolidId } from './species';
 import { cuAmmine, phOf } from './equilibrium';
 import { liquidMl, solidVolumeMl, type Mixture } from './mixture';
+import { grade8Chemistry } from './grade8';
 
 export interface MixtureLook {
   /** Liquid color, or null when the vessel holds no liquid. */
@@ -28,6 +29,9 @@ const tmp = new Color();
 
 function absorb(t: Color, hex: string, exponent: number): void {
   if (exponent <= 1e-4) return;
+  // Grade 8: very high absorbance is compressed. A school vessel is seen through a thin layer and
+  // its meniscus, so a strong solution keeps its hue (deep magenta, deep purple) instead of black.
+  if (grade8Chemistry.active && exponent > 3) exponent = 3 + Math.log(exponent / 3) * 1.5;
   tmp.set(hex);
   t.r *= Math.pow(Math.max(0.002, tmp.r), exponent);
   t.g *= Math.pow(Math.max(0.002, tmp.g), exponent);
@@ -95,7 +99,8 @@ function liquidColor(m: Mixture, V: number, ph: number): Color {
   if (blue > 0) absorb(t, '#1b1446', blue / 0.0006);
   // Indicators.
   const phph = conc(m, 'phph', V);
-  if (phph > 0) absorb(t, '#e0158e', (phph * frac(ph, 9.3)) / 1e-4);
+  // Grade 8: the base form absorbs green (552 nm) and passes red and violet: magenta, not crimson.
+  if (phph > 0) absorb(t, grade8Chemistry.active ? '#e613c4' : '#e0158e', (phph * frac(ph, 9.3)) / 1e-4);
   const btb = conc(m, 'btb', V);
   if (btb > 0) {
     const b = frac(ph, 7.1);
@@ -142,7 +147,9 @@ export function mixtureLook(m: Mixture | undefined): MixtureLook {
   const ml = liquidMl(m);
   const solids = solidsColor(m.s);
   const solidColor = solids.grams > 0.002 ? '#' + solids.color.getHexString() : null;
-  const sedimentMl = solidVolumeMl(m) * (1 - m.cloud * 0.85);
+  // Grade 8: stirring and bubbling lift fine powder into the liquid, but never metal pieces.
+  const metalMl = grade8Chemistry.active ? Object.entries(m.s).reduce((v, [id, n]) => (SOLIDS[id as SolidId].metal ? v + ((n ?? 0) * SOLIDS[id as SolidId].molarMass) / 5 : v), 0) : 0;
+  const sedimentMl = metalMl + (solidVolumeMl(m) - metalMl) * (1 - m.cloud * 0.85);
   if (ml < 0.01) {
     return { liquid: null, liquidMl: 0, turbidity: 0, sedimentMl: solidVolumeMl(m), solidColor, solidMetal: solids.metal, foamMl: m.foam, burning: m.burning };
   }
@@ -152,7 +159,8 @@ export function mixtureLook(m: Mixture | undefined): MixtureLook {
   // Metals sink at once; only fine precipitates and powders stay suspended.
   const floating = solidsColor(m.s, true);
   const suspendedGL = (floating.grams * m.cloud * 1000) / ml;
-  const turbidity = floating.grams > 0.0005 ? 1 - Math.exp(-suspendedGL) : 0;
+  // Grade 8: fine precipitate scatters strongly, so 0.3 g/L of chalk already looks milky.
+  const turbidity = floating.grams > 0.0005 ? 1 - Math.exp(-(grade8Chemistry.active ? 3 : 1) * suspendedGL) : 0;
   // Clear water is drawn faintly blue so it reads as liquid.
   absorb(t, '#e2f0fa', 1);
   if (turbidity > 0) t.lerp(floating.color, Math.min(0.92, turbidity * 0.92));

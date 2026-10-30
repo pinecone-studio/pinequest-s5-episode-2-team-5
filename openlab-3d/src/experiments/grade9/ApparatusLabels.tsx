@@ -6,8 +6,10 @@ import {portLayout,portLabel} from './port-layout';
 import {RIG_NAMES,type RigKind} from './kinds';
 import {liquidMl,solidMassG} from '../../chemistry/mixture';
 import type {RigState} from './process';
+import {ApparatusLabelsGrade8} from './ApparatusLabels.grade8';
+import {useGrade8Lab} from '../workbench/guidance/grade8';
 /** Screen-readable labels follow the same openings that receive the actual material. */
-export function ApparatusLabels({id,kind,rig,onSelect}:{id?:string;kind:RigKind;rig?:RigState;onSelect:(i:number)=>void}){
+function ApparatusLabelsMain({id,kind,rig,onSelect}:{id?:string;kind:RigKind;rig?:RigState;onSelect:(i:number)=>void}){
  const selected=useBenchView(s=>s.selected===id),cue=useGuideCue(),flow=useShowcase(s=>s.flow),operating=useShowcase(s=>s.targetId===id&&!['none','measure'].includes(s.operation)&&['playing','paused'].includes(s.status));
  if(!id||!rig||!selected&&cue.target!==id)return null;
  const port=rig.port,m=rig.chambers[port],p=portLayout(kind,port).mouth;
@@ -21,4 +23,8 @@ export function ApparatusLabels({id,kind,rig,onSelect}:{id?:string;kind:RigKind;
    </div>
   </Html>}
  </group>;
+}
+/** Grade 8 keeps its earlier 3D demo look (ApparatusLabels.grade8.tsx); every other grade uses main's. */
+export function ApparatusLabels(props:Parameters<typeof ApparatusLabelsMain>[0]){
+ return useGrade8Lab()?<ApparatusLabelsGrade8 {...props}/>:<ApparatusLabelsMain {...props}/>;
 }

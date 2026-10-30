@@ -13,6 +13,11 @@ import { releaseLock } from '../controls/usePointerLock';
 import { exitBench } from '../experiments/nacl/bench';
 import { MoleculeStage } from './MoleculeViewer';
 import { sounds } from '../utils/sounds';
+import { useShowcase } from '../experiments/workbench/guidance/showcase';
+import { useProtocolResults } from '../experiments/workbench/guidance/results';
+import { useDemoDone, useDemoShown } from '../experiments/workbench/guidance/hud-space';
+import { isGrade8Lab } from '../experiments/workbench/guidance/grade8';
+import { vesselFx } from '../lab/vesselFx';
 function resultFor(id: string): ReactionObservation | null {
     const vessels = useReactionView.getState().vessels, mixtures = useChemStore.getState().mixtures;
     const candidates = Object.values(vessels).filter((r) => isWorkbenchObject(r.vesselId));
@@ -47,6 +52,20 @@ function resultFor(id: string): ReactionObservation | null {
     }
     return null;
 }
+/** A workbench vessel is still visibly reacting: a live rate, standing foam, bubbles or vapour. */
+function reactionStillVisible(): boolean {
+    const now = performance.now(), mixtures = useChemStore.getState().mixtures;
+    if (Object.values(useReactionView.getState().vessels).some((r) => !r.info && r.rate > 0 && r.until > now && isWorkbenchObject(r.vesselId)))
+        return true;
+    for (const [id, m] of Object.entries(mixtures)) {
+        if (!isWorkbenchObject(id))
+            continue;
+        const fx = vesselFx.get(id);
+        if (m.foam > 2 || (fx && (fx.bubbles > .05 || fx.steam > .05 || fx.smoke > .05)))
+            return true;
+    }
+    return false;
+}
 export function ExperimentSuccess() {
     const modal = usePresentation((s) => s.modal), id = usePresentation((s) => s.experiment), result = usePresentation((s) => s.reaction);
     const reduced = useSettingsStore((s) => s.reducedMotion);
@@ -58,11 +77,24 @@ export function ExperimentSuccess() {
     useEffect(() => {
         const timer = window.setInterval(() => {
             const active = useLabStore.getState().active, presentation = usePresentation.getState();
+            // This salt workup still has cooling, filtration and drying after its first crystals.
+            const protocol = useProtocolResults.getState();
+            if (active === 'nacl' && protocol.experiment === active && !protocol.complete && useShowcase.getState().status !== 'idle') {
+                pending.current = null;
+                return;
+            }
+            // A grade 8 demo's result is celebrated once its last step has played, never halfway through.
+            // Starting the experiment again (resetPresentation) lets the student's own result be celebrated too.
+            if (useDemoShown.getState() && !useDemoDone.getState()) {
+                pending.current = null;
+                return;
+            }
             if (!active || presentation.modal || presentation.celebrated.includes(active) || !currentSession()?.ready) {
                 pending.current = null;
                 return;
             }
-            const expected = resultFor(active), done = !currentSession()?.previouslyComplete && experimentDone(useLabStore.getState().progress, active);
+            // A finished grade 8 demo always ends on the celebration, whether or not its lab tracks steps.
+            const expected = resultFor(active), done = (useDemoShown.getState() && useDemoDone.getState()) || (!currentSession()?.previouslyComplete && experimentDone(useLabStore.getState().progress, active));
             if (!expected && !done) {
                 pending.current = null;
                 return;
@@ -79,7 +111,11 @@ export function ExperimentSuccess() {
                 pending.current = { id: active, at: performance.now(), reaction };
                 return;
             }
-            if (performance.now() - pending.current.at < 1500)
+            const waited = performance.now() - pending.current.at;
+            if (waited < 1500)
+                return;
+            // Grade 8: let the visible reaction (eruption, fizzing, boiling) play out before celebrating.
+            if (isGrade8Lab(active) && !useSettingsStore.getState().reducedMotion && waited < 9000 && reactionStillVisible())
                 return;
             endHeldUse();
             releaseLock();

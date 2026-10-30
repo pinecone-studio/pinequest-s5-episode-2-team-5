@@ -18,10 +18,12 @@ import {useGameStore} from '../../store/useGameStore';
 import {useChemStore} from '../../store/useChemStore';
 import {type RigKind} from './kinds';
 import {mixtureLook} from '../../chemistry/color';
+import {Grade9ApparatusGrade8} from './Apparatus.grade8';
+import {useGrade8Lab} from '../workbench/guidance/grade8';
 const metal='#526474';
 function Box({at,size,color}:{at:[number,number,number];size:[number,number,number];color:string}){return <mesh position={at} castShadow><boxGeometry args={size}/><meshStandardMaterial color={color} roughness={.6}/></mesh>;}
 /** Recognisable apparatus, with live contents. Every part is inside the normal pickable body. */
-export function Grade9Apparatus({kind,itemId,...props}:GroupProps&{kind:RigKind;itemId?:string}){
+function Grade9ApparatusMain({kind,itemId,...props}:GroupProps&{kind:RigKind;itemId?:string}){
  const rig=useGrade9Apparatus(s=>itemId?s.rigs[itemId]:undefined);
  const maxVolume=rig?.experiment==='g9-gas-expansion'?20:100;
  const hose=useMemo(()=>new TubeGeometry(new CatmullRomCurve3([new Vector3(-.065,.195,0),new Vector3(-.065,.24,0),new Vector3(0,.24,.055),new Vector3(0,.12,.055)]),24,.0025,8,false),[]);
@@ -103,4 +105,8 @@ export function Grade9Apparatus({kind,itemId,...props}:GroupProps&{kind:RigKind;
  {!isCurriculumRig(kind)&&!['gasTrain','heatingBath','reactionTile','corrosionRack','diffusionTube','fractionatingColumn'].includes(kind)&&well(2,0,.055)}
  {rig?.running&&(rig.kind==='gasTrain'&&rig.gas>0||rig.kind==='heatingBath'&&rig.temperature>=100)&&<group ref={particles}>{Array.from({length:12},(_,i)=><mesh key={i} position={[-.065+(i%3)*.004,.09+i*.009,0]}><sphereGeometry args={[.0018,8,6]}/><meshStandardMaterial color="#e2f4f8" transparent opacity={.7}/></mesh>)}</group>}
  </group>;
+}
+/** Grade 8 keeps its earlier 3D demo look (Apparatus.grade8.tsx); every other grade uses main's. */
+export function Grade9Apparatus(props:Parameters<typeof Grade9ApparatusMain>[0]){
+ return useGrade8Lab()?<Grade9ApparatusGrade8 {...props}/>:<Grade9ApparatusMain {...props}/>;
 }

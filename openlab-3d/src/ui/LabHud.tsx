@@ -19,6 +19,7 @@ import { isTouchDevice } from '../utils/device';
 import { mobileizeControlHint } from '../controls/mobileInteraction';
 import { ProcedureBlock } from '../menu/ProcedureBlock';
 import { StepGuide } from '../menu/StepGuide';
+import { StarInstructions } from './StarGuidance';
 import { TextbookPreparation } from '../menu/TextbookPreparation';
 import { SHOW_LAB_STEPS_IN_CARD, cardTitle, groupsToShow, unlinkedCard, useLaunchedProcedure } from '../menu/launchedProcedure';
 import { procedureGroupsForLab } from '../menu/labProcedureData';
@@ -118,24 +119,20 @@ export function ExperimentCard({ guideOnly = false }: { guideOnly?: boolean } = 
   const [collapsed, setCollapsed] = useState(false);
   // Утсан дээр «Туршилтын бэлтгэл» доод эгнээнд, анх хураасан байдалтай гарна.
   const touch = isTouchDevice();
-  const [prepCollapsed, setPrepCollapsed] = useState(touch);
+  const [prepCollapsed, setPrepCollapsed] = useState(false);
   const x = active ? experiments.find((experiment) => experiment.id === active) : undefined;
   // «Туршилтын бэлтгэл» самбар: туршилтын нэр + «Бэлтгэлээ хийе» хэсэг. Бүх туршилтад ижил хүрээтэй гарна.
   const prepCard = (title: string, body: ReactNode) => {
     if (guideOnly) return null;
     const closed = touch ? prepCollapsed : collapsed;
     const toggle = () => (touch ? setPrepCollapsed((c) => !c) : setCollapsed((c) => !c));
-    // Утас: зүүн талын Star туслах, чатнаас зай аваад бэлтгэлийн картыг дэлгэцийн баруун зах хүртэл сунгана.
-    const box = touch
-      ? 'pointer-events-auto fixed bottom-2 left-[192px] right-2 z-30 rounded-xl bg-white/95 p-2 text-lab-ink shadow-hud'
-      : 'pointer-events-auto fixed left-3 top-[68px] z-30 w-[min(320px,calc(100vw-24px))] rounded-xl bg-white/95 p-3 text-lab-ink shadow-hud sm:left-4 sm:top-[76px] sm:w-[min(320px,calc(100vw-80px))]';
-    return <div className={box}>
+    return <StarInstructions><div className="text-lab-ink">
       <button type="button" className="focus-ring flex w-full items-center justify-between gap-2 text-left" onClick={toggle} aria-expanded={!closed}>
         <span><span className="block text-[10px] font-bold uppercase tracking-wider text-amber-700">Туршилтын бэлтгэл</span><b className="block text-xs">{title}</b></span>
         <span className="shrink-0 rounded-full bg-amber-100 px-2 py-1 text-[11px] font-semibold text-amber-900">{closed ? 'Нээх +' : 'Хураах −'}</span>
       </button>
       {!closed && <div className={`mt-2 overflow-y-auto overscroll-contain ${touch ? 'max-h-[45dvh]' : 'max-h-[40dvh]'}`}>{body}</div>}
-    </div>;
+    </div></StarInstructions>;
   };
   if (!x) {
     // Лабын заавартай холбоогүй туршилтыг цэснээс сонгосон бол эхлээд бэлтгэл, дараа нь алхмыг нь баруун доод буланд «Туршилтын заавар» картаар харуулна
@@ -155,7 +152,7 @@ export function ExperimentCard({ guideOnly = false }: { guideOnly?: boolean } = 
   if (!SHOW_LAB_STEPS_IN_CARD && groups.length > 0) return <StepGuide id={x.id} title={heading} groups={groups} />;
   if (guideOnly) return null;
   return (
-    <div className="pointer-events-auto fixed left-4 top-[76px] z-30 w-[min(300px,calc(100vw-120px))] ">
+    <StarInstructions><div>
       <div className="rounded-2xl bg-white/90 p-3 text-lab-ink shadow-hud backdrop-blur">
         <button type="button" className="focus-ring flex w-full items-center justify-between gap-2 text-left" onClick={() => setCollapsed((c) => !c)} aria-expanded={!collapsed}>
           <span>
@@ -191,6 +188,6 @@ export function ExperimentCard({ guideOnly = false }: { guideOnly?: boolean } = 
           </>
         )}
       </div>
-    </div>
+    </div></StarInstructions>
   );
 }

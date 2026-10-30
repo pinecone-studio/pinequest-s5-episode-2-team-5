@@ -1,10 +1,13 @@
 /**
- * Star's corner of the screen: its speech bubble (styled for "Stop!", comfort or cheering), the
- * button that opens the AI chat, the chat itself, and the screen-edge arrow that points to Star
- * when it flies off to show something. Star itself flies around the room (world/StarCompanion).
+ * Star's world-anchored speech bubble (styled for "Stop!", comfort or cheering), the
+ * current procedure, clickable help button and optional AI chat. Instructions stay visible
+ * until the learner collapses them; the procedure continues running while collapsed.
  */
-import { useEffect, useMemo, useRef, useState, type FormEvent } from 'react';
-import { AnimatePresence, motion, useReducedMotion } from 'framer-motion';
+import { useEffect, useMemo, useRef, useState, type FormEvent, type PointerEvent } from 'react';
+import { useReducedMotion } from 'framer-motion';
+import { createPortal } from 'react-dom';
+import { clampStarPosition, starSpeech, useStarSpeech } from '../lab/starSpeech';
+import { useSettingsStore } from '../store/useSettingsStore';
 import { useGameStore } from '../store/useGameStore';
 import { SKILLS, useExperimentStore, type SkillId } from '../store/useExperimentStore';
 import { useInventoryStore } from '../store/useInventoryStore';
@@ -12,11 +15,12 @@ import { CATALOG } from '../equipment/equipmentCatalog';
 import { useLabStore } from '../store/useLabStore';
 import { experimentById, getExperiments, getTextbookLessons } from '../lab/experiments';
 import { askHost } from '../lab/starBridge';
-import { starCompass } from '../lab/starGuide';
+import { benchReadings, textbookLesson } from '../lab/starContext';
+import { StarInstructionHost } from './StarGuidance';
+import { releaseLock } from '../controls/pointerLock';
 import { sounds } from '../utils/sounds';
 import { isTouchDevice } from '../utils/device';
 import { mobileizeControlHint } from '../controls/mobileInteraction';
-import { StarFace } from './StarFace';
 
 const SKILL_HINTS: Record<SkillId, string> = {
   burner: 'Голын ширээнүүд дээрх Бунзены горелк руу ойртоод R дарж асаагаарай. E дарвал авч зөөж болно.',
@@ -79,7 +83,19 @@ const BUBBLE = {
 };
 
 export function StarAssistant({ hidden }: { hidden: boolean }) {
+  const host = useStarSpeech((s) => s.host);
+  useEffect(() => () => { starSpeech.interacting = false; starSpeech.dragging = false; starSpeech.position = null; }, []);
+  const savedPosition = useSettingsStore((s) => s.starPosition);
+  const [dragging, setDragging] = useState(false);
+  const drag = useRef<{ pointer: number; x: number; y: number; offsetX: number; offsetY: number; moved: boolean } | null>(null);
+  const suppressClick = useRef(false);
   const [chatOpen, setChatOpen] = useState(false);
+  const [collapsed, setCollapsed] = useState(false);
+  const active = useLabStore((s) => s.active);
+  const progress = useLabStore((s) => s.progress);
+  const held = useInventoryStore((s) => s.held);
+  const skills = useExperimentStore((s) => s.skills);
+  useEffect(() => { setCollapsed(false); }, [active]);
   const [draft, setDraft] = useState('');
   const [waiting, setWaiting] = useState(false);
   const [messages, setMessages] = useState<{ role: 'user' | 'model'; text: string }[]>([]);
@@ -98,7 +114,7 @@ export function StarAssistant({ hidden }: { hidden: boolean }) {
     if (robot.open && danger) sounds.play('beep', 0.7);
   }, [robot.id, robot.open, danger]);
   // The chat opens with a tip for what the student is doing right now.
-  const greeting = useMemo(() => (chatOpen ? contextualHint() : ''), [chatOpen]);
+  const greeting = useMemo(() => contextualHint(), [active, progress, held, skills]);
   const scroller = useRef<HTMLDivElement>(null);
   useEffect(() => {
     scroller.current?.scrollTo({ top: scroller.current.scrollHeight, behavior: calm ? 'auto' : 'smooth' });
@@ -118,6 +134,9 @@ export function StarAssistant({ hidden }: { hidden: boolean }) {
       experiments: getExperiments(),
       mode: lab.active ? 'experiment' : 'free lab',
       currentExperiment: lab.active ? experimentById(lab.active) : null,
+      textbookLesson: textbookLesson(),
+      bench: benchReadings(),
+      currentInstruction: document.querySelector('.star-guidance')?.textContent?.slice(0, 6000),
       completedSteps: lab.progress,
       recent: useGameStore.getState().log.slice(-10).map((entry) => entry.text),
       controls: touch
@@ -131,87 +150,125 @@ export function StarAssistant({ hidden }: { hidden: boolean }) {
 
   const openChat = () => {
     sounds.play('ui');
+    releaseLock();
     setOpen(false);
     setChatOpen(true);
   };
-  const speaking = robot.open && !!robot.text && !chatOpen;
+  const speaking = robot.open && !!robot.text;
+  const urgent = speaking && danger;
   const look = danger ? BUBBLE.danger : robot.mood === 'oops' ? BUBBLE.oops : BUBBLE.plain;
-  // The button hops when Star speaks, and shakes when it says "Stop!".
-  const flight = calm
-    ? {}
-    : speaking
-      ? { y: touch ? 4 : -14, scale: 1.12, x: danger ? [0, -6, 6, -4, 4, 0] : 0 }
-      : { y: 0, scale: 1, x: 0 };
+  const expanded = !collapsed || urgent;
+  const toggleGuide = () => {
+    releaseLock();
+    starSpeech.interacting = false;
+    setCollapsed((value) => chatOpen ? false : !value);
+    setChatOpen(false);
+    sounds.play('ui');
+  };
 
-  return (
-    <div className={`${touch ? 'fixed left-[84px] top-2 z-30' : 'fixed bottom-2 left-2 z-30 flex items-end'} ${hidden ? 'hidden' : ''}`}>
-      <motion.button
+  const grabStar = (event: PointerEvent<HTMLButtonElement>) => {
+    if (event.button !== 0 || !event.isPrimary) return;
+    event.preventDefault();
+    event.stopPropagation();
+    releaseLock();
+    starSpeech.interacting = true;
+    const bounds = event.currentTarget.getBoundingClientRect();
+    drag.current = { pointer: event.pointerId, x: event.clientX, y: event.clientY,
+      offsetX: bounds.left + bounds.width / 2 - event.clientX,
+      offsetY: bounds.top + bounds.height / 2 - event.clientY, moved: false };
+    suppressClick.current = false;
+    event.currentTarget.setPointerCapture(event.pointerId);
+  };
+  const moveStar = (event: PointerEvent<HTMLButtonElement>) => {
+    const gesture = drag.current;
+    if (!gesture || gesture.pointer !== event.pointerId) return;
+    event.preventDefault();
+    event.stopPropagation();
+    if (!gesture.moved && Math.hypot(event.clientX - gesture.x, event.clientY - gesture.y) < 6) return;
+    if (!gesture.moved) { gesture.moved = true; setDragging(true); }
+    starSpeech.dragging = true;
+    starSpeech.interacting = false;
+    starSpeech.position = clampStarPosition((event.clientX + gesture.offsetX) / window.innerWidth,
+      (event.clientY + gesture.offsetY) / window.innerHeight, window.innerWidth, window.innerHeight);
+  };
+  const dropStar = (event: PointerEvent<HTMLButtonElement>, cancelled = false) => {
+    const gesture = drag.current;
+    if (!gesture || gesture.pointer !== event.pointerId) return;
+    event.stopPropagation();
+    drag.current = null;
+    if (gesture.moved && !cancelled && starSpeech.position) useSettingsStore.getState().set({ starPosition: starSpeech.position });
+    starSpeech.dragging = false;
+    starSpeech.position = null;
+    starSpeech.interacting = false;
+    setDragging(false);
+    // A drag must not also trigger the click that collapses the instructions.
+    suppressClick.current = gesture.moved || cancelled;
+    window.setTimeout(() => { suppressClick.current = false; }, 0);
+    if (event.currentTarget.hasPointerCapture(event.pointerId)) event.currentTarget.releasePointerCapture(event.pointerId);
+  };
+  const followAgain = () => {
+    starSpeech.position = null;
+    starSpeech.interacting = false;
+    useSettingsStore.getState().set({ starPosition: null });
+  };
+
+  if (!host) return null;
+  return createPortal(
+    <div
+      hidden={hidden}
+      className="star-world-assistant pointer-events-none"
+      data-dragging={dragging || undefined}
+      onPointerDown={(event) => event.stopPropagation()}
+      onWheel={(event) => event.stopPropagation()}
+    >
+      <button
         type="button"
-        aria-label="Star туслахтай чатлах"
-        onClick={openChat}
-        animate={flight}
-        transition={{ type: 'spring', stiffness: 260, damping: 16 }}
-        className={touch
-          ? 'focus-ring pointer-events-auto flex h-12 w-12 items-center justify-center rounded-full active:scale-95'
-          : 'focus-ring pointer-events-auto flex h-[82px] w-[72px] items-center justify-center rounded-3xl'}
-      >
-        <StarFace size={touch ? 46 : 66} />
-      </motion.button>
-      {/* Points to Star when it has flown out of view to show something; moved by StarCompanion. */}
+        aria-label={expanded && !chatOpen ? 'Star-ийн зааврыг хураах' : 'Star-ийн зааврыг нээх'}
+        aria-controls="star-instructions"
+        aria-expanded={expanded && !chatOpen}
+        onPointerDown={grabStar}
+        onPointerEnter={() => { starSpeech.interacting = true; }}
+        onPointerLeave={() => { if (!starSpeech.dragging) starSpeech.interacting = false; }}
+        onPointerMove={moveStar}
+        onPointerUp={(event) => dropStar(event)}
+        onPointerCancel={(event) => dropStar(event, true)}
+        onLostPointerCapture={(event) => dropStar(event, true)}
+        onClick={(event) => { if (suppressClick.current) event.preventDefault(); else toggleGuide(); }}
+        className="star-world-hit focus-ring pointer-events-auto"
+        title="Star · Чирж байрлуулна, дарж зааврыг нээнэ"
+      />
       <div
-        ref={(el) => { starCompass.el = el; }}
-        aria-hidden="true"
-        className="pointer-events-none fixed left-0 top-0 z-40 opacity-0 transition-opacity duration-300"
+        ref={(element) => { starSpeech.panel = element; }}
+        className="star-world-speech pointer-events-auto"
+        hidden={!expanded && !chatOpen}
+        onPointerEnter={() => { starSpeech.interacting = true; }}
+        onPointerLeave={() => { starSpeech.interacting = false; }}
       >
-        <div className="relative flex h-12 w-12 items-center justify-center rounded-full bg-amber-100/90 shadow-hud ring-2 ring-amber-400">
-          <StarFace size={34} />
-          <div ref={(el) => { starCompass.arrow = el; }} className="absolute inset-0">
-            <span className="absolute -right-3 top-1/2 -translate-y-1/2 border-y-[9px] border-l-[13px] border-y-transparent border-l-amber-500" />
-          </div>
+      <section
+        id="star-instructions"
+        aria-label="Star-ийн заавар"
+        hidden={chatOpen || !expanded}
+        className="star-speech-card overflow-hidden rounded-3xl border border-emerald-100 text-lab-ink"
+      >
+        <header className="flex items-center gap-2 border-b border-emerald-100 bg-emerald-50 px-3 py-2">
+          <span className="flex-1 text-xs font-extrabold text-emerald-900">⭐ Star · Хамтдаа хийе<span className="block text-[10px] font-medium text-emerald-700">Star-ийг чирж байрлуулж болно</span></span>
+          {savedPosition && <button type="button" aria-label="Star-ийг дагуулж нисгэх" title="Star-ийн байрлалыг анхны болгох" onClick={followAgain} className="focus-ring min-h-9 min-w-9 rounded-lg text-emerald-800">↺</button>}
+          <button type="button" aria-label="Star-ийн яриаг хураах" onClick={() => { starSpeech.interacting = false; setCollapsed(true); if (urgent) setOpen(false); }} className="focus-ring min-h-9 min-w-9 rounded-lg text-emerald-800">−</button>
+        </header>
+        <div className="space-y-3 overflow-y-auto overscroll-contain p-3" style={{ maxHeight: touch ? 'max(80px, calc(100dvh - 235px))' : 'min(42dvh, 350px)' }}>
+          <StarInstructionHost urgent={danger || robot.mood === 'oops'} notice={speaking && <div role={danger ? 'alert' : 'status'} aria-live={danger ? 'assertive' : 'polite'} className={`relative rounded-xl p-3 pr-7 text-sm leading-relaxed ${look.box}`}>
+            <div className={`mb-1 text-[11px] font-bold ${look.label}`}>{look.title}</div>
+            {touch ? mobileizeControlHint(robot.text) : robot.text}
+            <button type="button" aria-label="Зөвлөгөөг хаах" onClick={() => setOpen(false)} className="focus-ring absolute right-1 top-1 min-h-7 min-w-7 rounded">✕</button>
+          </div>} fallback={<p className="text-sm leading-relaxed">{touch ? mobileizeControlHint(greeting) : greeting}</p>} />
         </div>
-      </div>
-      <AnimatePresence mode="wait">
-        {speaking && (
-          <motion.div
-            key={robot.id}
-            role={danger ? 'alert' : 'status'}
-            aria-live={danger ? 'assertive' : 'polite'}
-            className={touch
-              ? `pointer-events-auto fixed left-[84px] top-[64px] flex max-h-[45dvh] max-w-[min(300px,calc(100vw-180px))] flex-col rounded-2xl rounded-tl-md px-4 py-3 text-sm leading-snug text-lab-ink shadow-hud ${look.box}`
-              : `pointer-events-auto fixed bottom-[94px] left-2 max-h-[35dvh] max-w-[min(280px,calc(100vw-24px))] overflow-y-auto rounded-2xl rounded-bl-md px-4 py-3 text-sm leading-snug text-lab-ink shadow-hud sm:relative sm:bottom-auto sm:left-auto sm:mb-[70px] sm:ml-[-4px] sm:max-h-none sm:max-w-[min(300px,calc(100vw-120px))] ${look.box}`}
-            initial={{ opacity: 0, scale: 0.8, x: -10 }}
-            animate={{ opacity: 1, scale: 1, x: 0 }}
-            exit={{ opacity: 0, scale: 0.9 }}
-            style={{ transformOrigin: touch ? 'top left' : 'bottom left' }}
-          >
-            {/* On touch only the text scrolls, so the ask button below always stays in view. */}
-            <div className={touch ? 'min-h-0 overflow-y-auto' : undefined}>
-              <div className={`mb-0.5 pr-4 text-[11px] font-bold uppercase tracking-wider ${look.label}`}>{look.title}</div>
-              {touch ? mobileizeControlHint(robot.text) : robot.text}
-            </div>
-            {touch && (
-              <button type="button" onClick={openChat} className="focus-ring mt-2 block shrink-0 self-start rounded-full bg-amber-500 px-3 py-1.5 text-xs font-bold text-white">
-                Star-аас асуух
-              </button>
-            )}
-            <button type="button" aria-label="Зөвлөгөөг хаах" onClick={() => setOpen(false)} className="focus-ring absolute right-2 top-1.5 rounded px-1 text-slate-400 hover:text-slate-600">
-              ✕
-            </button>
-          </motion.div>
-        )}
-      </AnimatePresence>
-      {!touch && speaking && (
-        <button type="button" onClick={openChat} className="focus-ring pointer-events-auto absolute bottom-2 left-[76px] rounded-full bg-amber-500 px-3 py-2 text-[11px] font-bold text-white shadow-hud sm:text-xs">
-          Star-аас асуух
-        </button>
-      )}
-      {!touch && !chatOpen && !hidden && !robot.open && (
-        <button type="button" onClick={openChat} className="focus-ring pointer-events-auto fixed bottom-3 left-[88px] z-40 rounded-full border border-amber-200 bg-white px-3 py-2 text-[11px] font-bold text-amber-800 shadow-hud sm:bottom-4 sm:text-xs">💬 Star чат</button>
-      )}
+        <footer className="border-t border-emerald-100 px-3 py-2">
+          <button type="button" onClick={openChat} className="focus-ring min-h-10 w-full rounded-xl bg-emerald-100 px-3 text-xs font-bold text-emerald-900">💬 Star-аас асуух</button>
+        </footer>
+      </section>
       {chatOpen && (
-        <section aria-label="Star AI chat" className="pointer-events-auto fixed bottom-3 left-3 z-50 flex h-[min(58dvh,420px)] max-h-[calc(100dvh-24px)] w-[min(330px,calc(100vw-24px))] flex-col overflow-hidden rounded-2xl border border-amber-200 bg-white text-lab-ink shadow-2xl sm:bottom-4 sm:left-3 sm:h-[min(62vh,520px)] sm:w-[min(390px,calc(100vw-24px))]">
+        <section aria-label="Star AI chat" className="star-speech-card flex h-[min(420px,calc(100dvh-100px))] flex-col overflow-hidden rounded-3xl border border-amber-100 text-lab-ink">
           <header className="flex items-center gap-2 bg-gradient-to-r from-amber-400 to-orange-400 px-3 py-2.5 text-amber-950">
-            <StarFace size={34} />
             <div className="flex-1"><div className="text-sm font-bold">Star · AI туслах</div><div className="text-[11px] opacity-80">Туршилт, бодис, аюулгүй байдлын талаар асуугаарай</div></div>
             <button type="button" aria-label="Чатыг хаах" onClick={() => setChatOpen(false)} className="focus-ring rounded px-2 text-lg">✕</button>
           </header>
@@ -235,6 +292,8 @@ export function StarAssistant({ hidden }: { hidden: boolean }) {
           </form>
         </section>
       )}
-    </div>
+      </div>
+    </div>,
+    host,
   );
 }

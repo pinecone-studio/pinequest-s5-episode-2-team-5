@@ -7,6 +7,7 @@
 import { useGameStore } from '../store/useGameStore';
 import { useLabStore } from '../store/useLabStore';
 import { experimentById } from './experiments';
+import { useDemoShown } from '../experiments/workbench/guidance/hud-space';
 import { askHost } from './starBridge';
 import { startGuide } from './starGuide';
 import { canAskAi, GUIDE_HINT, STAR_AI, type StarBudget, type StarLine } from './starLines';
@@ -27,6 +28,8 @@ export function starContext(): string {
 }
 
 export function starSay(line: StarLine): void {
+  // A grade 8 demo does the steps, not the student: no "Stop!" or comforting about them.
+  if (line.tone !== 'good' && useDemoShown.getState()) return;
   const now = performance.now();
   if (now - (lastSaid.get(line.key) ?? -Infinity) < line.cooldownMs) return;
   lastSaid.set(line.key, now);

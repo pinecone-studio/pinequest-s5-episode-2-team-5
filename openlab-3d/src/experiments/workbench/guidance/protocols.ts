@@ -2,6 +2,7 @@ import type {GuideStep} from './plans';
 import type {Check,Endpoint} from './conditions';
 import {CATALOG,type BenchKey,type EquipmentKind} from '../../../equipment/equipmentCatalog';
 import type {ReagentId} from '../../../chemistry/reagents';
+import {isGrade8Lab} from './grade8';
 const check=(metric:Check['metric'],min?:number,max?:number,other:Partial<Check>={}):Check=>({metric,...(min===undefined?{}:{min}),...(max===undefined?{}:{max}),...other});
 const s=(species:string,min=1e-6,port?:number,target?:BenchKey)=>check('solid',min,undefined,{species,port,target});
 const a=(species:string,min=1e-6,port?:number,target?:BenchKey)=>check('aqueous',min,undefined,{species,port,target});
@@ -58,10 +59,12 @@ function primary(id:string):Check[]{
   'g9-litmus':[check('ph',undefined,3,{port:0}),check('ph',11,undefined,{port:1})],'g9-ph-ranking':[check('ph',0,7)],'g9-zinc-hcl':[check('solid',undefined,1e-7,{species:'Zn'})],
   'g9-carbonate-co2':[check('solid',undefined,1e-7,{species:'CaCO3'}),s('CaCO3',1e-5,2)],'g9-antacid':[check('acid',undefined,1e-6)],'g9-air-oxygen':[s('CuO',.0015)],
   'g9-corrosion':[s('FeOH3',1e-5)],'g9-ammonia-preparation':[check('volume',20)],'g9-water-tests':[a('Cu',1e-6)],'g9-air-distillation':[check('volume',99)],
-  'reaction-timing':[check('solid',undefined,1e-7,{species:'CaCO3'})],'melting-point':[check('solid',undefined,1e-7,{species:'ice',port:0}),check('solid',undefined,1e-7,{species:'ice',port:1})],'group2-water':[s('Mg',.004),check('volume',undefined,.1)],'group2-acid':[check('volume',55)],
+  'reaction-timing':[check('solid',undefined,1e-7,{species:'marble'})],'melting-point':[check('solid',undefined,1e-7,{species:'ice',port:0}),check('solid',undefined,1e-7,{species:'ice',port:1})],'group2-water':[s('Mg',.004),check('volume',undefined,.1)],'group2-acid':[check('volume',55)],
   'halogens':[a('Br2',1e-6),a('I2',1e-6,1)],'physical-change':[check('solid',undefined,1e-7,{species:'ice'})],
-  'rate-concentration':[check('solid',undefined,1e-7,{species:'CaCO3'})],'rate-temperature':[check('solid',undefined,1e-7,{species:'CaCO3'})],'rate-surface':[check('solid',undefined,1e-7,{species:'CaCO3'})],
+  // Grade 8 marble is chips (chemistry/grade8.ts): the chip is used up, not powder.
+  'rate-concentration':[check('solid',undefined,1e-7,{species:'marble'})],'rate-temperature':[check('solid',undefined,1e-7,{species:'marble'})],'rate-surface':[check('solid',undefined,1e-7,{species:'marble'})],
   'candle-products':[check('gas',1e-6,undefined,{species:'CO2'})],'fuel-energy':[check('temperature',30)],
+  'water-quality':[check('ph',6,8)],'water-treatment':[data('settled2',.005)],
   'nacl-solution':[a('Na',.001),check('acid',undefined,1e-5)],'copper-salt':[a('Cu',.0007),check('solid',undefined,1e-7,{species:'CuCO3'})],'zinc-salt':[a('Zn',.001),check('solid',undefined,1e-7,{species:'Zn'})],
   'activity-matrix':[s('Cu',1e-5)],'acid-heat':[check('acid',undefined,1e-6)],'vinegar-soda':[check('solid',undefined,1e-7,{species:'NaHCO3'})],'kcl-dissolution':[a('K',.01),check('solid',undefined,1e-7,{species:'KCl'})],
   'wastewater':[check('ph',6,8)],'catalyst-reuse':[check('aqueous',undefined,1e-5,{species:'H2O2'}),s('MnO2',.001)],
@@ -80,6 +83,14 @@ function saltWorkup(id:string):GuideStep[]{
  const all=(from:EquipmentKind,to:EquipmentKind,filter?:EquipmentKind):GuideStep=>({...move(from,to,1,filter),all:true,label:`${CATALOG[from].name} дахь бүх дээжийг ${CATALOG[to].name}-т ${filter?'шүүж ':''}шилжүүл.`});
  const out:GuideStep[]=[];
  if(from!=='evaporatingDish')out.push({type:'place',item:'funnel',onto:'erlenmeyer',label:'Цаастай юүлүүрийг конус колбонд суурилуул.'},all(from,'erlenmeyer','funnel'),dose('water',1,0,'erlenmeyer','funnel'),record('Шүүлтүүр дээрх үлдэгдлийг угааж, давсны уусмалыг бүрэн цуглуулав.','erlenmeyer'),all('erlenmeyer','evaporatingDish'),{type:'place',item:'funnel',onto:'table',label:'Юүлүүрийг ширээнд буцааж тавь.'});
+ // Grade 8 (8-03/8-04) as the book does it: evaporate only until crystals form (never to dryness), cool so
+ // more crystallise, filter the crystals off, then dry them on a watch glass.
+ if(id==='nacl'||isGrade8Lab(id)&&recipe.solid==='NaCl'&&from!=='evaporatingDish'){
+  out.push(config('Ууршуулагч аягийг халааж усыг багасга.',{heating:true},'evaporatingDish'),wait('Талст үүсч эхлэх хүртэл ууршуул; хуурай болтол бүү халаа.',[s('NaCl',id==='nacl'?.008:.003,undefined,'evaporatingDish')],{speed:8,timeout:120,minimum:0,stopHeat:true}),config('Халаагуурыг унтрааж уусмалыг хөргө.',{heating:false},'evaporatingDish'),wait('Хөргөхөд талст нэмж үүснэ: 35°C-ээс доош хөргөнө.',[check('temperature',undefined,35,{target:'evaporatingDish'})],{speed:40,timeout:60,minimum:1}),
+   {type:'place',item:'funnel',onto:'erlenmeyer',label:'Талстыг ялгахаар цаастай юүлүүрийг колбонд суурилуул.'},all('evaporatingDish','erlenmeyer','funnel'),all('funnel','watchGlass'),
+   wait('Хуурай давсны талст цагийн шилэнд цуглав.',[s('NaCl',1e-6,undefined,'watchGlass'),check('water',undefined,.001,{target:'watchGlass'})]),record('Гарган авсан хуурай, хөргөсөн давс.','watchGlass'));
+  return out;
+ }
  out.push(config('Ууршуулагч аягийг халааж усыг багасга.',{heating:true},'evaporatingDish'),wait('Ус ууршиж хуурай давс үлдэхийг хүлээ.',[s(recipe.solid,1e-6,undefined,'evaporatingDish'),check('water',undefined,.001,{target:'evaporatingDish'})],{speed:8,timeout:120,minimum:0,stopHeat:true}),config('Халаагуурыг унтрааж талстыг хөргө.',{heating:false},'evaporatingDish'),wait('Давсыг 35°C-ээс доош хөргөнө.',[check('temperature',undefined,35,{target:'evaporatingDish'})],{speed:12,timeout:120}),all('evaporatingDish','watchGlass'),wait('Хуурай бүтээгдэхүүн хүлээн авах шилэнд цуглав.',[s(recipe.solid,1e-6,undefined,'watchGlass'),check('water',undefined,.001,{target:'watchGlass'})]),record('Гарган авсан хуурай, хөргөсөн давс.','watchGlass'));
  return out;
 }
@@ -191,7 +202,8 @@ export function completeProtocol(id:string,starter:GuideStep[]):GuideStep[]{
  // 8-07/8-08: the same mass of calcium, which is more reactive than magnesium.
  if(id==='group2-water')again('Кальци хүйтэн устай хүчтэй урвалд орно',[dose('s_ca',.1),dose('water',10,1),{type:'start',label:'Кальцийг устай холь.'}],[check('volume',40)]);
  if(id==='group2-acid')again('Кальци давсны хүчилтэй',[dose('s_ca',.1),dose('hcl',5,1),{type:'start',label:'Кальцийг хүчилтэй холь.'}],[check('volume',40)]);
- if(id==='rate-temperature')again('Халаалтгүй температурын хяналт',variant(s=>s.type==='configure'&&s.change.heating?{...s,change:{heating:false}}:s),initial);
+ // Unheated, the marble chip reacts more slowly, which is the point of the comparison: give it longer.
+ if(id==='rate-temperature')again('Халаалтгүй температурын хяналт',variant(s=>s.type==='configure'&&s.change.heating?{...s,change:{heating:false}}:s),initial,{timeout:180});
  if(id==='g10-electrolysis')again('Инерт анодтой электролиз',variant(s=>s.type==='dose'&&s.port===2&&s.reagent==='s_cu'?{...s,reagent:'s_graphite'}:s),[data('deposited',.0001),check('gas',1e-6,undefined,{species:'O2',port:2})]);
  if(id==='g10-combustion')again('Хүчилтөрөгч дутсан шаталт',variant(s=>s.type==='dose'&&s.reagent==='gas_o2'?{...s,amount:75}:s),[check('gas',.0018,undefined,{species:'CO'}),check('gas',undefined,1e-6,{species:'CH4'})]);
  if(id==='g10-viscosity')for(const reagent of ['water','corn_syrup'] as const)again(`${reagent}: ижил бөмбөлгийн уналт`,variant(s=>s.type==='dose'&&s.reagent==='oil'?{...s,reagent}:s),initial);
@@ -209,6 +221,16 @@ export function completeProtocol(id:string,starter:GuideStep[]):GuideStep[]{
  if(id==='g10-flame')for(const [reagent,ion] of [['kcl','K'],['licl','Li'],['cacl2','Ca'],['cuso4','Cu']] as const)p.push({type:'flame',reagent,amount:.1,label:`Цэвэр гогцоонд ${reagent} авч дөлний өнгийг шалга.`},wait(`${ion} дээжийн дөлний сорил.`,[check('sample',1e-6,undefined,{species:ion,target:'wireLoop'})]),record(`${ion}: дөлний өнгө ба дээж.`,'wireLoop'));
  if(id==='g10-flame')lastChecks=[check('sample',1e-6,undefined,{species:'Cu',target:'wireLoop'})];
 
+ if(id==='water-quality'){
+  const start:GuideStep={type:'start',label:'Дээжийн pH, булингар, ууссан бодисыг хэмж.'};
+  again('Шавартай ус: булингар тунана',[dose('soil_clay',1),dose('water',10),dose('ui',.1),start],[data('settled2',.005)]);
+  again('Давстай ус: тунгалаг ч ууссан Na⁺ агуулна',[dose('nacl',10),dose('ui',.1),start],[a('Na',.009),check('ph',6,8)]);
+  again('Шүлтлэг хаягдал ус: pH өндөр',[dose('naoh',1),dose('water',9),dose('ui',.1),start],[check('ph',11)]);
+ }
+ if(id==='water-treatment'){
+  p.push(config('Тунгаасан дээжийг шүүлтүүрээр шүү.',{operation:'filter',running:true}),wait('Шавар шүүлтүүрт үлдэж, давс шүүгдэст нэвтрэв.',[check('water',5,undefined,{port:2}),a('Na',1e-3,2)]),record('Тунгалаг шүүгдэс давстай хэвээр: ундны ус гэж батлахгүй.'));
+  lastChecks=[check('water',5,undefined,{port:2}),a('Na',1e-3,2)];
+ }
  if(id==='g9-mass-conservation')p.push(config('Битүү системийн дараах хийг сулла.',{closed:false}),record('Нээлттэй системийн масс өөрчлөлт.'));
  if(id==='g9-water-tests')again('Кобальтын усны сорил',[dose('s_cocl2anh',.1),dose('water',1),{type:'start',label:'Усны хоёр дахь сорил.'}],[a('Co',1e-6)]);
  if(id==='g9-litmus')p.push(dose('water',5,2),dose('s_litmus_red',.01,2),dose('water',5,3),dose('s_litmus_blue',.01,3),wait('Саармаг хяналтын уусмал.',[check('ph',6,8,{port:2}),check('ph',6,8,{port:3})]),record('Хүчил, суурь ба саармаг лакмусын хяналтууд.'));

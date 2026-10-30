@@ -53,6 +53,8 @@ export interface SettingsState {
   lookMode: LookMode;
   invertY: boolean;
   reducedMotion: boolean;
+  /** Saved viewport position for the draggable 3D Star; null follows the learner. */
+  starPosition: { x: number; y: number } | null;
   /** Шинэ цэсний өнгө (src/theme/themes.ts): сурагч Тохиргоо → Өнгө сонгох-оос сонгоно */
   theme: ThemeId;
   reactionAutoZoom: boolean;
@@ -79,6 +81,7 @@ export const useSettingsStore = create<SettingsState>()(
       lookMode: 'mouse',
       invertY: false,
       reducedMotion: false,
+      starPosition: null,
       theme: DEFAULT_THEME.id,
       reactionAutoZoom: false,
       molecularLens: false,
@@ -109,6 +112,9 @@ export const useSettingsStore = create<SettingsState>()(
           // A tier picked before Auto existed stays picked.
           autoQuality: p.autoQuality ?? !(p.qualityManuallySet ?? false),
           bindings: { ...DEFAULT_BINDINGS, ...(p.bindings ?? {}) },
+          starPosition: p.starPosition && Number.isFinite(p.starPosition.x) && Number.isFinite(p.starPosition.y)
+            && p.starPosition.x >= 0 && p.starPosition.x <= 1 && p.starPosition.y >= 0 && p.starPosition.y <= 1
+            ? p.starPosition : null,
           // Хадгалсан өнгө алдаатай (эсвэл хуучин хувилбарт байгаагүй) бол анхны өнгө
           theme: isThemeId(p.theme) ? p.theme : DEFAULT_THEME.id,
         };

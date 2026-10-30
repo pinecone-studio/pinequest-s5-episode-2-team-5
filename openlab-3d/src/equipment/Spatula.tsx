@@ -2,8 +2,10 @@
 import { metalBrushed } from '../materials/metal';
 import { plastic } from '../materials/plastic';
 import { ModelOr, type ModelProps } from './ModelOr';
+import {SpatulaGrade8} from './Spatula.grade8';
+import {useGrade8Lab} from '../experiments/workbench/guidance/grade8';
 
-export function Spatula({ modelUrl, load, ...props }: ModelProps & { load?: string }) {
+function SpatulaMain({ modelUrl, load, ...props }: ModelProps & { load?: string }) {
   return (
     <ModelOr modelUrl={modelUrl} {...props}>
       <mesh material={metalBrushed} position={[0, 0.002, -0.02]} castShadow>
@@ -22,4 +24,8 @@ export function Spatula({ modelUrl, load, ...props }: ModelProps & { load?: stri
       )}
     </ModelOr>
   );
+}
+/** Grade 8 keeps its earlier 3D demo look (Spatula.grade8.tsx); every other grade uses main's. */
+export function Spatula(props:Parameters<typeof SpatulaMain>[0]){
+ return useGrade8Lab()?<SpatulaGrade8 {...props}/>:<SpatulaMain {...props}/>;
 }

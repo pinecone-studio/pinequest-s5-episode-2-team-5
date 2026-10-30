@@ -14,6 +14,8 @@ import {useGlass} from '../../materials/glass';
 import {liquidMl,gasMl,solidMassG} from '../../chemistry/mixture';
 import {CURRICULUM_RIGS,type CurriculumKind} from './kinds';
 import type {RigState} from '../grade9/process';
+import {CurriculumApparatusGrade8} from './Apparatus.grade8';
+import {useGrade8Lab} from '../workbench/guidance/grade8';
 function Block({at,size,color}:{at:[number,number,number];size:[number,number,number];color:string}){return <mesh position={at} castShadow><boxGeometry args={size}/><meshStandardMaterial color={color} roughness={.55}/></mesh>;}
 function Label({text,at,size=[.08,.024]}:{text:string;at:[number,number,number];size?:[number,number]}){
  const texture=useMemo(()=>{const c=document.createElement('canvas');c.width=512;c.height=128;const x=c.getContext('2d');if(x){x.fillStyle='#102f47';x.fillRect(0,0,512,128);x.fillStyle='#e6f8ff';x.textAlign='center';x.font='bold 42px sans-serif';x.fillText(text,256,80,500);}return new CanvasTexture(c);},[text]);
@@ -24,7 +26,7 @@ function Pipe({points,color='#8ab1c5',motion}:{points:[number,number,number][];c
  const mesh=useRef<Mesh>(null);useFrame(()=>{if(!mesh.current||!motion)return;const state=useShowcase.getState(),active=state.targetId===motion.id&&state.operation===motion.operation&&['playing','paused'].includes(state.status);const f=active?Math.min(1,state.progress/.65):motion.connected?1:0;if(motion.operation==='assemble'){const grow=active?Math.max(0,Math.min(1,(state.progress-.65)/.35)):1;g.setDrawRange(0,Math.floor((g.index?.count??0)*grow/6)*6);}else mesh.current.position.y=.075*(1-f);});
  useEffect(()=>()=>g.dispose(),[g]);return <mesh ref={mesh} geometry={g}><meshStandardMaterial color={color} transparent opacity={.75}/></mesh>;
 }
-export function CurriculumApparatus({kind,rig,onSelect,itemId}:{kind:CurriculumKind;rig?:RigState;itemId?:string;onSelect:(port:number)=>void}){
+function CurriculumApparatusMain({kind,rig,onSelect,itemId}:{kind:CurriculumKind;rig?:RigState;itemId?:string;onSelect:(port:number)=>void}){
  const flow=useShowcase(s=>s.flow),stirring=useShowcase(s=>s.targetId===itemId&&s.operation==='stir'&&s.status==='playing'),cue=useGuideCue();
  const glass=useGlass('#e2eff5'),d=CURRICULUM_RIGS[kind],shape=d.shape;
  const well=(i:number,x:number,z=0,y=.014,radius=.025,height=.1)=>{
@@ -119,4 +121,8 @@ export function CurriculumApparatus({kind,rig,onSelect,itemId}:{kind:CurriculumK
   {shape==='diffusion'&&well(2,0)}
 
  </group>;
+}
+/** Grade 8 keeps its earlier 3D demo look (Apparatus.grade8.tsx); every other grade uses main's. */
+export function CurriculumApparatus(props:Parameters<typeof CurriculumApparatusMain>[0]){
+ return useGrade8Lab()?<CurriculumApparatusGrade8 {...props}/>:<CurriculumApparatusMain {...props}/>;
 }
