@@ -7,7 +7,17 @@ import { useEffect, useRef } from 'react';
 import { bench, enterBench, exitBench } from './bench';
 import { drawScopeImage } from './engine';
 import { NAMES, LABEL_KEYS } from './data';
-import { contentsLabel, describe, labSpace, mixture, partId, useSandbox } from './sandbox';
+import { contentsLabel, describe, labSpace, labUse, mixture, partId, partKey, useSandbox } from './sandbox';
+import { useGuideCue } from '../workbench/guidance/runtime';
+import { gasMl, liquidMl, solidMassG } from '../../chemistry/mixture';
+import { Grade9Controls } from '../grade9/Controls';
+import { requestLock } from '../../controls/usePointerLock';
+import { interactables } from '../../interaction/registry';
+import { tablePointer } from '../../interaction/heldApi';
+import { beginHeldUse, endHeldUse } from '../../interaction/useHeld';
+import { transfer } from '../../interaction/actions';
+import { dropHeld } from '../../controls/useGameKeys';
+import { useChemStore, mixtureOf } from '../../store/useChemStore';
 import { useGameStore } from '../../store/useGameStore';
 import { usePortableStore } from '../../interaction/portable';
 import { useInventoryStore } from '../../store/useInventoryStore';
@@ -76,6 +86,61 @@ function Microscope() {
     <div className="flex justify-between"><b>Микроскоп</b><button onClick={() => useSandbox.setState({ scope: false })} aria-label="Микроскопыг хаах">✕</button></div>
     {hasSample ? <canvas ref={ref} width={520} height={520} className="my-4 w-full rounded-full" style={{ filter: `blur(${Math.abs(focus - 64) * 0.25}px)` }} /> : <p className="my-10 text-center text-sm text-slate-500">Тавцан хоосон. Талстаас шилэн хавтас руу дээж шилжүүлж тавиарай.</p>}
     <label className="block text-xs">Фокус<input type="range" min={0} max={100} value={focus} className="mt-2 w-full" onChange={(e) => useSandbox.setState({ focus: +e.target.value })} /></label>
+  </section>;
+}
+
+/**
+ * What the selected item can do: pour or dose into it, use it, pick it up, turn it, and the
+ * controls that run Grade 7–10 apparatus (Grade9Controls). Only controls, no description: without
+ * this card those experiments cannot be started or finished.
+ */
+function BenchControls() {
+  const id = useSandbox((s) => s.inspected);
+  const demoPlaying = useGuideCue((s) => !!s.target);
+  useChemStore((s) => id ? s.mixtures[id] : undefined);
+  const portable = usePortableStore((s) => s.held);
+  const normal = useInventoryStore((s) => s.held);
+  const mode = useGameStore((s) => s.mode);
+  const inspecting = useBenchView((s) => s.inspecting);
+  if (!id || demoPlaying) return null;
+  const heldId = portable?.id ?? normal?.id;
+  const item = describe(id); const m = mixture(id); const key = partKey(id);
+  const close = () => {
+    if (inspecting) { benchView.back(); return; }
+    useSandbox.setState({ inspected: null }); useBenchView.setState({ selected: null });
+    if (mode === 'walk') requestLock();
+  };
+  const tool = heldId ? describe(heldId) : null;
+  const heldContents = heldId ? mixtureOf(heldId, normal?.variant) : undefined;
+  const doseGas = !!heldContents && gasMl(heldContents) > 0 && liquidMl(heldContents) < .005;
+  const doseUnit = doseGas ? 'мл хий' : heldContents && liquidMl(heldContents) <= .005 && solidMassG(heldContents) > 0 ? 'г' : 'см³';
+  const doseVerb = doseGas ? 'дамжуулах' : doseUnit === 'г' ? 'хийх' : 'цутгах';
+  const fittingPaper = !!tool && ['paper', 'stack'].includes(tool.role) && key === 'funnel';
+  const canPour = !!tool && !['paper', 'stack'].includes(tool.role) && tool.capacity > 0 && item.capacity > 0 && heldId !== id;
+  const action = () => { if (heldId !== id) beginHeldUse(id); };
+  const dose = (ml: number) => {
+    if (key || portable) { labUse.dose(id, ml); return; }
+    const to = interactables.get(id)?.useTarget;
+    if (normal && to?.type === 'item') transfer(normal, to, ml);
+  };
+  const entry = interactables.get(id);
+  return <section className="fixed inset-x-4 bottom-28 z-40 max-h-[24vh] overflow-auto rounded-2xl bg-white/95 p-3 text-sm text-lab-ink shadow-hud sm:inset-x-auto sm:right-4 sm:top-32 sm:bottom-auto sm:max-h-[53vh] sm:w-[270px] sm:p-4" aria-label="Багажийн удирдлага">
+    <div className="flex justify-between gap-2"><h2 className="font-bold">{item.label}</h2><button aria-label="Удирдлагыг хаах" onClick={close}>✕</button></div>
+    {heldId && heldId !== id && <div className="mt-2">
+      <p className="mb-2 text-[11px] text-slate-600">{tool?.label} → {item.label}</p>
+      <button className="touch-none rounded-lg bg-slate-200 px-3 py-2 text-xs font-bold" onPointerDown={(e) => { e.currentTarget.setPointerCapture(e.pointerId); action(); }} onPointerUp={endHeldUse} onPointerCancel={endHeldUse} onBlur={endHeldUse}
+        onKeyDown={(e) => { if ((e.key === ' ' || e.key === 'Enter') && !e.repeat) { e.preventDefault(); action(); } }} onKeyUp={endHeldUse}>Дарж барьж {fittingPaper ? 'цаасыг суулгах' : canPour ? 'цутгах' : 'ашиглах'}</button>
+      {canPour && <div className="mt-2 flex flex-wrap gap-2">{[.1, 1, 5].map((ml) => <button key={ml} className="rounded-lg bg-sky-100 px-3 py-2 text-xs font-bold" onClick={() => dose(ml)}>{ml} {doseUnit} {doseVerb}</button>)}</div>}
+    </div>}
+    <div className="mt-2 flex flex-wrap gap-2">
+      {((entry?.onGrab && entry.onGrab !== entry.onInteract) || key === 'lamp' || key === 'scope') && <button className="rounded-lg bg-slate-100 px-3 py-2 text-xs font-bold" onClick={() => { if (key) labUse.start(id); else entry?.onInteract?.(); }}>Ашиглах</button>}
+      <button className="rounded-lg bg-sky-100 px-3 py-2 text-xs font-semibold text-sky-900" onClick={() => mode === 'walk' ? readItem(id) : inspecting ? benchView.back() : benchView.inspect(id)}>{inspecting ? 'Esc · Ширээнд буцах' : 'F · Барьж шинжлэх'}</button>
+      {!heldId && !inspecting && <button className="rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs" onClick={() => { interactItem(id, true); }}>Авах / зөөх</button>}
+      {heldId === id && <button className="rounded-lg bg-emerald-100 px-3 py-2 text-xs font-semibold" onClick={() => { tablePointer.angle += Math.PI / 4; }}>Эргүүлэх 45°</button>}
+      {heldId === id && isTouchDevice() && <button className="rounded-lg bg-emerald-100 px-3 py-2 text-xs font-semibold" onClick={dropHeld}>Тавих</button>}
+    </div>
+    <Grade9Controls id={id} />
+    {item.capacity > 0 && <div className="mt-2 rounded-xl bg-sky-50 px-3 py-2"><span className="block text-[10px] font-bold uppercase tracking-wide text-slate-500">Одоогийн эзэлхүүн</span><output className="font-mono text-2xl font-bold tabular-nums text-sky-900" aria-label="Одоогийн эзэлхүүн">{m.ml.toFixed(1)} <small className="text-sm">см³</small></output>{key === 'cyl' && <div className="text-xs text-sky-800">Зорилго: 50.0 см³ · Менискийн доод ирмэгийг урдаас унш.</div>}</div>}
   </section>;
 }
 
@@ -161,6 +226,7 @@ export function NaClHUD() {
       {!cohesiveGuide && lesson && <p className="mt-1 text-[11px] text-slate-600" role="status">{active === 'nacl' && !preparing ? guide.warning : state.warning}</p>}
     </aside></StarInstructions>}
     {closeup && !workbench.drawer && isTouchDevice() && <CameraControls />}
+    {(closeup || !!portable) && !workbench.drawer && <BenchControls />}
     {active === 'nacl' && <Microscope />}
   </>;
 }

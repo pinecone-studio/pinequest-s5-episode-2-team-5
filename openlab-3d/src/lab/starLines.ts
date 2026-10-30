@@ -6,8 +6,9 @@
 import type { LabEvent } from './events';
 import type { EquipmentKind } from '../equipment/equipmentCatalog';
 
-export type StarTone = 'danger' | 'oops' | 'good';
-export type StarMood = 'idle' | 'wave' | 'happy' | 'think' | 'oops' | 'danger';
+export type StarTone = 'danger' | 'oops' | 'good' | 'tip';
+/** `tip`: the sit-down tip, the one calm message shown over the desk instructions (StarAssistant). */
+export type StarMood = 'idle' | 'wave' | 'happy' | 'think' | 'oops' | 'danger' | 'tip';
 
 export interface StarLine {
   /** Cooldown key: the same line is not repeated within cooldownMs. */
@@ -81,6 +82,11 @@ export function starLineFor(e: LabEvent, firstTime: boolean): StarLine | null {
 /** A short pep talk after a finished step, with what to do next. */
 export function pepTalk(nextStep?: string): StarLine {
   return { key: 'pep', tone: 'good', mood: 'happy', cooldownMs: 45_000, ai: false, text: nextStep ? `${next(PEP)} Дараагийнх нь: ${nextStep}` : next(PEP) };
+}
+
+/** A tip when the student sits down at the worktop: `text` is Star's own, `about` what the AI words. */
+export function benchTipLine(text: string, about: string): StarLine {
+  return { key: 'bench-tip', tone: 'tip', mood: 'tip', cooldownMs: 60_000, ai: true, about, text };
 }
 
 /** Cheering for a finished experiment, with what it showed. */

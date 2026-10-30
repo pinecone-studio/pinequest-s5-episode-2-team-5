@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { canAskAi, experimentDoneLine, GRIP_KINDS, nearest, pepTalk, STAR_AI, STAR_POINTS_AT, starLineFor } from '../src/lab/starLines.ts';
+import { benchTipLine, canAskAi, experimentDoneLine, GRIP_KINDS, nearest, pepTalk, STAR_AI, STAR_POINTS_AT, starLineFor } from '../src/lab/starLines.ts';
 
 test('real danger makes Star say "Stop!" at once, never through the AI', () => {
   for (const key of ['safety:goggles', 'safety:gloves', 'safety:grip', 'safety:hot']) {
@@ -71,4 +71,15 @@ test('Star points at the closest of several items on the floor plan', () => {
   assert.equal(nearest(goggles, -2, -10).id, 'near');
   assert.equal(nearest(goggles, 6, -14).id, 'far');
   assert.equal(nearest([], 0, 0), null);
+});
+
+test('sitting down at the worktop earns a tip the AI may word, without flying off to point anywhere', () => {
+  const line = benchTipLine('Хуруу шилэнд 2 мл HCl хий.', 'Хүүхэд ширээнд суулаа.');
+  assert.equal(line.tone, 'tip');
+  assert.equal(line.mood, 'tip', 'its own mood, so it may show over the desk instructions');
+  assert.equal(line.ai, true);
+  assert.equal(line.text, 'Хуруу шилэнд 2 мл HCl хий.');
+  assert.equal(line.about, 'Хүүхэд ширээнд суулаа.');
+  assert.equal(STAR_POINTS_AT[line.key], undefined);
+  assert.equal(canAskAi(line, { used: 0, lastAt: -Infinity, failures: 0 }, 1000), true);
 });

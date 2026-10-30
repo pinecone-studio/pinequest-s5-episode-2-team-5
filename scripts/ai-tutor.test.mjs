@@ -54,12 +54,14 @@ test('Star\'s one-line comments get a smaller length limit', async () => {
 test('Star comments only cheer or comfort, stick to the lab context and fit in a bubble', () => {
   assert.equal(commentTone('good'), 'good');
   assert.equal(commentTone('oops'), 'oops');
+  assert.equal(commentTone('tip'), 'tip', 'a tip when the student sits down at the worktop');
   assert.equal(commentTone('danger'), null, '"Stop!" is never written by the AI');
   assert.equal(commentTone(undefined), null);
   const context = JSON.stringify({ mode: 'free lab', recent: ['Цэнхэр тунадас үүслээ'] });
   const good = starCommentPrompt('good', context);
   assert.ok(good.includes('Star') && good.includes('магтаж') && good.includes('Цэнхэр тунадас үүслээ'));
   assert.ok(starCommentPrompt('oops', context).includes('Бүү загна'));
+  assert.ok(starCommentPrompt('tip', context).includes('ажлын ширээнд суулаа'));
   assert.ok(starCommentPrompt('good', 'x'.repeat(10000)).length < 5000, 'the context is cut to keep each call cheap');
   assert.equal(cleanComment('**Хөөх!**  Зэсийн\n гидроксид үүслээ. 🌟'), 'Хөөх! Зэсийн гидроксид үүслээ. 🌟');
   const long = cleanComment(`${'Сайн байна. '.repeat(40)}`);

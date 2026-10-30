@@ -18,7 +18,7 @@ import { NotesButton } from './NotesButton';
 import { NotesPanel } from './NotesPanel';
 import { EndButton, EndConfirm } from './EndButton';
 import { ToolTab } from './ToolTab';
-import { StarAssistant } from './StarAssistant';
+import { StarAssistant, StarCompass } from './StarAssistant';
 import { StarGuidanceProvider } from './StarGuidance';
 import { ControlsHelp } from './ControlsHelp';
 import { PauseMenu } from './PauseMenu';
@@ -64,6 +64,7 @@ export function HUD() {
       {inGame && <ToolTab />}
       {inGame && <RoomToast />}
       {inGame && <StarAssistant hidden={mode === 'inspect' || mode === 'paused'} />}
+      {inGame && mode !== 'inspect' && <StarCompass />}
       {showFps && <FpsCounter />}
       <MenuPanel />
       <NotesPanel />
